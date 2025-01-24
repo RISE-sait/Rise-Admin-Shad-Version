@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import {
   Accordion,
   AccordionContent,
@@ -13,23 +16,39 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import { useTheme } from "next-themes"
+
 export default function Clients() {
+
+  const { theme, setTheme } = useTheme()
+  const [currentTheme, setCurrentTheme] = useState("")
+
+  useEffect(() => {
+    if (theme) {
+      setCurrentTheme(theme)
+    }
+  }, [theme])
+
   return (
-  <div className="p-5" >
-    <h1 className="font-semibold pb-2 text-lg" >Admin Panel Settings </h1>
-    <Accordion type="single" collapsible>
-      <AccordionItem value="item-1">
-        <AccordionTrigger>Account Settings</AccordionTrigger>
+    <div className="p-5">
+      <h1 className="font-semibold pb-2 text-lg">Admin Panel Settings</h1>
+      <Accordion type="single" collapsible>
+        <AccordionItem value="item-1">
+          <AccordionTrigger>Account Settings</AccordionTrigger>
+          <AccordionContent>Account Settings</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-2">
+          <AccordionTrigger>Theme & General Settings</AccordionTrigger>
           <AccordionContent>
-            Account Settings
-          </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="item-2">
-        <AccordionTrigger>Theme & General Settings</AccordionTrigger>
-          <AccordionContent>
-            <div className="p-3" >
-              <h1 className="pb-3" > Client Theme </h1>
-              <Select>
+            <div className="p-3">
+              <h1 className="pb-3">Client Theme</h1>
+              <Select
+                value={currentTheme}
+                onValueChange={(value) => {
+                  setTheme(value)
+                  setCurrentTheme(value)
+                }}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Theme" />
                 </SelectTrigger>
@@ -41,14 +60,12 @@ export default function Clients() {
               </Select>
             </div>
           </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="item-3">
-        <AccordionTrigger>Misc Settings</AccordionTrigger>
-          <AccordionContent>
-            Misc Settings
-          </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  </div>
-  );
+        </AccordionItem>
+        <AccordionItem value="item-3">
+          <AccordionTrigger>Misc Settings</AccordionTrigger>
+          <AccordionContent>Misc Settings</AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  )
 }
