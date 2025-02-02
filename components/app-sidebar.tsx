@@ -45,8 +45,8 @@ const data = {
           url: "/manage/clients",
         },
         {
-          title: "Classes",
-          url: "/manage/classes",
+          title: "Courses",
+          url: "/manage/courses",
         },
         {
           title: "Store",

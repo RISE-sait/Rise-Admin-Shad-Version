@@ -1,5 +1,7 @@
 // app/types/client.ts
 
+import { Course } from "./course";
+
 export interface Client {
     id: string;
     name: string;
@@ -8,16 +10,9 @@ export interface Client {
     membership: string;
     accountType: string;
     profilePicture: string;
-    classes?: ClassItem[];
+    classes?: Course[]
     membershipTab?: MembershipDetails;
     detailsTab?: ClientDetails;
-  }
-  
-  export interface ClassItem {
-    date: string;
-    time: string;
-    classTitle: string;
-    facility: string;
   }
   
   export interface MembershipDetails {

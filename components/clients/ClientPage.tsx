@@ -36,7 +36,8 @@ export default function ClientsPage({ clients }: { clients: Client[] }) {
       <div className="flex-1 overflow-y-auto">
         <h1 className="text-2xl font-semibold mb-4">Clients</h1>
         <div className="flex items-center gap-2 mb-4">
-          <SearchBar />
+          <SearchBar placeholderText="Search Clients
+          "/>
           <Button variant="outline" onClick={() => openDrawer("add")} className="ml-auto">
             Add Client
           </Button>

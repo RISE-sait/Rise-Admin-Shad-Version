@@ -10,5 +10,6 @@ export default async function ManageClientsPage(props: {
   const filteredClients = clientsData.filter((client) =>
     client.name.toLowerCase().includes(search.toLowerCase()),
   )
-  return <ClientsPage clients={filteredClients} />
+  // return <ClientsPage clients={filteredClients} />
+  return <h3>hey</h3>
 }

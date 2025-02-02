@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation"
 import { useCallback, useState } from "react"
 import { Input } from "@/components/ui/input"
 
-export default function SearchBar() {
+export default function SearchBar({placeholderText}: {placeholderText: string}) {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get("name") || "")
   const rq = useRouterQuery({ name: "" })
@@ -33,7 +33,7 @@ export default function SearchBar() {
       </svg>
       <Input
         className="pl-8 pr-2"
-        placeholder="Search clients"
+        placeholder={placeholderText}
         value={searchTerm}
         onChange={onChange}
       />
