@@ -8,26 +8,16 @@ import AddClientForm from "./AddCourseForm"
 import { useDrawer } from "../../hooks/drawer"
 import { Course } from "@/types/course"
 import SearchBar from "../reusable/SearchBar"
+import CourseInfoPanel from "./CourseInfoPanel"
+import AddCourseForm from "./AddCourseForm"
 
 export default function CoursesPage({ courses }: { courses: Course[] }) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer()
 
-  const handleAddCourse = (course: Course) => {
-    // Add client to the list (you might want to update the state or make an API call here)
-    closeDrawer()
-  }
-
   const handleCourseSelect = (id: string) => {
     setSelectedCourseId(id)
     openDrawer("details")
-  }
-
-  // Determine the title based on the drawer content
-  const getDrawerTitle = () => {
-    if (drawerContent === "add") return "Add Course"
-    if (drawerContent === "details") return "Course Details"
-    return "Sheet"
   }
   
   return (
@@ -45,15 +35,13 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={closeDrawer}
-        title={getDrawerTitle()}
       >
-        <h3>he</h3>
-        {/* {drawerContent === "details" && selectedCourseId && (
-          <ClientDetail clientId={selectedCourseId} onBack={closeDrawer} />
-        )} */}
-        {/* {drawerContent === "add" && (
-          <AddClientForm onAddClient={handleAddCourse} />
-        )} */}
+        {drawerContent === "details" && selectedCourseId && (
+          <CourseInfoPanel courseId={selectedCourseId} onBack={closeDrawer} />
+        )}
+        {drawerContent === "add" && (
+          <AddCourseForm/>
+        )}
       </RightDrawer>
     </div>
   )

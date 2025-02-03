@@ -57,6 +57,10 @@ const data = {
           url: "/manage/facilites",
         },
         {
+          title: "Coaches",
+          url: "/manage/coaches",
+        },
+        {
           title: "Trainers",
           url: "/manage/trainers",
         },

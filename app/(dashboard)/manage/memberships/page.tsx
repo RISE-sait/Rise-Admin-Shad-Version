@@ -1,7 +1,11 @@
-import Image from "next/image";
+import FacilitiesPage from "@/components/facilities/FacilityPage";
+import MembershipsPage from "@/components/memberships/MembershipPage";
+import { Membership } from "@/types/membership";
 
-export default function Memberships() {
-  return (
-    <h1> test </h1>
-  );
+export default async function () {
+
+  const data = await fetch('http://localhost:8080/api/memberships')
+  const memberships: Membership[] = await data.json()
+
+ return <MembershipsPage memberships={memberships}/>
 }

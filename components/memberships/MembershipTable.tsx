@@ -1,16 +1,16 @@
 "use client"
 // ...existing code...
 // Removed MUI imports (DataGrid, etc.)
-import { Course } from "../../types/course"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { format } from "date-fns"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Membership } from "@/types/membership"
 
-export default function CourseTable({
-  courses,
-  onCourseSelect,
+export default function MembershipTable({
+  memberships,
+  onMembershipSelect,
 }: {
-  courses: Course []
-  onCourseSelect: (id: string) => void
+  memberships: Membership []
+  onMembershipSelect: (id: string) => void
 }) {
   return (
     <div className="overflow-auto h-[500px]">
@@ -18,20 +18,22 @@ export default function CourseTable({
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
-          {courses.map((course) => (
+          {memberships.map((membership) => (
             <TableRow
-              key={course.id}
-              onClick={() => onCourseSelect(course.id)}
+              key={membership.id}
+              onClick={() => onMembershipSelect(membership.id)}
               className="cursor-pointer hover:bg-gray-50"
             >
-              <TableCell>{course.name}</TableCell>
-              <TableCell>{format(new Date(course.start_date), "yyyy-MM-dd")}</TableCell>
-              <TableCell>{format(new Date(course.end_date), "yyyy-MM-dd")}</TableCell>
+              <TableCell>{membership.name}</TableCell>
+              <TableCell>{membership.description}</TableCell>
+              <TableCell>{membership.start_date}</TableCell>
+              <TableCell>{membership.end_date}</TableCell>
             </TableRow>
           ))}
         </TableBody>

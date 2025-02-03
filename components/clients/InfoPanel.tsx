@@ -6,7 +6,11 @@
 // import { Button } from "@/components/ui/button"
 // import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import MembershipTab from "./details/Membership"
+// import MembershipTab from "./infoTabs/Membership"
+// import DetailsTab from "./infoTabs/Details"
+// import ClassesTab from "./infoTabs/Classes"
+// import TransactionsTab from "./infoTabs/Transactions"
+// import Notes from "./infoTabs/Notes"
 // import clientsData from "../../data/clients.json"
 // import { Client } from "../../types/clients"
 

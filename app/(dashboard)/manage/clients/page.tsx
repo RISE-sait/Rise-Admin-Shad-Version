@@ -1,4 +1,4 @@
-import ClientsPage from "../../../../components/clients/ClientPage"
+// import ClientsPage from "../../../../components/clients/ClientPage"
 import clientsData from "../../../../data/clients.json"
 import { SearchParams } from "../../../../types/searchParams"
 

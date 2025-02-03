@@ -4,3 +4,30 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+/**
+     * Converts a given date to a UTC date string with the time set to 00:00:00.
+     *
+     * This function ensures that the date remains the same across time zones, but any time component 
+     * (hours, minutes, seconds, milliseconds) is discarded. The final result is always at midnight (00:00:00) in UTC.
+     *
+     * @param {Date} date - The input date object.
+     * @returns {string} An ISO 8601 string representing the date at UTC midnight (00:00:00).
+     *
+     * @example
+     * // Example in Mountain Standard Time (UTC-07:00)
+     * const localDate = new Date("2025-02-03T15:30:00-07:00");
+     * console.log(convertDateToUTC(localDate)); 
+     * // Output: "2025-02-03T00:00:00.000Z"
+     *
+     * @example
+     * // Example in Indian Standard Time (UTC+05:30)
+     * const localDate = new Date("2025-02-03T23:59:59+05:30");
+     * console.log(convertDateToUTC(localDate)); 
+     * // Output: "2025-02-03T00:00:00.000Z"
+     */
+export function convertDateToUTC(date: Date): string {
+  const localDate = new Date(date); // Create a copy of the original date
+  localDate.setHours(0, 0, 0, 0); // Set the time to 00:00:00
+  return localDate.toISOString(); // Convert it to ISO string (UTC format)
+}

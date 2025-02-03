@@ -7,7 +7,6 @@ interface RightDrawerProps {
   handleDrawerClose: () => void
   children: React.ReactNode
   drawerWidth?: string
-  title: string
 }
 
 const RightDrawer: React.FC<RightDrawerProps> = ({
@@ -15,7 +14,6 @@ const RightDrawer: React.FC<RightDrawerProps> = ({
   handleDrawerClose,
   children,
   drawerWidth = "100%",
-  title,
 }) => {
   return (
     <Sheet open={drawerOpen} onOpenChange={handleDrawerClose}>
@@ -24,7 +22,6 @@ const RightDrawer: React.FC<RightDrawerProps> = ({
         className={`w-[${drawerWidth}]`}
         aria-labelledby="sheet-title"
       >
-        <SheetTitle>{title}</SheetTitle>
         {children}
       </SheetContent>
     </Sheet>

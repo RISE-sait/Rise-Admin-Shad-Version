@@ -1,5 +1,3 @@
-// app/types/client.ts
-
 import { Course } from "./course";
 
 export interface Client {
@@ -11,8 +9,7 @@ export interface Client {
     accountType: string;
     profilePicture: string;
     classes?: Course[]
-    membershipTab?: MembershipDetails;
-    detailsTab?: ClientDetails;
+    emergencyContact?: EmergencyContact;
   }
   
   export interface MembershipDetails {
@@ -20,11 +17,6 @@ export interface Client {
     renewalDate: string;
     status: string;
     benefits: string[];
-  }
-  
-  export interface ClientDetails {
-    preferences: string[];
-    emergencyContact: EmergencyContact;
   }
   
   export interface EmergencyContact {
