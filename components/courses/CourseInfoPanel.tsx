@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Course } from "@/types/course"
 import { Separator } from "../ui/separator"
 import DetailsTab from "./infoTabs/Details"
+// import SchedulesTab from "./infoTabs/Schedule"
 
 
 export default function CourseInfoPanel({
@@ -44,7 +45,6 @@ export default function CourseInfoPanel({
 
       <div>
         <p className="text-base font-semibold">{course.name}</p>
-        <p className="text-sm text-gray-300">{course.description}</p>
       </div>
       <Separator />
       <Tabs value={tabValue} onValueChange={setTabValue}>
@@ -57,6 +57,9 @@ export default function CourseInfoPanel({
          <TabsContent value="details">
           <DetailsTab course={course} />
         </TabsContent>
+        {/* <TabsContent value="schedule">
+          <SchedulesTab courseId={courseId} />
+        </TabsContent> */}
 {/*
         <TabsContent value="classes">
           {client.classes && <ClassesTab classes={client.classes} />}

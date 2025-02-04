@@ -46,7 +46,29 @@ export default function FacilityInfoPanel({
                 <p className="text-base font-semibold">{facility.name}</p>
             </div>
             <Separator />
-            <DetailsTab facility={facility} />
+            <Tabs value={tabValue} onValueChange={setTabValue}>
+                <TabsList className="flex justify-between space-x-10">
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                    <TabsTrigger value="enrolled">Enrolled</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="details">
+                    <DetailsTab facility={facility} />
+                </TabsContent>
+                {/*
+        <TabsContent value="classes">
+          {client.classes && <ClassesTab classes={client.classes} />}
+        </TabsContent>
+
+        <TabsContent value="transactions">
+          <TransactionsTab />
+        </TabsContent>
+
+        <TabsContent value="notes">
+          <Notes />
+        </TabsContent> */}
+            </Tabs>
         </div>
     )
 }

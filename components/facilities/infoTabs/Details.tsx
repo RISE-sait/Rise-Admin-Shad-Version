@@ -71,7 +71,7 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
         <div>
           <div>
             <p className="text-base font-semibold ">
-              Facility Name
+              Name <span className="text-red-500">*</span>
 
             </p>
             <p className="font-normal text-sm flex items-center">
@@ -87,7 +87,7 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
 
         <div>
           <p className="text-base font-semibold ">
-            Location
+            Location <span className="text-red-500">*</span>
           </p>
           <p className="font-normal text-sm flex items-center">
             <Input
@@ -105,7 +105,7 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
 
         <div>
           <p className="text-base font-semibold ">
-            Type
+            Type <span className="text-red-500">*</span>
 
           </p>
           <DropdownMenu>
