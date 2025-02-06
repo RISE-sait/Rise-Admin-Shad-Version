@@ -28,10 +28,10 @@ export default function MembershipTable({
             <TableRow
               key={membership.id}
               onClick={() => onMembershipSelect(membership.id)}
-              className="cursor-pointer hover:bg-gray-50"
+              className="cursor-pointer"
             >
               <TableCell>{membership.name}</TableCell>
-              <TableCell>{membership.description}</TableCell>
+              <TableCell >{membership.description}</TableCell>
               <TableCell>{membership.start_date}</TableCell>
               <TableCell>{membership.end_date}</TableCell>
             </TableRow>

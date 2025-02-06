@@ -27,7 +27,6 @@ export default function FacilityTable({
             <TableRow
               key={facility.id}
               onClick={() => onFacilitySelect(facility.id)}
-              className="cursor-pointer hover:bg-gray-50"
             >
               <TableCell>{facility.name}</TableCell>
               <TableCell>{facility.location}</TableCell>

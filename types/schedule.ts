@@ -3,6 +3,6 @@ export interface Schedule {
     course: string
     facility: string
     day: string
-    begin_datetime: string
-    end_datetime: string
+    begin_time: string
+    end_time: string
 }

@@ -10,7 +10,7 @@ export default function CourseTable({
   onCourseSelect,
 }: {
   courses: Course []
-  onCourseSelect: (id: string) => void
+  onCourseSelect: (course: Course) => void
 }) {
   return (
     <div className="overflow-auto h-[500px]">
@@ -26,8 +26,7 @@ export default function CourseTable({
           {courses.map((course) => (
             <TableRow
               key={course.id}
-              onClick={() => onCourseSelect(course.id)}
-              className="cursor-pointer hover:bg-gray-50"
+              onClick={() => onCourseSelect(course)}
             >
               <TableCell>{course.name}</TableCell>
               <TableCell>{format(new Date(course.start_date), "yyyy-MM-dd")}</TableCell>

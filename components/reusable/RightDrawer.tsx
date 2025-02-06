@@ -1,6 +1,5 @@
 import React from "react"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
-import SheetTitle from "@/components/ui/SheetTitle"
 
 interface RightDrawerProps {
   drawerOpen: boolean
@@ -13,13 +12,12 @@ const RightDrawer: React.FC<RightDrawerProps> = ({
   drawerOpen,
   handleDrawerClose,
   children,
-  drawerWidth = "100%",
 }) => {
   return (
     <Sheet open={drawerOpen} onOpenChange={handleDrawerClose}>
       <SheetContent
+        className="min-w-fit"
         side="right"
-        className={`w-[${drawerWidth}]`}
         aria-labelledby="sheet-title"
       >
         {children}

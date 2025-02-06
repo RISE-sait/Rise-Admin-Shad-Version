@@ -1,10 +1,19 @@
 import CoursesPage from "@/components/courses/CoursePage";
 import { Course } from "@/types/course";
 
-export default async function () {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const courseName = (await searchParams).name
 
-  const data = await fetch('http://localhost:8080/api/courses')
+  const data = await fetch(`http://localhost:8080/api/courses?name=${courseName ?? ''}`)
   const courses: Course[] = await data.json()
 
-  return <CoursesPage courses={courses} />
+  return (
+    <div className="p-6 flex">
+      <CoursesPage courses={courses} />
+    </div>
+  )
 }
