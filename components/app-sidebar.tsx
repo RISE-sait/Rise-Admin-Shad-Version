@@ -1,5 +1,5 @@
 "use client"
- 
+
 import * as React from "react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -11,13 +11,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useUser } from "@/contexts/UserContext"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Home",
@@ -41,8 +37,8 @@ const data = {
       icon: '/Icons/Manage.svg',
       items: [
         {
-          title: "Clients",
-          url: "/manage/clients",
+          title: "Customers",
+          url: "/manage/customers",
         },
         {
           title: "Courses",
@@ -100,18 +96,31 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+  const { user } = useUser()
+
+  const navUserProps: {
+    name: string
+    email: string
+    avatar: string
+  } = {
+    email: user?.Email || "",
+    name: user?.Name || "",
+    avatar: "/avatars/shadcn.jpg"
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-      <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full" > 
-        <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> 
-      </div>
+        <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full" >
+          <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {user && <NavUser user={navUserProps} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

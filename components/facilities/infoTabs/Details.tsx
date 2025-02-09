@@ -26,7 +26,9 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
   useEffect(() => {
 
     (async () => {
-      const facilityTypes = await fetch("http://localhost:8080/api/facilities/types")
+      const facilityTypes = await fetch("/api/facilities/types", {
+        credentials: "include",
+      })
       if (!facilityTypes.ok) {
         console.error("Failed to fetch facility types")
         console.error(await facilityTypes.text())
@@ -40,7 +42,7 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
   }, [facility.id])
 
   const updateFacility = async () => {
-    const response = await fetch("http://localhost:8080/api/facilities/" + facility.id, {
+    const response = await fetch("/api/facilities/" + facility.id, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

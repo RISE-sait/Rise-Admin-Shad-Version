@@ -32,7 +32,7 @@ export default function DetailsTab({ course }: { course: Course }) {
 
   const updateCourse = async () => {
 
-    const response = await fetch("http://localhost:8080/api/courses/" + course.id, {
+    const response = await fetch(process.env.BACKEND_URL + "/api/courses/" + course.id, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

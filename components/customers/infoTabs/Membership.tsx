@@ -1,7 +1,7 @@
 // Removed MUI imports (Card, CardContent, Typography, Grid, Box, Divider)
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { MembershipDetails } from "../../../types/clients"
+import { MembershipDetails } from "../../../types/customer"
 
 export default function MembershipTab({
   membershipTab,
