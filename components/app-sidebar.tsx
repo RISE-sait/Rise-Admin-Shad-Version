@@ -3,6 +3,7 @@
 import * as React from "react"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
+import Link from 'next/link'
 import Image from "next/image"
 import {
   Sidebar,
@@ -104,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
       <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full" > 
-        <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> 
+        <Link href={"/"} > <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> </Link>
       </div>
       </SidebarHeader>
       <SidebarContent>
