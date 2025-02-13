@@ -8,7 +8,7 @@ export default async function Page({
 }) {
   const courseName = (await searchParams).name
 
-  const data = await fetch(`http://localhost:8080/api/courses?name=${courseName ?? ''}`)
+  const data = await fetch(process.env.BACKEND_URL +`/api/courses?name=${courseName ?? ''}`)
   const courses: Course[] = await data.json()
 
   return (

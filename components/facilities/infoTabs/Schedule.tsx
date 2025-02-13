@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Schedule } from "@/types/schedule";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
@@ -7,15 +7,16 @@ import { Input } from "@/components/ui/input";
 
 import { toast } from "@/hooks/use-toast";
 import { Facility } from "@/types/facility";
+import { Course } from "@/types/course";
 
-export default function SchedulesTab({ courseId }: { courseId: string }) {
+export default function SchedulesTab({ facilityId }: { facilityId: string }) {
 
   const [schedules, setSchedules] = useState<Schedule[]>([])
 
   useEffect(() => {
-    // Fetch the schedules based on the courseId
+    // Fetch the schedules based on the facilityId
     (async () => {
-      const response = await fetch("/api/events?course_id=" + courseId)
+      const response = await fetch("/api/events?facility_id=" + facilityId)
 
       if (!response.ok) {
         console.error("Failed to fetch schedules")
@@ -27,13 +28,13 @@ export default function SchedulesTab({ courseId }: { courseId: string }) {
 
       setSchedules(schedules)
     })()
-  }, [courseId])
+  }, [facilityId])
 
   return (
     <div className="p-4 space-y-4">
       {
         schedules.map((schedule) => (
-          <ScheduleListCard key={schedule.id} schedule={schedule} courseId={courseId} />
+          <ScheduleListCard key={schedule.id} schedule={schedule} facilityId={facilityId}/>
         ))
       }
     </div>
@@ -42,44 +43,44 @@ export default function SchedulesTab({ courseId }: { courseId: string }) {
 
 // I dont know why refactoring this to a separate file doesn't work, the dropdown doesn't render well
 
-function ScheduleListCard({ schedule, courseId }: { schedule: Schedule, courseId: string }) {
+function ScheduleListCard({ schedule, facilityId }: { schedule: Schedule, facilityId: string }) {
 
   const [beginTimeStr, setBeginTimeStr] = useState(schedule.begin_time)
   const [endTimeStr, setEndTimeStr] = useState(schedule.end_time)
   const [day, setDay] = useState(schedule.day)
-  const [facility, setFacility] = useState(schedule.facility)
+  const [course, setCourse] = useState(schedule.course)
 
-  const [facilties, setFacilities] = useState<Facility[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
 
   const resetChanges = () => {
     setBeginTimeStr(schedule.begin_time)
     setEndTimeStr(schedule.end_time)
     setDay(schedule.day)
-    setFacility(schedule.facility)
+    setCourse(schedule.course)
   }
 
-  const isFormChanged = () => {
-
+  const isFormChanged = useMemo(() => {
     return !(beginTimeStr === schedule.begin_time &&
       endTimeStr === schedule.end_time &&
       day === schedule.day &&
-      facility === schedule.facility
+      course === schedule.course
     )
-  }
+
+  }, [beginTimeStr, endTimeStr, day, course, schedule]);
 
   useEffect(() => {
     (async () => {
-      const response = await fetch("/api/facilities")
+      const response = await fetch("/api/courses")
 
       if (!response.ok) {
-        console.error("Failed to fetch facilities")
+        console.error("Failed to fetch courses")
         console.error(await response.text())
         return
       }
 
-      const facilities = await response.json()
+      const courses = await response.json()
 
-      setFacilities(facilities)
+      setCourses(courses)
     })()
   }, [])
 
@@ -93,12 +94,7 @@ function ScheduleListCard({ schedule, courseId }: { schedule: Schedule, courseId
       return
     }
 
-    const facilityId = facilties.find(f => {
-      if (f.name === facility) {
-        console.log(f.name)
-        return f
-      }
-    })?.id
+    const courseId = courses.find(c => c.name === course)?.id
 
     const response = await fetch("/api/events/" + schedule.id, {
       method: "PUT",
@@ -180,18 +176,18 @@ function ScheduleListCard({ schedule, courseId }: { schedule: Schedule, courseId
         <div>
 
           <p className="text-base font-semibold ">
-            Facility <span className="text-red-500">*</span>
+            Course <span className="text-red-500">*</span>
           </p>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant={"outline"}>{facility}</Button>
+              <Button variant={"outline"}>{course}</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {
-                facilties.map((facility) => (
-                  <DropdownMenuItem key={facility.id} onSelect={() => { setFacility(facility.name) }}
+                courses.map((course) => (
+                  <DropdownMenuItem key={course.id} onSelect={() => { setCourse(course.name) }}
                   >
-                    {facility.name}
+                    {course.name}
                   </DropdownMenuItem>
                 ))
               }
@@ -203,12 +199,11 @@ function ScheduleListCard({ schedule, courseId }: { schedule: Schedule, courseId
 
       <section className="flex justify-center mt-6 gap-4">
         <Button
-          disabled={!isFormChanged()}
+          disabled={!isFormChanged}
           onClick={updateSchedule}
           className="bg-green-500 text-black font-semibold">Save</Button>
         <Button onClick={resetChanges}
-          disabled={!isFormChanged()
-          }
+          disabled={!isFormChanged}
           className="text-black font-semibold">Reset changes</Button>
       </section>
     </div >

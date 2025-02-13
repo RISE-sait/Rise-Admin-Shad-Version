@@ -3,12 +3,12 @@
 import React, { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Client } from "../../types/clients"
+import { Customer } from "../../types/customer"
 
 export default function AddClientForm({
   onAddClient,
 }: {
-  onAddClient: (client: Client) => void
+  onAddClient: (client: Customer) => void
 }) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -17,7 +17,7 @@ export default function AddClientForm({
   const [accountType, setAccountType] = useState("")
 
   const handleAdd = () => {
-    const newClient: Client = {
+    const newClient: Customer = {
       id: String(Date.now()),
       name,
       email,

@@ -2,12 +2,12 @@
 
 import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Client } from "@/types/clients"
+import { Customer } from "@/types/customer"
 import clientsData from "@/data/clients.json"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function ClientDetail() {
-  const [client, setClient] = useState<Client | null>(null)
+  const [client, setClient] = useState<Customer | null>(null)
   const params = useParams()
   const id = params.id as string
 

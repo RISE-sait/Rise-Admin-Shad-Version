@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Separator } from "../ui/separator"
 import { Facility } from "@/types/facility"
 import DetailsTab from "./infoTabs/Details"
+import SchedulesTab from "./infoTabs/Schedule"
 
 
 export default function FacilityInfoPanel({
@@ -23,7 +24,7 @@ export default function FacilityInfoPanel({
     useEffect(() => {
         // Fetch the course details based on the courseId
         (async () => {
-            const response = await fetch("http://localhost:8080/api/facilities/" + facilityId)
+            const response = await fetch("/api/facilities/" + facilityId)
 
             if (!response.ok) {
                 console.error("Failed to fetch facility details")
@@ -56,18 +57,10 @@ export default function FacilityInfoPanel({
                 <TabsContent value="details">
                     <DetailsTab facility={facility} />
                 </TabsContent>
-                {/*
-        <TabsContent value="classes">
-          {client.classes && <ClassesTab classes={client.classes} />}
-        </TabsContent>
 
-        <TabsContent value="transactions">
-          <TransactionsTab />
-        </TabsContent>
-
-        <TabsContent value="notes">
-          <Notes />
-        </TabsContent> */}
+                <TabsContent value="schedule">
+                    <SchedulesTab facilityId={facility.id} />
+                </TabsContent>
             </Tabs>
         </div>
     )

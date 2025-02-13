@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight, type LucideIcon } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -36,7 +36,6 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Manage</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible

@@ -18,7 +18,7 @@ export default function AddFacilityForm() {
   useEffect(() => {
   
       (async () => {
-        const facilityTypes = await fetch("http://localhost:8080/api/facilities/types")
+        const facilityTypes = await fetch("/api/facilities/types")
         if (!facilityTypes.ok) {
           console.error("Failed to fetch facility types")
           console.error(await facilityTypes.text())
@@ -32,7 +32,7 @@ export default function AddFacilityForm() {
     }, [])
 
   const handleAddFacility = async () => {
-    const response = await fetch("http://localhost:8080/api/facilities", {
+    const response = await fetch("/api/facilities", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

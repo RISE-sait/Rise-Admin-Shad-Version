@@ -1,6 +1,6 @@
 // Removed MUI imports (Card, CardContent, Grid, Box, Typography)
 import { Card } from "@/components/ui/card"
-import { ClassItem } from "../../../types/clients"
+import { ClassItem } from "../../../types/customer"
 
 export default function ClassesTab({ classes }: { classes: ClassItem[] }) {
   return (

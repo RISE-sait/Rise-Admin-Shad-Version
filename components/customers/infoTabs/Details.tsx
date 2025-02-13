@@ -1,7 +1,7 @@
 // Removed MUI imports (Card, CardContent, Typography, Grid, Box, Divider)
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ClientDetails } from "../../../types/clients"
+import { ClientDetails } from "../../../types/customer"
 
 export default function DetailsTab({ detailsTab }: { detailsTab: ClientDetails }) {
   return (

@@ -10,7 +10,7 @@ import { format } from "date-fns"
 import { cn, convertDateToUTC } from "@/lib/utils"
 import { Calendar } from "../ui/calendar"
 import { Textarea } from "../ui/textarea"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 export default function AddCourseForm() {
   const [name, setName] = useState("")
@@ -38,10 +38,7 @@ export default function AddCourseForm() {
       return
     }
 
-    toast({
-      status: "success",
-      description: "Successfully saved.",
-    })
+    toast("Successfuly Saved")
   }
 
   const resetData = () => {
