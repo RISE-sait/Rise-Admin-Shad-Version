@@ -31,7 +31,7 @@ const data = {
         },
         {
           title: "Calender",
-          url: "/calender",
+          url: "/home/calender",
         },
       ],
     },
