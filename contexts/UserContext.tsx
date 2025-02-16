@@ -18,7 +18,19 @@ export const useUser = () => {
 };
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  // Set a dummy user to work on the front end without authentication.
+  const dummyUser: User = {
+    Email: "guest@example.com",
+    Name: "Guest User",
+    StaffInfo: {
+      Role: "ADMIN", // or 'INSTRUCTOR' | 'SUPERADMIN' | 'COACH'
+      IsActive: true,
+    },
+  };
+  const [user, setUser] = useState<User | null>(dummyUser);
+
+  
+  /*const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,7 +54,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [router]);
 
-  if (user === null) return null; // Prevent flickering before redirect
+  if (user === null) return null; // Prevent flickering before redirect */
 
-  return <UserContext.Provider value={{ user, setUser }}>{children}</UserContext.Provider>;
+  return(
+   <UserContext.Provider value={{ user, setUser }}>
+      {children}
+    </UserContext.Provider>
+  );
 }

@@ -34,7 +34,7 @@ export default function AddEventForm({
   }
 
   return (
-    <RightDrawer drawerOpen={drawerOpen} handleDrawerClose={onClose} title="Add Event">
+    <RightDrawer drawerOpen={drawerOpen} handleDrawerClose={onClose} >
       <div className="p-6 space-y-4">
         <Input
           placeholder="Event title"

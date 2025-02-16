@@ -145,12 +145,9 @@ const handleFilterChange = (type: FilterChangeType, value: string, checked: bool
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">Calendar</h1>
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={toggleFilter}>
+        <div className="flex">
+          <Button variant="outline" onClick={toggleFilter}>
             {filterOpen ? "Hide Filters" : "Show Filters"}
-          </Button>
-          <Button variant="default" onClick={() => openDrawer("add")}>
-            Create Event
           </Button>
         </div>
       </div>
@@ -159,7 +156,7 @@ const handleFilterChange = (type: FilterChangeType, value: string, checked: bool
       <div className="flex flex-row gap-2">
         {/* Filter Sidebar */}
         {filterOpen && (
-          <div className="w-1/6">
+          <div className="w-1/6 mt-4">
             <FilterComponent
               filters={filters}
               onFilterChange={handleFilterChange}
