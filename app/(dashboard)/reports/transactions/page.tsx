@@ -1,4 +1,4 @@
-import TransactionsPage from "@/components/payments/page";
+import TransactionsPage from "@/components/transactions/page";
 import Image from "next/image";
 
 export default function Transactions() {
