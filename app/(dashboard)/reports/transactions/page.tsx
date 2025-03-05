@@ -1,7 +1,10 @@
+import TransactionsPage from "@/components/transactions/page";
 import Image from "next/image";
 
 export default function Transactions() {
   return (
-    <h1> test </h1>
+    <div>
+      <TransactionsPage/>
+    </div>
   );
 }
