@@ -3,10 +3,9 @@
 import { useState } from 'react'
 import Calendar from './calendar/calendar'
 import { CalendarEvent, Mode } from './calendar/calendar-types'
-import { generateMockEvents } from '../../../lib/mock-calendar-events'
 
-export default function CalendarDemo() {
-  const [events, setEvents] = useState<CalendarEvent[]>(generateMockEvents())
+export default function CalendarDemo({ initialEvents }: { initialEvents: CalendarEvent[] }) {
+  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents)
   const [mode, setMode] = useState<Mode>('month')
   const [date, setDate] = useState<Date>(new Date())
 

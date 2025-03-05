@@ -20,20 +20,21 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
+interface NavItem {
+  title: string
+  url: string
+  icon?: React.ReactNode
+  isActive?: boolean
+  items?: NavItem[]
+}
+
+interface NavMainProps {
+  items: NavItem[]
+}
+
 export function NavMain({
   items,
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: string
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
-}) {
+}: NavMainProps) {
   return (
     <SidebarGroup>
       <SidebarMenu>
@@ -47,7 +48,7 @@ export function NavMain({
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <Image src={item.icon} alt={item.title} width={20} height={20} /> }
+                  {item.icon &&  <span className="icon">{item.icon}</span>}
                   <span>{item.title}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>

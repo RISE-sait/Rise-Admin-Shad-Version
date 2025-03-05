@@ -1,14 +1,11 @@
+"use client"
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { format } from 'date-fns'
+
 import {
   Form,
   FormControl,
@@ -20,7 +17,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCalendarContext } from '../calendar-context'
-import { format } from 'date-fns'
 import { DateTimePicker } from '../../form/date-time-picker'
 import { ColorPicker } from '../../form/color-picker'
 import {
@@ -34,6 +30,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+
+// Import your RightDrawer (Sheet-based drawer component)
+import RightDrawer from '@/components/reusable/RightDrawer'
 
 const formSchema = z
   .object({
@@ -62,7 +61,7 @@ const formSchema = z
     }
   )
 
-export default function CalendarManageEventDialog() {
+export default function CalendarManageEventDrawer() {
   const {
     manageEventDialogOpen,
     setManageEventDialogOpen,
@@ -125,11 +124,12 @@ export default function CalendarManageEventDialog() {
   }
 
   return (
-    <Dialog open={manageEventDialogOpen} onOpenChange={handleClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Manage event</DialogTitle>
-        </DialogHeader>
+    <RightDrawer
+      drawerOpen={manageEventDialogOpen}
+      handleDrawerClose={handleClose}
+    >
+      <div className="p-4 space-y-4">
+        <h2 className="text-lg font-semibold">Manage event</h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -188,7 +188,7 @@ export default function CalendarManageEventDialog() {
               )}
             />
 
-            <DialogFooter className="flex justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" type="button">
@@ -212,10 +212,10 @@ export default function CalendarManageEventDialog() {
                 </AlertDialogContent>
               </AlertDialog>
               <Button type="submit">Update event</Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </RightDrawer>
   )
 }
