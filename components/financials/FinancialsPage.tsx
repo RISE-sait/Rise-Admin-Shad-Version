@@ -1,12 +1,15 @@
-"use client"
+"use client";
 
-import React from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SummaryCards } from "./SummaryCard"
-import { SalesChart } from "./SalesChart"
-import { UsersChart } from "./UsersChart"
+import React, { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SummaryCards } from "./SummaryCard";
+import { SalesChart } from "./SalesChart";
+import { UsersChart } from "./UsersChart";
 
 export default function FinancialsPage() {
+  // 📌 Manage selected year at the top level
+  const [selectedYear, setSelectedYear] = useState("2022");
+
   return (
     <div className="container mx-auto py-10">
       <header className="mb-8">
@@ -16,34 +19,22 @@ export default function FinancialsPage() {
         </p>
       </header>
 
-      {/* Summary Cards */}
-      <SummaryCards />
+      {/* 📌 Pass selectedYear and setSelectedYear */}
+      <SummaryCards selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
 
-      {/* Tabbed Charts Section */}
+      {/* 📌 Tabbed Charts Section */}
       <Tabs defaultValue="users" className="mt-10">
         <TabsList>
           <TabsTrigger value="users">User Growth</TabsTrigger>
           <TabsTrigger value="sales">Sales Trends</TabsTrigger>
         </TabsList>
         <TabsContent value="users">
-          <UsersChart />
+          <UsersChart selectedYear={selectedYear} />
         </TabsContent>
         <TabsContent value="sales">
-          <SalesChart />
+          <SalesChart selectedYear={selectedYear} />
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-
-//       {/* Advanced Chart Section */}
-//       <div style={{ marginBottom: '40px', backgroundColor: '#fff', padding: '16px', borderRadius: '8px' }}>
-//         <AdvancedChart
-//           selectedYear={selectedYear}
-//           onYearChange={setSelectedYear}
-//           chartDataByYear={chartDataByYear}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
