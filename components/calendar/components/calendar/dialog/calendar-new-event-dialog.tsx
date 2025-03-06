@@ -107,7 +107,7 @@ export default function CalendarNewEventDrawer() {
     <>
     <RightDrawer drawerOpen={newEventDialogOpen} handleDrawerClose={handleClose} drawerWidth="w-[25%]" >
       <div className="p-6 space-y-4">
-        <h2 className="scroll-m-20 border-b pb-4 text-3xl font-semibold tracking-tight mb-4">
+        <h2 className="scroll-m-20 border-b pb-4 text-2xl font-semibold tracking-tight mb-4">
           Choose your event type
         </h2>
 
