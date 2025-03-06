@@ -2,9 +2,10 @@
 
 import React from "react";
 import { Line } from "react-chartjs-2";
+import { useTheme } from "next-themes";
 import {
   Chart as ChartJS,
-  CategoryScale, 
+  CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -12,12 +13,16 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);   
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
 interface UsersChartProps {
   selectedYear: string;
 }
 
 export function UsersChart({ selectedYear }: UsersChartProps) {
+  const { theme } = useTheme(); 
+
   const usersDataByYear: Record<string, number[]> = {
     "2022": [40, 60, 55, 75, 70, 50, 77, 65, 79, 58, 62, 74],
     "2023": [45, 55, 63, 72, 69, 55, 80, 68, 75, 60, 67, 73],
@@ -29,13 +34,52 @@ export function UsersChart({ selectedYear }: UsersChartProps) {
     datasets: [
       {
         label: "New Users",
-        data: usersDataByYear[selectedYear] || [], 
-        borderColor: "rgba(153, 102, 255, 1)",
-        backgroundColor: "rgba(153, 102, 255, 0.2)",
+        data: usersDataByYear[selectedYear] || [],
+        borderColor: theme === "dark" ? "rgba(153, 102, 255, 1)" : "rgba(153, 102, 255, 1)",
+        backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(153, 102, 255, 0.2)",
         tension: 0.3,
       },
     ],
   };
 
-  return <Line data={data} />;
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+        labels: {
+          color: theme === "dark" ? "#ffffff" : "#000000", 
+        },
+      },
+      title: {
+        display: true,
+        text: `Monthly User Growth - ${selectedYear}`,
+        color: theme === "dark" ? "#ffffff" : "#000000", 
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          color: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(200, 200, 200, 0.5)",  
+        },
+        ticks: {
+          color: theme === "dark" ? "#ffffff" : "#000000", 
+        },
+      },
+      y: {
+        grid: {
+          color: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(150, 150, 150, 0.5)",  
+        },
+        ticks: {
+          color: theme === "dark" ? "#ffffff" : "#000000", 
+        },
+      },
+    },
+  };
+
+  return (
+    <div className={`p-4 rounded-lg transition-all ${theme === "dark" ? "bg-gray-900" : "bg-white"}`}>
+      <Line data={data} options={options} />
+    </div>
+  );
 }
