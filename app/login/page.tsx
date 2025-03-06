@@ -12,39 +12,59 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth'
+import { auth } from "@/configs/firebase"
+import { useRouter } from "next/navigation"
 
 export default function Login() {
 
   const [error, setError] = useState<string | null>(null);
+  const [signInWithGoogle, , googleLoading, googleError] = useSignInWithGoogle(auth);
+  const [signInWithEmailPassword] = useSignInWithEmailAndPassword(auth);
+
+  const router = useRouter(); // Initialize useRouter
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null); // Clear previous errors
 
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
 
-    const response = await fetch("/api/identity/auth/traditional", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        email: "admin@gmail.com", 
-        password: "ADMIN1234"}),
-      credentials: "include", // To receive cookies from backend
-    });
+    try {
+      const result = await signInWithEmailPassword(email, password);
 
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.message || "Login failed"); // Display backend error message
-      return;
+      if (result?.user) {
+        const idToken = await result.user.getIdToken()
+
+        window.location.href = "/"
+
+        return;
+      }
+    } catch (err) {
+      setError("Failed to sign in. Please try again.");
     }
+  }
 
-    // Redirect to dashboard or home page after successful login
-    else {
-      window.location.href = "/"
+  const handleGoogleSignIn = async () => {
+    setError(null); // Clear previous errors
+
+    try {
+      const result = await signInWithGoogle();
+      if (result?.user) {
+
+        const idToken = await result.user.getIdToken()
+
+        console.log(idToken)
+        // Redirect to dashboard or home page after successful Google sign-in
+        router.push("/");
+      }
+    } catch (err) {
+      setError("Failed to sign in with Google. Please try again.");
     }
   };
+
 
   return (
     <div className={cn("gap-6 min-h-svh max-w-sm flex items-center mx-auto p-6 md:p-10")}>
@@ -83,9 +103,16 @@ export default function Login() {
               <Button type="submit" className="w-full">
                 Login
               </Button>
-              <Button variant="outline" className="w-full">
-                Login with Google
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading} // Disable button while loading
+              >
+                {googleLoading ? "Signing in..." : "Login with Google"}
               </Button>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {googleError && <p className="text-red-500 text-sm">{googleError.message}</p>}
             </div>
           </form>
         </CardContent>
