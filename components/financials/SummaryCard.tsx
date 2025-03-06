@@ -52,8 +52,8 @@ export function SummaryCards({ selectedYear, setSelectedYear }: SummaryCardsProp
     ],
     "2024": [
       { title: "Total Revenue", value: "$164,000", icon: <DollarSign size={24} color="#4CAF50" /> },
-      { title: "New Customers", value: "1570", icon: <User size={24} color="#2196F3" /> },
-      { title: "Pending", value: "$1,530", icon: <RefreshCcw size={24} color="#FFC107" /> },
+      { title: "New Customers", value: "157", icon: <User size={24} color="#2196F3" /> },
+      { title: "Pending", value: "$1,430", icon: <RefreshCcw size={24} color="#FFC107" /> },
       { title: "Failed Transactions", value: "11", icon: <XOctagon size={24} color="#f44336" /> },
     ],
   };

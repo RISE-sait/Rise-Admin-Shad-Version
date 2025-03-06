@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { useTheme } from "next-themes";
 import {
@@ -12,16 +12,19 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler, 
 } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 interface SalesChartProps {
   selectedYear: string;
 }
 
 export function SalesChart({ selectedYear }: SalesChartProps) {
-  const { theme } = useTheme(); 
+  const { theme } = useTheme();
+  const chartRef = useRef(null);
+  const [gradientColor, setGradientColor] = useState<string>("rgba(75, 192, 192, 0.2)");
 
   const salesDataByYear: Record<string, number[]> = {
     "2022": [12500, 14000, 13500, 16000, 13000, 17000, 14500, 16500, 15500, 18500, 16000, 17000],  
@@ -29,15 +32,29 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
     "2024": [15500, 17000, 14500, 20000, 15000, 22500, 17500, 19000, 22000, 19500, 23500, 19000],  
   };
 
+  useEffect(() => {
+    if (chartRef.current) {
+      const chart = chartRef.current as any;
+      const ctx = chart.ctx;
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      
+      gradient.addColorStop(0, "rgba(75, 192, 192, 0.6)"); // Bright teal at top
+      gradient.addColorStop(1, "rgba(75, 192, 192, 0.1)"); // Faded teal at bottom
+
+      setGradientColor(gradient);
+    }
+  }, [theme]);
+
   const data = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     datasets: [
       {
         label: "Sales",
         data: salesDataByYear[selectedYear] || [],
-        borderColor: theme === "dark" ? "rgba(75, 192, 192, 1)" : "rgba(75, 192, 192, 1)", 
-        backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(75, 192, 192, 1)", 
+        backgroundColor: gradientColor, 
         tension: 0.3,
+        fill: true,
       },
     ],
   };
@@ -54,13 +71,13 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
       title: {
         display: true,
         text: `Monthly Sales Trend - ${selectedYear}`,
-        color: theme === "dark" ? "#ffffff" : "#000000", 
+        color: theme === "dark" ? "#ffffff" : "#000000",
       },
     },
     scales: {
       x: {
         grid: {
-          color: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(200, 200, 200, 0.5)", 
+          color: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(200, 200, 200, 0.5)",
         },
         ticks: {
           color: theme === "dark" ? "#ffffff" : "#000000",
@@ -68,7 +85,7 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
       },
       y: {
         grid: {
-          color: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(200, 200, 200, 0.5)",
+          color: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(150, 150, 150, 0.5)",
         },
         ticks: {
           color: theme === "dark" ? "#ffffff" : "#000000",
@@ -79,7 +96,7 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
 
   return (
     <div className={`p-4 rounded-lg transition-all ${theme === "dark" ? "bg-gray-900" : "bg-white"}`}>
-      <Line data={data} options={options} />
+      <Line ref={chartRef} data={data} options={options} />
     </div>
   );
 }
