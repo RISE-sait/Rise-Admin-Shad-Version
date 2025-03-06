@@ -1,5 +1,9 @@
-import { Payment, columns } from "./columns"
-import { DataTable } from "./data-table"
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
+import { Payment, columns } from "./columns";
+import { DataTable } from "./data-table";
 
 async function getData(): Promise<Payment[]> {
   // Fetch data from your API here.
@@ -24,20 +28,30 @@ async function getData(): Promise<Payment[]> {
     { id: "r8t4v6x", amount: 520, status: "success", email: "brian@example.com", name: "Brian Lee" },
     { id: "s9u5w7y", amount: 480, status: "failed", email: "nicole@example.com", name: "Nicole Adams" },
     { id: "t0v6x8z", amount: 540, status: "pending", email: "david@example.com", name: "David Kim" },
-    // ...
-  ]
+  ];
 }
 
-export default async function TransactionsPage() {
-  const data = await getData()
+export default function TransactionsPage() {
+  const { theme } = useTheme();
+  const [data, setData] = useState<Payment[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const result = await getData();
+      setData(result);
+    }
+    fetchData();
+  }, []);
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Transactions</h1>
-        <p className="text-gray-500">Manage your Payments.</p>
+    <div className={`container mx-auto py-10 ${theme === "dark" ? "bg-black text-white" : "bg-white text-gray-800"}`}>
+      <div className="shadow rounded-lg p-6">
+        <div className=" justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold">Transactions</h1>
+          <p className="text-gray-500 dark:text-gray-300">Manage your payments.</p>
+        </div>
         <DataTable columns={columns} data={data} />
       </div>
     </div>
-  )
+  );
 }

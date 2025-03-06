@@ -12,6 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge";
+
+const statusTextColors: Record<string, string> = {
+  pending: "text-yellow-500",
+  processing: "text-blue-500",
+  success: "text-green-500",
+  failed: "text-red-500",
+}
 
 export type Payment = {
   id: string
@@ -55,6 +63,10 @@ export const columns: ColumnDef<Payment>[] = [
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
+      },
+      cell: ({ row }) => {
+        const status: string = row.getValue("status");
+        return <span className={`${statusTextColors[status]} font-medium`}>{status}</span>;
       },
   },
   {
