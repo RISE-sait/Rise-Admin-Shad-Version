@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Payment, columns } from "./columns";
 import { DataTable } from "./data-table";
+import { Button } from "@/components/ui/button";
+import Papa from "papaparse";
+import { jsPDF } from "jspdf";
+import { saveAs } from "file-saver"; 
 
 async function getData(): Promise<Payment[]> {
   // Fetch data from your API here.
@@ -43,12 +47,33 @@ export default function TransactionsPage() {
     fetchData();
   }, []);
 
+  const exportToCSV = () => {
+    const csv = Papa.unparse(data);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    saveAs(blob, "transactions.csv");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Transactions Report", 10, 10);
+
+    data.forEach((payment, index) => {
+      doc.text(`${index + 1}. ${payment.name} - ${payment.amount} - ${payment.status}`, 10, 20 + index * 10);
+    });
+
+    doc.save("transactions.pdf");
+  };
+
   return (
     <div className={`container mx-auto py-10 ${theme === "dark" ? "bg-black text-white" : "bg-white text-gray-800"}`}>
       <div className="shadow rounded-lg p-6">
         <div className=" justify-between items-center mb-4">
           <h1 className="text-3xl font-bold">Transactions</h1>
           <p className="text-gray-500 dark:text-gray-300">Manage your payments.</p>
+        </div>
+        <div className="flex gap-4 mb-4">
+          <Button variant="outline" onClick={exportToCSV}>Export CSV</Button>
+          <Button variant="outline" onClick={exportToPDF}>Export PDF</Button>
         </div>
         <DataTable columns={columns} data={data} />
       </div>
