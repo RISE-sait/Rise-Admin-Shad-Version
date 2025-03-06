@@ -13,13 +13,14 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useUser } from "@/contexts/UserContext"
+import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react"
 
 const data = {
   navMain: [
     {
       title: "Home",
       url: "#",
-      icon: "/Icons/Home.svg",
+      icon: <HomeIcon width={20} height={15} />,
       isActive: true,
       items: [
         {
@@ -35,7 +36,7 @@ const data = {
     {
       title: "Manage",
       url: "/manage/clients",
-      icon: '/Icons/Manage.svg',
+      icon: <Wrench width={15} height={15} />,
       items: [
         {
           title: "Customers",
@@ -70,7 +71,7 @@ const data = {
     {
       title: "Automation",
       url: "#",
-      icon: '/Icons/Automation.svg',
+      icon: <Mailbox width={15} height={15} />,
       items: [
         {
           title: "Messages",
@@ -81,7 +82,7 @@ const data = {
     {
       title: "Reports",
       url: "#",
-      icon: '/Icons/Reports.svg',
+      icon: <BookOpen width={15} height={15} />,
       items: [
         {
           title: "Transactions",

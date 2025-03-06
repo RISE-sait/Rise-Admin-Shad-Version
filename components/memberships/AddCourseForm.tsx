@@ -1,38 +1,44 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Customer } from "../../types/customer"
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Customer } from "../../types/customer";
 
 export default function AddClientForm({
   onAddClient,
 }: {
-  onAddClient: (client: Customer) => void
+  onAddClient: (client: Customer) => void;
 }) {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [membership, setMembership] = useState("")
-  const [accountType, setAccountType] = useState("")
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [membership, setMembership] = useState("");
+  const [accountType, setAccountType] = useState("");
+  const [attendance, setAttendance] = useState(123);
+  const [membership_renewal_date, setMembership_renewal_date] = useState("");
 
   const handleAdd = () => {
     const newClient: Customer = {
-      id: String(Date.now()),
+      customer_id: String(Date.now()),
       name,
       email,
       phone,
       membership,
       accountType,
       profilePicture: "",
-    }
-    onAddClient(newClient)
-    setName("")
-    setEmail("")
-    setPhone("")
-    setMembership("")
-    setAccountType("")
-  }
+      attendance,
+      membership_renewal_date,
+    };
+    onAddClient(newClient);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setMembership("");
+    setAccountType("");
+    setAttendance(222222);
+    setMembership_renewal_date("");
+  };
 
   return (
     <div className="p-6 space-y-4">
@@ -63,5 +69,5 @@ export default function AddClientForm({
       />
       <Button onClick={handleAdd}>Add</Button>
     </div>
-  )
+  );
 }

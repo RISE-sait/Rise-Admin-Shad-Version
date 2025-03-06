@@ -1,5 +1,8 @@
 import CalendarDemo from '../calendar/components/calendar-demo'
+import {  generateMockEvents } from '../../lib/mock-calendar-events'
 
 export default function Home() {
-  return <CalendarDemo />
+
+  const mockEvents= generateMockEvents()
+  return <CalendarDemo initialEvents={mockEvents} />
 }
