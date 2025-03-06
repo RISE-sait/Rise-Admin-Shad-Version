@@ -12,7 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler, 
+  Filler,
 } from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -23,25 +23,27 @@ interface SalesChartProps {
 
 export function SalesChart({ selectedYear }: SalesChartProps) {
   const { theme } = useTheme();
-  const chartRef = useRef(null);
-  const [gradientColor, setGradientColor] = useState<string>("rgba(75, 192, 192, 0.2)");
+  const chartRef = useRef<ChartJS<"line", number[], string> | null>(null);
+  const [gradientColor, setGradientColor] = useState<string | CanvasGradient>("rgba(75, 192, 192, 0.2)");
 
   const salesDataByYear: Record<string, number[]> = {
-    "2022": [12500, 14000, 13500, 16000, 13000, 17000, 14500, 16500, 15500, 18500, 16000, 17000],  
-    "2023": [14000, 12000, 15500, 17500, 13500, 18500, 17000, 19500, 16000, 22500, 19000, 16000],  
-    "2024": [15500, 17000, 14500, 20000, 15000, 22500, 17500, 19000, 22000, 19500, 23500, 19000],  
+    "2022": [12500, 14000, 13500, 16000, 13000, 17000, 14500, 16500, 15500, 18500, 16000, 17000],
+    "2023": [14000, 12000, 15500, 17500, 13500, 18500, 17000, 19500, 16000, 22500, 19000, 16000],
+    "2024": [15500, 17000, 14500, 20000, 15000, 22500, 17500, 19000, 22000, 19500, 23500, 19000],
   };
 
   useEffect(() => {
     if (chartRef.current) {
-      const chart = chartRef.current as any;
-      const ctx = chart.ctx;
-      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-      
-      gradient.addColorStop(0, "rgba(75, 192, 192, 0.6)"); // Bright teal at top
-      gradient.addColorStop(1, "rgba(75, 192, 192, 0.1)"); // Faded teal at bottom
+      const chartCanvas = chartRef.current as any;
+      const ctx = chartCanvas.ctx;
 
-      setGradientColor(gradient);
+      if (ctx) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, "rgba(75, 192, 192, 0.6)"); 
+        gradient.addColorStop(1, "rgba(75, 192, 192, 0.1)"); 
+
+        setGradientColor(gradient);
+      }
     }
   }, [theme]);
 
@@ -51,10 +53,13 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
       {
         label: "Sales",
         data: salesDataByYear[selectedYear] || [],
-        borderColor: "rgba(75, 192, 192, 1)", 
+        borderColor: "rgba(75, 192, 192, 1)",  
         backgroundColor: gradientColor, 
         tension: 0.3,
         fill: true,
+        pointBackgroundColor: "rgba(75, 192, 192, 1)",
+        pointHoverRadius: 6,  
+        pointRadius: 3,
       },
     ],
   };
@@ -72,6 +77,17 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
         display: true,
         text: `Monthly Sales Trend - ${selectedYear}`,
         color: theme === "dark" ? "#ffffff" : "#000000",
+      },
+      tooltip: {
+        enabled: true,
+        mode: "nearest" as const,
+        intersect: false,
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#ffffff",
+        bodyColor: "#ffffff",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+        caretPadding: 10,
       },
     },
     scales: {
@@ -91,6 +107,10 @@ export function SalesChart({ selectedYear }: SalesChartProps) {
           color: theme === "dark" ? "#ffffff" : "#000000",
         },
       },
+    },
+    hover: {
+      mode: "nearest" as const,
+      intersect: false,
     },
   };
 

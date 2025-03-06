@@ -12,7 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler, 
+  Filler,
 } from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
@@ -23,8 +23,8 @@ interface UsersChartProps {
 
 export function UsersChart({ selectedYear }: UsersChartProps) {
   const { theme } = useTheme();
-  const chartRef = useRef(null);
-  const [gradientColor, setGradientColor] = useState<string>("rgba(30, 144, 255, 0.2)"); 
+  const chartRef = useRef<ChartJS<"line", number[], string> | null>(null);
+  const [gradientColor, setGradientColor] = useState<string | CanvasGradient>("rgba(30, 144, 255, 0.2)"); 
 
   const usersDataByYear: Record<string, number[]> = {
     "2022": [40, 60, 55, 75, 70, 50, 77, 65, 79, 58, 62, 74],
@@ -34,14 +34,16 @@ export function UsersChart({ selectedYear }: UsersChartProps) {
 
   useEffect(() => {
     if (chartRef.current) {
-      const chart = chartRef.current as any;
-      const ctx = chart.ctx;
-      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-      
-      gradient.addColorStop(0, "rgba(30, 144, 255, 0.6)"); 
-      gradient.addColorStop(1, "rgba(30, 144, 255, 0.1)"); 
+      const chartCanvas = chartRef.current as any;
+      const ctx = chartCanvas.ctx;
 
-      setGradientColor(gradient);
+      if (ctx) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, "rgba(30, 144, 255, 0.6)");  
+        gradient.addColorStop(1, "rgba(30, 144, 255, 0.1)");  
+
+        setGradientColor(gradient);
+      }
     }
   }, [theme]);
 
@@ -51,10 +53,13 @@ export function UsersChart({ selectedYear }: UsersChartProps) {
       {
         label: "New Users",
         data: usersDataByYear[selectedYear] || [],
-        borderColor: "rgba(30, 144, 255, 1)",
+        borderColor: "rgba(30, 144, 255, 1)",  
         backgroundColor: gradientColor, 
         tension: 0.3,
         fill: true,
+        pointBackgroundColor: "rgba(30, 144, 255, 1)",  
+        pointHoverRadius: 6,  
+        pointRadius: 3,  
       },
     ],
   };
@@ -72,6 +77,17 @@ export function UsersChart({ selectedYear }: UsersChartProps) {
         display: true,
         text: `Monthly User Growth - ${selectedYear}`,
         color: theme === "dark" ? "#ffffff" : "#000000",
+      },
+      tooltip: {
+        enabled: true,
+        mode: "nearest" as const,
+        intersect: false,
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#ffffff",
+        bodyColor: "#ffffff",
+        borderColor: "rgba(30, 144, 255, 1)",
+        borderWidth: 1,
+        caretPadding: 10,
       },
     },
     scales: {
@@ -91,6 +107,10 @@ export function UsersChart({ selectedYear }: UsersChartProps) {
           color: theme === "dark" ? "#ffffff" : "#000000",
         },
       },
+    },
+    hover: {
+      mode: "nearest" as const,
+      intersect: false,
     },
   };
 
