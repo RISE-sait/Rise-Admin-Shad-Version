@@ -5,7 +5,7 @@ export default function CalendarHeaderDateIcon() {
   const date = calendarIconIsToday ? new Date() : calendarDate
   return (
     <div className="flex size-14 flex-col items-start overflow-hidden rounded-lg border">
-      <p className="flex h-6 w-full items-center justify-center bg-primary text-center text-xs font-semibold text-foreground uppercase">
+      <p className="flex h-6 w-full items-center justify-center bg-primary text-center text-xs font-semibold text-black uppercase">
         {format(date, 'MMM')}
       </p>
       <p className="flex w-full items-center justify-center text-lg font-bold">
