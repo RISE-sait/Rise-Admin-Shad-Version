@@ -111,10 +111,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full" > 
         <Link href={"/home"} > <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> </Link>
       </div>
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
@@ -129,6 +132,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </Link>
         </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
