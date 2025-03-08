@@ -28,7 +28,7 @@ const data = {
           url: "/home",
         },
         {
-          title: "Calender",
+          title: "Calendar",
           url: "/home/calender",
         },
       ],
