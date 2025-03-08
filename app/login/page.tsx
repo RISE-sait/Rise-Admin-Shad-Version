@@ -38,7 +38,7 @@ export default function Login() {
       if (result?.user) {
         const idToken = await result.user.getIdToken()
 
-        window.location.href = "/"
+        window.location.href = "/home"
 
         return;
       }
@@ -58,7 +58,7 @@ export default function Login() {
 
         console.log(idToken)
         // Redirect to dashboard or home page after successful Google sign-in
-        router.push("/");
+        router.push("/home");
       }
     } catch (err) {
       setError("Failed to sign in with Google. Please try again.");

@@ -25,11 +25,11 @@ const data = {
       items: [
         {
           title: "Dashboard",
-          url: "/",
+          url: "/home",
         },
         {
           title: "Calender",
-          url: "/calender",
+          url: "/home/calender",
         },
       ],
     },
@@ -115,7 +115,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
       <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full" > 
-        <Link href={"/"} > <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> </Link>
+        <Link href={"/home"} > <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> </Link>
       </div>
       </SidebarHeader>
       <SidebarContent>
