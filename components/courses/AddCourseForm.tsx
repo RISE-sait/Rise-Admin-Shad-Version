@@ -3,12 +3,6 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Separator } from "../ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn, convertDateToUTC } from "@/lib/utils";
-import { Calendar } from "../ui/calendar";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import getValue from "../Singleton";
@@ -16,150 +10,60 @@ import getValue from "../Singleton";
 export default function AddCourseForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
 
-  // Get ApiUrl
   const apiUrl = getValue("API");
 
   const handleAddCourse = async () => {
-    const response = await fetch(apiUrl + "/courses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        description,
-        start_date: convertDateToUTC(startDate as Date),
-        end_date: convertDateToUTC(endDate as Date),
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("Failed to update course");
-      console.error(await response.text());
+    // Check if the course name is empty
+    if (!name.trim()) {
+      toast.error("Course name is required.");
       return;
     }
 
-    toast("Successfuly Saved");
-  };
+    try {
+      const response = await fetch(apiUrl + `/courses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description, name }),
+      });
 
-  const resetData = () => {
-    setName("");
-    setDescription("");
-    setStartDate(null);
-    setEndDate(null);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to update course:", errorText);
+        toast.error("Failed to save course. Please try again.");
+        return;
+      }
+
+      toast.success("Successfully Saved");
+    } catch (error) {
+      console.error("Error during API request:", error);
+      toast.error("An error occurred. Please try again.");
+    }
   };
 
   return (
-    <div className="p-6 space-y-4">
-      <p className="text-2xl font-semibold">Add Course</p>
-      <Separator />
-      <div className="space-y-5">
-        <div>
-          <div>
-            <p className="text-base font-semibold ">
-              Course Name <span className="text-red-500">*</span>
-            </p>
-            <p className="font-normal text-sm flex items-center">
-              <Input
-                onChange={(e) => setName(e.target.value)}
-                type="text"
-                value={name}
-              />
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-base font-semibold">
-            Start Date <span className="text-red-500">*</span>
-          </p>
-          <p className="font-normal text-sm flex items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-[240px] justify-start text-left font-normal",
-                    !startDate && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? (
-                    format(startDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate ?? undefined}
-                  onSelect={(date) => setStartDate(date ?? null)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </p>
-        </div>
-
-        <div>
-          <p className="text-base font-semibold">
-            End Date <span className="text-red-500">*</span>
-          </p>
-          <p className="font-normal text-sm flex items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-[240px] justify-start text-left font-normal",
-                    !endDate && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={endDate ?? undefined}
-                  onSelect={(date) => setEndDate(date ?? null)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </p>
-        </div>
-
-        <div>
-          <p className="text-base font-semibold ">Description</p>
-          <p className="font-normal text-sm flex items-center">
-            <Textarea
-              rows={Math.max(4, description.split("\n").length)}
-              onChange={(e) => setDescription(e.target.value)}
-              value={description}
-            />
-          </p>
-        </div>
+    <div className="space-y-4 pt-3">
+      <div className="pb-4">
+        <p className="pb-2">
+          Course Name <span className="text-red-500">*</span>
+        </p>
+        <Input
+          onChange={(e) => setName(e.target.value)}
+          type="text"
+          value={name}
+        />
       </div>
 
-      <section className="flex justify-between">
-        <Button
-          onClick={handleAddCourse}
-          disabled={!name || !startDate || !endDate}
-          className="bg-green-500 text-black font-semibold"
-        >
-          Save
-        </Button>
-        <Button onClick={resetData} className="text-black font-semibold">
-          Reset
-        </Button>
-      </section>
+      <div className="pb-4">
+        <p className="pb-2">Description</p>
+        <Textarea
+          rows={Math.max(4, description.split("\n").length)}
+          onChange={(e) => setDescription(e.target.value)}
+          value={description}
+        />
+      </div>
+
+      <Button onClick={handleAddCourse}>Add Course</Button>
     </div>
   );
 }

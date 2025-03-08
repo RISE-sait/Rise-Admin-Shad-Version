@@ -1,158 +1,82 @@
-// Removed MUI imports (Card, CardContent, Typography, Grid, Box, Divider)
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormData } from "@/hooks/form-data";
 import { useToast } from "@/hooks/use-toast";
-import { cn, convertDateToUTC } from "@/lib/utils";
-import { Course } from "@/types/course"
-import { format, parseISO } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-
-import { useState } from "react";
-import { FaRegEdit } from "react-icons/fa";
+import { Course } from "@/types/course";
 
 export default function DetailsTab({ course }: { course: Course }) {
-
-  const { toast } = useToast()
-
-  const { data, updateField, isChanged, resetData } = useFormData({
+  const { toast } = useToast();
+  const { data, updateField } = useFormData({
     name: course.name,
-    startDate: course.start_date ? parseISO(course.start_date) : null,
-    endDate: course.end_date ? parseISO(course.end_date) : null,
-    description: course.description
+    description: course.description,
   });
 
-  const [nameInputEnabled, setNameInputEnabled] = useState(false)
-  const [startDateInputEnabled, setStartDateInputEnabled] = useState(false)
-  const [endDateInputEnabled, setEndDateInputEnabled] = useState(false)
-  const [descriptionInputEnabled, setDescriptionInputEnabled] = useState(false)
-
   const updateCourse = async () => {
-
-    const response = await fetch(process.env.BACKEND_URL + "/api/courses/" + course.id, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: data.name,
-        description: data.description,
-        start_date: convertDateToUTC(data.startDate as Date),
-        end_date: convertDateToUTC(data.endDate as Date)
-      }),
-    })
-
-    if (!response.ok) {
-      console.error("Failed to update course")
-      console.error(await response.text())
-      return
+    // Ensure the name is not empty
+    if (!data.name.trim()) {
+      toast({
+        status: "error",
+        description: "Course name cannot be empty.",
+      });
+      return;
     }
 
-    toast({
-      status: "success",
-      description: "Successfully saved.",
-    })
-  }
+    try {
+      const response = await fetch(
+        `${process.env.BACKEND_URL}/api/courses/${course.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.name,
+            description: data.description,
+          }),
+        },
+      );
 
+      if (!response.ok) {
+        throw new Error("Failed to update course");
+      }
+
+      toast({
+        status: "success",
+        description: "Successfully saved.",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        status: "error",
+        description: "An error occurred. Please try again.",
+      });
+    }
+  };
 
   return (
-    <div className="p-4 space-y-4">
-
-      <div>
-        <p className="text-base font-semibold ">
-          Course Name <span className="text-red-500">*</span>
-        </p>
-        <p className="font-normal text-sm flex items-center">
-          <Input onChange={e => updateField("name", e.target.value)}
-            disabled={!nameInputEnabled} type="text"
-            value={data.name} />
-          <FaRegEdit onClick={() => setNameInputEnabled(!nameInputEnabled)} className="cursor-pointer ml-2 size-4" />
-        </p>
+    <div className="space-y-4 pt-3">
+      <div className="pb-4">
+        <p className="pb-2">Course Name</p>
+        <Input
+          onChange={(e) => updateField("name", e.target.value)}
+          type="text"
+          value={data.name}
+        />
       </div>
 
-
-      <div>
-        <p className="text-base font-semibold">Start Date <span className="text-red-500">*</span></p>
-        <p className="font-normal text-sm flex items-center">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                disabled={!startDateInputEnabled}
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !data.startDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.startDate ? format(data.startDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={data.startDate ?? undefined}
-                onSelect={(date) => updateField("startDate", date ?? null)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <FaRegEdit onClick={() => setStartDateInputEnabled(!startDateInputEnabled)} className="cursor-pointer ml-2 size-4" />
-        </p>
-      </div>
-
-      <div>
-        <p className="text-base font-semibold">End Date <span className="text-red-500">*</span></p>
-        <p className="font-normal text-sm flex items-center">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                disabled={!endDateInputEnabled}
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !data.endDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.endDate ? format(data.endDate, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={data.endDate ?? undefined}
-                onSelect={(date) => updateField("endDate", date ?? null)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <FaRegEdit onClick={() => setEndDateInputEnabled(!endDateInputEnabled)} className="cursor-pointer ml-2 size-4" />
-        </p>
-      </div>
-
-      <div>
-        <p className="text-base font-semibold ">
-          Description
-        </p>
-        <p className="font-normal text-sm flex items-center">
-          <Textarea
-            rows={Math.max(4, (course.description ?? "").split("\n").length)}
-            onChange={e => updateField("description", e.target.value)}
-            disabled={!descriptionInputEnabled}
-            value={data.description} />
-          <FaRegEdit onClick={() => setDescriptionInputEnabled(!descriptionInputEnabled)} className="cursor-pointer ml-2 size-4" />
-        </p>
+      <div className="pb-4">
+        <p className="pb-2">Description</p>
+        <Textarea
+          rows={Math.max(4, (data.description ?? "").split("\n").length)}
+          onChange={(e) => updateField("description", e.target.value)}
+          value={data.description}
+        />
       </div>
 
       <section className="flex justify-between">
-        <Button onClick={updateCourse} disabled={!isChanged
-        } className="bg-green-500 text-black font-semibold">Save</Button>
-        <Button onClick={resetData} disabled={!isChanged} className="text-black font-semibold">Reset changes</Button>
+        <Button onClick={updateCourse}>Save Course</Button>
       </section>
     </div>
-  )
+  );
 }

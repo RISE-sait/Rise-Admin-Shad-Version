@@ -22,9 +22,7 @@ export default function CourseTable({
       <Table className="w-full text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>End Date</TableHead>
+            <TableHead>Course Name</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
