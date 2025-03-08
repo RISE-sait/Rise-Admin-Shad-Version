@@ -1,17 +1,32 @@
-"use Customer"
-// ...existing code...
-// Removed MUI imports (DataGrid, etc.)
-import { Customer } from "../../types/customer"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+"use client";
+import { Customer } from "../../types/customer";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function CustomerTable({
   customers,
   onCustomerSelect,
 }: {
-  customers: Customer[]
-  onCustomerSelect: (id: string) => void
+  customers: Customer[];
+  onCustomerSelect: (customer: Customer) => void;
 }) {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return "Invalid date";
+    }
+  };
+
   return (
     <div className="overflow-auto h-[500px]">
       <Table className="w-full text-sm">
@@ -20,34 +35,49 @@ export default function CustomerTable({
             <TableHead className="w-14"></TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
             <TableHead>Membership</TableHead>
-            <TableHead>Attendace</TableHead>
-            <TableHead>Expiration Date</TableHead>
+            <TableHead>Renewal Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customers.map((customer) => (
-            <TableRow
-              key={customer.customer_id}
-              onClick={() => onCustomerSelect(customer.customer_id)}
-              className="cursor-pointer hover:bg-gray-50"
-            >
-              <TableCell>
-                <Avatar>
-                  {/* <AvatarImage src={customer.profilePicture} alt={customer.name} /> */}
-                  {/* Optional fallback */}
-                  <AvatarFallback>{customer.name?.[0] ?? "?"}</AvatarFallback>
-                </Avatar>
+          {customers.length === 0 ? (
+            <TableRow key="no-customers">
+              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                No customers found
               </TableCell>
-              <TableCell>{customer.name}</TableCell>
-              <TableCell>{customer.email}</TableCell>
-              <TableCell>{customer.membership}</TableCell>
-              <TableCell>{customer.attendance}</TableCell>
-              <TableCell>{new Date(customer.membership_renewal_date).toLocaleDateString()}</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            customers.map((customer) => (
+              <TableRow
+                key={
+                  customer.customer_id ||
+                  `customer-${Math.random().toString(36).substr(2, 9)}`
+                }
+                onClick={() => onCustomerSelect(customer)}
+                className="cursor-pointer hover:bg-gray-50"
+              >
+                <TableCell>
+                  <Avatar>
+                    <AvatarFallback>
+                      {customer.name ? customer.name[0].toUpperCase() : "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
+                <TableCell>{customer.name || "N/A"}</TableCell>
+                <TableCell>{customer.email || "N/A"}</TableCell>
+                <TableCell>{customer.phone || "N/A"}</TableCell>
+                <TableCell>{customer.membership || "None"}</TableCell>
+                <TableCell>
+                  {customer.membership_renewal_date
+                    ? formatDate(customer.membership_renewal_date)
+                    : "N/A"}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

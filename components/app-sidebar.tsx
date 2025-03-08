@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
-import Link from 'next/link'
-import Image from "next/image"
+import * as React from "react";
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
+import Link from "next/link";
+import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { useUser } from "@/contexts/UserContext"
-import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react"
+} from "@/components/ui/sidebar";
+import { useUser } from "@/contexts/UserContext";
+import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react";
 
 const data = {
   navMain: [
@@ -25,11 +25,11 @@ const data = {
       items: [
         {
           title: "Dashboard",
-          url: "/",
+          url: "/home",
         },
         {
-          title: "Calender",
-          url: "/calender",
+          title: "Calendar",
+          url: "/home/calender",
         },
       ],
     },
@@ -45,10 +45,6 @@ const data = {
         {
           title: "Courses",
           url: "/manage/courses",
-        },
-        {
-          title: "Store",
-          url: "/manage/store",
         },
         {
           title: "Facilites",
@@ -99,36 +95,41 @@ const data = {
       ],
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
-  const { user } = useUser()
+  const { user } = useUser();
 
   const navUserProps: {
-    name: string
-    email: string
-    avatar: string
+    name: string;
+    email: string;
+    avatar: string;
   } = {
     email: user?.Email || "",
     name: user?.Name || "",
-    avatar: "/avatars/shadcn.jpg"
-  }
+    avatar: "/avatars/shadcn.jpg",
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-      <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full" > 
-        <Link href={"/"} > <Image src={'/RiseLogo.svg'} alt={"Rise Logo"} width={120} height={120} /> </Link>
-      </div>
+        <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
+          <Link href={"/home"}>
+            {" "}
+            <Image
+              src={"/RiseLogo.svg"}
+              alt={"Rise Logo"}
+              width={120}
+              height={120}
+            />{" "}
+          </Link>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>
-        {user && <NavUser user={navUserProps} />}
-      </SidebarFooter>
+      <SidebarFooter>{user && <NavUser user={navUserProps} />}</SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

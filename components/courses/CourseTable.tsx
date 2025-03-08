@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format } from "date-fns";
 
 export default function CourseTable({
   courses,
@@ -22,17 +21,35 @@ export default function CourseTable({
       <Table className="w-full text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>End Date</TableHead>
+            <TableHead>Course Name</TableHead>
+            <TableHead>Description</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {courses.map((course) => (
-            <TableRow key={course.id} onClick={() => onCourseSelect(course)}>
-              <TableCell>{course.name}</TableCell>
+          {courses.length === 0 ? (
+            <TableRow key="no-courses">
+              <TableCell colSpan={2} className="text-center py-8 text-gray-500">
+                No courses found
+              </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            courses.map((course) => (
+              <TableRow
+                key={course.id}
+                onClick={() => onCourseSelect(course)}
+                className="cursor-pointer hover:bg-gray-50"
+              >
+                <TableCell>{course.name}</TableCell>
+                <TableCell>
+                  {course.description
+                    ? course.description.length > 50
+                      ? `${course.description.substring(0, 50)}...`
+                      : course.description
+                    : ""}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

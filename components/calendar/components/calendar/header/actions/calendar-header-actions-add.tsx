@@ -6,7 +6,7 @@ export default function CalendarHeaderActionsAdd() {
   const { setNewEventDialogOpen } = useCalendarContext()
   return (
     <Button
-      className="flex items-center gap-1 bg-primary text-foreground"
+      className="flex items-center gap-1 bg-primary text-black"
       onClick={() => setNewEventDialogOpen(true)}
     >
       <Plus />
