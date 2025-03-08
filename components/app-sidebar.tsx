@@ -66,6 +66,10 @@ const data = {
           title: "Memberships",
           url: "/manage/memberships",
         },
+        {
+          title: "Barbershop",
+          url: "/manage/barbershop",
+        },
       ],
     },
     {
