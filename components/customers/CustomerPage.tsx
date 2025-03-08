@@ -1,60 +1,95 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import RightDrawer from "../reusable/RightDrawer"
-import CustomerTable from "./CustomerTable"
-// import CustomerDetail from "./InfoPanel"
-// import AddCustomerForm from "./AddCustomerForm"
-import { useDrawer } from "../../hooks/drawer"
-import { Customer } from "../../types/customer"
-import SearchBar from "../reusable/SearchBar"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Customer } from "../../types/customer";
+import CustomerTable from "./CustomerTable";
+import CustomerInfoPanel from "./CustomerInfoPanel";
+import AddCustomerForm from "./AddCustomerForm";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
-export default function CustomersPage({ customers }: { customers: Customer[] }) {
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
-  const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer()
+export default function CustomersPage({
+  customers,
+}: {
+  customers: Customer[];
+}) {
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogContent, setDialogContent] = useState<"details" | "add" | null>(
+    null,
+  );
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleAddCustomer = (customer: Customer) => {
-    // Add customer to the list (you might want to update the state or make an API call here)
-    closeDrawer()
-  }
+  const handleCustomerSelect = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setDialogContent("details");
+    setDialogOpen(true);
+  };
 
-  const handleCustomerSelect = (id: string) => {
-    setSelectedCustomerId(id)
-    openDrawer("details")
-  }
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email?.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-  // Determine the title based on the drawer content
-  const getDrawerTitle = () => {
-    if (drawerContent === "add") return "Add Customer"
-    if (drawerContent === "details") return "Customer Details"
-    return "Sheet"
-  }
-  
   return (
-    <div className="p-6 flex">
+    <>
       <div className="flex-1 overflow-y-auto">
-        <h1 className="text-2xl font-semibold mb-4">Customers</h1>
+        <h1 className="text-xl mb-4">Customers</h1>
         <div className="flex items-center gap-2 mb-4">
-          <SearchBar placeholderText="Search Customers
-          "/>
-          <Button variant="outline" onClick={() => openDrawer("add")} className="ml-auto">
-            Add Customer
-          </Button>
+          <div className="flex items-center justify-between gap-2 mb-4 w-full">
+            <Input
+              type="search"
+              id="customersearch"
+              placeholder="Search customers"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDialogContent("add");
+                setDialogOpen(true);
+              }}
+            >
+              Add Customer
+            </Button>
+          </div>
         </div>
-        <CustomerTable customers={customers} onCustomerSelect={handleCustomerSelect} />
+        <CustomerTable
+          customers={filteredCustomers}
+          onCustomerSelect={handleCustomerSelect}
+        />
       </div>
-      {/* <RightDrawer
-        drawerOpen={drawerOpen}
-        handleDrawerClose={closeDrawer}
-      >
-        {drawerContent === "details" && selectedCustomerId && (
-          <CustomerDetail customerId={selectedCustomerId} onBack={closeDrawer} />
-        )}
-        {drawerContent === "add" && (
-          <AddCustomerForm onAddCustomer={handleAddCustomer} />
-        )}
-      </RightDrawer> */}
-    </div>
-  )
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {dialogContent === "details"
+                ? "Customer Details"
+                : "Add Customer"}
+            </DialogTitle>
+            <DialogDescription>
+              {dialogContent === "details"
+                ? "Manage & Update Customer Information"
+                : "Add a New Customer"}
+            </DialogDescription>
+          </DialogHeader>
+          {dialogContent === "details" && selectedCustomer && (
+            <CustomerInfoPanel customer={selectedCustomer} />
+          )}
+          {dialogContent === "add" && <AddCustomerForm />}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

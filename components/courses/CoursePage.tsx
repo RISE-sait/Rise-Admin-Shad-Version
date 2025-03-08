@@ -20,12 +20,21 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
   const [dialogContent, setDialogContent] = useState<"details" | "add" | null>(
     null,
   );
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleCourseSelect = (course: Course) => {
     setSelectedCourse(course);
     setDialogContent("details");
     setDialogOpen(true);
   };
+
+  // Filter courses based on search query
+  const filteredCourses = courses.filter(
+    (course) =>
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (course.description &&
+        course.description.toLowerCase().includes(searchQuery.toLowerCase())),
+  );
 
   return (
     <>
@@ -36,7 +45,9 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
             <Input
               type="search"
               id="coursesearch"
-              placeholder="search courses"
+              placeholder="Search courses"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Button
               variant="outline"
@@ -49,7 +60,10 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
             </Button>
           </div>
         </div>
-        <CourseTable courses={courses} onCourseSelect={handleCourseSelect} />
+        <CourseTable
+          courses={filteredCourses}
+          onCourseSelect={handleCourseSelect}
+        />
       </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

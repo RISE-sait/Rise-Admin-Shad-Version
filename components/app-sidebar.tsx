@@ -120,17 +120,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             />{" "}
           </Link>
         </div>
-        <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
-          <Link href={"/"}>
-            {" "}
-            <Image
-              src={"/RiseLogo.svg"}
-              alt={"Rise Logo"}
-              width={120}
-              height={120}
-            />{" "}
-          </Link>
-        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

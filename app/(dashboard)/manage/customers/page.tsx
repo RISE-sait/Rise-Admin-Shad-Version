@@ -1,17 +1,17 @@
-// import ClientsPage from "../../../../components/clients/ClientPage"
-// import clientsData from "../../../../data/clients.json"
 import CustomersPage from "@/components/customers/CustomerPage";
 import { Customer } from "@/types/customer";
 import getValue from "@/components/Singleton";
 
-export default async function ManageClientsPage() {
-  // Get API
+export default async function ManageCustomersPage() {
+  // Get API URL
   const apiUrl = getValue("API");
 
-  const data = await fetch(apiUrl + `/customers`);
-  const customers: Customer[] = await data.json();
+  const response = await fetch(apiUrl + `/customers`);
+  const customers: Customer[] = await response.json();
 
-  console.log(customers);
-
-  return <CustomersPage customers={customers} />;
+  return (
+    <div className="p-6 flex">
+      <CustomersPage customers={customers} />
+    </div>
+  );
 }
