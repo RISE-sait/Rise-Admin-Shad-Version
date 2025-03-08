@@ -19,26 +19,6 @@ definitions:
       updatedAt:
         type: string
     type: object
-  customer.RegistrationRequestDto:
-    properties:
-      age:
-        type: integer
-      first_name:
-        type: string
-      last_name:
-        type: string
-      role:
-        type: string
-      waivers:
-        items:
-          $ref: '#/definitions/customer.WaiverSigningRequestDto'
-        type: array
-    required:
-    - age
-    - first_name
-    - last_name
-    - waivers
-    type: object
   customer.Response:
     properties:
       email:
@@ -70,15 +50,6 @@ definitions:
         type: integer
       wins:
         type: integer
-    type: object
-  customer.WaiverSigningRequestDto:
-    properties:
-      is_waiver_signed:
-        type: boolean
-      waiver_url:
-        type: string
-    required:
-    - waiver_url
     type: object
   dto.EnrollmentRequestDto:
     properties:
@@ -324,20 +295,18 @@ definitions:
       updatedAt:
         type: string
     type: object
-  identity.UserNecessaryInfoRequestDto:
+  identity.UserAuthenticationResponseDto:
     properties:
       age:
         type: integer
+      email:
+        type: string
       first_name:
         type: string
       last_name:
         type: string
       role:
         type: string
-    required:
-    - age
-    - first_name
-    - last_name
     type: object
   membership.RequestDto:
     properties:
@@ -476,7 +445,7 @@ paths:
         "200":
           description: User authenticated successfully
           schema:
-            $ref: '#/definitions/identity.UserNecessaryInfoRequestDto'
+            $ref: '#/definitions/identity.UserAuthenticationResponseDto'
         "400":
           description: 'Bad Request: Invalid Firebase token'
           schema:
@@ -508,7 +477,7 @@ paths:
         "200":
           description: User authenticated successfully
           schema:
-            $ref: '#/definitions/identity.UserNecessaryInfoRequestDto'
+            $ref: '#/definitions/identity.UserAuthenticationResponseDto'
         "400":
           description: 'Bad Request: Invalid Firebase token'
           schema:
@@ -771,6 +740,36 @@ paths:
       summary: Update customer statistics
       tags:
       - customers
+  /customers/pending/{user_id}/waivers:
+    get:
+      description: Fetches a list of pending waiver signings for the specified user
+        and returns them as a downloadable ZIP file.
+      parameters:
+      - description: User ID (UUID format, e.g., '550e8400-e29b-41d4-a716-446655440000')
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: ZIP file containing waiver PDFs
+          schema:
+            type: file
+        "400":
+          description: 'Bad Request: Invalid or missing user ID'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: 'Internal Server Error: Unable to retrieve waivers'
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Retrieve pending waiver signings
+      tags:
+      - waivers
   /enrollments:
     get:
       consumes:
@@ -849,7 +848,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete an enrollment by HubSpotId
+      description: Marks an enrollment as canceled instead of deleting it
       parameters:
       - description: Enrollment HubSpotId
         in: path
@@ -860,7 +859,7 @@ paths:
       - application/json
       responses:
         "204":
-          description: 'No Content: Enrollment deleted successfully'
+          description: 'No Content: Enrollment successfully marked as canceled'
         "400":
           description: 'Bad Request: Invalid HubSpotId'
           schema:
@@ -878,7 +877,7 @@ paths:
             type: object
       security:
       - Bearer: []
-      summary: Delete an enrollment
+      summary: UnEnroll a customer
       tags:
       - enrollments
   /event-staff:
@@ -1697,10 +1696,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves all haircut images from a folder in S3. Optionally, specify
-        a barber name to get images from that barber's folder.
+      description: Retrieves all haircut images from a folder in GCS. Optionally,
+        specify a barber ID to get images from that barber's folder.
       parameters:
-      - description: Barber name to filter images
+      - description: Barber ID to filter images
         in: query
         name: barber
         type: string
@@ -1731,7 +1730,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Uploads a haircut image to S3 and returns the object URL.
+      description: Uploads a haircut image to GCP Storage and returns the object URL.
       parameters:
       - description: Haircut image to upload
         in: formData
@@ -1759,6 +1758,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - Bearer: []
       summary: Upload a haircut image
       tags:
       - haircut
@@ -2471,21 +2472,40 @@ paths:
   /register/child:
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Registers a new child account using the provided details and associates
         it with the parent based on the Firebase authentication token.
       parameters:
-      - description: Child account registration details
-        in: body
-        name: customer
+      - description: Child's first name
+        in: formData
+        name: first_name
         required: true
-        schema:
-          $ref: '#/definitions/customer.RegistrationRequestDto'
-      - description: Firebase token for user verification
+        type: string
+      - description: Child's last name
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Child's age
+        in: formData
+        name: age
+        required: true
+        type: integer
+      - description: Parent Firebase token for user verification
         in: header
         name: firebase_token
         required: true
         type: string
+      - description: Studio waiver image to upload
+        in: formData
+        name: studio_waiver
+        required: true
+        type: file
+      - description: Membership terms and condition image to upload
+        in: formData
+        name: membership_terms_and_condition
+        required: true
+        type: file
       produces:
       - application/json
       responses:
@@ -2516,21 +2536,40 @@ paths:
   /register/customer:
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Registers a new customer using the provided details, creates a
         customer account. The Firebase token is used for user verification.
       parameters:
-      - description: Customer registration details
-        in: body
-        name: customer
+      - description: Customer's first name
+        in: formData
+        name: first_name
         required: true
-        schema:
-          $ref: '#/definitions/customer.RegistrationRequestDto'
+        type: string
+      - description: Customer's last name
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Customer's age
+        in: formData
+        name: age
+        required: true
+        type: integer
       - description: Firebase token for user verification
         in: header
         name: firebase_token
         required: true
         type: string
+      - description: Studio waiver image to upload
+        in: formData
+        name: studio_waiver
+        required: true
+        type: file
+      - description: Membership terms and condition image to upload
+        in: formData
+        name: membership_terms_and_condition
+        required: true
+        type: file
       produces:
       - application/json
       responses:

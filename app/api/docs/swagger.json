@@ -31,7 +31,7 @@
                     "200": {
                         "description": "User authenticated successfully",
                         "schema": {
-                            "$ref": "#/definitions/identity.UserNecessaryInfoRequestDto"
+                            "$ref": "#/definitions/identity.UserAuthenticationResponseDto"
                         }
                     },
                     "400": {
@@ -82,7 +82,7 @@
                     "200": {
                         "description": "User authenticated successfully",
                         "schema": {
-                            "$ref": "#/definitions/identity.UserNecessaryInfoRequestDto"
+                            "$ref": "#/definitions/identity.UserAuthenticationResponseDto"
                         }
                     },
                     "400": {
@@ -416,6 +416,49 @@
                 }
             }
         },
+        "/customers/pending/{user_id}/waivers": {
+            "get": {
+                "description": "Fetches a list of pending waiver signings for the specified user and returns them as a downloadable ZIP file.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "waivers"
+                ],
+                "summary": "Retrieve pending waiver signings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID format, e.g., '550e8400-e29b-41d4-a716-446655440000')",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ZIP file containing waiver PDFs",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid or missing user ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Unable to retrieve waivers",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/customers/{customer_id}/stats": {
             "patch": {
                 "description": "Updates customer statistics (wins, losses, etc.) for the specified customer ID",
@@ -591,7 +634,7 @@
                         "Bearer": []
                     }
                 ],
-                "description": "Delete an enrollment by HubSpotId",
+                "description": "Marks an enrollment as canceled instead of deleting it",
                 "consumes": [
                     "application/json"
                 ],
@@ -601,7 +644,7 @@
                 "tags": [
                     "enrollments"
                 ],
-                "summary": "Delete an enrollment",
+                "summary": "UnEnroll a customer",
                 "parameters": [
                     {
                         "type": "string",
@@ -613,7 +656,7 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content: Enrollment deleted successfully"
+                        "description": "No Content: Enrollment successfully marked as canceled"
                     },
                     "400": {
                         "description": "Bad Request: Invalid HubSpotId",
@@ -1837,7 +1880,7 @@
         },
         "/haircuts": {
             "get": {
-                "description": "Retrieves all haircut images from a folder in S3. Optionally, specify a barber name to get images from that barber's folder.",
+                "description": "Retrieves all haircut images from a folder in GCS. Optionally, specify a barber ID to get images from that barber's folder.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1851,7 +1894,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Barber name to filter images",
+                        "description": "Barber ID to filter images",
                         "name": "barber",
                         "in": "query"
                     }
@@ -1887,7 +1930,12 @@
                 }
             },
             "post": {
-                "description": "Uploads a haircut image to S3 and returns the object URL.",
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Uploads a haircut image to GCP Storage and returns the object URL.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -2998,7 +3046,7 @@
             "post": {
                 "description": "Registers a new child account using the provided details and associates it with the parent based on the Firebase authentication token.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -3009,19 +3057,45 @@
                 "summary": "Register a new child account and associate it with the parent",
                 "parameters": [
                     {
-                        "description": "Child account registration details",
-                        "name": "customer",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/customer.RegistrationRequestDto"
-                        }
+                        "type": "string",
+                        "description": "Child's first name",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Firebase token for user verification",
+                        "description": "Child's last name",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Child's age",
+                        "name": "age",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Parent Firebase token for user verification",
                         "name": "firebase_token",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Studio waiver image to upload",
+                        "name": "studio_waiver",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Membership terms and condition image to upload",
+                        "name": "membership_terms_and_condition",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -3061,7 +3135,7 @@
             "post": {
                 "description": "Registers a new customer using the provided details, creates a customer account. The Firebase token is used for user verification.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -3072,19 +3146,45 @@
                 "summary": "Register a new customer",
                 "parameters": [
                     {
-                        "description": "Customer registration details",
-                        "name": "customer",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/customer.RegistrationRequestDto"
-                        }
+                        "type": "string",
+                        "description": "Customer's first name",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Customer's last name",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Customer's age",
+                        "name": "age",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
                         "description": "Firebase token for user verification",
                         "name": "firebase_token",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Studio waiver image to upload",
+                        "name": "studio_waiver",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Membership terms and condition image to upload",
+                        "name": "membership_terms_and_condition",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -3486,35 +3586,6 @@
                 }
             }
         },
-        "customer.RegistrationRequestDto": {
-            "type": "object",
-            "required": [
-                "age",
-                "first_name",
-                "last_name",
-                "waivers"
-            ],
-            "properties": {
-                "age": {
-                    "type": "integer"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "string"
-                },
-                "waivers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/customer.WaiverSigningRequestDto"
-                    }
-                }
-            }
-        },
         "customer.Response": {
             "type": "object",
             "properties": {
@@ -3561,20 +3632,6 @@
                 },
                 "wins": {
                     "type": "integer"
-                }
-            }
-        },
-        "customer.WaiverSigningRequestDto": {
-            "type": "object",
-            "required": [
-                "waiver_url"
-            ],
-            "properties": {
-                "is_waiver_signed": {
-                    "type": "boolean"
-                },
-                "waiver_url": {
-                    "type": "string"
                 }
             }
         },
@@ -3944,16 +4001,14 @@
                 }
             }
         },
-        "identity.UserNecessaryInfoRequestDto": {
+        "identity.UserAuthenticationResponseDto": {
             "type": "object",
-            "required": [
-                "age",
-                "first_name",
-                "last_name"
-            ],
             "properties": {
                 "age": {
                     "type": "integer"
+                },
+                "email": {
+                    "type": "string"
                 },
                 "first_name": {
                     "type": "string"
