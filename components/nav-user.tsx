@@ -79,10 +79,12 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Settings />
-                <Link href={"/settings"}>Settings</Link>
-              </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+            <Link href="/settings" className="flex w-full items-center gap-2">
+              <Settings />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
