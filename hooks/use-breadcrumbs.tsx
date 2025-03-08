@@ -12,57 +12,57 @@ type BreadcrumbItem = {
 // Example route mapping, adjusted for your sidebar links
 const routeMapping: Record<string, BreadcrumbItem[]> = {
   '/home/dashboard': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Dashboard', link: '/home/dashboard' }
   ],
   '/home/calendar': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Calendar', link: '/home/calendar' }
     ],
 
   // Manage
   '/manage/customers': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Customers', link: '/manage/customers' }
   ],
   '/manage/courses': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Courses', link: '/manage/courses' }
   ],
   '/manage/store': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Store', link: '/manage/store' }
   ],
     '/manage/facilities': [
-        { title: 'Home', link: '/' },
+        { title: 'Home', link: '/home' },
         { title: 'Facilities', link: '/manage/facilities' }
     ],
     '/manage/instructors': [
-        { title: 'Home', link: '/' },
+        { title: 'Home', link: '/home' },
         { title: 'Instructors', link: '/manage/instructors' }
     ],
     '/manage/trainer': [
-        { title: 'Home', link: '/' },
+        { title: 'Home', link: '/home' },
         { title: 'Trainer', link: '/manage/trainer' }
     ],
     '/manage/membership': [
-        { title: 'Home', link: '/' },
+        { title: 'Home', link: '/home' },
         { title: 'Membership', link: '/manage/membership' }
     ],
 
   // Automation
   '/automation/messages': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Messages', link: '/automation/messages' }
   ],
 
   // Reports
   '/reports/transactions': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Transactions', link: '/reports/transactions' }
   ],
   '/reports/financials': [
-    { title: 'Home', link: '/' },
+    { title: 'Home', link: '/home' },
     { title: 'Financials', link: '/reports/financials' }
   ]
 };
