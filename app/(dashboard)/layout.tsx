@@ -17,9 +17,9 @@ export default function AuthenticatedLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <div className="sticky top-0 z-50 bg-background text-foreground shadow-sm">
           <Header />
-          </div>
+        </div>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
             {children}
           </div>
