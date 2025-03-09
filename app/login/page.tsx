@@ -58,7 +58,7 @@ export default function Login() {
 
         console.log(idToken)
         // Redirect to dashboard or home page after successful Google sign-in
-        router.push("/home");
+        router.push("/");
       }
     } catch (err) {
       setError("Failed to sign in with Google. Please try again.");
