@@ -34,7 +34,7 @@ export default function BarbershopPage() {
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-4 mt-6 justify-center">
             {[
-              { label: "View All Appointments", href: "/manage/barbershop/dashboard", color: "bg-blue-600 hover:bg-blue-500" },
+              { label: "View All Appointments", href: "/manage/barbershop/appointments", color: "bg-blue-600 hover:bg-blue-500" },
               { label: "Manage Portfolio", href: "/manage/barbershop/portfolio", color: "bg-purple-600 hover:bg-purple-500" },
               { label: "Manage Barbers", href: "/manage/barbershop/barbers", color: "bg-yellow-500 hover:bg-yellow-400" },
               { label: "Update Services", href: "/manage/barbershop/services", color: "bg-green-600 hover:bg-green-500" },
