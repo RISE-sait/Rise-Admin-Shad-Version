@@ -22,7 +22,8 @@ export default function PlansTab({ membership }: { membership: Membership }) {
     description: membership.description,
   });
   const [plans, setPlans] = useState<MembershipPlanPlanResponse[]>([]);
-  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [modifiedPlans, setModifiedPlans] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch(`${getValue("API")}/memberships/${membership.id}/plans`)
@@ -30,7 +31,7 @@ export default function PlansTab({ membership }: { membership: Membership }) {
       .then((data) => setPlans(data));
   }, [membership.id]);
 
-  const updatemembership = async () => {
+  const updateMembership = async () => {
     // Ensure the name is not empty
     if (!data.name.trim()) {
       toast({
@@ -40,8 +41,11 @@ export default function PlansTab({ membership }: { membership: Membership }) {
       return;
     }
 
+    setLoading(true);
+
     try {
-      const response = await fetch(
+      // First update the membership
+      const membershipResponse = await fetch(
         `${process.env.BACKEND_URL}/api/memberships/${membership.id}`,
         {
           method: "PUT",
@@ -55,13 +59,40 @@ export default function PlansTab({ membership }: { membership: Membership }) {
         },
       );
 
-      if (!response.ok) {
+      if (!membershipResponse.ok) {
         throw new Error("Failed to update membership");
       }
 
+      // Then update all modified plans
+      const planUpdatePromises = Object.keys(modifiedPlans).map(
+        async (planId) => {
+          const updateData = modifiedPlans[planId];
+          const response = await fetch(
+            `${getValue("API")}/memberships/plans/${planId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updateData),
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`Failed to update plan: ${planId}`);
+          }
+        },
+      );
+
+      // Wait for all plan updates to complete
+      await Promise.all(planUpdatePromises);
+
+      // Clear the modified plans since everything is saved
+      setModifiedPlans({});
+
       toast({
         status: "success",
-        description: "Successfully saved.",
+        description: "All changes successfully saved.",
       });
     } catch (error) {
       console.error(error);
@@ -69,80 +100,47 @@ export default function PlansTab({ membership }: { membership: Membership }) {
         status: "error",
         description: "An error occurred. Please try again.",
       });
-    }
-  };
 
-  const updatePlan = async (
-    planId: string,
-    field: string,
-    value: string | number,
-  ) => {
-    try {
-      // Set loading state for this plan
-      setLoading((prev) => ({ ...prev, [planId]: true }));
-
-      // Update the local state immediately for a responsive UI
-      setPlans(
-        plans.map((plan) => {
-          // Check if this is the plan we want to update
-          if (plan.id === planId) {
-            // Create a new object with the updated field
-            return { ...plan, [field]: value };
-          }
-          // Return the plan unchanged
-          return plan;
-        }),
-      );
-
-      // Prepare the update data
-      const updateData: Record<string, any> = {};
-      updateData[field] = value;
-
-      // Send the update to the API
-      const response = await fetch(
-        `${getValue("API")}/memberships/plans/${planId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updateData),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to update plan: ${field}`);
-      }
-
-      // If successful, show a success message
-      toast({
-        status: "success",
-        description: `Plan ${field} updated successfully.`,
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        status: "error",
-        description: `Failed to update ${field}. Please try again.`,
-      });
-
-      // Revert the local state change if the API call failed
+      // Refresh plans from server to show current state
       fetch(`${getValue("API")}/memberships/${membership.id}/plans`)
         .then((res) => res.json())
         .then((data) => setPlans(data));
     } finally {
-      // Clear loading state
-      setLoading((prev) => ({ ...prev, [planId]: false }));
+      setLoading(false);
     }
+  };
+
+  const updatePlanLocally = (
+    planId: string,
+    field: string,
+    value: string | number,
+  ) => {
+    // Update the displayed plans immediately for UI responsiveness
+    setPlans(
+      plans.map((plan) => {
+        if (plan.id === planId) {
+          return { ...plan, [field]: value };
+        }
+        return plan;
+      }),
+    );
+
+    // Track this change for saving later
+    setModifiedPlans((prev) => {
+      const planChanges = prev[planId] || {};
+      return {
+        ...prev,
+        [planId]: {
+          ...planChanges,
+          [field]: value,
+        },
+      };
+    });
   };
 
   return (
     <div className="flex flex-col gap-y-5 pt-3">
       {plans.map((plan, idx) => {
-        // Log the plan object to debug
-        console.log("Plan data:", plan);
-
-        // Make sure we have a valid plan ID
         const planId = plan.id || `temp-${idx}`;
 
         return (
@@ -155,10 +153,12 @@ export default function PlansTab({ membership }: { membership: Membership }) {
               <p className="pb-2">Name</p>
               <Input
                 className="line-clamp-2"
-                onChange={(e) => updatePlan(planId, "name", e.target.value)}
+                onChange={(e) =>
+                  updatePlanLocally(planId, "name", e.target.value)
+                }
                 type="text"
                 value={plan.name}
-                disabled={loading[planId]}
+                disabled={loading}
               />
             </div>
             <div>
@@ -166,9 +166,9 @@ export default function PlansTab({ membership }: { membership: Membership }) {
               <Select
                 value={plan.payment_frequency}
                 onValueChange={(value) =>
-                  updatePlan(planId, "payment_frequency", value)
+                  updatePlanLocally(planId, "payment_frequency", value)
                 }
-                disabled={loading[planId]}
+                disabled={loading}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select payment frequency" />
@@ -188,11 +188,11 @@ export default function PlansTab({ membership }: { membership: Membership }) {
                 <Input
                   className="line-clamp-2"
                   onChange={(e) =>
-                    updatePlan(planId, "amt_periods", e.target.value)
+                    updatePlanLocally(planId, "amt_periods", e.target.value)
                   }
                   type="number"
                   value={plan.amt_periods}
-                  disabled={loading[planId]}
+                  disabled={loading}
                 />
               </div>
             )}
@@ -201,7 +201,9 @@ export default function PlansTab({ membership }: { membership: Membership }) {
       })}
 
       <section className="flex justify-between">
-        <Button onClick={updatemembership}>Save membership</Button>
+        <Button onClick={updateMembership} disabled={loading}>
+          {loading ? "Saving..." : "Save membership"}
+        </Button>
       </section>
     </div>
   );
