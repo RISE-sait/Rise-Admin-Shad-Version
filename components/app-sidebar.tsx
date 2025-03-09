@@ -25,11 +25,11 @@ const data = {
       items: [
         {
           title: "Dashboard",
-          url: "/home",
+          url: "/",
         },
         {
           title: "Calendar",
-          url: "/home/calender",
+          url: "/calender",
         },
       ],
     },
