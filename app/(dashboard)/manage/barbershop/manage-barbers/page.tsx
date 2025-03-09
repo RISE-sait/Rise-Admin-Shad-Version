@@ -1,6 +1,7 @@
 "use client"; // Ensures this is a client component
 
 import { useState } from "react";
+import Link from "next/link";
 
 type Barber = {
   id: number;
@@ -59,6 +60,15 @@ export default function ManageBarbersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white py-6 px-6">
       <div className="w-full max-w-7xl space-y-6">
+
+        {/* Back Button */}
+        <div className="mb-4">
+          <Link href="/manage/barbershop">
+            <button className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded-md text-sm">
+              ← Back to Barbershop
+            </button>
+          </Link>
+        </div>
 
         {/* Header Section */}
         <div className="bg-gray-950 p-8 rounded-xl shadow-xl border border-gray-800">

@@ -76,8 +76,7 @@ export default function BarbershopPage() {
             {[ 
               { label: "View All Appointments", href: "/manage/barbershop/appointments", color: "bg-blue-600 hover:bg-blue-500" },
               { label: "Manage Portfolio", href: "/manage/barbershop/portfolio", color: "bg-purple-600 hover:bg-purple-500" },
-              { label: "Manage Barbers", href: "/manage/barbershop/barbers", color: "bg-yellow-500 hover:bg-yellow-400" },
-              { label: "Update Services", href: "/manage/barbershop/services", color: "bg-green-600 hover:bg-green-500" },
+              { label: "Manage Barbers", href: "/manage/barbershop/manage-barbers", color: "bg-yellow-500 hover:bg-yellow-400" },
             ].map((action, index) => (
               <Link key={index} href={action.href}>
                 <button className={`px-5 py-3 ${action.color} text-white rounded-md shadow-md transition-transform hover:scale-105`}>
@@ -91,9 +90,9 @@ export default function BarbershopPage() {
         {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[ 
-            { title: "Total Appointments", value: "124", icon: "📅", color: "text-blue-400" },
+            { title: "Appointments This Week", value: "5", icon: "📅", color: "text-yellow-400" },
+            { title: "Total Appointments", value: "135", icon: "📅", color: "text-yellow-400" },
             { title: "Active Barbers", value: "8", icon: "✂️", color: "text-green-400" },
-            { title: "Customer Reviews", value: "4.8/5", icon: "⭐", color: "text-yellow-400" },
             { title: "Time Off Requests", value: "2", icon: "🛑", color: "text-red-400" },
           ].map((stat, index) => (
             <div key={index} className="bg-gray-950 p-6 rounded-lg shadow-md border border-gray-800 transition-transform hover:scale-105 hover:shadow-lg">
@@ -203,12 +202,6 @@ export default function BarbershopPage() {
                   className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded-md text-sm"
                 >
                   Save Changes
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-sm"
-                >
-                  Delete
                 </button>
               </div>
 
