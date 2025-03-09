@@ -22,6 +22,8 @@ export default function PlansTab({ membership }: { membership: Membership }) {
     description: membership.description,
   });
   const [plans, setPlans] = useState<MembershipPlanPlanResponse[]>([]);
+  const [modifiedPlans, setModifiedPlans] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch(`${getValue("API")}/memberships/${membership.id}/plans`)
@@ -29,7 +31,7 @@ export default function PlansTab({ membership }: { membership: Membership }) {
       .then((data) => setPlans(data));
   }, [membership.id]);
 
-  const updatemembership = async () => {
+  const updateMembership = async () => {
     // Ensure the name is not empty
     if (!data.name.trim()) {
       toast({
@@ -39,8 +41,11 @@ export default function PlansTab({ membership }: { membership: Membership }) {
       return;
     }
 
+    setLoading(true);
+
     try {
-      const response = await fetch(
+      // First update the membership
+      const membershipResponse = await fetch(
         `${process.env.BACKEND_URL}/api/memberships/${membership.id}`,
         {
           method: "PUT",
@@ -54,13 +59,40 @@ export default function PlansTab({ membership }: { membership: Membership }) {
         },
       );
 
-      if (!response.ok) {
+      if (!membershipResponse.ok) {
         throw new Error("Failed to update membership");
       }
 
+      // Then update all modified plans
+      const planUpdatePromises = Object.keys(modifiedPlans).map(
+        async (planId) => {
+          const updateData = modifiedPlans[planId];
+          const response = await fetch(
+            `${getValue("API")}/memberships/plans/${planId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updateData),
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`Failed to update plan: ${planId}`);
+          }
+        },
+      );
+
+      // Wait for all plan updates to complete
+      await Promise.all(planUpdatePromises);
+
+      // Clear the modified plans since everything is saved
+      setModifiedPlans({});
+
       toast({
         status: "success",
-        description: "Successfully saved.",
+        description: "All changes successfully saved.",
       });
     } catch (error) {
       console.error(error);
@@ -68,38 +100,65 @@ export default function PlansTab({ membership }: { membership: Membership }) {
         status: "error",
         description: "An error occurred. Please try again.",
       });
+
+      // Refresh plans from server to show current state
+      fetch(`${getValue("API")}/memberships/${membership.id}/plans`)
+        .then((res) => res.json())
+        .then((data) => setPlans(data));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updatePlan = (planId: string, field: string, value: string) => {
-    // Here you would implement the logic to update a specific plan
-    // This is a placeholder for the actual implementation
-    console.log(`Updating plan ${planId}, field ${field} to ${value}`);
-
-    // Update the local state
+  const updatePlanLocally = (
+    planId: string,
+    field: string,
+    value: string | number,
+  ) => {
+    // Update the displayed plans immediately for UI responsiveness
     setPlans(
-      plans.map((plan) =>
-        plan.id === planId ? { ...plan, [field]: value } : plan,
-      ),
+      plans.map((plan) => {
+        if (plan.id === planId) {
+          return { ...plan, [field]: value };
+        }
+        return plan;
+      }),
     );
+
+    // Track this change for saving later
+    setModifiedPlans((prev) => {
+      const planChanges = prev[planId] || {};
+      return {
+        ...prev,
+        [planId]: {
+          ...planChanges,
+          [field]: value,
+        },
+      };
+    });
   };
 
   return (
     <div className="flex flex-col gap-y-5 pt-3">
       {plans.map((plan, idx) => {
+        const planId = plan.id || `temp-${idx}`;
+
         return (
-          <React.Fragment key={plan.id}>
+          <React.Fragment key={planId}>
             {idx !== 0 && <Separator className="my-8" />}
 
-            <p>ID: {plan.id}</p>
+            <p>ID: {planId}</p>
 
             <div>
               <p className="pb-2">Name</p>
               <Input
                 className="line-clamp-2"
-                onChange={(e) => updatePlan(plan.id, "name", e.target.value)}
+                onChange={(e) =>
+                  updatePlanLocally(planId, "name", e.target.value)
+                }
                 type="text"
                 value={plan.name}
+                disabled={loading}
               />
             </div>
             <div>
@@ -107,8 +166,9 @@ export default function PlansTab({ membership }: { membership: Membership }) {
               <Select
                 value={plan.payment_frequency}
                 onValueChange={(value) =>
-                  updatePlan(plan.id, "payment_frequency", value)
+                  updatePlanLocally(planId, "payment_frequency", value)
                 }
+                disabled={loading}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select payment frequency" />
@@ -122,16 +182,17 @@ export default function PlansTab({ membership }: { membership: Membership }) {
               </Select>
             </div>
 
-            {plan.amt_periods && (
+            {plan.amt_periods !== undefined && (
               <div>
                 <p className="pb-2">Amount of periods</p>
                 <Input
                   className="line-clamp-2"
                   onChange={(e) =>
-                    updatePlan(plan.id, "amt_periods", e.target.value)
+                    updatePlanLocally(planId, "amt_periods", e.target.value)
                   }
                   type="number"
                   value={plan.amt_periods}
+                  disabled={loading}
                 />
               </div>
             )}
@@ -140,7 +201,9 @@ export default function PlansTab({ membership }: { membership: Membership }) {
       })}
 
       <section className="flex justify-between">
-        <Button onClick={updatemembership}>Save membership</Button>
+        <Button onClick={updateMembership} disabled={loading}>
+          {loading ? "Saving..." : "Save membership"}
+        </Button>
       </section>
     </div>
   );
