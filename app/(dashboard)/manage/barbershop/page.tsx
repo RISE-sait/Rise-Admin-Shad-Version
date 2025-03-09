@@ -24,18 +24,18 @@ export default function BarbershopPage() {
 
         {/* Header + Quick Actions Section */}
         <div className="bg-gray-950 p-8 rounded-xl shadow-xl border border-gray-800">
-          {/* Title */}
           <h1 className="text-4xl font-bold flex items-center gap-3 justify-center">
             💈 <span className="text-white">RISE Barbershop</span>
           </h1>
           <p className="text-gray-400 text-lg text-center mt-2">
-          Manage your appointments, control your availability, update your portfolio, and stay on top of your schedule!
+            Manage your appointments, control your availability, update your portfolio, and stay on top of your schedule!
           </p>
 
-          {/* Quick Actions (Centered Below Title) */}
+          {/* Quick Actions */}
           <div className="flex flex-wrap gap-4 mt-6 justify-center">
-            {[ 
+            {[
               { label: "View All Appointments", href: "/manage/barbershop/dashboard", color: "bg-blue-600 hover:bg-blue-500" },
+              { label: "Manage Portfolio", href: "/manage/barbershop/portfolio", color: "bg-purple-600 hover:bg-purple-500" },
               { label: "Manage Barbers", href: "/manage/barbershop/barbers", color: "bg-yellow-500 hover:bg-yellow-400" },
               { label: "Update Services", href: "/manage/barbershop/services", color: "bg-green-600 hover:bg-green-500" },
             ].map((action, index) => (
@@ -50,7 +50,7 @@ export default function BarbershopPage() {
 
         {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[ 
+          {[
             { title: "Total Appointments", value: "124", icon: "📅", color: "text-blue-400" },
             { title: "Active Barbers", value: "8", icon: "✂️", color: "text-green-400" },
             { title: "Customer Reviews", value: "4.8/5", icon: "⭐", color: "text-yellow-400" },
