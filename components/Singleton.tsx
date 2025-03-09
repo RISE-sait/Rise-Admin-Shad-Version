@@ -1,8 +1,9 @@
-export default function getValue(Value: string): string | undefined {
-  // Values
-  const Values: Record<string, string> = {
-    API: "https://api-461776259687.us-west2.run.app",
-  };
+const Values = {
+  API: "https://api-461776259687.us-west2.run.app",
+} as const;
 
-  return Values[Value];
+type ValueKey = keyof typeof Values;
+
+export default function getValue(value: ValueKey): string {
+  return Values[value];
 }

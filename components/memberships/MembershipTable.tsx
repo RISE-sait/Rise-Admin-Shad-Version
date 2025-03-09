@@ -2,7 +2,7 @@
 // ...existing code...
 // Removed MUI imports (DataGrid, etc.)
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { formatDate } from "@/lib/dates"
 import { Membership } from "@/types/membership"
 
 export default function MembershipTable({
@@ -10,7 +10,7 @@ export default function MembershipTable({
   onMembershipSelect,
 }: {
   memberships: Membership []
-  onMembershipSelect: (id: string) => void
+  onMembershipSelect: (membership: Membership) => void
 }) {
   return (
     <div className="overflow-auto h-[500px]">
@@ -19,21 +19,21 @@ export default function MembershipTable({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>End Date</TableHead>
+            <TableHead>Created At</TableHead>
+            <TableHead>Updated At</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
           {memberships.map((membership) => (
             <TableRow
               key={membership.id}
-              onClick={() => onMembershipSelect(membership.id)}
+              onClick={() => onMembershipSelect(membership)}
               className="cursor-pointer"
             >
               <TableCell>{membership.name}</TableCell>
               <TableCell >{membership.description}</TableCell>
-              <TableCell>{membership.start_date}</TableCell>
-              <TableCell>{membership.end_date}</TableCell>
+              <TableCell>{formatDate(membership.created_at)}</TableCell>
+              <TableCell>{formatDate(membership.updated_at)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
