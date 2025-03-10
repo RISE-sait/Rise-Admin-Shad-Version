@@ -52,24 +52,6 @@ export const columns: ColumnDef<Payment>[] = [
         
     },
   {
-    accessorKey: "status",
-    header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-      cell: ({ row }) => {
-        const status: string = row.getValue("status");
-        return <span className={`${statusTextColors[status]} font-medium`}>{status}</span>;
-      },
-  },
-  {
     accessorKey: "name",
     header: ({ column }) => {
         return (
@@ -94,6 +76,24 @@ export const columns: ColumnDef<Payment>[] = [
   {
         accessorKey: "id",
         header: "Payment ID",
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Status
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => {
+          const status: string = row.getValue("status");
+          return <span className={`${statusTextColors[status]} font-medium`}>{status}</span>;
+        },
     },
   {
     accessorKey: "amount",
@@ -123,7 +123,7 @@ export const columns: ColumnDef<Payment>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(payment.id)}
             >

@@ -1,7 +1,8 @@
 import Image from "next/image";
+import MessagesPage from "@/components/messages/MessagesPage";
 
 export default function Messages() {
-  return (
-    <h1> test </h1>
-  );
+  return <div>
+    <MessagesPage />
+    </div>;
 }
