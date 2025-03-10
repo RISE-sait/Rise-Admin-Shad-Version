@@ -18,8 +18,8 @@ export default function FacilityTable({
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead>Category</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
@@ -29,8 +29,8 @@ export default function FacilityTable({
               onClick={() => onFacilitySelect(facility.id)}
             >
               <TableCell>{facility.name}</TableCell>
-              <TableCell>{facility.location}</TableCell>
-              <TableCell>{facility.facility_type}</TableCell>
+              <TableCell>{facility.Address}</TableCell>
+              <TableCell>{facility.facility_category}</TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -38,27 +38,25 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-w-6xl">
         <h1 className="text-xl mb-4">Courses</h1>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex items-center justify-between gap-2 mb-4 w-full">
-            <Input
-              type="search"
-              id="coursesearch"
-              placeholder="Search courses"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDialogContent("add");
-                setDialogOpen(true);
-              }}
-            >
-              Add Course
-            </Button>
-          </div>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <Input
+            type="search"
+            id="coursesearch"
+            placeholder="Search courses"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDialogContent("add");
+              setDialogOpen(true);
+            }}
+          >
+            Add Course
+          </Button>
         </div>
         <CourseTable
           courses={filteredCourses}

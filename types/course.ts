@@ -1,7 +1,7 @@
 export interface Course {
     id: string;
     name: string;
-    start_date: string;
-    end_date: string;
+    createdAt: Date
+    updatedAt: Date;
     description?: string
   }

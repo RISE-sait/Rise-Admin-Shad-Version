@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export function useFormData<T>(initialData: T) {
   const [data, setData] = useState<T>(initialData);
-  const [initialState, setInitialState] = useState<T>(initialData);
+  const [initialState, _] = useState<T>(initialData);
   const [isChanged, setIsChanged] = useState(false);
 
   useEffect(() => {

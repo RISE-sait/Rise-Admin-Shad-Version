@@ -19,8 +19,6 @@ export default function MembershipTable({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead>Created At</TableHead>
-            <TableHead>Updated At</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
@@ -32,8 +30,6 @@ export default function MembershipTable({
             >
               <TableCell>{membership.name}</TableCell>
               <TableCell >{membership.description}</TableCell>
-              <TableCell>{formatDate(membership.created_at)}</TableCell>
-              <TableCell>{formatDate(membership.updated_at)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

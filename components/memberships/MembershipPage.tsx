@@ -2,9 +2,6 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import RightDrawer from "../reusable/RightDrawer"
-import CourseTable from "./MembershipTable"
-import AddClientForm from "./AddCourseForm"
 import { useDrawer } from "../../hooks/drawer"
 import { Course } from "@/types/course"
 import SearchBar from "../reusable/SearchBar"
@@ -16,6 +13,7 @@ import MembershipTable from "./MembershipTable"
 import DetailsTab from "./infoTabs/Details"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
 import MembershipInfoPanel from "./MembershipInfoPanel"
+import { Input } from "@/components/ui/input";
 
 export default function MembershipsPage({ memberships }: { memberships: Membership[] }) {
   const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null)
@@ -23,6 +21,8 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
   const [dialogContent, setDialogContent] = useState<"details" | "add" | null>(
     null,
   );
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleAddFacility = (course: Course) => {
     // Add client to the list (you might want to update the state or make an API call here)
@@ -35,22 +35,28 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
   }
 
   return (
-    <div className="p-6 flex">
-      <div className="flex-1 overflow-y-auto">
+    <div>
+      <div>
 
-        <div className="flex items-center justify-between mb-10">
-          <h1 className="text-2xl font-semibold">Memberships</h1>
+        <h1 className="text-xl mb-4">Memberships</h1>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <Input
+            type="search"
+            id="coursesearch"
+            placeholder="Search memberships"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <Button
-              variant="outline"
-              onClick={() => {
-                setDialogContent("add");
-                setDialogOpen(true);
-              }}
-            >
-              Add Membership
-            </Button>
+            variant="outline"
+            onClick={() => {
+              setDialogContent("add");
+              setDialogOpen(true);
+            }}
+          >
+            Add Membership
+          </Button>
         </div>
-
         <MembershipTable memberships={memberships} onMembershipSelect={handleMembershipSelect} />
       </div>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
