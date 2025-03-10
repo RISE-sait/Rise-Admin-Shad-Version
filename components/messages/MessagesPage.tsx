@@ -11,7 +11,7 @@ const dummyNotifications: Notification[] = [
   { id: "1", type: "Payment Reminder", message: "Your payment is due.", recipient: "alex@example.com", status: "Sent", date: "2024-03-08" },
   { id: "2", type: "Appointment Reminder", message: "Your appointment is tomorrow.", recipient: "john@example.com", status: "Scheduled", date: "2024-03-20" },
   { id: "3", type: "Subscription Renewal", message: "Your subscription renews soon.", recipient: "mike@example.com", status: "Sent", date: "2024-03-05" },
-  { id: "4", type: "Promotional", message: "Get 20% off on your next purchase!", recipient: "sara@example.com", status: "Sent", date: "2024-03-10" }
+  { id: "4", type: "Promotional", message: "Get 20% off on your next purchase!", recipient: "All Users", status: "Scheduled", date: "2024-03-28" }
 ];
 
 export default function MessagesPage() {
