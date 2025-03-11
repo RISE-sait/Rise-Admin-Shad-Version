@@ -22,22 +22,49 @@ export interface CourseResponseDto {
   updatedAt?: string;
 }
 
+export interface CustomerAthleteResponseDto {
+  assists?: number;
+  created_at?: string;
+  id?: string;
+  losses?: number;
+  points?: number;
+  profile_pic_url?: string;
+  rebounds?: number;
+  steals?: number;
+  updated_at?: string;
+  wins?: number;
+}
+
 export interface CustomerChildRegistrationRequestDto {
   age: number;
   first_name: string;
   last_name: string;
-  waivers: CustomerWaiverSigningRequestDto[];
+  waivers?: CustomerWaiverSigningRequestDto[];
 }
 
-export interface CustomerRegularCustomerRegistrationRequestDto {
+export interface CustomerMembershipPlansResponseDto {
+  created_at?: string;
+  customer_id?: string;
+  id?: string;
+  membership_name?: string;
+  membership_plan_id?: string;
+  renewal_date?: string;
+  start_date?: string;
+  status?: string;
+  updated_at?: string;
+}
+
+export interface CustomerRegistrationRequestDto {
   age: number;
+  country_code?: string;
   first_name: string;
-  has_consent_to_email_marketing: boolean;
-  has_consent_to_sms: boolean;
+  has_consent_to_email_marketing?: boolean;
+  has_consent_to_sms?: boolean;
   last_name: string;
   /** @example "+15141234567" */
   phone_number?: string;
-  waivers: CustomerWaiverSigningRequestDto[];
+  role: string;
+  waivers?: CustomerWaiverSigningRequestDto[];
 }
 
 export interface CustomerResponse {
@@ -70,9 +97,11 @@ export interface DtoPracticeRequestDto {
 }
 
 export interface DtoPracticeResponse {
+  createdAt?: string;
   description?: string;
   id?: string;
   name?: string;
+  updatedAt?: string;
 }
 
 export interface EnrollmentCreateRequestDto {
@@ -133,28 +162,6 @@ export interface EventStaffRequestDto {
   base?: EventStaffEventStaffBase;
 }
 
-export interface FacilityCategoryRequestDto {
-  name: string;
-}
-
-export interface FacilityCategoryResponseDto {
-  id?: string;
-  name?: string;
-}
-
-export interface FacilityRequestDto {
-  facility_type_id: string;
-  location: string;
-  name: string;
-}
-
-export interface FacilityResponseDto {
-  address?: string;
-  facility_category?: string;
-  id?: string;
-  name?: string;
-}
-
 export interface GameRequestDto {
   name?: string;
   video_link?: string;
@@ -204,6 +211,9 @@ export interface HubspotUserProps {
   age?: string;
   email?: string;
   firstname?: string;
+  has_marketing_email_consent?: string;
+  has_sms_consent?: string;
+  hs_country_region_code?: string;
   lastname?: string;
   phone?: string;
 }
@@ -218,6 +228,7 @@ export interface HubspotUserResponse {
 
 export interface IdentityUserAuthenticationResponseDto {
   age?: number;
+  country_code?: string;
   email?: string;
   first_name?: string;
   last_name?: string;
@@ -225,10 +236,15 @@ export interface IdentityUserAuthenticationResponseDto {
   role?: string;
 }
 
-export interface IdentityUserNecessaryInfoRequestDto {
-  age: number;
-  first_name: string;
-  last_name: string;
+export interface LocationRequestDto {
+  location: string;
+  name: string;
+}
+
+export interface LocationResponseDto {
+  address?: string;
+  id?: string;
+  name?: string;
 }
 
 export interface MembershipRequestDto {
@@ -270,11 +286,13 @@ export interface PurchaseMembershipPlanRequestDto {
 }
 
 export interface StaffRegistrationRequestDto {
-  hubspot_id: string;
-  is_active: boolean;
+  age: number;
+  first_name: string;
+  is_active_staff?: boolean;
+  last_name: string;
   /** @example "+15141234567" */
   phone_number?: string;
-  role_name: string;
+  role: string;
 }
 
 export interface StaffRequestDto {
@@ -295,6 +313,16 @@ export interface StaffResponseDto {
   role_id?: string;
   role_name?: string;
   updated_at?: string;
+}
+
+export interface UserResponse {
+  email?: string;
+  first_name?: string;
+  hubspot_id?: string;
+  last_name?: string;
+  phone?: string;
+  profile_pic?: string;
+  user_id?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -541,7 +569,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     childCreate: (hubspotId: string, params: RequestParams = {}) =>
-      this.request<IdentityUserNecessaryInfoRequestDto, Record<string, any>>({
+      this.request<IdentityUserAuthenticationResponseDto, Record<string, any>>({
         path: `/auth/child/${hubspotId}`,
         method: "POST",
         secure: true,
@@ -559,19 +587,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get a list of courses
      * @request GET:/courses
      */
-    coursesList: (
-      query?: {
-        /** Filter by course name */
-        name?: string;
-        /** Filter by course description */
-        description?: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    coursesList: (params: RequestParams = {}) =>
       this.request<CourseResponseDto[], Record<string, any>>({
         path: `/courses`,
         method: "GET",
-        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -677,18 +696,56 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description Fetches customer statistics (wins, losses, etc.) for the specified customer ID.
+     *
+     * @tags customers
+     * @name AthleteDetail
+     * @summary Get customer statistics
+     * @request GET:/customers/{customer_id}/athlete
+     */
+    athleteDetail: (customerId: string, params: RequestParams = {}) =>
+      this.request<CustomerAthleteResponseDto, Record<string, any>>({
+        path: `/customers/${customerId}/athlete`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Updates customer statistics (wins, losses, etc.) for the specified customer ID
      *
      * @tags customers
-     * @name StatsPartialUpdate
+     * @name AthletePartialUpdate
      * @summary Update customer statistics
-     * @request PATCH:/customers/{customer_id}/stats
+     * @request PATCH:/customers/{customer_id}/athlete
      */
-    statsPartialUpdate: (customerId: string, update_body: CustomerStatsUpdateRequestDto, params: RequestParams = {}) =>
+    athletePartialUpdate: (
+      customerId: string,
+      update_body: CustomerStatsUpdateRequestDto,
+      params: RequestParams = {},
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/customers/${customerId}/stats`,
+        path: `/customers/${customerId}/athlete`,
         method: "PATCH",
         body: update_body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Retrieves a list of membership plans associated with a specific customer, using the customer ID as a required parameter.
+     *
+     * @tags customers
+     * @name MembershipPlansDetail
+     * @summary Get membership plans by customer
+     * @request GET:/customers/{id}/membership-plans
+     */
+    membershipPlansDetail: (id: string, params: RequestParams = {}) =>
+      this.request<CustomerMembershipPlansResponseDto[], Record<string, any>>({
+        path: `/customers/${id}/membership-plans`,
+        method: "GET",
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -829,21 +886,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get all events
      * @request GET:/events
      */
-    eventsList: (
-      query?: {
-        /** Filter by course ID (UUID) */
-        courseId?: string;
-        /** Filter by location ID (UUID) */
-        locationId?: string;
-        /** Filter by practice ID (UUID) */
-        practiceId?: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    eventsList: (params: RequestParams = {}) =>
       this.request<EventResponseDto[], Record<string, any>>({
         path: `/events`,
         method: "GET",
-        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -913,190 +959,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     eventsDelete: (id: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${id}`,
-        method: "DELETE",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  facilities = {
-    /**
-     * @description Retrieves a list of all facilities, optionally filtered by name.
-     *
-     * @tags facilities
-     * @name FacilitiesList
-     * @summary Get all facilities
-     * @request GET:/facilities
-     */
-    facilitiesList: (
-      query?: {
-        /** Facility name filter */
-        name?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<FacilityResponseDto[], Record<string, any>>({
-        path: `/facilities`,
-        method: "GET",
-        query: query,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Registers a new facility with the provided details.
-     *
-     * @tags facilities
-     * @name FacilitiesCreate
-     * @summary Create a new facility
-     * @request POST:/facilities
-     */
-    facilitiesCreate: (facility: FacilityRequestDto, params: RequestParams = {}) =>
-      this.request<FacilityResponseDto, Record<string, any>>({
-        path: `/facilities`,
-        method: "POST",
-        body: facility,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Retrieves a list of all facility categories.
-     *
-     * @tags facility-categories
-     * @name CategoriesList
-     * @summary Get all facility categories
-     * @request GET:/facilities/categories
-     */
-    categoriesList: (params: RequestParams = {}) =>
-      this.request<FacilityCategoryResponseDto[], Record<string, any>>({
-        path: `/facilities/categories`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Registers a new facility category with the provided name.
-     *
-     * @tags facility-categories
-     * @name CategoriesCreate
-     * @summary Create a new facility category
-     * @request POST:/facilities/categories
-     * @secure
-     */
-    categoriesCreate: (facility_category: FacilityCategoryRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/facilities/categories`,
-        method: "POST",
-        body: facility_category,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Retrieves a facility category by its ID.
-     *
-     * @tags facility-categories
-     * @name CategoriesDetail
-     * @summary Get a facility category by ID
-     * @request GET:/facilities/categories/{id}
-     */
-    categoriesDetail: (id: string, params: RequestParams = {}) =>
-      this.request<FacilityCategoryResponseDto, Record<string, any>>({
-        path: `/facilities/categories/${id}`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Updates the details of an existing facility category by ID.
-     *
-     * @tags facility-categories
-     * @name CategoriesUpdate
-     * @summary Update a facility category
-     * @request PUT:/facilities/categories/{id}
-     */
-    categoriesUpdate: (id: string, facility_category: FacilityCategoryRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/facilities/categories/${id}`,
-        method: "PUT",
-        body: facility_category,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Deletes a facility category by its ID.
-     *
-     * @tags facility-categories
-     * @name CategoriesDelete
-     * @summary Delete a facility category
-     * @request DELETE:/facilities/categories/{id}
-     */
-    categoriesDelete: (id: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/facilities/categories/${id}`,
-        method: "DELETE",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Retrieves a facility by its HubSpotId.
-     *
-     * @tags facilities
-     * @name FacilitiesDetail
-     * @summary Get a facility by HubSpotId
-     * @request GET:/facilities/{id}
-     */
-    facilitiesDetail: (id: string, params: RequestParams = {}) =>
-      this.request<FacilityResponseDto, Record<string, any>>({
-        path: `/facilities/${id}`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Updates the details of an existing facility by its HubSpotId.
-     *
-     * @tags facilities
-     * @name FacilitiesUpdate
-     * @summary Update a facility
-     * @request PUT:/facilities/{id}
-     */
-    facilitiesUpdate: (id: string, facility: FacilityRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/facilities/${id}`,
-        method: "PUT",
-        body: facility,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Deletes a facility by its HubSpotId.
-     *
-     * @tags facilities
-     * @name FacilitiesDelete
-     * @summary Delete a facility
-     * @request DELETE:/facilities/{id}
-     */
-    facilitiesDelete: (id: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/facilities/${id}`,
         method: "DELETE",
         type: ContentType.Json,
         format: "json",
@@ -1352,85 +1214,88 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  membershipPlan = {
+  locations = {
     /**
-     * @description Get membership plans by membership HubSpotId
+     * @description Retrieves a list of all locations.
      *
-     * @tags membership-plans
-     * @name MembershipPlanList
-     * @summary Get membership plans by membership HubSpotId
-     * @request GET:/membership-plan
+     * @tags locations
+     * @name LocationsList
+     * @summary Get all locations
+     * @request GET:/locations
      */
-    membershipPlanList: (
-      query?: {
-        /** Filter by customer ID */
-        customerId?: string;
-        /** Filter by membership ID */
-        membershipId?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<MembershipPlanPlanResponse[], Record<string, any>>({
-        path: `/membership-plan`,
+    locationsList: (params: RequestParams = {}) =>
+      this.request<LocationResponseDto[], Record<string, any>>({
+        path: `/locations`,
         method: "GET",
-        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Create a new membership plan
+     * @description Registers a new Location with the provided details.
      *
-     * @tags membership-plans
-     * @name MembershipPlanCreate
-     * @summary Create a new membership plan
-     * @request POST:/membership-plan
-     * @secure
+     * @tags locations
+     * @name LocationsCreate
+     * @summary Create a new Location
+     * @request POST:/locations
      */
-    membershipPlanCreate: (plan: MembershipPlanPlanRequestDto, params: RequestParams = {}) =>
-      this.request<void, Record<string, any>>({
-        path: `/membership-plan`,
+    locationsCreate: (body: LocationRequestDto, params: RequestParams = {}) =>
+      this.request<LocationResponseDto, Record<string, any>>({
+        path: `/locations`,
         method: "POST",
-        body: plan,
-        secure: true,
+        body: body,
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Update a membership plan
+     * @description Retrieves a Location by its unique identifier.
      *
-     * @tags membership-plans
-     * @name MembershipPlanUpdate
-     * @summary Update a membership plan
-     * @request PUT:/membership-plan/{id}
-     * @secure
+     * @tags locations
+     * @name LocationsDetail
+     * @summary Get a Location by ID
+     * @request GET:/locations/{id}
      */
-    membershipPlanUpdate: (id: string, plan: MembershipPlanPlanRequestDto, params: RequestParams = {}) =>
+    locationsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<LocationResponseDto, Record<string, any>>({
+        path: `/locations/${id}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Updates the details of an existing Location by its UUID.
+     *
+     * @tags locations
+     * @name LocationsUpdate
+     * @summary Update a Location
+     * @request PUT:/locations/{id}
+     */
+    locationsUpdate: (id: string, body: LocationRequestDto, params: RequestParams = {}) =>
       this.request<void, Record<string, any>>({
-        path: `/membership-plan/${id}`,
+        path: `/locations/${id}`,
         method: "PUT",
-        body: plan,
-        secure: true,
+        body: body,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * @description Delete a membership plan by HubSpotId
+     * @description Deletes a Location by its UUID.
      *
-     * @tags membership-plans
-     * @name MembershipPlanDelete
-     * @summary Delete a membership plan
-     * @request DELETE:/membership-plan/{id}
-     * @secure
+     * @tags locations
+     * @name LocationsDelete
+     * @summary Delete a Location
+     * @request DELETE:/locations/{id}
      */
-    membershipPlanDelete: (id: string, params: RequestParams = {}) =>
+    locationsDelete: (id: string, params: RequestParams = {}) =>
       this.request<void, Record<string, any>>({
-        path: `/membership-plan/${id}`,
+        path: `/locations/${id}`,
         method: "DELETE",
-        secure: true,
         type: ContentType.Json,
         ...params,
       }),
@@ -1473,11 +1338,84 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Get a membership by HubSpotId
+     * @description Create a new membership plan
+     *
+     * @tags membership-plans
+     * @name PlansCreate
+     * @summary Create a new membership plan
+     * @request POST:/memberships/plans
+     * @secure
+     */
+    plansCreate: (plan: MembershipPlanPlanRequestDto, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/memberships/plans`,
+        method: "POST",
+        body: plan,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Retrieves a list of available payment frequencies for membership plans.
+     *
+     * @tags membership-plans
+     * @name PlansPaymentFrequenciesList
+     * @summary Get payment frequencies for membership plans
+     * @request GET:/memberships/plans/payment-frequencies
+     */
+    plansPaymentFrequenciesList: (params: RequestParams = {}) =>
+      this.request<Record<string, string[]>, Record<string, any>>({
+        path: `/memberships/plans/payment-frequencies`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update a membership plan
+     *
+     * @tags membership-plans
+     * @name PlansUpdate
+     * @summary Update a membership plan
+     * @request PUT:/memberships/plans/{id}
+     * @secure
+     */
+    plansUpdate: (id: string, plan: MembershipPlanPlanRequestDto, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/memberships/plans/${id}`,
+        method: "PUT",
+        body: plan,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete a membership plan by ID
+     *
+     * @tags membership-plans
+     * @name PlansDelete
+     * @summary Delete a membership plan
+     * @request DELETE:/memberships/plans/{id}
+     * @secure
+     */
+    plansDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/memberships/plans/${id}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get a membership by ID
      *
      * @tags memberships
      * @name MembershipsDetail
-     * @summary Get a membership by HubSpotId
+     * @summary Get a membership by ID
      * @request GET:/memberships/{id}
      */
     membershipsDetail: (id: string, params: RequestParams = {}) =>
@@ -1509,7 +1447,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Delete a membership by HubSpotId
+     * @description Delete a membership by ID
      *
      * @tags memberships
      * @name MembershipsDelete
@@ -1523,6 +1461,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get membership plans by membership ID
+     *
+     * @tags membership-plans
+     * @name PlansDetail
+     * @summary Get membership plans by membership ID
+     * @request GET:/memberships/{id}/plans
+     */
+    plansDetail: (id: string, params: RequestParams = {}) =>
+      this.request<MembershipPlanPlanResponse[], Record<string, any>>({
+        path: `/memberships/${id}/plans`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
@@ -1666,14 +1621,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Registers a new customer using the provided details, creates a customer account. The Firebase token is used for user verification.
+     * @description Registers a new customer by verifying the Firebase token and creating an account based on the provided details. The registration can either be for an athlete or a parent, depending on the specified role in the request.
      *
      * @tags registration
      * @name CustomerCreate
      * @summary Register a new customer
      * @request POST:/register/customer
      */
-    customerCreate: (customer: CustomerRegularCustomerRegistrationRequestDto, params: RequestParams = {}) =>
+    customerCreate: (customer: CustomerRegistrationRequestDto, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/register/customer`,
         method: "POST",
@@ -1781,7 +1736,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/users/{email}
      */
     usersDetail: (email: string, params: RequestParams = {}) =>
-      this.request<HubspotUserResponse, Record<string, any>>({
+      this.request<UserResponse, Record<string, any>>({
         path: `/users/${email}`,
         method: "GET",
         type: ContentType.Json,

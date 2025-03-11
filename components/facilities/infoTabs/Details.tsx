@@ -15,7 +15,6 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
   const { data, updateField, isChanged, resetData } = useFormData({
     name: facility.name,
     location: facility.Address,
-    type: facility.facility_category,
   });
 
   const [nameInputEnabled, setNameInputEnabled] = useState(false)
@@ -50,7 +49,6 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
       body: JSON.stringify({
         name: data.name,
         location: data.location,
-        facility_type_id: facilityTypes.find((type) => type.name === data.type)?.id,
       }),
     })
 
@@ -103,28 +101,6 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
               className="cursor-pointer ml-2 size-4"
             />
           </p>
-        </div>
-
-        <div>
-          <p className="text-base font-semibold ">
-            Type <span className="text-red-500">*</span>
-
-          </p>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={"outline"}>{data.type}</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {
-                facilityTypes.map((facilityType) => (
-                  <DropdownMenuItem key={facilityType.id} onSelect={() => updateField("type", facilityType.name)}
-                  >
-                    {facilityType.name}
-                  </DropdownMenuItem>
-                ))
-              }
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 

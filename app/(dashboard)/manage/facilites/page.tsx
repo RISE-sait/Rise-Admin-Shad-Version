@@ -1,7 +1,7 @@
 "use client"
 
 import getValue from "@/components/Singleton";
-import { FacilityResponseDto } from "@/app/api/Api";
+import { LocationResponseDto } from "@/app/api/Api";
 import { Facility } from "@/types/facility";
 import FacilitiesPage from "@/components/facilities/FacilityPage";
 
@@ -10,13 +10,12 @@ export default async function Page() {
   const apiUrl = getValue("API");
 
   const response = await fetch(apiUrl + `/locations`);
-  const facilitiesResponse: FacilityResponseDto[] = await response.json();
+  const facilitiesResponse: LocationResponseDto[] = await response.json();
 
   const facilities: Facility[] = facilitiesResponse.map((f) => ({
     id: f.id!,
     name: f.name!,
     Address: f.address!,
-    facility_category: f.facility_category!,
   }));
 
   return (

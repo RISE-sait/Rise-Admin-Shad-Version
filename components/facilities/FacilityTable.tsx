@@ -19,7 +19,6 @@ export default function FacilityTable({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Address</TableHead>
-            <TableHead>Category</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
@@ -30,7 +29,6 @@ export default function FacilityTable({
             >
               <TableCell>{facility.name}</TableCell>
               <TableCell>{facility.Address}</TableCell>
-              <TableCell>{facility.facility_category}</TableCell>
             </TableRow>
           ))}
         </TableBody>
