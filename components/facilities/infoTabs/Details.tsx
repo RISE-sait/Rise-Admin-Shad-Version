@@ -14,8 +14,8 @@ export default function DetailsTab({ facility }: { facility: Facility }) {
 
   const { data, updateField, isChanged, resetData } = useFormData({
     name: facility.name,
-    location: facility.location,
-    type: facility.facility_type,
+    location: facility.Address,
+    type: facility.facility_category,
   });
 
   const [nameInputEnabled, setNameInputEnabled] = useState(false)

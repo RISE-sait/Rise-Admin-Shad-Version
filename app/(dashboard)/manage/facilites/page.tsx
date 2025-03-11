@@ -1,3 +1,5 @@
+"use client"
+
 import getValue from "@/components/Singleton";
 import { FacilityResponseDto } from "@/app/api/Api";
 import { Facility } from "@/types/facility";
@@ -7,7 +9,7 @@ export default async function Page() {
   // Get API URL
   const apiUrl = getValue("API");
 
-  const response = await fetch(apiUrl + `/facilities`);
+  const response = await fetch(apiUrl + `/locations`);
   const facilitiesResponse: FacilityResponseDto[] = await response.json();
 
   const facilities: Facility[] = facilitiesResponse.map((f) => ({

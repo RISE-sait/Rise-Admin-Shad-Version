@@ -65,7 +65,7 @@ export default function BarbershopPage() {
         {/* Header + Quick Actions Section */}
         <div className="bg-gray-950 p-8 rounded-xl shadow-xl border border-gray-800">
           <h1 className="text-4xl font-bold flex items-center gap-3 justify-center">
-            💈 <span className="text-white">RISE Barbershop</span>
+            <span className="text-white">RISE Barbershop</span>
           </h1>
           <p className="text-gray-400 text-lg text-center mt-2">
             Manage your appointments, control your availability, update your portfolio, and stay on top of your schedule!
