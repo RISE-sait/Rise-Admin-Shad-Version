@@ -7,11 +7,11 @@ export default async function ManageCustomersPage() {
   const apiUrl = getValue("API");
 
   const response = await fetch(apiUrl + `/customers`);
-  const customers: Customer[] = await response.json();
+  const customersResponse: Customer[] = await response.json();
 
   return (
     <div className="p-6 flex">
-      <CustomersPage customers={customers} />
+      <CustomersPage customers={customersResponse} />
     </div>
   );
 }

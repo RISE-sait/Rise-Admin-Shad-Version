@@ -1,5 +1,3 @@
-"use client"
-
 import getValue from "@/components/Singleton";
 import { LocationResponseDto } from "@/app/api/Api";
 import { Facility } from "@/types/facility";

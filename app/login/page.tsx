@@ -1,5 +1,10 @@
+
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth'
+import { auth } from "@/configs/firebase"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,114 +13,183 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
-import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth'
-import { auth } from "@/configs/firebase"
-import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 
 export default function Login() {
-
-  const [error, setError] = useState<string | null>(null);
-  const [signInWithGoogle, , googleLoading, googleError] = useSignInWithGoogle(auth);
-  const [signInWithEmailPassword] = useSignInWithEmailAndPassword(auth);
-
-  const router = useRouter(); // Initialize useRouter
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const router = useRouter()
+  
+  const [signInWithEmailPassword, , emailLoading, emailError] = useSignInWithEmailAndPassword(auth)
+  const [signInWithGoogle, , googleLoading, googleError] = useSignInWithGoogle(auth)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null); // Clear previous errors
-
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
-
+    event.preventDefault()
+    setIsLoading(true)
+    
     try {
-      const result = await signInWithEmailPassword(email, password);
-
+      const result = await signInWithEmailPassword(email, password)
+      
       if (result?.user) {
         const idToken = await result.user.getIdToken()
-
-        window.location.href = "/home"
-
-        return;
+        // Store the token in localStorage for future use
+        localStorage.setItem('authToken', idToken)
+        
+        toast.success("Successfully logged in!")
+        router.push("/home")
+      } else {
+        // Firebase will return null if login failed
+        toast.error("Invalid email or password. Please try again.")
       }
     } catch (err) {
-      setError("Failed to sign in. Please try again.");
+      toast.error("An error occurred during login. Please try again.")
+      console.error(err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleGoogleSignIn = async () => {
-    setError(null); // Clear previous errors
-
+    setIsLoading(true)
+    
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogle()
+      
       if (result?.user) {
-
         const idToken = await result.user.getIdToken()
-
-        console.log(idToken)
-        // Redirect to dashboard or home page after successful Google sign-in
-        router.push("/");
+        localStorage.setItem('authToken', idToken)
+        
+        toast.success("Successfully logged in with Google!")
+        router.push("/home")
+      } else {
+        toast.error("Google sign-in failed. Please try again.")
       }
     } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
+      toast.error("An error occurred during Google sign-in. Please try again.")
+      console.error(err)
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
+  // Display error messages from Firebase
+  const getErrorMessage = () => {
+    if (emailError) {
+      return emailError.message
+    }
+    if (googleError) {
+      return googleError.message
+    }
+    return null
+  }
 
   return (
-    <div className={cn("gap-6 min-h-svh max-w-sm flex items-center mx-auto p-6 md:p-10")}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
+    <div className={cn("min-h-svh max-w-sm flex items-center mx-auto p-6 md:p-10")}>
+      <Card className="w-full">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+          <CardDescription className="text-center">
+            Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={handleSubmit}
-          >
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="m@example.com"
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input name="password" type="password" />
-              </div>
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleGoogleSignIn}
-                disabled={googleLoading} // Disable button while loading
-              >
-                {googleLoading ? "Signing in..." : "Login with Google"}
-              </Button>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              {googleError && <p className="text-red-500 text-sm">{googleError.message}</p>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+              />
             </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <a
+                  href="#"
+                  className="text-sm text-muted-foreground hover:underline"
+                >
+                  Forgot password?
+                </a>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            
+            {getErrorMessage() && (
+              <div className="text-sm text-red-500 p-2 rounded bg-red-50">
+                {getErrorMessage()}
+              </div>
+            )}
+            
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || emailLoading}
+            >
+              {(isLoading || emailLoading) ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
           </form>
+          
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+          
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading || googleLoading}
+          >
+            {(isLoading || googleLoading) ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in with Google...
+              </>
+            ) : (
+              "Sign in with Google"
+            )}
+          </Button>
         </CardContent>
+        <CardFooter className="flex justify-center">
+          <div className="text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <a href="/register" className="text-primary hover:underline">
+              Sign up
+            </a>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   )
