@@ -38,7 +38,7 @@ export default function Login() {
       if (result?.user) {
         const idToken = await result.user.getIdToken()
 
-        window.location.href = "/home"
+        window.location.href = "/"
 
         return;
       }
