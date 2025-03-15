@@ -72,13 +72,39 @@ export default function Login() {
       const result = await signInWithGoogle();
       
       if (result?.user) {
-
-        // Dont set ID token in local/session storage due to XSS
-
-        const idToken = await result.user.getIdToken()
+        // Get Firebase token
+        const idToken = await result.user.getIdToken();
         
-        toast.success("Successfully logged in with Google!")
-        router.push("/")
+        // Log the Firebase token (first 20 chars for safety)
+        console.log("Firebase Token:", idToken);
+        console.log("Full Firebase Token length:", idToken.length);
+        
+        try {
+          // Authenticate with backend
+          const { user, token } = await loginWithFirebaseToken(idToken);
+          
+          // Log the JWT token from backend (first 20 chars for safety)
+          console.log("JWT Token from backend (first 20 chars):", 
+            token ? (token.substring(0, 20) + "...") : "No token received");
+          console.log("Full JWT Token length:", token ? token.length : 0);
+          
+          // Store the JWT token
+          localStorage.setItem('jwtToken', token);
+          
+          // Store user data for persistent sessions
+          localStorage.setItem('userData', JSON.stringify(user));
+          
+          // Update user context
+          setUser(user);
+          
+          console.log("Authenticated User:", user);
+          
+          toast.success("Successfully logged in with Google!");
+          router.push("/");
+        } catch (authError) {
+          console.error("Backend authentication failed:", authError);
+          toast.error("Authentication failed with backend");
+        }
       } else {
         toast.error("Google sign-in failed. Please try again.");
       }
