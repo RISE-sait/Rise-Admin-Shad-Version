@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -19,6 +18,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { loginWithFirebaseToken } from "@/services/auth";
+import { useUser } from "@/contexts/UserContext";
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -30,54 +31,75 @@ export default function Login() {
   const [signInWithEmailPassword, , emailLoading, emailError] = useSignInWithEmailAndPassword(auth)
   const [signInWithGoogle, , googleLoading, googleError] = useSignInWithGoogle(auth)
 
+  const { setUser } = useUser();
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setIsLoading(true)
+    event.preventDefault();
+    setIsLoading(true);
     
     try {
-      const result = await signInWithEmailPassword(email, password)
+      const result = await signInWithEmailPassword(email, password);
       
       if (result?.user) {
-        const idToken = await result.user.getIdToken()
-        // Store the token in localStorage for future use
-        localStorage.setItem('authToken', idToken)
+        const idToken = await result.user.getIdToken();
         
-        toast.success("Successfully logged in!")
-        router.push("/home")
+        // First authenticate with Firebase, then with your backend
+        const { user, token } = await loginWithFirebaseToken(idToken);
+        
+        // Store the JWT token from your backend (not the Firebase token)
+        localStorage.setItem('jwtToken', token);
+        
+        // Update user context
+        setUser(user);
+        
+        toast.success("Successfully logged in!");
+        router.push("/");
       } else {
-        // Firebase will return null if login failed
-        toast.error("Invalid email or password. Please try again.")
+        toast.error("Invalid email or password. Please try again.");
       }
     } catch (err) {
-      toast.error("An error occurred during login. Please try again.")
-      console.error(err)
+      toast.error("An error occurred during login. Please try again.");
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     
     try {
-      const result = await signInWithGoogle()
+      const result = await signInWithGoogle();
       
       if (result?.user) {
-        const idToken = await result.user.getIdToken()
-        localStorage.setItem('authToken', idToken)
+        const idToken = await result.user.getIdToken();
         
-        toast.success("Successfully logged in with Google!")
-        router.push("/home")
+        try {
+          // Authenticate with backend using Firebase token
+          const { user, token } = await loginWithFirebaseToken(idToken);
+          
+          // Store the JWT token
+          localStorage.setItem('jwtToken', token);
+          
+          // Update user context
+          setUser(user);
+          
+          toast.success("Successfully logged in with Google!");
+          router.push("/");
+        } catch (authError) {
+          console.error("Backend authentication failed:", authError);
+          toast.error("Authentication failed. Your account may not be registered in the system.");
+        }
       } else {
-        toast.error("Google sign-in failed. Please try again.")
+        toast.error("Google sign-in failed. Please try again.");
       }
     } catch (err) {
-      toast.error("An error occurred during Google sign-in. Please try again.")
-      console.error(err)
+      toast.error("An error occurred during Google sign-in. Please try again.");
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Display error messages from Firebase
   const getErrorMessage = () => {

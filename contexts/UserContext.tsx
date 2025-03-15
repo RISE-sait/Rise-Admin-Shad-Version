@@ -1,12 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { User } from "@/types/user";
+import { checkAuthStatus } from "@/services/auth";
 
 type UserContextType = {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  isLoading: boolean;
+  logout: () => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -18,47 +21,40 @@ export const useUser = () => {
 };
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  // Set a dummy user to work on the front end without authentication.
-  const dummyUser: User = {
-    Email: "guest@example.com",
-    Name: "Guest User",
-    StaffInfo: {
-      Role: "ADMIN", // or 'INSTRUCTOR' | 'SUPERADMIN' | 'COACH'
-      IsActive: true,
-    },
-  };
-  const [user, setUser] = useState<User | null>(dummyUser);
-
-  
-  /*const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const verifyAuth = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch("/api/identity/auth/check", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (!response.ok) throw new Error("Unauthorized");
-
-        const data: User = await response.json();
-        setUser(data);
+        const userData = await checkAuthStatus();
+        setUser(userData);
+        
+        if (!userData && !pathname.startsWith('/login')) {
+          router.push('/login');
+        }
       } catch (error) {
-        setUser(null);
-        router.push("/login");
+        console.error("Auth verification failed:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    checkAuth();
-  }, [router]);
+    verifyAuth();
+  }, [router, pathname]);
 
-  if (user === null) return null; // Prevent flickering before redirect */
+  const logout = () => {
+    localStorage.removeItem('jwtToken');
+    setUser(null);
+    router.push('/login');
+  };
 
-  return(
-   <UserContext.Provider value={{ user, setUser }}>
-      {children}
+  return (
+    <UserContext.Provider value={{ user, setUser, isLoading, logout }}>
+      {isLoading ? <div>Loading...</div> : children}
     </UserContext.Provider>
   );
 }
