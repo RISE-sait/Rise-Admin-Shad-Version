@@ -51,7 +51,7 @@
                 }
             }
         },
-        "/auth/child/{hubspot_id}": {
+      "/auth/child/{id}": {
             "post": {
                 "security": [
                     {
@@ -72,8 +72,8 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Child HubSpotId",
-                        "name": "hubspot_id",
+                      "description": "Child ID",
+                      "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -356,7 +356,7 @@
         },
         "/customers": {
             "get": {
-                "description": "Retrieves a list of customers, optionally filtered by HubSpot IDs.",
+              "description": "Retrieves a list of customers, optionally filtered by HubSpot IDs, with pagination support.",
                 "consumes": [
                     "application/json"
                 ],
@@ -367,14 +367,20 @@
                     "customers"
                 ],
                 "summary": "Get customers",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of HubSpot IDs to filter customers",
-                        "name": "hubspot_ids",
-                        "in": "query"
-                    }
-                ],
+              "parameters": [
+                {
+                  "type": "integer",
+                  "description": "Number of customers to retrieve (default: 20)",
+                  "name": "limit",
+                  "in": "query"
+                },
+                {
+                  "type": "integer",
+                  "description": "Number of customers to skip (default: 0)",
+                  "name": "offset",
+                  "in": "query"
+                }
+              ],
                 "responses": {
                     "200": {
                         "description": "List of customers",
@@ -497,6 +503,62 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                  "500": {
+                    "description": "Internal Server Error",
+                    "schema": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+            }
+      },
+      "/customers/{id}/children": {
+        "get": {
+          "description": "Retrieves a repository's children using the parent's ID",
+          "consumes": [
+            "application/json"
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "tags": [
+            "customers"
+          ],
+          "summary": "Get a repository's children by parent ID",
+          "parameters": [
+            {
+              "type": "string",
+              "description": "Parent ID",
+              "name": "email",
+              "in": "path",
+              "required": true
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Customer's children retrieved successfully",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/hubspot.UserResponse"
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request: Invalid ID",
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "404": {
+              "description": "Not Found: Parent or children not found",
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
                         }
                     },
                     "500": {
@@ -884,7 +946,7 @@
         },
         "/events": {
             "get": {
-                "description": "Retrieve all events, with optional filters by course, location, and practice.",
+              "description": "Retrieve all events within a specific date range, with optional filters by course, location, game, and practice.",
                 "consumes": [
                     "application/json"
                 ],
@@ -895,9 +957,55 @@
                     "events"
                 ],
                 "summary": "Get all events",
+              "parameters": [
+                {
+                  "type": "string",
+                  "example": "\"2024-05-01\"",
+                  "description": "Retrieve events after this date (format: YYYY-MM-DD)",
+                  "name": "after",
+                  "in": "query",
+                  "required": true
+                },
+                {
+                  "type": "string",
+                  "example": "\"2024-06-01\"",
+                  "description": "Retrieve events before this date (format: YYYY-MM-DD)",
+                  "name": "before",
+                  "in": "query",
+                  "required": true
+                },
+                {
+                  "type": "string",
+                  "example": "\"550e8400-e29b-41d4-a716-446655440000\"",
+                  "description": "Filter by game ID (UUID format)",
+                  "name": "game_id",
+                  "in": "query"
+                },
+                {
+                  "type": "string",
+                  "example": "\"550e8400-e29b-41d4-a716-446655440000\"",
+                  "description": "Filter by course ID (UUID format)",
+                  "name": "course_id",
+                  "in": "query"
+                },
+                {
+                  "type": "string",
+                  "example": "\"550e8400-e29b-41d4-a716-446655440000\"",
+                  "description": "Filter by practice ID (UUID format)",
+                  "name": "practice_id",
+                  "in": "query"
+                },
+                {
+                  "type": "string",
+                  "example": "\"550e8400-e29b-41d4-a716-446655440000\"",
+                  "description": "Filter by location ID (UUID format)",
+                  "name": "location_id",
+                  "in": "query"
+                }
+              ],
                 "responses": {
                     "200": {
-                        "description": "GetMemberships of events retrieved successfully",
+                      "description": "List of events retrieved successfully",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -906,7 +1014,7 @@
                         }
                     },
                     "400": {
-                        "description": "Bad Request: Invalid input",
+                      "description": "Bad Request: Invalid input format or missing required parameters",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -971,7 +1079,7 @@
         },
         "/events/{id}": {
             "get": {
-                "description": "Retrieves details of a specific event based on its HubSpotId.",
+              "description": "Retrieves details of a specific event based on its ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -999,7 +1107,7 @@
                         }
                     },
                     "400": {
-                        "description": "Bad Request: Invalid HubSpotId",
+                      "description": "Bad Request: Invalid ID",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1083,7 +1191,7 @@
                 }
             },
             "delete": {
-                "description": "Deletes an event by its HubSpotId.",
+              "description": "Deletes an event by its ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1112,7 +1220,7 @@
                         }
                     },
                     "400": {
-                        "description": "Bad Request: Invalid HubSpotId",
+                      "description": "Bad Request: Invalid ID",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1153,12 +1261,6 @@
                         "type": "string",
                         "description": "Filter by game name",
                         "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by game description",
-                        "name": "description",
                         "in": "query"
                     }
                 ],
@@ -2631,7 +2733,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Practice HubSpotId",
+                      "description": "Practice ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2679,7 +2781,7 @@
                         "Bearer": []
                     }
                 ],
-                "description": "Delete a practice by HubSpotId",
+              "description": "Delete a practice by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -2693,7 +2795,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Practice HubSpotId",
+                      "description": "Practice ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2704,7 +2806,7 @@
                         "description": "No Content: Practice deleted successfully"
                     },
                     "400": {
-                        "description": "Bad Request: Invalid HubSpotId",
+                      "description": "Bad Request: Invalid ID",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2834,6 +2936,62 @@
                 }
             }
         },
+      "/register/athlete": {
+        "post": {
+          "description": "Registers a new athlete by verifying the Firebase token and creating an account based on the provided details.",
+          "consumes": [
+            "application/json"
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "tags": [
+            "registration"
+          ],
+          "summary": "Register a new athlete",
+          "parameters": [
+            {
+              "description": "Athlete registration details",
+              "name": "athlete",
+              "in": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/customer.AthleteRegistrationRequestDto"
+              }
+            },
+            {
+              "type": "string",
+              "description": "Firebase token for user verification",
+              "name": "firebase_token",
+              "in": "header",
+              "required": true
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "Athlete registered successfully",
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "400": {
+              "description": "Bad Request: Missing or invalid Firebase token or request body",
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "500": {
+              "description": "Internal Server Error: Failed to register athlete",
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+                    }
+                }
+            }
+        },
         "/register/child": {
             "post": {
                 "description": "Registers a new child account using the provided details and associates it with the parent based on the Firebase authentication token.",
@@ -2897,9 +3055,9 @@
                 }
             }
         },
-        "/register/customer": {
+      "/register/parent": {
             "post": {
-                "description": "Registers a new customer by verifying the Firebase token and creating an account based on the provided details. The registration can either be for an athlete or a parent, depending on the specified role in the request.",
+              "description": "Registers a new parent by verifying the Firebase token and creating an account based on the provided details.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2909,15 +3067,15 @@
                 "tags": [
                     "registration"
                 ],
-                "summary": "Register a new customer",
+              "summary": "Register a new parent",
                 "parameters": [
                     {
-                        "description": "Customer registration details",
-                        "name": "customer",
+                      "description": "Parent registration details",
+                      "name": "parent",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/customer.RegistrationRequestDto"
+                          "$ref": "#/definitions/customer.ParentRegistrationRequestDto"
                         }
                     },
                     {
@@ -2930,7 +3088,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Customer registered successfully",
+                      "description": "Parent registered successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2944,7 +3102,7 @@
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error: Failed to register customer",
+                      "description": "Internal Server Error: Failed to register parent",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2968,6 +3126,13 @@
                 "summary": "Register a new staff member",
                 "parameters": [
                     {
+                      "type": "string",
+                      "description": "Firebase token for user verification",
+                      "name": "firebase_token",
+                      "in": "header",
+                      "required": true
+                    },
+                  {
                         "description": "Staff registration details",
                         "name": "staff",
                         "in": "body",
@@ -3011,7 +3176,7 @@
         },
         "/staffs": {
             "get": {
-                "description": "Retrieves staff members based on optional filters like role or HubSpot IDs.",
+              "description": "Retrieves staff members based on optional role filter.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3028,13 +3193,6 @@
                         "example": "\"Coach\"",
                         "description": "Role name to filter staff",
                         "name": "role",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"123,456,789\"",
-                        "description": "Comma-separated HubSpot IDs",
-                        "name": "hubspot_ids",
                         "in": "query"
                     }
                 ],
@@ -3087,7 +3245,7 @@
                     {
                         "type": "string",
                         "example": "\"f47ac10b-58cc-4372-a567-0e02b2c3d479\"",
-                        "description": "Staff HubSpotId",
+                      "description": "Staff ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3183,115 +3341,6 @@
                     }
                 }
             }
-        },
-        "/users/{email}": {
-            "get": {
-                "description": "Retrieves a repository using their email address",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get a repository by email",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Email",
-                        "name": "email",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Customer retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/user.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request: Invalid Email",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found: Customer not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{email}/children": {
-            "get": {
-                "description": "Retrieves a repository's children using the parent's email address",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get a repository's children by parent email",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Parent Email",
-                        "name": "email",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Customer's children retrieved successfully",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/hubspot.UserResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request: Invalid Email",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found: Parent or children not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -3326,6 +3375,44 @@
                 }
             }
         },
+      "customer.AthleteRegistrationRequestDto": {
+        "type": "object",
+        "required": [
+          "age",
+          "first_name",
+          "last_name"
+        ],
+        "properties": {
+          "age": {
+            "type": "integer"
+          },
+          "country_code": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "has_consent_to_email_marketing": {
+            "type": "boolean"
+          },
+          "has_consent_to_sms": {
+            "type": "boolean"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "+15141234567"
+          },
+          "waivers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/customer.WaiverSigningRequestDto"
+            }
+          }
+        }
+      },
       "customer.AthleteResponseDto": {
         "type": "object",
         "properties": {
@@ -3344,7 +3431,7 @@
           "points": {
             "type": "integer"
           },
-          "profile_pic_url": {
+          "profile_pic": {
             "type": "string"
           },
           "rebounds": {
@@ -3372,6 +3459,9 @@
                 "age": {
                     "type": "integer"
                 },
+              "country_code": {
+                "type": "string"
+              },
                 "first_name": {
                     "type": "string"
                 },
@@ -3418,13 +3508,12 @@
                 }
             }
         },
-        "customer.RegistrationRequestDto": {
+      "customer.ParentRegistrationRequestDto": {
             "type": "object",
             "required": [
                 "age",
                 "first_name",
-                "last_name",
-                "role"
+              "last_name"
             ],
             "properties": {
                 "age": {
@@ -3448,21 +3537,18 @@
                 "phone_number": {
                     "type": "string",
                     "example": "+15141234567"
-                },
-                "role": {
-                    "type": "string"
-                },
-                "waivers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/customer.WaiverSigningRequestDto"
-                    }
                 }
             }
         },
         "customer.Response": {
             "type": "object",
             "properties": {
+              "age": {
+                "type": "integer"
+              },
+              "country_code": {
+                "type": "string"
+              },
                 "email": {
                     "type": "string"
                 },
@@ -3598,20 +3684,13 @@
         "event.RequestDto": {
             "type": "object",
             "required": [
-                "day",
                 "event_end_at",
-                "event_start_at",
-                "session_end_time",
-                "session_start_time"
+              "event_start_at"
             ],
             "properties": {
                 "course_id": {
                     "type": "string",
                     "example": "00000000-0000-0000-0000-000000000000"
-                },
-                "day": {
-                    "type": "string",
-                    "example": "THURSDAY"
                 },
                 "event_end_at": {
                     "type": "string",
@@ -3632,14 +3711,6 @@
                 "practice_id": {
                     "type": "string",
                     "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
-                },
-                "session_end_time": {
-                    "type": "string",
-                    "example": "23:00:00+00:00"
-                },
-                "session_start_time": {
-                    "type": "string",
-                    "example": "23:00:00+00:00"
                 }
             }
         },
@@ -3647,9 +3718,6 @@
             "type": "object",
             "properties": {
                 "course_id": {
-                    "type": "string"
-                },
-                "day": {
                     "type": "string"
                 },
                 "event_end_at": {
@@ -3701,9 +3769,6 @@
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
-                },
-                "video_link": {
                     "type": "string"
                 }
             }
@@ -3946,7 +4011,9 @@
         "membership_plan.PlanRequestDto": {
             "type": "object",
             "required": [
+              "amt_periods",
                 "membership_id",
+              "payment_frequency",
                 "price"
             ],
             "properties": {
@@ -3963,7 +4030,7 @@
                     "type": "string"
                 },
                 "price": {
-                    "type": "integer"
+                  "type": "string"
                 }
             }
         },
@@ -3973,9 +4040,15 @@
                 "amt_periods": {
                     "type": "integer"
                 },
+              "created_at": {
+                "type": "string"
+              },
                 "id": {
                     "type": "string"
                 },
+              "joining_fees": {
+                "type": "string"
+              },
                 "membership_id": {
                     "type": "string"
                 },
@@ -3986,7 +4059,10 @@
                     "type": "string"
                 },
                 "price": {
-                    "type": "integer"
+                  "type": "string"
+                },
+              "updated_at": {
+                "type": "string"
                 }
             }
         },
@@ -4018,6 +4094,9 @@
         "properties": {
           "age": {
             "type": "integer"
+          },
+          "country_code": {
+            "type": "string"
           },
           "first_name": {
             "type": "string"
@@ -4055,6 +4134,9 @@
         "staff.ResponseDto": {
             "type": "object",
             "properties": {
+              "country_code": {
+                "type": "string"
+              },
                 "created_at": {
                     "type": "string"
                 },
@@ -4071,7 +4153,6 @@
                     "type": "string"
                 },
                 "is_active": {
-                    "description": "Indicates if the staff is still an active employee",
                     "type": "boolean"
                 },
                 "last_name": {
@@ -4080,39 +4161,10 @@
                 "phone": {
                     "type": "string"
                 },
-                "role_id": {
-                    "type": "string"
-                },
                 "role_name": {
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "user.Response": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "hubspot_id": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "profile_pic": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 }
             }

@@ -1,83 +1,54 @@
-import { Button } from "@/components/ui/button";
+"use client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useFormData } from "@/hooks/form-data";
 import { useToast } from "@/hooks/use-toast";
-import { Course } from "@/types/course";
+import { BookOpenIcon, PencilIcon } from "lucide-react";
 
-export default function DetailsTab({ course }: { course: Course }) {
+export default function DetailsTab({
+  details,
+  onDetailsChange
+}: {
+  details: { name: string; description: string };
+  onDetailsChange: (details: { name: string; description: string }) => void;
+}) {
   const { toast } = useToast();
-  const { data, updateField } = useFormData({
-    name: course.name,
-    description: course.description,
-  });
-
-  const updateCourse = async () => {
-    // Ensure the name is not empty
-    if (!data.name.trim()) {
-      toast({
-        status: "error",
-        description: "Course name cannot be empty.",
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.BACKEND_URL}/api/courses/${course.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            description: data.description,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update course");
-      }
-
-      toast({
-        status: "success",
-        description: "Successfully saved.",
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        status: "error",
-        description: "An error occurred. Please try again.",
-      });
-    }
-  };
 
   return (
-    <div className="space-y-4 pt-3">
-      <div className="pb-4">
-        <p className="pb-2">Course Name</p>
-        <Input
-        className="line-clamp-2"
-          onChange={(e) => updateField("name", e.target.value)}
-          type="text"
-          value={data.name}
-        />
-      </div>
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <div className="flex items-center gap-3 mb-6">
+          <BookOpenIcon className="h-6 w-6 text-primary" />
+          <h2 className="text-2xl font-bold tracking-tight">Course Information</h2>
+        </div>
 
-      <div className="pb-4">
-        <p className="pb-2">Description</p>
-        <Textarea
-          rows={3}
-          onChange={(e) => updateField("description", e.target.value)}
-          value={data.description}
-        />
-      </div>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <label className="text-base font-medium flex items-center gap-2">
+              <PencilIcon className="h-5 w-5 text-muted-foreground" />
+              Course Name
+            </label>
+            <Input
+              value={details.name}
+              onChange={(e) => onDetailsChange({ ...details, name: e.target.value })}
+              placeholder="Enter course name"
+              className="text-lg h-12 px-4"
+            />
+          </div>
 
-      <section className="flex justify-between">
-        <Button onClick={updateCourse}>Save Course</Button>
-      </section>
+          <div className="space-y-3">
+            <label className="text-base font-medium flex items-center gap-2">
+              <PencilIcon className="h-5 w-5 text-muted-foreground" />
+              Description
+            </label>
+            <Textarea
+              value={details.description}
+              onChange={(e) => onDetailsChange({ ...details, description: e.target.value })}
+              placeholder="Describe the course content and objectives"
+              className="min-h-[150px] text-base p-4"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

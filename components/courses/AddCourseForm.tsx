@@ -6,12 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import getValue from "../Singleton";
+import { Schedule } from "@/types/course";
 
 export default function AddCourseForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
 
   const apiUrl = getValue("API");
+
+  const courseData = {
+    name,
+    description,
+    schedules
+  };
 
   const handleAddCourse = async () => {
     // Check if the course name is empty
@@ -24,7 +32,7 @@ export default function AddCourseForm() {
       const response = await fetch(apiUrl + `/courses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description, name }),
+        body: JSON.stringify(courseData),
       });
 
       if (!response.ok) {
