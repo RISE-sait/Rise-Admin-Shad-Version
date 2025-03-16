@@ -72,7 +72,7 @@ export default function ManageBarbersPage() {
 
         {/* Header Section */}
         <div className="bg-gray-950 p-8 rounded-xl shadow-xl border border-gray-800">
-          <h1 className="text-4xl font-bold text-center text-white">💈 Manage Barbers</h1>
+          <h1 className="text-4xl font-bold text-center text-white">Manage Barbers</h1>
           <p className="text-gray-400 text-lg text-center mt-2">
             View and manage your barber's availability and details.
           </p>

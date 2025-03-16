@@ -73,7 +73,7 @@ export default function PortfolioPage() {
 
         {/* Title Section */}
         <div className="bg-gray-950 p-6 rounded-xl shadow-xl border border-gray-800 text-center">
-          <h1 className="text-3xl font-bold text-white">💼 Manage Your Portfolio</h1>
+          <h1 className="text-3xl font-bold text-white">Manage Your Portfolio</h1>
           <p className="text-gray-400 text-lg mt-2">
             Upload and manage your photos to showcase your barbering work.
           </p>
