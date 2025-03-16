@@ -13,36 +13,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      # - name: Authenticate with Google Cloud
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Set up gcloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      # - name: Set up gcloud SDK
+      #   uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configure Docker to use gcloud
-        run: gcloud auth configure-docker us-west2-docker.pkg.dev
+      # - name: Configure Docker to use gcloud
+      #   run: gcloud auth configure-docker us-west2-docker.pkg.dev
 
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA \
-            --build-arg GOOGLE_AUTH_CLIENTID="${{ secrets.GOOGLE_AUTH_CLIENTID }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_API_KEY="${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID="${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_APP_ID="${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}" \
-            --build-arg NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}" \
-            .
+      # - name: Build and Push Docker Image
+      #   run: |
+      #     docker build -t us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA .
 
-          docker push us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA
+      #     docker push us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA
 
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy rise-web \
-            --image us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA \
-            --region us-west2 \
-            --platform managed \
-            --allow-unauthenticated
+      # - name: Deploy to Cloud Run
+      #   run: |
+      #     gcloud run deploy rise-web \
+      #       --image us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA \
+      #       --region us-west2 \
+      #       --platform managed \
+      #       --allow-unauthenticated
