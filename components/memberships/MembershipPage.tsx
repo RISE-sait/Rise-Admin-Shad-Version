@@ -101,7 +101,7 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
         drawerWidth={drawerContent === "details" ? "w-[65%]" : "w-[35%] max-w-[450px]"}
       >
         <div className="p-6">
-          <h2 className="text-2xl font-semibold mb-4">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Membership Details" : "Add New Membership"}
           </h2>
           {drawerContent === "details" && selectedMembership && (

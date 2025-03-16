@@ -75,18 +75,6 @@ export default function ScheduleTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Course Schedules</h2>
-          <p className="text-muted-foreground mt-1">Manage class timings and sessions</p>
-        </div>
-        <Button onClick={handleAddSchedule} className="gap-2">
-          <PlusIcon className="h-4 w-4" />
-          New Schedule
-        </Button>
-      </div>
-
-      <Separator className="my-4" />
 
       {schedules.map((schedule, scheduleIndex) => (
         <div key={scheduleIndex} className="border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">

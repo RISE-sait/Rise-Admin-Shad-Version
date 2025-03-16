@@ -7,8 +7,10 @@ import { Customer } from "@/types/customer";
 import getValue from "@/components/Singleton";
 
 export default function DetailsTab({ customer }: { customer: Customer }) {
+  // Combine first_name and last_name for the initial state
   const [data, setData] = useState({
-    name: customer.name || "",
+    first_name: customer.first_name || "",
+    last_name: customer.last_name || "",
     email: customer.email || "",
     phone: customer.phone || "",
   });
@@ -24,8 +26,13 @@ export default function DetailsTab({ customer }: { customer: Customer }) {
 
   const updateCustomer = async () => {
     // Ensure required fields are not empty
-    if (!data.name.trim()) {
-      toast.error("Customer name cannot be empty.");
+    if (!data.first_name.trim()) {
+      toast.error("First name cannot be empty.");
+      return;
+    }
+
+    if (!data.last_name.trim()) {
+      toast.error("Last name cannot be empty.");
       return;
     }
 
@@ -43,7 +50,8 @@ export default function DetailsTab({ customer }: { customer: Customer }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: data.name,
+            first_name: data.first_name,
+            last_name: data.last_name,
             email: data.email,
             phone: data.phone || undefined,
           }),
@@ -63,15 +71,28 @@ export default function DetailsTab({ customer }: { customer: Customer }) {
 
   return (
     <div className="space-y-4 pt-3">
-      <div className="pb-4">
-        <p className="pb-2">
-          Name <span className="text-red-500">*</span>
-        </p>
-        <Input
-          onChange={(e) => updateField("name", e.target.value)}
-          type="text"
-          value={data.name}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="pb-4">
+          <p className="pb-2">
+            First Name <span className="text-red-500">*</span>
+          </p>
+          <Input
+            onChange={(e) => updateField("first_name", e.target.value)}
+            type="text"
+            value={data.first_name}
+          />
+        </div>
+
+        <div className="pb-4">
+          <p className="pb-2">
+            Last Name <span className="text-red-500">*</span>
+          </p>
+          <Input
+            onChange={(e) => updateField("last_name", e.target.value)}
+            type="text"
+            value={data.last_name}
+          />
+        </div>
       </div>
 
       <div className="pb-4">
@@ -93,10 +114,6 @@ export default function DetailsTab({ customer }: { customer: Customer }) {
           value={data.phone}
         />
       </div>
-
-      <section className="flex justify-between">
-        <Button onClick={updateCustomer}>Save Changes</Button>
-      </section>
     </div>
   );
 }

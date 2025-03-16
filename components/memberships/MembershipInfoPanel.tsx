@@ -6,7 +6,7 @@ import DetailsTab from "./infoTabs/Details";
 import PlansTab from "./infoTabs/plans/plans"; 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { TrashIcon, SaveIcon } from "lucide-react";
+import { TrashIcon, SaveIcon, CreditCard, ShoppingBag } from "lucide-react";
 import getValue from "@/components/Singleton";
 
 export default function MembershipInfoPanel({ membership }: { membership: Membership }) {
@@ -73,10 +73,24 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full bg-muted/50">
-          <TabsTrigger value="details">Membership Details</TabsTrigger>
-          <TabsTrigger value="plans">Plans</TabsTrigger>
-        </TabsList>
+      <div className="border-b mb-6">
+          <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
+            <TabsTrigger 
+              value="details"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-amber-600 data-[state=active]:text-amber-600 dark:data-[state=active]:border-amber-500 dark:data-[state=active]:text-amber-500 data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <CreditCard className="h-4 w-4" />
+              Membership Details
+            </TabsTrigger>
+            <TabsTrigger 
+              value="plans"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-amber-600 data-[state=active]:text-amber-600 dark:data-[state=active]:border-amber-500 dark:data-[state=active]:text-amber-500 data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              Plans
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="details" className="pt-4">
           <DetailsTab
@@ -95,29 +109,29 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
       </Tabs>
 
       <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-  <div className="max-w-5xl mx-auto px-4 flex justify-between items-center">
-    <p className="text-sm text-muted-foreground">Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : 'Never'}</p>
-    
-    <div className="flex items-center gap-3">
-      <Button
-        variant="outline"
-        onClick={handleDeleteMembership}
-        className="border-destructive text-destructive hover:bg-destructive/10"
-      >
-        <TrashIcon className="h-4 w-4 mr-2" />
-        Delete
-      </Button>
-      
-      <Button
-        onClick={handleSaveAll}
-        className="bg-green-600 hover:bg-green-700"
-      >
-        <SaveIcon className="h-4 w-4 mr-2" />
-        Save Changes
-      </Button>
+      <div className="max-w-5xl mx-auto px-4 flex justify-between items-center">
+        <p className="text-sm text-muted-foreground">Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : 'Never'}</p>
+        
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleDeleteMembership}
+            className="border-destructive text-destructive hover:bg-destructive/10"
+          >
+            <TrashIcon className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+          
+          <Button
+            onClick={handleSaveAll}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
     </div>
   );
 }

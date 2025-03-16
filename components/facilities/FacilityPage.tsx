@@ -102,7 +102,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
         drawerWidth={drawerContent === "details" ? "w-[65%]" : "w-[35%] max-w-[450px]"}
       >
         <div className="p-6">
-          <h2 className="text-2xl font-semibold mb-4">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Facility Details" : "Add New Facility"}
           </h2>
           {drawerContent === "details" && selectedFacility && (

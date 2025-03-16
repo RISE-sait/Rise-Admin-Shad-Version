@@ -3,6 +3,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { format } from "date-fns"
+import { Calendar, FileText } from "lucide-react"
 
 import RightDrawer from "@/components/reusable/RightDrawer"
 import { useCalendarContext } from "../calendar-context"
@@ -30,7 +31,7 @@ import {
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "../../../../ui/tabs"
+} from "@/components/ui/tabs"
 
 import { classSchema, facilitySchema } from "./event-schemas"
 
@@ -105,307 +106,330 @@ export default function CalendarNewEventDrawer() {
 
   return (
     <>
-    <RightDrawer drawerOpen={newEventDialogOpen} handleDrawerClose={handleClose} drawerWidth="w-[25%]" >
-      <div className="p-6 space-y-4">
-        <h2 className="scroll-m-20 border-b pb-4 text-2xl font-semibold tracking-tight mb-4">
-          Choose your event type
-        </h2>
+      <RightDrawer drawerOpen={newEventDialogOpen} handleDrawerClose={handleClose} drawerWidth="w-[40%]">
+        <div className="p-6 space-y-6">
+          <h2 className="text-2xl font-bold pb-4 border-b">Create New Event</h2>
 
-        <Tabs
-          value={eventType}
-          onValueChange={(value) => setEventType(value as "class" | "facility")}
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="class">
-              Class
-            </TabsTrigger>
-            <TabsTrigger value="facility">
-              Facility
-            </TabsTrigger>
-          </TabsList>
-
-          {/* ------------ Class Tab ------------ */}
-          <TabsContent value="class" className="w-full max-w-md mx-auto">
-            <Form {...classForm}>
-              <form
-                onSubmit={classForm.handleSubmit(onSubmitClass)}
-                className="space-y-4"
+          <Tabs value={eventType} onValueChange={(value) => setEventType(value as "class" | "facility")}>
+            <div className="border-b mb-6">
+              <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
+              <TabsTrigger 
+                value="class"
+                className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
               >
-                {/* Add recurring prompt at top */}
-                <div className="text-sm mt-4 text-muted-foreground">
-                    You can create a single class below, or{" "}
-                    <span 
-                      className="text-primary cursor-pointer hover:underline"
-                      onClick={() => setShowRecurringClassDrawer(true)}
-                    >
-                      click here to create a recurring class
-                    </span>
-                  </div>
-                <FormField
-                  control={classForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Class Title</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select class title" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Yoga Basics">Yoga Basics</SelectItem>
-                            <SelectItem value="Pilates">Pilates</SelectItem>
-                            <SelectItem value="Spin Class">Spin Class</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={classForm.control}
-                  name="start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start</FormLabel>
-                      <FormControl>
-                        <DateTimePicker field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={classForm.control}
-                  name="end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End</FormLabel>
-                      <FormControl>
-                        <DateTimePicker field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={classForm.control}
-                  name="color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Color</FormLabel>
-                      <FormControl>
-                        <ColorPicker field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={classForm.control}
-                  name="instructor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instructor</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Instructor name" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="John Doe">John Doe</SelectItem>
-                            <SelectItem value="Jane Smith">Jane Smith</SelectItem>
-                            <SelectItem value="Mike Johnson">Mike Johnson</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                
-                  {/* Modified buttons section */}
-                  <div className="flex space-x-2">
-                    <Button type="submit" className="w-full mt-4">
-                      Create {eventType === "class" ? "Class" : "Appointment"}
-                    </Button>
-                  </div>
-              </form>
-            </Form>
-          </TabsContent>
-
-          {/* ------------ Facility Tab ------------ */}
-          <TabsContent value="facility" className="w-full max-w-md mx-auto">
-            <Form {...facilityForm}>
-              <form
-                onSubmit={facilityForm.handleSubmit(onSubmitFacility)}
-                className="space-y-4"
+                <Calendar className="h-4 w-4" />
+                Class
+              </TabsTrigger>
+              <TabsTrigger 
+                value="facility"
+                className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
               >
+                <FileText className="h-4 w-4" />
+                Facility
+              </TabsTrigger>
+              </TabsList>
+            </div>
 
-                {/* Add recurring prompt at top */}
-                <div className="text-sm text-muted-foreground mt-4">
-                    You can create a single facility booking below, or{" "}
+            {/* ------------ Class Tab ------------ */}
+            <TabsContent value="class" className="pt-4">
+              <Form {...classForm}>
+                <form
+                  onSubmit={classForm.handleSubmit(onSubmitClass)}
+                  className="space-y-5"
+                >
+                  {/* Add recurring prompt at top */}
+                  <div className="text-sm text-muted-foreground mb-2">
+                      Create a single class or{" "}
+                      <span 
+                        className="text-primary cursor-pointer hover:underline font-medium"
+                        onClick={() => setShowRecurringClassDrawer(true)}
+                      >
+                        click here for a recurring class
+                      </span>
+                  </div>
+
+                  <FormField
+                    control={classForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Class Title</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select class title" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Yoga Basics">Yoga Basics</SelectItem>
+                              <SelectItem value="Pilates">Pilates</SelectItem>
+                              <SelectItem value="Spin Class">Spin Class</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={classForm.control}
+                      name="start"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
+                          <FormControl>
+                            <DateTimePicker field={field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={classForm.control}
+                      name="end"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time</FormLabel>
+                          <FormControl>
+                            <DateTimePicker field={field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={classForm.control}
+                      name="color"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Color</FormLabel>
+                          <FormControl>
+                            <ColorPicker field={field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={classForm.control}
+                      name="instructor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Instructor</FormLabel>
+                          <FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select instructor" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="John Doe">John Doe</SelectItem>
+                                <SelectItem value="Jane Smith">Jane Smith</SelectItem>
+                                <SelectItem value="Mike Johnson">Mike Johnson</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="pt-4">
+                  <Button type="submit" className="w-full">
+                    Create Class
+                  </Button>
+                  </div>
+                </form>
+              </Form>
+            </TabsContent>
+
+            {/* ------------ Facility Tab ------------ */}
+            <TabsContent value="facility" className="pt-4">
+              <Form {...facilityForm}>
+                <form
+                  onSubmit={facilityForm.handleSubmit(onSubmitFacility)}
+                  className="space-y-5"
+                >
+                  {/* Add recurring prompt at top */}
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Create a single booking or{" "}
                     <span 
-                      className="text-primary cursor-pointer hover:underline"
+                      className="text-primary cursor-pointer hover:underline font-medium"
                       onClick={() => setShowRecurringFacilityDrawer(true)}
                     >
-                      click here to create a recurring booking
+                      click here for a recurring booking
                     </span>
                   </div>
-                <FormField
-                  control={facilityForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Facility Name</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Facility Name" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Tennis Court Booking">
-                              Tennis Court Booking
-                            </SelectItem>
-                            <SelectItem value="Basketball Court Booking">
-                              Basketball Court Booking
-                            </SelectItem>
-                            <SelectItem value="Conference Room Reservation">
-                              Conference Room Reservation
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={facilityForm.control}
-                  name="start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start</FormLabel>
-                      <FormControl>
-                        <DateTimePicker field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={facilityForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facility</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select facility" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Tennis Court Booking">
+                                Tennis Court
+                              </SelectItem>
+                              <SelectItem value="Basketball Court Booking">
+                                Basketball Court
+                              </SelectItem>
+                              <SelectItem value="Conference Room Reservation">
+                                Conference Room
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={facilityForm.control}
-                  name="end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End</FormLabel>
-                      <FormControl>
-                        <DateTimePicker field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={facilityForm.control}
+                      name="start"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
+                          <FormControl>
+                            <DateTimePicker field={field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={facilityForm.control}
-                  name="color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Color</FormLabel>
-                      <FormControl>
-                        <ColorPicker field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={facilityForm.control}
-                  name="facilityId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Facility ID</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pick facility ID" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="101">101</SelectItem>
-                            <SelectItem value="102">102</SelectItem>
-                            <SelectItem value="103">103</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Modified buttons section */}
-                <div className="flex  space-x-2">
-                    <Button type="submit" className="w-full mt-4">
-                      Create {eventType === "class" ? "Class" : "Appointment"}
-                    </Button>
+                    <FormField
+                      control={facilityForm.control}
+                      name="end"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time</FormLabel>
+                          <FormControl>
+                            <DateTimePicker field={field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-              </form>
-            </Form>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </RightDrawer>
 
-  {/* Separate drawer for recurring class */}
-    <RightDrawer
-    drawerOpen={showRecurringClassDrawer}
-    handleDrawerClose={() => setShowRecurringClassDrawer(false)}
-    drawerWidth="w-[70%] min-w-[400px]"
-  >
-    <div className="p-6 space-y-4">
-      <h2 className="text-xl font-semibold">Recurring Class Setup</h2>
-      {/* Recurring Class fields */}
-      {/* ... */}
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={() => setShowRecurringClassDrawer(false)}>
-          Cancel
-        </Button>
-        <Button onClick={() => setShowRecurringClassDrawer(false)}>
-          Save
-        </Button>
-      </div>
-    </div>
-  </RightDrawer>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={facilityForm.control}
+                      name="color"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Color</FormLabel>
+                          <FormControl>
+                            <ColorPicker field={field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-  {/* Separate drawer for recurring facility */}
-  <RightDrawer
-    drawerOpen={showRecurringFacilityDrawer}
-    handleDrawerClose={() => setShowRecurringFacilityDrawer(false)}
-    drawerWidth="w-[70%] min-w-[400px]"
-  >
-    <div className="p-6 space-y-4">
-      <h2 className="text-xl font-semibold">Recurring Facility Setup</h2>
-      {/* Recurring Facility fields */}
-      {/* ... */}
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={() => setShowRecurringFacilityDrawer(false)}>
-          Cancel
-        </Button>
-        <Button onClick={() => setShowRecurringFacilityDrawer(false)}>
-          Save
-        </Button>
-      </div>
-    </div>
-  </RightDrawer>
-  </>
+                    <FormField
+                      control={facilityForm.control}
+                      name="facilityId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Facility ID</FormLabel>
+                          <FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select ID" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="101">101</SelectItem>
+                                <SelectItem value="102">102</SelectItem>
+                                <SelectItem value="103">103</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="pt-4">
+                  <Button type="submit" className="w-full">
+                    Book Facility
+                  </Button>
+                  </div>
+                </form>
+              </Form>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </RightDrawer>
+
+      {/* Recurring Class Drawer */}
+      <RightDrawer
+        drawerOpen={showRecurringClassDrawer}
+        handleDrawerClose={() => setShowRecurringClassDrawer(false)}
+        drawerWidth="w-full md:max-w-3xl"
+      >
+        <div className="p-6 space-y-6">
+          <h2 className="text-2xl font-bold pb-4 border-b">Create Recurring Class</h2>
+          
+          {/* Recurring Class form would go here */}
+          <div className="pt-4 flex justify-end space-x-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRecurringClassDrawer(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => setShowRecurringClassDrawer(false)}
+              className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      </RightDrawer>
+
+      {/* Recurring Facility Drawer */}
+      <RightDrawer
+        drawerOpen={showRecurringFacilityDrawer}
+        handleDrawerClose={() => setShowRecurringFacilityDrawer(false)}
+        drawerWidth="w-[75%]"
+      >
+        <div className="p-6 space-y-6">
+          <h2 className="text-2xl font-bold pb-4 border-b">Create Recurring Facility Booking</h2>
+          
+          {/* Recurring Facility form would go here */}
+          <div className="pt-4 flex justify-end space-x-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRecurringFacilityDrawer(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => setShowRecurringFacilityDrawer(false)}
+              className="bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      </RightDrawer>
+    </>
   )
 }

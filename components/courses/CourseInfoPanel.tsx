@@ -6,7 +6,7 @@ import DetailsTab from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { TrashIcon, SaveIcon } from "lucide-react";
+import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
 
 // Dummy schedule data
 const dummySchedules: Schedule[] = [
@@ -120,10 +120,24 @@ export default function CourseInfoPanel({ course }: { course: Course }) {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full bg-muted/50">
-          <TabsTrigger value="details">Course Details</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-        </TabsList>
+        <div className="border-b mb-6">
+          <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
+            <TabsTrigger 
+              value="details"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <FileText className="h-4 w-4" />
+              Information
+            </TabsTrigger>
+            <TabsTrigger 
+              value="schedule"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Calendar className="h-4 w-4" />
+              Schedule
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="details" className="pt-4">
           <DetailsTab
@@ -141,25 +155,29 @@ export default function CourseInfoPanel({ course }: { course: Course }) {
       </Tabs>
 
       <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-        <div className="max-w-5xl mx-auto px-4 flex justify-between items-center gap-4">
+      <div className="max-w-full px-4 mx-auto flex justify-between items-center">
+        <p className="text-sm text-muted-foreground">Last updated: {course.updatedAt ? new Date(course.updatedAt).toLocaleString() : 'Never'}</p>
+        
+        <div className="flex items-center gap-3">
           <Button
-            variant="destructive"
+            variant="outline"
             onClick={handleDeleteCourse}
-            className="gap-2 flex-shrink-0"
+            className="border-destructive text-destructive hover:bg-destructive/10"
           >
-            <TrashIcon className="h-4 w-4" />
-            Delete Course
+            <TrashIcon className="h-4 w-4 mr-2" />
+            Delete
           </Button>
           
           <Button
             onClick={handleSaveAll}
-            className="gap-2 bg-green-600 hover:bg-green-700 flex-shrink-0"
+            className="bg-green-600 hover:bg-green-700"
           >
-            <SaveIcon className="h-4 w-4" />
-            Save All Changes
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
           </Button>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 export interface Customer {
   customer_id: string; // customer_id
-  name: string; // name (e.g., Alice Johnson)
+  first_name: string; // name (e.g., Alice Johnson)
+  last_name: string;
   email: string; // email (e.g., alice@example.com)
   phone: string;
   accountType: string;
@@ -8,4 +9,6 @@ export interface Customer {
   membership: string; // membership (e.g., Elite Plan)
   attendance: number; // attendance (e.g., 0)
   membership_renewal_date: string; // membership_renewal_date (e.g., 2026-02-11T22:23:38Z)
+  updated_at?: string | Date;
+  updatedAt?: string | Date;
 }

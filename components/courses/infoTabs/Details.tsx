@@ -16,10 +16,6 @@ export default function DetailsTab({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <div className="flex items-center gap-3 mb-6">
-          <BookOpenIcon className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight">Course Information</h2>
-        </div>
 
         <div className="space-y-6">
           <div className="space-y-3">

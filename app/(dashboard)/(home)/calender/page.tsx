@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button"
 import RightDrawer from "@/components/reusable/RightDrawer"
 import FilterComponent from "../../../../components/calendar/Filter"
 import MainCalendar from "../../../../components/calendar/MainCalendar"
-import EventDetail from "../../../../components/calendar/EventDetail"
-import AddEventForm from "../../../../components/calendar/AddEventForm"
 import { SchedulerEvent, FiltersType } from "../../../../types/calendar"
 import { useDrawer } from "../../../../hooks/drawer"
 
@@ -170,20 +168,6 @@ const handleFilterChange = (type: FilterChangeType, value: string, checked: bool
           <MainCalendar />
         </div>
       </div>
-
-      {/* Right Drawer */}
-      <RightDrawer
-        drawerOpen={drawerOpen}
-        drawerWidth={drawerContent === "details" ? "70%" : "30%"}
-        handleDrawerClose={closeDrawer}
-      >
-        {drawerContent === "details" && selectedEvent && (
-          <EventDetail event={selectedEvent} onClose={closeDrawer} />
-        )}
-        {drawerContent === "add" && (
-          <AddEventForm onClose={closeDrawer} onAddEvent={handleAddEvent} drawerOpen={drawerOpen} />
-        )}
-      </RightDrawer>
     </div>
   )
 }

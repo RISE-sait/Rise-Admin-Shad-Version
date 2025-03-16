@@ -33,7 +33,7 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
 
   const filteredCustomers = customers.filter(
     (customer) =>
-      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -114,7 +114,7 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
         drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"}
       >
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-2">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Customer Details" : "Add Customer"}
           </h2>
           {drawerContent === "details" && selectedCustomer && (

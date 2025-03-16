@@ -12,7 +12,7 @@ type BreadcrumbItem = {
 // Example route mapping, adjusted for your sidebar links
 const routeMapping: Record<string, BreadcrumbItem[]> = {
   '/home/dashboard': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Dashboard', link: '/home/dashboard' }
   ],
   '/home/calendar': [
@@ -22,47 +22,47 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
 
   // Manage
   '/manage/customers': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Customers', link: '/manage/customers' }
   ],
   '/manage/courses': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Courses', link: '/manage/courses' }
   ],
   '/manage/store': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Store', link: '/manage/store' }
   ],
     '/manage/facilities': [
-        { title: 'Home', link: '/home' },
+        { title: 'Home', link: '/' },
         { title: 'Facilities', link: '/manage/facilities' }
     ],
     '/manage/instructors': [
-        { title: 'Home', link: '/home' },
+        { title: 'Home', link: '/' },
         { title: 'Instructors', link: '/manage/instructors' }
     ],
     '/manage/trainer': [
-        { title: 'Home', link: '/home' },
+        { title: 'Home', link: '/' },
         { title: 'Trainer', link: '/manage/trainer' }
     ],
     '/manage/membership': [
-        { title: 'Home', link: '/home' },
+        { title: 'Home', link: '/' },
         { title: 'Membership', link: '/manage/membership' }
     ],
 
   // Automation
   '/automation/messages': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Messages', link: '/automation/messages' }
   ],
 
   // Reports
   '/reports/transactions': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Transactions', link: '/reports/transactions' }
   ],
   '/reports/financials': [
-    { title: 'Home', link: '/home' },
+    { title: 'Home', link: '/' },
     { title: 'Financials', link: '/reports/financials' }
   ]
 };

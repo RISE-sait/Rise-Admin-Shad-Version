@@ -56,8 +56,9 @@ export const columns: ColumnDef<Customer>[] = [
     header: "",
     cell: ({ row }) => (
       <Avatar className="h-8 w-8">
+        <AvatarImage src={row.original.profilePicture || ""} alt={`${row.original.first_name} ${row.original.last_name}`} />
         <AvatarFallback>
-          {row.original.name?.[0]?.toUpperCase() || "?"}
+          {row.original.first_name?.[0]?.toUpperCase() || "?"}
         </AvatarFallback>
       </Avatar>
     ),
@@ -65,7 +66,7 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     id: "name",
-    accessorKey: "name",
+    accessorFn: (row) => `${row.first_name} ${row.last_name}`, // Combine names
     header: ({ column }) => (
       <Button
         variant="ghost"
