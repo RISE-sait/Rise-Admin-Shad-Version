@@ -15,7 +15,9 @@ const firebaseConfig: FirebaseOptions = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+console.log('hey')
 console.log(firebaseConfig.apiKey)
+console.log(process.env.GOOGLE_AUTH_CLIENTID)
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
