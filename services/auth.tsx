@@ -3,7 +3,7 @@ import { Api, IdentityUserAuthenticationResponseDto } from "@/app/api/Api";
 
 // Create a singleton instance of the API client
 export const apiClient = new Api<unknown>({
-  baseUrl: "http://localhost:80" // Explicitly set base URL
+  baseUrl: "https://api-461776259687.us-west2.run.app/" // Explicitly set base URL
 });
 
 const tryAuthentication = async (token: string): Promise<any> => {
@@ -19,7 +19,7 @@ const tryAuthentication = async (token: string): Promise<any> => {
   for (const path of possiblePaths) {
     try {
       console.log(`Trying authentication at path: ${path}`);
-      const response = await fetch(`http://localhost:80${path}`, {
+      const response = await fetch(`https://api-461776259687.us-west2.run.app/${path}`, {
         method: 'POST',
         mode: 'cors', // Ensure CORS headers are processed
         // Remove the credentials: 'include' line
