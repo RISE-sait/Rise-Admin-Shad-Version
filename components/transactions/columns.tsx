@@ -14,11 +14,24 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge";
 
-const statusTextColors: Record<string, string> = {
-  pending: "text-yellow-500",
-  processing: "text-blue-500",
-  success: "text-green-500",
-  failed: "text-red-500",
+// Enhanced status styles with proper badge styling
+const statusStyles: Record<string, { color: string, textColor: string }> = {
+  pending: { 
+    color: "bg-yellow-100 hover:bg-yellow-200", 
+    textColor: "text-yellow-800" 
+  },
+  processing: { 
+    color: "bg-blue-100 hover:bg-blue-200", 
+    textColor: "text-blue-800" 
+  },
+  success: { 
+    color: "bg-green-100 hover:bg-green-200", 
+    textColor: "text-green-800" 
+  },
+  failed: { 
+    color: "bg-red-100 hover:bg-red-200", 
+    textColor: "text-red-800" 
+  },
 }
 
 export type Payment = {
@@ -30,74 +43,111 @@ export type Payment = {
 }
 
 export const columns: ColumnDef<Payment>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        
-    },
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-[2px]"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-[2px]"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "name",
-    header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="font-medium hover:bg-accent hover:text-accent-foreground -ml-3"
+      >
+        Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="font-medium hover:bg-accent hover:text-accent-foreground -ml-3"
+      >
+        Email
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
-    accessorKey: "membership",
-    header: "Membership",
+    accessorKey: "id",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="font-medium hover:bg-accent hover:text-accent-foreground -ml-3"
+      >
+        Payment ID
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      return <span className="font-mono text-xs">{row.getValue("id")}</span>
+    }
   },
   {
-        accessorKey: "id",
-        header: "Payment ID",
+    accessorKey: "status",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="font-medium hover:bg-accent hover:text-accent-foreground -ml-3"
+      >
+        Status
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      const style = statusStyles[status] || statusStyles.pending;
+      return (
+        <Badge 
+          variant="outline"
+          className={`${style.color} ${style.textColor} capitalize font-medium`}
+        >
+          {status}
+        </Badge>
+      );
     },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Status
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
-        cell: ({ row }) => {
-          const status: string = row.getValue("status");
-          return <span className={`${statusTextColors[status]} font-medium`}>{status}</span>;
-        },
-    },
+  },
   {
     accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    header: ({ column }) => (
+      <div className="text-right">
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="font-medium hover:bg-accent hover:text-accent-foreground"
+        >
+          Amount
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"))
       const formatted = new Intl.NumberFormat("en-US", {
@@ -107,33 +157,53 @@ export const columns: ColumnDef<Payment>[] = [
  
       return <div className="text-right font-medium">{formatted}</div>
     },
-
-},
-{
+  },
+  {
     id: "actions",
+    enableHiding: false,
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => {
       const payment = row.original
  
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="h-8 w-8 p-0 hover:bg-accent"
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end"
+              className="border bg-popover text-popover-foreground"
             >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuLabel className="px-3 py-2">
+                Payment Actions
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                className="px-3 py-2 hover:bg-accent cursor-pointer"
+                onClick={() => navigator.clipboard.writeText(payment.id)}
+              >
+                <span>Copy payment ID</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="px-3 py-2 hover:bg-accent cursor-pointer"
+              >
+                <span>View customer</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="px-3 py-2 hover:bg-accent cursor-pointer"
+              >
+                <span>View payment details</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )
     },
   },

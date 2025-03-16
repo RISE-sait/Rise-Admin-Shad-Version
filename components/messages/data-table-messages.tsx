@@ -3,15 +3,15 @@
 import * as React from "react";
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  useReactTable,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
+  SortingState,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  VisibilityState,
 } from "@tanstack/react-table";
 
 import {
@@ -22,27 +22,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { columns, Notification } from "./columns-messages"; // Import the notification columns
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Notification } from "./columns-messages";
+import { FolderSearch } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  columns: ColumnDef<TData, TValue>[];
+  onStatusUpdate: (id: string, newStatus: "Sent" | "Scheduled" | "Failed") => void;
+  selectedRows: string[];
+  onRowSelectionChange: (rowIds: string[]) => void;
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData extends { id: string }, TValue>({
+  data,
+  columns,
+  onStatusUpdate,
+  selectedRows,
+  onRowSelectionChange,
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
+  
   const table = useReactTable({
     data,
     columns,
@@ -53,62 +64,59 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
+    },
+    meta: {
+      updateStatus: (id: string, status: "Sent" | "Scheduled" | "Failed") => {
+        onStatusUpdate(id, status);
+      },
+      deleteRow: (id: string) => {
+        // This would be implemented with proper deletion logic
+        onStatusUpdate(id, "Failed"); // Placeholder action
+      }
     },
   });
 
   return (
-    <div>
-      {/* Search Filter */}
-      <div className="flex items-center py-4">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between mb-4">
         <Input
-          placeholder="Search a recipient"
-          value={(table.getColumn("recipient")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn("recipient")?.setFilterValue(event.target.value)}
+          placeholder="Filter messages..."
+          value={(table.getColumn("message")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("message")?.setFilterValue(event.target.value)
+          }
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">
+            {selectedRows.length} of {data.length} row(s) selected
+          </p>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="rounded-xl overflow-hidden border">
+        <Table className="border-collapse">
+          <TableHeader className="bg-muted/100 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow 
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b"
+              >
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b"
+                  >
                     {header.isPlaceholder
                       ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -117,18 +125,34 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={selectedRows.includes(row.original.id) ? "selected" : undefined}
+                  className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <TableCell
+                      key={cell.id}
+                      className="px-6 py-4 text-sm font-medium"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No notifications found.
+                <TableCell 
+                  colSpan={columns.length} 
+                  className="h-24 text-center py-8 text-muted-foreground"
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
+                    <span>No messages found</span>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -136,24 +160,64 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         </Table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="bg-muted/30 px-6 py-4 border-t rounded-b-xl">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing{' '}
+            <span className="font-semibold">{table.getRowModel().rows.length}</span>{' '}
+            of{' '}
+            <span className="font-semibold">
+              {table.getFilteredRowModel().rows.length}
+            </span>{' '}
+            messages
+          </div>
+          
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <Select
+                value={String(table.getState().pagination.pageSize)}
+                onValueChange={(value) => table.setPageSize(Number(value))}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border">
+                  {[5, 10, 20, 50, 100].map((size) => (
+                    <SelectItem 
+                      key={size} 
+                      value={String(size)}
+                      className="text-sm"
+                    >
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border hover:bg-accent hover:text-accent-foreground"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border hover:bg-accent hover:text-accent-foreground"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -3,71 +3,84 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Customer } from "../../types/customer";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import getValue from "@/components/Singleton";
+import { Membership } from "@/types/membership";
 
-export default function AddClientForm({
-  onAddClient,
-}: {
-  onAddClient: (client: Customer) => void;
-}) {
+export default function AddMembershipForm() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [membership, setMembership] = useState("");
-  const [accountType, setAccountType] = useState("");
-  const [attendance, setAttendance] = useState(123);
-  const [membership_renewal_date, setMembership_renewal_date] = useState("");
+  const [description, setDescription] = useState("");
 
-  const handleAdd = () => {
-    const newClient: Customer = {
-      customer_id: String(Date.now()),
-      name,
-      email,
-      phone,
-      membership,
-      accountType,
-      profilePicture: "",
-      attendance,
-      membership_renewal_date,
-    };
-    onAddClient(newClient);
-    setName("");
-    setEmail("");
-    setPhone("");
-    setMembership("");
-    setAccountType("");
-    setAttendance(222222);
-    setMembership_renewal_date("");
+  const apiUrl = getValue("API");
+
+  const membershipData = {
+    name,
+    description,
+  };
+
+  const handleAddMembership = async () => {
+    if (!name.trim()) {
+      toast.error("Membership name is required.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/memberships`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(membershipData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to create membership:", errorText);
+        toast.error("Failed to save membership. Please try again.");
+        return;
+      }
+
+      toast.success("Membership created successfully");
+      
+      // Reset form
+      setName("");
+      setDescription("");
+      
+      // You might want to redirect or reload data here
+      setTimeout(() => window.location.reload(), 1000);
+      
+    } catch (error) {
+      console.error("Error during API request:", error);
+      toast.error("An error occurred. Please try again.");
+    }
   };
 
   return (
-    <div className="p-6 space-y-4">
-      <Input
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <Input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <Input
-        placeholder="Phone"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
-      <Input
-        placeholder="Membership"
-        value={membership}
-        onChange={(e) => setMembership(e.target.value)}
-      />
-      <Input
-        placeholder="Account Type"
-        value={accountType}
-        onChange={(e) => setAccountType(e.target.value)}
-      />
-      <Button onClick={handleAdd}>Add</Button>
+    <div className="space-y-6 pt-3">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Membership Name <span className="text-red-500">*</span>
+          </label>
+          <Input
+            onChange={(e) => setName(e.target.value)}
+            type="text"
+            value={name}
+            placeholder="Enter membership name"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Description</label>
+          <Textarea
+            rows={Math.max(4, description.split("\n").length)}
+            onChange={(e) => setDescription(e.target.value)}
+            value={description}
+            placeholder="Describe membership benefits and features"
+          />
+        </div>
+      </div>
+
+      <Button onClick={handleAddMembership} className="w-full">Add Membership</Button>
     </div>
   );
 }

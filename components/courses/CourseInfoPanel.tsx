@@ -7,7 +7,61 @@ import ScheduleTab from "./infoTabs/Schedule";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+
+// Dummy schedule data
+const dummySchedules: Schedule[] = [
+  {
+    name: "Morning Batch",
+    startDate: new Date("2025-04-01"),
+    endDate: new Date("2025-05-30"),
+    capacity: 25,
+    days: [
+      {
+        day: "MON",
+        startTime: "09:00",
+        endTime: "11:30",
+        location: "Training Room A",
+        trainer: "John Smith"
+      },
+      {
+        day: "WED",
+        startTime: "09:00",
+        endTime: "11:30",
+        location: "Training Room A",
+        trainer: "John Smith"
+      },
+      {
+        day: "FRI",
+        startTime: "09:00",
+        endTime: "11:30",
+        location: "Training Room A",
+        trainer: "John Smith"
+      }
+    ]
+  },
+  {
+    name: "Evening Batch",
+    startDate: new Date("2025-04-01"),
+    endDate: new Date("2025-05-30"),
+    capacity: 20,
+    days: [
+      {
+        day: "TUE",
+        startTime: "18:00",
+        endTime: "20:30",
+        location: "Training Room B",
+        trainer: "Sarah Johnson"
+      },
+      {
+        day: "THU",
+        startTime: "18:00",
+        endTime: "20:30",
+        location: "Training Room B",
+        trainer: "Sarah Johnson"
+      }
+    ]
+  }
+];
 
 export default function CourseInfoPanel({ course }: { course: Course }) {
   const { toast } = useToast();
@@ -16,7 +70,11 @@ export default function CourseInfoPanel({ course }: { course: Course }) {
     name: course.name,
     description: course.description || ""
   });
-  const [schedules, setSchedules] = useState<Schedule[]>(course.schedules || []);
+  
+  // Initialize with dummy schedules if no schedules exist
+  const [schedules, setSchedules] = useState<Schedule[]>(
+    course.schedules?.length ? course.schedules : dummySchedules
+  );
 
   const handleSaveAll = async () => {
     try {
@@ -82,26 +140,26 @@ export default function CourseInfoPanel({ course }: { course: Course }) {
         </TabsContent>
       </Tabs>
 
-      <div className="sticky bottom-[-30] bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-      <div className="max-w-5xl mx-auto px-4 flex justify-between items-center gap-4">
-        <Button
-          variant="destructive"
-          onClick={handleDeleteCourse}
-          className="gap-2 flex-shrink-0"
-        >
-          <TrashIcon className="h-4 w-4" />
-          Delete Course
-        </Button>
-        
-        <Button
-          onClick={handleSaveAll}
-          className="gap-2 bg-green-600 hover:bg-green-700 flex-shrink-0"
-        >
-          <SaveIcon className="h-4 w-4" />
-          Save All Changes
-        </Button>
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
+        <div className="max-w-5xl mx-auto px-4 flex justify-between items-center gap-4">
+          <Button
+            variant="destructive"
+            onClick={handleDeleteCourse}
+            className="gap-2 flex-shrink-0"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Delete Course
+          </Button>
+          
+          <Button
+            onClick={handleSaveAll}
+            className="gap-2 bg-green-600 hover:bg-green-700 flex-shrink-0"
+          >
+            <SaveIcon className="h-4 w-4" />
+            Save All Changes
+          </Button>
+        </div>
       </div>
-    </div>
     </div>
   );
 }

@@ -1,22 +1,24 @@
-export type Course = {
+export interface Course {
   id: string;
   name: string;
   description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
   schedules?: Schedule[];
-};
+}
 
-export type Schedule = {
+export interface Schedule {
+  name: string;
   startDate: Date;
   endDate: Date;
-  days: ScheduleDay[];
   capacity: number;
-  name: string;
-};
+  days: ScheduleDay[];
+}
 
-export type ScheduleDay = {
+export interface ScheduleDay {
   day: string;
   startTime: string;
   endTime: string;
   location?: string;
   trainer?: string;
-};
+}

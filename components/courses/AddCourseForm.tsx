@@ -1,32 +1,36 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import getValue from "../Singleton";
 import { Schedule } from "@/types/course";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import DetailsTab from "./infoTabs/Details";
+import ScheduleTab from "./infoTabs/Schedule";
+import { SaveIcon } from "lucide-react";
 
 export default function AddCourseForm() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [activeTab, setActiveTab] = useState("details");
+  const [courseDetails, setCourseDetails] = useState({
+    name: "",
+    description: ""
+  });
   const [schedules, setSchedules] = useState<Schedule[]>([]);
 
   const apiUrl = getValue("API");
 
-  const courseData = {
-    name,
-    description,
-    schedules
-  };
-
-  const handleAddCourse = async () => {
+  const handleSaveAll = async () => {
     // Check if the course name is empty
-    if (!name.trim()) {
+    if (!courseDetails.name.trim()) {
       toast.error("Course name is required.");
       return;
     }
+
+    const courseData = {
+      ...courseDetails,
+      schedules
+    };
 
     try {
       const response = await fetch(apiUrl + `/courses`, {
@@ -37,12 +41,12 @@ export default function AddCourseForm() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Failed to update course:", errorText);
+        console.error("Failed to save course:", errorText);
         toast.error("Failed to save course. Please try again.");
         return;
       }
 
-      toast.success("Successfully Saved");
+      toast.success("Course successfully created");
     } catch (error) {
       console.error("Error during API request:", error);
       toast.error("An error occurred. Please try again.");
@@ -50,28 +54,39 @@ export default function AddCourseForm() {
   };
 
   return (
-    <div className="space-y-4 pt-3">
-      <div className="pb-4">
-        <p className="pb-2">
-          Course Name <span className="text-red-500">*</span>
-        </p>
-        <Input
-          onChange={(e) => setName(e.target.value)}
-          type="text"
-          value={name}
-        />
-      </div>
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full bg-muted/50">
+          <TabsTrigger value="details">Course Details</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="details" className="pt-4">
+          <DetailsTab
+            details={courseDetails}
+            onDetailsChange={setCourseDetails}
+          />
+        </TabsContent>
+        
+        <TabsContent value="schedule" className="pt-4">
+          <ScheduleTab
+            schedules={schedules}
+            onSchedulesChange={setSchedules}
+          />
+        </TabsContent>
+      </Tabs>
 
-      <div className="pb-4">
-        <p className="pb-2">Description</p>
-        <Textarea
-          rows={Math.max(4, description.split("\n").length)}
-          onChange={(e) => setDescription(e.target.value)}
-          value={description}
-        />
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
+        <div className="flex justify-end px-4">
+          <Button
+            onClick={handleSaveAll}
+            className="gap-2 bg-green-600 hover:bg-green-700"
+          >
+            <SaveIcon className="h-4 w-4" />
+            Create Course
+          </Button>
+        </div>
       </div>
-
-      <Button onClick={handleAddCourse}>Add Course</Button>
     </div>
   );
 }

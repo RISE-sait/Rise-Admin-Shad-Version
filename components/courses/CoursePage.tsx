@@ -113,7 +113,7 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
-        drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"}
+        drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[75%]"}
       >
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-2">

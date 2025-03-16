@@ -1,92 +1,51 @@
-import getValue from "@/components/Singleton";
-import { Button } from "@/components/ui/button";
+"use client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useFormData } from "@/hooks/form-data";
-import { useToast } from "@/hooks/use-toast";
-import { Membership } from "@/types/membership";
+import { TicketIcon, PencilIcon } from "lucide-react";
 
-export default function DetailsTab({ membership }: { membership: Membership }) {
-  const { toast } = useToast();
-  const { data, updateField } = useFormData({
-    name: membership.name,
-    description: membership.description,
-  });
-
-  const updatemembership = async () => {
-    // Ensure the name is not empty
-    if (!data.name.trim()) {
-      toast({
-        status: "error",
-        description: "membership name cannot be empty.",
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${getValue("API")}/memberships/${membership.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            description: data.description,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update membership");
-      }
-
-      toast({
-        status: "success",
-        description: "Successfully saved.",
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        status: "error",
-        description: "An error occurred. Please try again.",
-      });
-    }
-  };
-
+export default function DetailsTab({
+  details,
+  onDetailsChange
+}: {
+  details: { name: string; description: string };
+  onDetailsChange: (details: { name: string; description: string }) => void;
+}) {
   return (
-    <div className="space-y-4 pt-3">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <div className="flex items-center gap-3 mb-6">
+          <TicketIcon className="h-6 w-6 text-primary" />
+          <h2 className="text-2xl font-bold tracking-tight">Membership Information</h2>
+        </div>
 
-      <div className="pb-4">
-        <p className="pb-2">ID</p>
-        <Input
-          disabled
-          value={membership.id}
-        />
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <label className="text-base font-medium flex items-center gap-2">
+              <PencilIcon className="h-5 w-5 text-muted-foreground" />
+              Membership Name
+            </label>
+            <Input
+              value={details.name}
+              onChange={(e) => onDetailsChange({ ...details, name: e.target.value })}
+              placeholder="Enter membership name"
+              className="text-lg h-12 px-4"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-base font-medium flex items-center gap-2">
+              <PencilIcon className="h-5 w-5 text-muted-foreground" />
+              Description
+            </label>
+            <Textarea
+              value={details.description}
+              onChange={(e) => onDetailsChange({ ...details, description: e.target.value })}
+              placeholder="Describe the membership benefits and features"
+              className="min-h-[150px] text-base p-4"
+            />
+          </div>
+        </div>
       </div>
-
-      <div className="pb-4">
-        <p className="pb-2">Name</p>
-        <Input
-          onChange={(e) => updateField("name", e.target.value)}
-          type="text"
-          value={data.name}
-        />
-      </div>
-
-      <div className="pb-4">
-        <p className="pb-2">Description</p>
-        <Textarea
-          rows={Math.max(4, (data.description ?? "").split("\n").length)}
-          onChange={(e) => updateField("description", e.target.value)}
-          value={data.description}
-        />
-      </div>
-
-      <section className="flex justify-between">
-        <Button onClick={updatemembership}>Save membership</Button>
-      </section>
     </div>
   );
 }
