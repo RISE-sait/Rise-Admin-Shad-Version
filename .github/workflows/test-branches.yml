@@ -1,9 +1,6 @@
 name: Test branch
 
-on:
-  pull_request:
-    branches:
-      - '*'
+on: [push]
 
 jobs:
   build_to_test:
