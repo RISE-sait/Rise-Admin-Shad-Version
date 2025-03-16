@@ -1,5 +1,5 @@
 const Values = {
-  API: "http://localhost:80",
+  API: "https://api-461776259687.us-west2.run.app/",
 } as const;
 
 type ValueKey = keyof typeof Values;
