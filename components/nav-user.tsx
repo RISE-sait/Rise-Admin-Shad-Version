@@ -29,7 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
-import { LogoutButton } from "../app/logout/page"
+import { LogoutButton } from "../components/logout/logout_button"
 import { SettingsButton } from "@/app/(dashboard)/settings/setting_button"
 
 export function NavUser({
