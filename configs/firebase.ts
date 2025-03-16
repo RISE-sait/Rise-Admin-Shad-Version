@@ -16,9 +16,6 @@ const firebaseConfig: FirebaseOptions = {
   measurementId: envs.firebase.measurementId
 };
 
-console.log('hey')
-console.log(firebaseConfig.apiKey)
-
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 
