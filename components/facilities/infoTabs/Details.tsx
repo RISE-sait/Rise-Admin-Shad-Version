@@ -1,114 +1,50 @@
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
+"use client";
 import { Input } from "@/components/ui/input";
-import { useFormData } from "@/hooks/form-data";
-import { Facility, FacilityType } from "@/types/facility";
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { useEffect, useState } from "react";
-import { FaRegEdit } from "react-icons/fa";
-import { useToast } from "@/hooks/use-toast"
+import { BuildingIcon, PencilIcon, MapPinIcon } from "lucide-react";
 
-export default function DetailsTab({ facility }: { facility: Facility }) {
-
-  const { toast } = useToast()
-
-  const { data, updateField, isChanged, resetData } = useFormData({
-    name: facility.name,
-    location: facility.Address,
-  });
-
-  const [nameInputEnabled, setNameInputEnabled] = useState(false)
-  const [locationInputEnabled, setLocationInputEnabled] = useState(false)
-
-  const [facilityTypes, setFacilityTypes] = useState<FacilityType[]>([]);
-
-  useEffect(() => {
-
-    (async () => {
-      const facilityTypes = await fetch("/api/facilities/types", {
-        credentials: "include",
-      })
-      if (!facilityTypes.ok) {
-        console.error("Failed to fetch facility types")
-        console.error(await facilityTypes.text())
-        return
-      }
-      const data = await facilityTypes.json()
-
-      setFacilityTypes(data)
-    }
-    )()
-  }, [facility.id])
-
-  const updateFacility = async () => {
-    const response = await fetch("/api/facilities/" + facility.id, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: data.name,
-        location: data.location,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error("Failed to update facility")
-      console.error(await response.text())
-      return
-    }
-
-    toast({
-      status: "success",
-      description: "Successfully saved.",
-    })
-  }
-
+export default function DetailsTab({
+  details,
+  onDetailsChange
+}: {
+  details: { name: string; Address: string };  // Changed to uppercase 'A' to match interface
+  onDetailsChange: (details: { name: string; Address: string }) => void;  // Changed to uppercase 'A'
+}) {
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <div className="flex items-center gap-3 mb-6">
+          <BuildingIcon className="h-6 w-6 text-primary" />
+          <h2 className="text-2xl font-bold tracking-tight">Facility Information</h2>
+        </div>
 
-      <div className="space-y-5">
-        <div>
-          <div>
-            <p className="text-base font-semibold ">
-              Name <span className="text-red-500">*</span>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <label className="text-base font-medium flex items-center gap-2">
+              <PencilIcon className="h-5 w-5 text-muted-foreground" />
+              Facility Name
+            </label>
+            <Input
+              value={details.name}
+              onChange={(e) => onDetailsChange({ ...details, name: e.target.value })}
+              placeholder="Enter facility name"
+              className="text-lg h-12 px-4"
+            />
+          </div>
 
-            </p>
-            <p className="font-normal text-sm flex items-center">
-              <Input onChange={e => updateField("name", e.target.value)}
-                disabled={!nameInputEnabled} type="text"
-                value={data.name} />
-              <FaRegEdit onClick={() => setNameInputEnabled(!nameInputEnabled)} className="cursor-pointer ml-2 size-4" />
-            </p>
-
+          <div className="space-y-3">
+            <label className="text-base font-medium flex items-center gap-2">
+              <MapPinIcon className="h-5 w-5 text-muted-foreground" />
+              Address
+            </label>
+            <Input
+              value={details.Address}  // Changed to uppercase 'A' to match interface
+              onChange={(e) => onDetailsChange({ ...details, Address: e.target.value })}  // Changed to uppercase 'A'
+              placeholder="Enter facility address"
+              className="text-lg h-12 px-4"
+            />
           </div>
         </div>
-
-
-        <div>
-          <p className="text-base font-semibold ">
-            Location <span className="text-red-500">*</span>
-          </p>
-          <p className="font-normal text-sm flex items-center">
-            <Input
-              onChange={(e) => updateField("location", e.target.value)}
-              disabled={!locationInputEnabled}
-              type="text"
-              value={data.location}
-            />
-            <FaRegEdit
-              onClick={() => setLocationInputEnabled(!locationInputEnabled)}
-              className="cursor-pointer ml-2 size-4"
-            />
-          </p>
-        </div>
       </div>
-
-      <section className="flex justify-between">
-        <Button onClick={updateFacility} disabled={!isChanged
-        } className="bg-green-500 text-black font-semibold">Save</Button>
-        <Button onClick={resetData} className="text-black font-semibold">Reset changes</Button>
-      </section>
     </div>
-  )
+  );
 }

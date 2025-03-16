@@ -29,6 +29,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { LogoutButton } from "../app/logout/page"
+import { SettingsButton } from "@/app/(dashboard)/settings/setting_button"
+
 export function NavUser({
   user,
 }: {
@@ -80,16 +83,12 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-            <Link href="/settings" className="flex w-full items-center gap-2">
-              <Settings />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
+              <SettingsButton variant="ghost" />
+            </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem asChild >
+              <LogoutButton variant="ghost" />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

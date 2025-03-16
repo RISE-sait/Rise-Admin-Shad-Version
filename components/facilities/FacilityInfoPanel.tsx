@@ -1,67 +1,90 @@
-"use client"
-// ...existing code...
-// Removed MUI imports (Box, Typography, Tabs, etc.)
-import React, { JSX, useEffect, useState } from "react"
-import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Separator } from "../ui/separator"
-import { Facility } from "@/types/facility"
-import DetailsTab from "./infoTabs/Details"
-import SchedulesTab from "./infoTabs/Schedule"
+"use client";
+import React, { useState } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Facility } from "@/types/facility";
+import DetailsTab from "./infoTabs/Details";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { TrashIcon, SaveIcon } from "lucide-react";
+import getValue from "@/components/Singleton";
 
+export default function FacilityInfoPanel({ facility }: { facility: Facility }) {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("details");
+  const [facilityDetails, setFacilityDetails] = useState({
+    name: facility.name || "",
+    Address: facility.Address || "",  // Changed back to uppercase 'A' to match interface
+  });
+  
+  const apiUrl = getValue("API");
 
-export default function FacilityInfoPanel({
-    facilityId,
-    onBack,
-}: {
-    facilityId: string
-    onBack: () => void
-}) {
-    const [facility, setFacility] = useState<Facility | null>(null)
-    const [tabValue, setTabValue] = useState("details")
+  const handleSaveAll = async () => {
+    try {
+      // Save facility details
+      const response = await fetch(`${apiUrl}/locations/${facility.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: facilityDetails.name,
+          location: facilityDetails.Address // Use uppercase 'A' here to match our state
+        })
+      });
 
-    useEffect(() => {
-        // Fetch the course details based on the courseId
-        (async () => {
-            const response = await fetch("/api/facilities/" + facilityId)
+      if (!response.ok) throw new Error("Failed to save facility details");
+      toast({ status: "success", description: "All changes saved successfully" });
+    } catch (error) {
+      toast({ status: "error", description: "Error saving changes", variant: "destructive" });
+    }
+  };
 
-            if (!response.ok) {
-                console.error("Failed to fetch facility details")
-                console.error(await response.text())
-                return
-            }
+  const handleDeleteFacility = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/locations/${facility.id}`, {
+        method: "DELETE"
+      });
 
-            const course = await response.json()
+      if (!response.ok) throw new Error("Failed to delete facility");
+      toast({ status: "success", description: "Facility deleted successfully" });
+    } catch (error) {
+      toast({ status: "error", description: "Error deleting facility", variant: "destructive" });
+    }
+  };
 
-            setFacility(course)
-        })()
-    }, [facilityId])
+  return (
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full bg-muted/50">
+          <TabsTrigger value="details">Facility Details</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="details" className="pt-4">
+          <DetailsTab
+            details={facilityDetails}
+            onDetailsChange={setFacilityDetails}
+          />
+        </TabsContent>
+      </Tabs>
 
-    if (!facility) return <div>Loading...</div>
-
-    return (
-        <div className="p-4 space-y-8">
-
-            <div>
-                <p className="text-base font-semibold">{facility.name}</p>
-            </div>
-            <Separator />
-            <Tabs value={tabValue} onValueChange={setTabValue}>
-                <TabsList className="flex justify-between space-x-10">
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
-                    <TabsTrigger value="enrolled">Enrolled</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="details">
-                    <DetailsTab facility={facility} />
-                </TabsContent>
-
-                <TabsContent value="schedule">
-                    <SchedulesTab facilityId={facility.id} />
-                </TabsContent>
-            </Tabs>
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
+        <div className="max-w-5xl mx-auto px-4 flex justify-between items-center gap-4">
+          <Button
+            variant="destructive"
+            onClick={handleDeleteFacility}
+            className="gap-2 flex-shrink-0"
+          >
+            <TrashIcon className="h-4 w-4" />
+            Delete Facility
+          </Button>
+          
+          <Button
+            onClick={handleSaveAll}
+            className="gap-2 bg-green-600 hover:bg-green-700 flex-shrink-0"
+          >
+            <SaveIcon className="h-4 w-4" />
+            Save All Changes
+          </Button>
         </div>
-    )
+      </div>
+    </div>
+  );
 }

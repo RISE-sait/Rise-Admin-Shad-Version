@@ -1,134 +1,80 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Separator } from "../ui/separator"
-import { toast } from "@/hooks/use-toast"
-import { FacilityType } from "@/types/facility"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import getValue from "@/components/Singleton";
 
 export default function AddFacilityForm() {
-  const [name, setName] = useState("")
-  const [location, setLocation] = useState("")
-  const [type, setType] = useState("")
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
 
-  const [facilityTypes, setFacilityTypes] = useState<FacilityType[]>([]);
+  const apiUrl = getValue("API");
 
-  useEffect(() => {
-  
-      (async () => {
-        const facilityTypes = await fetch("/api/facilities/types")
-        if (!facilityTypes.ok) {
-          console.error("Failed to fetch facility types")
-          console.error(await facilityTypes.text())
-          return
-        }
-        const data = await facilityTypes.json()
-  
-        setFacilityTypes(data)
-      }
-      )()
-    }, [])
+  const facilityData = {
+    name,
+    location: address // This is the format the API expects
+  };
 
   const handleAddFacility = async () => {
-    const response = await fetch("/api/facilities", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        location,
-        facility_type_id: facilityTypes.find((ft) => ft.name === type)?.id,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error("Failed to update course")
-      console.error(await response.text())
-      return
+    if (!name.trim()) {
+      toast.error("Facility name is required.");
+      return;
     }
 
-    toast({
-      status: "success",
-      description: "Successfully saved.",
-    })
-  }
+    try {
+      const response = await fetch(apiUrl + `/locations`, {  // Changed from facilities to locations
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(facilityData),
+      });
 
-  const resetData = () => {
-    setName("")
-    setLocation("")
-    setType("")
-  }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to add facility:", errorText);
+        toast.error("Failed to save facility. Please try again.");
+        return;
+      }
+
+      toast.success("Facility Added Successfully");
+      
+      // Reset form
+      setName("");
+      setAddress("");
+    } catch (error) {
+      console.error("Error during API request:", error);
+      toast.error("An error occurred. Please try again.");
+    }
+  };
 
   return (
-    <div className="p-6 space-y-4">
-      <p className="text-2xl font-semibold">Add Facility</p>
-      <Separator />
-      <div className="space-y-5">
-        <div>
-          <div>
-            <p className="text-base font-semibold ">
-              Name <span className="text-red-500">*</span>
-
-            </p>
-            <p className="font-normal text-sm flex items-center">
-              <Input onChange={e => setName(e.target.value)}
-                type="text"
-                value={name} />
-            </p>
-
-          </div>
+    <div className="space-y-6 pt-3">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Facility Name <span className="text-red-500">*</span>
+          </label>
+          <Input
+            onChange={(e) => setName(e.target.value)}
+            type="text"
+            value={name}
+            placeholder="Enter facility name"
+          />
         </div>
 
-
-        <div>
-          <div>
-            <p className="text-base font-semibold ">
-              Location <span className="text-red-500">*</span>
-
-            </p>
-            <p className="font-normal text-sm flex items-center">
-              <Input onChange={e => setLocation(e.target.value)}
-                type="text"
-                value={location} />
-            </p>
-
-          </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Address</label>
+          <Input
+            onChange={(e) => setAddress(e.target.value)}
+            type="text"
+            value={address}
+            placeholder="Enter facility address"
+          />
         </div>
-
-        <div>
-          <p className="text-base font-semibold ">
-            Type <span className="text-red-500">*</span>
-          </p>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant={"outline"}>{type === "" ? "Click to select a type" : type} </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {
-                facilityTypes.map((facilityType) => (
-                  <DropdownMenuItem key={facilityType.id} onSelect={() => setType(facilityType.name)}
-                  >
-                    {facilityType.name}
-                  </DropdownMenuItem>
-                ))
-              }
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
       </div>
 
-      <section className="flex justify-between">
-        <Button
-          onClick={handleAddFacility}
-          disabled={
-            !name || !location || !type
-          } className="bg-green-500 text-black font-semibold">Save</Button>
-        <Button onClick={resetData} className="text-black font-semibold">Reset</Button>
-      </section>
+      <Button onClick={handleAddFacility} className="w-full">Add Facility</Button>
     </div>
-  )
+  );
 }
