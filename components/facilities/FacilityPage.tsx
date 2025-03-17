@@ -9,7 +9,6 @@ import { Search, PlusCircle } from "lucide-react";
 import FacilityInfoPanel from "./FacilityInfoPanel";
 import AddFacilityForm from "./AddFacilityForm";
 import { toast } from "sonner";
-import getValue from "@/configs/constants";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { revalidateLocations } from "@/app/actions/serverActions";
 import { deleteLocation } from "@/services/location";

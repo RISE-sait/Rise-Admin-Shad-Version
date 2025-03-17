@@ -6,7 +6,7 @@ import RightDrawer from "../reusable/RightDrawer";
 import { Input } from "@/components/ui/input";
 import PracticeTable, { columns } from "./PracticeTable";
 import PracticeInfoPanel from "./PracticeInfoPanel";
-import AddCourseForm from "./AddCourseForm";
+import AddCourseForm from "./AddPracticeForm";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -16,19 +16,42 @@ import {
 import { ChevronDown } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
 import { Practice } from "@/types/practice";
+import { deletePractice } from "@/services/practices";
+import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
+import { revalidatePractices } from "@/app/actions/serverActions";
 
-export default function PracticesPage({ practices }: { practices: Practice[] }) {
+export default function PracticesPage({ practices, practiceLevels }: { practices: Practice[], practiceLevels: string[] }) {
   const [selectedPractice, setSelectedPractice] = useState<Practice | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
+  const {user} = useUser();
+
+  const {toast} = useToast()
+
   const handlePracticeSelect = (practice: Practice) => {
     setSelectedPractice(practice);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
+
+   const handleDeletePractice = async (practiceId: string) => {
+      try {
+        await deletePractice(practiceId, user?.Jwt!); 
+
+        toast({status:"success", description: "Practice deleted successfully"})
+
+        await revalidatePractices();
+        
+        // Remove the deleted facility from the list
+      } catch (error) {
+        console.error("Error deleting facility:", error);
+        toast({status:"error", description: "Failed to delete practice"});
+      }
+    };
 
   const filteredPractices = practices.filter(
     (practice) =>
@@ -107,6 +130,7 @@ export default function PracticesPage({ practices }: { practices: Practice[] }) 
           onPracticeSelect={handlePracticeSelect}
           columnVisibility={columnVisibility}
           onColumnVisibilityChange={handleColumnVisibilityChange}
+          onDeletePractice={handleDeletePractice}
         />
       </div>
 
@@ -117,12 +141,12 @@ export default function PracticesPage({ practices }: { practices: Practice[] }) 
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Practice Details" : "Add Course"}
+            {drawerContent === "details" ? "Practice Details" : "Add Practice"}
           </h2>
           {drawerContent === "details" && selectedPractice && (
-            <PracticeInfoPanel practice={selectedPractice} />
+            <PracticeInfoPanel practice={selectedPractice} levels={practiceLevels}/>
           )}
-          {drawerContent === "add" && <AddCourseForm />}
+          {drawerContent === "add" && <AddCourseForm levels={practiceLevels}/>}
         </div>
       </RightDrawer>
     </>

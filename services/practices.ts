@@ -1,8 +1,7 @@
 import {
-    DtoPracticeRequestDto,
-    DtoPracticeResponse,
-  LocationRequestDto,
-  LocationResponseDto
+  DtoPracticeLevelsResponse,
+  DtoPracticeRequestDto,
+  DtoPracticeResponse,
 } from '@/app/api/Api';
 import { addAuthHeader } from '@/lib/auth-header';
 import getValue from '@/configs/constants';
@@ -23,11 +22,13 @@ export async function getAllPractices(): Promise<Practice[]> {
     const practicesResponse: DtoPracticeResponse[] = await response.json();
 
     const practices: Practice[] = practicesResponse.map((practice) => ({
-        createdAt: new Date(practice.createdAt!), // Convert string to Date
-        id: practice.id!,
-        name: practice.name!,
-        updatedAt: new Date(practice.updatedAt!), // Convert string to Date
-        description: practice.description!
+      createdAt: new Date(practice.createdAt!), // Convert string to Date
+      capacity: practice.capacity!,
+      id: practice.id!,
+      name: practice.name!,
+      level: practice.level!,
+      updatedAt: new Date(practice.updatedAt!), // Convert string to Date
+      description: practice.description!
     }))
 
     return practices
@@ -37,7 +38,28 @@ export async function getAllPractices(): Promise<Practice[]> {
   }
 }
 
-export async function createPractice(practiceData: DtoPracticeRequestDto, jwt: string): Promise<any> {
+export async function getAllPracticeLevels(): Promise<string[]> {
+  try {
+
+    const response = await fetch(`${getValue("API")}practices/levels`, {
+      method: 'GET',
+      ...addAuthHeader()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch practices: ${response.statusText}`);
+    }
+
+    const practiceLevelsResponse: DtoPracticeLevelsResponse = await response.json();
+
+    return practiceLevelsResponse.levels ?? []
+  } catch (error) {
+    console.error('Error fetching practices:', error);
+    throw error;
+  }
+}
+
+export async function createPractice(practiceData: DtoPracticeRequestDto, jwt: string): Promise<string | null> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -46,54 +68,34 @@ export async function createPractice(practiceData: DtoPracticeRequestDto, jwt: s
       'Authorization': `Bearer ${jwt}`,
     };
 
-    console.log('Using headers:', headers);
-
     const response = await fetch(`${getValue('API')}practices`, {
       method: 'POST',
       headers,
       body: JSON.stringify(practiceData)
     });
 
-    // Get the full response text for more detailed error information
-    const responseText = await response.text();
-
     if (!response.ok) {
+
+    const responseJSON = await response.json();
+
       let errorMessage = `Failed to create practice: ${response.statusText}`;
 
-      try {
-        // Try to parse the response as JSON if possible
-        const errorData = JSON.parse(responseText);
-        if (errorData && errorData.error && errorData.error.message) {
-          errorMessage = `Failed to create practice: ${errorData.error.message}`;
-        } else if (errorData && errorData.message) {
-          errorMessage = `Failed to create practice: ${errorData.message}`;
-        } else if (errorData && errorData.error) {
-          errorMessage = `Failed to create practice: ${JSON.stringify(errorData.error)}`;
-        }
-
-        console.error('Error data:', errorData);
-      } catch (e) {
-        // JSON parsing failed, use the raw response text
-        console.error('Raw error response:', responseText);
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
       }
 
-      throw new Error(errorMessage);
+      return errorMessage;
+
     }
 
-    // If we got a valid JSON response, parse it and return
-    try {
-      return JSON.parse(responseText);
-    } catch {
-      // If parsing fails, just return the text
-      return responseText;
-    }
+    return null
   } catch (error) {
     console.error('Error creating practice:', error);
     throw error;
   }
 }
 
-export async function updatePractice(practiceID: string, practiceData: DtoPracticeRequestDto, jwt: string): Promise<any> {
+export async function updatePractice(practiceID: string, practiceData: DtoPracticeRequestDto, jwt: string): Promise<string | null> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -108,39 +110,21 @@ export async function updatePractice(practiceID: string, practiceData: DtoPracti
       body: JSON.stringify(practiceData)
     });
 
-    // Get the full response text for more detailed error information
-    const responseText = await response.text();
-
     if (!response.ok) {
+
+      const responseJSON = await response.json();
+
       let errorMessage = `Failed to update practice: ${response.statusText}`;
 
-      try {
-        // Try to parse the response as JSON if possible
-        const errorData = JSON.parse(responseText);
-        if (errorData && errorData.error && errorData.error.message) {
-          errorMessage = `Failed to update practice: ${errorData.error.message}`;
-        } else if (errorData && errorData.message) {
-          errorMessage = `Failed to update practice: ${errorData.message}`;
-        } else if (errorData && errorData.error) {
-          errorMessage = `Failed to update practice: ${JSON.stringify(errorData.error)}`;
-        }
-
-        console.error('Error data:', errorData);
-      } catch (e) {
-        // JSON parsing failed, use the raw response text
-        console.error('Raw error response:', responseText);
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
       }
 
-      throw new Error(errorMessage);
+      return errorMessage;
+
     }
 
-    // If we got a valid JSON response, parse it and return
-    try {
-      return JSON.parse(responseText);
-    } catch {
-      // If parsing fails, just return the text
-      return responseText;
-    }
+    return null
   } catch (error) {
     console.error('Error creating practice:', error);
     throw error;
@@ -162,7 +146,7 @@ export async function deletePractice(practiceID: string, jwt: string): Promise<a
       headers
     });
 
-    
+
   } catch (error) {
     console.error('Error creating location:', error);
     throw error;

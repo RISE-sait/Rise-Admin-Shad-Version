@@ -114,8 +114,8 @@ export const columns: ColumnDef<Practice>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
                 onClick={() => {
-                  if (confirm("Are you sure you want to delete this course?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteCourse;
+                  if (confirm("Are you sure you want to delete this practice?")) {
+                    const onDelete = (table.options.meta as any)?.onDeletePractice;
                     onDelete?.(course.id);
                   }
                 }}

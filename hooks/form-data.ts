@@ -18,5 +18,5 @@ export function useFormData<T>(initialData: T) {
     setIsChanged(false);
   };
 
-  return { data, setData, updateField, isChanged, resetData };
+  return { data, updateField, isChanged, resetData };
 }

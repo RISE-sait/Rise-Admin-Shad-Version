@@ -10,16 +10,30 @@
  */
 
 export interface CourseRequestDto {
+  capacity: number;
   description?: string;
-  name?: string;
+  name: string;
 }
 
 export interface CourseResponseDto {
+  capacity?: number;
   createdAt?: string;
   description?: string;
   id?: string;
   name?: string;
   updatedAt?: string;
+}
+
+export interface CustomerAthleteRegistrationRequestDto {
+  age: number;
+  country_code?: string;
+  first_name: string;
+  has_consent_to_email_marketing?: boolean;
+  has_consent_to_sms?: boolean;
+  last_name: string;
+  /** @example "+15141234567" */
+  phone_number?: string;
+  waivers?: CustomerWaiverSigningRequestDto[];
 }
 
 export interface CustomerAthleteResponseDto {
@@ -28,7 +42,7 @@ export interface CustomerAthleteResponseDto {
   id?: string;
   losses?: number;
   points?: number;
-  profile_pic_url?: string;
+  profile_pic?: string;
   rebounds?: number;
   steals?: number;
   updated_at?: string;
@@ -37,6 +51,7 @@ export interface CustomerAthleteResponseDto {
 
 export interface CustomerChildRegistrationRequestDto {
   age: number;
+  country_code?: string;
   first_name: string;
   last_name: string;
   waivers?: CustomerWaiverSigningRequestDto[];
@@ -54,7 +69,7 @@ export interface CustomerMembershipPlansResponseDto {
   updated_at?: string;
 }
 
-export interface CustomerRegistrationRequestDto {
+export interface CustomerParentRegistrationRequestDto {
   age: number;
   country_code?: string;
   first_name: string;
@@ -63,11 +78,11 @@ export interface CustomerRegistrationRequestDto {
   last_name: string;
   /** @example "+15141234567" */
   phone_number?: string;
-  role: string;
-  waivers?: CustomerWaiverSigningRequestDto[];
 }
 
 export interface CustomerResponse {
+  age?: number;
+  country_code?: string;
   email?: string;
   first_name?: string;
   hubspot_id?: string;
@@ -91,15 +106,23 @@ export interface CustomerWaiverSigningRequestDto {
   waiver_url: string;
 }
 
+export interface DtoPracticeLevelsResponse {
+  levels?: string[];
+}
+
 export interface DtoPracticeRequestDto {
+  capacity: number;
   description?: string;
+  level: string;
   name?: string;
 }
 
 export interface DtoPracticeResponse {
+  capacity?: number;
   createdAt?: string;
   description?: string;
   id?: string;
+  level?: string;
   name?: string;
   updatedAt?: string;
 }
@@ -122,8 +145,6 @@ export interface EnrollmentResponseDto {
 export interface EventRequestDto {
   /** @example "00000000-0000-0000-0000-000000000000" */
   course_id?: string;
-  /** @example "THURSDAY" */
-  day: string;
   /** @example "2023-10-05T07:00:00Z" */
   event_end_at: string;
   /** @example "2023-10-05T07:00:00Z" */
@@ -134,15 +155,10 @@ export interface EventRequestDto {
   location_id?: string;
   /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
   practice_id?: string;
-  /** @example "23:00:00+00:00" */
-  session_end_time: string;
-  /** @example "23:00:00+00:00" */
-  session_start_time: string;
 }
 
 export interface EventResponseDto {
   course_id?: string;
-  day?: string;
   event_end_at?: string;
   event_start_at?: string;
   game_id?: string;
@@ -164,7 +180,6 @@ export interface EventStaffRequestDto {
 
 export interface GameRequestDto {
   name?: string;
-  video_link?: string;
 }
 
 export interface GameResponseDto {
@@ -266,17 +281,20 @@ export interface MembershipPlanPlanRequestDto {
   amt_periods?: number;
   membership_id: string;
   name?: string;
-  payment_frequency?: string;
-  price: number;
+  payment_frequency: string;
+  price: string;
 }
 
 export interface MembershipPlanPlanResponse {
   amt_periods?: number;
+  created_at?: string;
   id?: string;
+  joining_fees?: string;
   membership_id?: string;
   name?: string;
   payment_frequency?: string;
-  price?: number;
+  price?: string;
+  updated_at?: string;
 }
 
 export interface PurchaseMembershipPlanRequestDto {
@@ -287,6 +305,7 @@ export interface PurchaseMembershipPlanRequestDto {
 
 export interface StaffRegistrationRequestDto {
   age: number;
+  country_code?: string;
   first_name: string;
   is_active_staff?: boolean;
   last_name: string;
@@ -301,28 +320,17 @@ export interface StaffRequestDto {
 }
 
 export interface StaffResponseDto {
+  country_code?: string;
   created_at?: string;
   email?: string;
   first_name?: string;
   hubspot_id?: string;
   id?: string;
-  /** Indicates if the staff is still an active employee */
   is_active?: boolean;
   last_name?: string;
   phone?: string;
-  role_id?: string;
   role_name?: string;
   updated_at?: string;
-}
-
-export interface UserResponse {
-  email?: string;
-  first_name?: string;
-  hubspot_id?: string;
-  last_name?: string;
-  phone?: string;
-  profile_pic?: string;
-  user_id?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -565,12 +573,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags authentication
      * @name ChildCreate
      * @summary Authenticate a user and return a JWT token
-     * @request POST:/auth/child/{hubspot_id}
+     * @request POST:/auth/child/{id}
      * @secure
      */
-    childCreate: (hubspotId: string, params: RequestParams = {}) =>
+    childCreate: (id: string, params: RequestParams = {}) =>
       this.request<IdentityUserAuthenticationResponseDto, Record<string, any>>({
-        path: `/auth/child/${hubspotId}`,
+        path: `/auth/child/${id}`,
         method: "POST",
         secure: true,
         type: ContentType.Json,
@@ -617,11 +625,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Get a course by HubSpotId
+     * @description Get a course by Id
      *
      * @tags courses
      * @name CoursesDetail
-     * @summary Get a course by HubSpotId
+     * @summary Get a course by Id
      * @request GET:/courses/{id}
      */
     coursesDetail: (id: string, params: RequestParams = {}) =>
@@ -653,7 +661,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Delete a course by HubSpotId
+     * @description Delete a course by Id
      *
      * @tags courses
      * @name CoursesDelete
@@ -672,7 +680,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   customers = {
     /**
-     * @description Retrieves a list of customers, optionally filtered by HubSpot IDs.
+     * @description Retrieves a list of customers, optionally filtered by HubSpot IDs, with pagination support.
      *
      * @tags customers
      * @name CustomersList
@@ -681,8 +689,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     customersList: (
       query?: {
-        /** Comma-separated list of HubSpot IDs to filter customers */
-        hubspot_ids?: string;
+        /** Number of customers to retrieve (default: 20) */
+        limit?: number;
+        /** Number of customers to skip (default: 0) */
+        offset?: number;
       },
       params: RequestParams = {},
     ) =>
@@ -729,6 +739,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/customers/${customerId}/athlete`,
         method: "PATCH",
         body: update_body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Retrieves a repository's children using the parent's ID
+     *
+     * @tags customers
+     * @name ChildrenDetail
+     * @summary Get a repository's children by parent ID
+     * @request GET:/customers/{id}/children
+     */
+    childrenDetail: (email: string, id: string, params: RequestParams = {}) =>
+      this.request<HubspotUserResponse[], Record<string, any>>({
+        path: `/customers/${id}/children`,
+        method: "GET",
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -879,17 +906,52 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   events = {
     /**
-     * @description Retrieve all events, with optional filters by course, location, and practice.
+     * @description Retrieve all events within a specific date range, with optional filters by course, location, game, and practice.
      *
      * @tags events
      * @name EventsList
      * @summary Get all events
      * @request GET:/events
      */
-    eventsList: (params: RequestParams = {}) =>
+    eventsList: (
+      query: {
+        /**
+         * Retrieve events after this date (format: YYYY-MM-DD)
+         * @example ""2024-05-01""
+         */
+        after: string;
+        /**
+         * Retrieve events before this date (format: YYYY-MM-DD)
+         * @example ""2024-06-01""
+         */
+        before: string;
+        /**
+         * Filter by game ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        game_id?: string;
+        /**
+         * Filter by course ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        course_id?: string;
+        /**
+         * Filter by practice ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        practice_id?: string;
+        /**
+         * Filter by location ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        location_id?: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<EventResponseDto[], Record<string, any>>({
         path: `/events`,
         method: "GET",
+        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -914,7 +976,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Retrieves details of a specific event based on its HubSpotId.
+     * @description Retrieves details of a specific event based on its ID.
      *
      * @tags events
      * @name EventsDetail
@@ -949,7 +1011,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Deletes an event by its HubSpotId.
+     * @description Deletes an event by its ID.
      *
      * @tags events
      * @name EventsDelete
@@ -978,8 +1040,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query?: {
         /** Filter by game name */
         name?: string;
-        /** Filter by game description */
-        description?: string;
       },
       params: RequestParams = {},
     ) =>
@@ -1529,6 +1589,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description Retrieves a list of available practice levels.
+     *
+     * @tags practices
+     * @name LevelsList
+     * @summary Get practice levels
+     * @request GET:/practices/levels
+     */
+    levelsList: (params: RequestParams = {}) =>
+      this.request<DtoPracticeLevelsResponse[], Record<string, any>>({
+        path: `/practices/levels`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Update a practice
      *
      * @tags practices
@@ -1546,7 +1623,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Delete a practice by HubSpotId
+     * @description Delete a practice by ID
      *
      * @tags practices
      * @name PracticesDelete
@@ -1560,23 +1637,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Get a practice by name
-     *
-     * @tags practices
-     * @name PracticesDetail
-     * @summary Get a practice by name
-     * @request GET:/practices/{name}
-     */
-    practicesDetail: (name: string, params: RequestParams = {}) =>
-      this.request<DtoPracticeResponse, Record<string, any>>({
-        path: `/practices/${name}`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
   };
@@ -1603,6 +1663,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   register = {
     /**
+     * @description Registers a new athlete by verifying the Firebase token and creating an account based on the provided details.
+     *
+     * @tags registration
+     * @name AthleteCreate
+     * @summary Register a new athlete
+     * @request POST:/register/athlete
+     */
+    athleteCreate: (athlete: CustomerAthleteRegistrationRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/register/athlete`,
+        method: "POST",
+        body: athlete,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Registers a new child account using the provided details and associates it with the parent based on the Firebase authentication token.
      *
      * @tags registration
@@ -1621,18 +1699,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Registers a new customer by verifying the Firebase token and creating an account based on the provided details. The registration can either be for an athlete or a parent, depending on the specified role in the request.
+     * @description Registers a new parent by verifying the Firebase token and creating an account based on the provided details.
      *
      * @tags registration
-     * @name CustomerCreate
-     * @summary Register a new customer
-     * @request POST:/register/customer
+     * @name ParentCreate
+     * @summary Register a new parent
+     * @request POST:/register/parent
      */
-    customerCreate: (customer: CustomerRegistrationRequestDto, params: RequestParams = {}) =>
+    parentCreate: (parent: CustomerParentRegistrationRequestDto, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/register/customer`,
+        path: `/register/parent`,
         method: "POST",
-        body: customer,
+        body: parent,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1658,7 +1736,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   staffs = {
     /**
-     * @description Retrieves staff members based on optional filters like role or HubSpot IDs.
+     * @description Retrieves staff members based on optional role filter.
      *
      * @tags staff
      * @name StaffsList
@@ -1672,11 +1750,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @example ""Coach""
          */
         role?: string;
-        /**
-         * Comma-separated HubSpot IDs
-         * @example ""123,456,789""
-         */
-        hubspot_ids?: string;
       },
       params: RequestParams = {},
     ) =>
@@ -1723,41 +1796,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        ...params,
-      }),
-  };
-  users = {
-    /**
-     * @description Retrieves a repository using their email address
-     *
-     * @tags users
-     * @name UsersDetail
-     * @summary Get a repository by email
-     * @request GET:/users/{email}
-     */
-    usersDetail: (email: string, params: RequestParams = {}) =>
-      this.request<UserResponse, Record<string, any>>({
-        path: `/users/${email}`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Retrieves a repository's children using the parent's email address
-     *
-     * @tags users
-     * @name ChildrenDetail
-     * @summary Get a repository's children by parent email
-     * @request GET:/users/{email}/children
-     */
-    childrenDetail: (email: string, params: RequestParams = {}) =>
-      this.request<HubspotUserResponse[], Record<string, any>>({
-        path: `/users/${email}/children`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
   };

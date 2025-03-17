@@ -3,50 +3,53 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import getValue from "../../configs/constants";
 import { Schedule } from "@/types/course";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
 import { SaveIcon } from "lucide-react";
+import { createPractice } from "@/services/practices";
+import { useUser } from "@/contexts/UserContext";
+import { useFormData } from "@/hooks/form-data";
+import { revalidatePractices } from "@/app/actions/serverActions";
 
-export default function AddCourseForm() {
+export default function AddPracticeForm({ levels }: { levels: string[] }) {
   const [activeTab, setActiveTab] = useState("details");
-  const [courseDetails, setCourseDetails] = useState({
-    name: "",
-    description: ""
-  });
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const { data, resetData, updateField } = useFormData(
+    { name: "", description: "", level: "all", capacity: 0 },
+  )
 
-  const apiUrl = getValue("API");
+  const { user } = useUser();
+
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
 
   const handleSaveAll = async () => {
     // Check if the course name is empty
-    if (!courseDetails.name.trim()) {
-      toast.error("Course name is required.");
+    if (!data.name.trim()) {
+      toast.error("Practice name is required.");
       return;
     }
 
-    const courseData = {
-      ...courseDetails,
-      schedules
-    };
 
     try {
-      const response = await fetch(apiUrl + `/courses`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(courseData),
-      });
+      const error = await createPractice(data, user?.Jwt!)
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to save course:", errorText);
-        toast.error("Failed to save course. Please try again.");
+      if (error === null) {
+
+        resetData();
+
+        await revalidatePractices()
+
+        toast.success("Practice successfully created");
+
         return;
       }
+      // const errorText = await response.text();
+      // console.error("Failed to create practice:", errorText);
+      toast.error(`Failed to create practice: ${error}. Please try again.`)
+      return;
 
-      toast.success("Course successfully created");
+
     } catch (error) {
       console.error("Error during API request:", error);
       toast.error("An error occurred. Please try again.");
@@ -60,18 +63,19 @@ export default function AddCourseForm() {
           <TabsTrigger value="details">Course Details</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="details" className="pt-4">
           <DetailsTab
-            details={courseDetails}
-            onDetailsChange={setCourseDetails}
+            details={data}
+            updateField={updateField}
+            levels={levels}
           />
         </TabsContent>
-        
+
         <TabsContent value="schedule" className="pt-4">
           <ScheduleTab
-            // schedules={schedules}
-            // onSchedulesChange={setSchedules}
+          // schedules={schedules}
+          // onSchedulesChange={setSchedules}
           />
         </TabsContent>
       </Tabs>

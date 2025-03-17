@@ -1,6 +1,7 @@
-"use client";
+"use client"
+
 import { Input } from "@/components/ui/input";
-import { BuildingIcon, PencilIcon, MapPinIcon } from "lucide-react";
+import { PencilIcon, MapPinIcon } from "lucide-react";
 
 export default function DetailsTab({
   details,
