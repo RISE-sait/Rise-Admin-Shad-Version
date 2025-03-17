@@ -5,7 +5,7 @@ import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
 import { TrashIcon, SaveIcon, UserCircle, CreditCard, Clock, RefreshCw } from "lucide-react";
-import CustomerService from "@/services/CustomerService";
+import CustomerService from "@/services/customer";
 import { toast } from "sonner";
 
 interface CustomerStatsProps {

@@ -5,17 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import getValue from "@/configs/constants";
+import { createLocation } from "@/services/location";
+import { LocationRequestDto } from "@/app/api/Api";
+import { useUser } from "@/contexts/UserContext";
 
 export default function AddFacilityForm() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
 
-  const apiUrl = getValue("API");
-
-  const facilityData = {
-    name,
-    location: address // This is the format the API expects
-  };
+  const { user } = useUser();
 
   const handleAddFacility = async () => {
     if (!name.trim()) {
@@ -24,24 +22,13 @@ export default function AddFacilityForm() {
     }
 
     try {
-      const response = await fetch(apiUrl + `/locations`, {  // Changed from facilities to locations
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(facilityData),
-      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to add facility:", errorText);
-        toast.error("Failed to save facility. Please try again.");
-        return;
+      const locationData: LocationRequestDto = {
+        address: address,
+        name: name
       }
 
-      toast.success("Facility Added Successfully");
-      
-      // Reset form
-      setName("");
-      setAddress("");
+      await createLocation(locationData, user?.Jwt!);
     } catch (error) {
       console.error("Error during API request:", error);
       toast.error("An error occurred. Please try again.");

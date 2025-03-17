@@ -8,7 +8,7 @@ import {
   import { addAuthHeader } from '@/lib/auth-header';
   import getValue from '@/configs/constants';
   
-  class CustomerService {
+  class CustomerApiService {
     private apiUrl: string;
   
     constructor() {
@@ -273,4 +273,4 @@ import {
     }
   }
   
-  export default CustomerService;
+  export default CustomerApiService;

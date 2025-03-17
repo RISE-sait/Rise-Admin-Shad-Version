@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import FacilityTable from "./FacilityTable";
-import { Facility } from "@/types/facility";
+import { Location } from "@/types/location";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, PlusCircle } from "lucide-react";
@@ -11,15 +11,18 @@ import AddFacilityForm from "./AddFacilityForm";
 import { toast } from "sonner";
 import getValue from "@/configs/constants";
 import RightDrawer from "@/components/reusable/RightDrawer";
+import { revalidateLocations } from "@/app/actions/serverActions";
+import { deleteLocation } from "@/services/location";
+import { useUser } from "@/contexts/UserContext";
 
-export default function FacilitiesPage({ facilities }: { facilities: Facility[] }) {
+export default function FacilitiesPage({ facilities }: { facilities: Location[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add">("details");
-  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<Location | null>(null);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   
-  const apiUrl = getValue("API");
+  const { user } = useUser();
 
   // Filter facilities based on search query
   const filteredFacilities = searchQuery 
@@ -30,7 +33,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
       )
     : facilities;
 
-  const handleFacilitySelect = (facility: Facility) => {
+  const handleFacilitySelect = (facility: Location) => {
     setSelectedFacility(facility);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -38,17 +41,11 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
 
   const handleDeleteFacility = async (facilityId: string) => {
     try {
-      const response = await fetch(`${apiUrl}locations/${facilityId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete facility");
-      }
+      await deleteLocation(facilityId, user?.Jwt!); 
 
       toast.success("Facility deleted successfully");
       // Remove the deleted facility from the list
-      window.location.reload();
+      await revalidateLocations();
     } catch (error) {
       console.error("Error deleting facility:", error);
       toast.error("Failed to delete facility");

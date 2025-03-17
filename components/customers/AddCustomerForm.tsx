@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import CustomerService from "@/services/CustomerService";
+import CustomerService from "@/services/customer";
 import { CustomerRegistrationRequestDto } from "@/app/api/Api";
 
 interface AddCustomerFormProps {

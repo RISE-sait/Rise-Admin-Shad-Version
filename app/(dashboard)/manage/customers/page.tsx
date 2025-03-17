@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import CustomerPage from '@/components/customers/CustomerPage';
 import { Customer } from '@/types/customer';
-import CustomerService from '@/services/CustomerService';
+import CustomerService from '@/services/customer';
 import { toast } from 'sonner';
 
 export default function CustomersPageContainer() {

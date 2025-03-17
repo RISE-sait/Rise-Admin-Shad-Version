@@ -237,7 +237,7 @@ export interface IdentityUserAuthenticationResponseDto {
 }
 
 export interface LocationRequestDto {
-  location: string;
+  address: string;
   name: string;
 }
 
