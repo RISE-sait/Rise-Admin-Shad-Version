@@ -70,8 +70,8 @@ export default function AddCourseForm() {
         
         <TabsContent value="schedule" className="pt-4">
           <ScheduleTab
-            schedules={schedules}
-            onSchedulesChange={setSchedules}
+            // schedules={schedules}
+            // onSchedulesChange={setSchedules}
           />
         </TabsContent>
       </Tabs>
