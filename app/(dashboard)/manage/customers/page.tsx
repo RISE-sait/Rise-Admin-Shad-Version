@@ -1,15 +1,9 @@
-<<<<<<< HEAD
 "use client";
 import React, { useState, useEffect } from 'react';
 import CustomerPage from '@/components/customers/CustomerPage';
 import { Customer } from '@/types/customer';
 import CustomerService from '@/services/CustomerService';
 import { toast } from 'sonner';
-=======
-import CustomersPage from "@/components/customers/CustomerPage";
-import { Customer } from "@/types/customer";
-import getValue from "@/configs/constants";
->>>>>>> 2ef6cfaa23d9da29982d2f88a300c108b4fcee7b
 
 export default function CustomersPageContainer() {
   const [customers, setCustomers] = useState<Customer[]>([]);

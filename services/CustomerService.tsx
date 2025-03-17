@@ -6,7 +6,7 @@ import {
     CustomerAthleteResponseDto
   } from '@/app/api/Api';
   import { addAuthHeader } from '@/lib/auth-header';
-  import getValue from '@/components/Singleton';
+  import getValue from '@/configs/constants';
   
   class CustomerService {
     private apiUrl: string;
