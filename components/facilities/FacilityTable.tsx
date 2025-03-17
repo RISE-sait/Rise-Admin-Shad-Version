@@ -253,7 +253,7 @@ export default function FacilityTable({
             locations
           </div>
           
-          <div className="flex items-center space-x-6">
+          {/* <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">Rows per page:</span>
               <Select
@@ -297,7 +297,7 @@ export default function FacilityTable({
                 Next
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

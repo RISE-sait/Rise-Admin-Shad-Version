@@ -1,16 +1,17 @@
 "use client";
+
 import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Location } from "@/types/location";
 import DetailsTab from "./infoTabs/Details";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { TrashIcon, SaveIcon, BuildingIcon, Calendar } from "lucide-react";
-import getValue from "@/configs/constants";
+import { TrashIcon, SaveIcon, BuildingIcon } from "lucide-react";
 import SchedulesTab from "./infoTabs/Schedule";
 import { deleteLocation, updateLocation } from "@/services/location";
 import { LocationRequestDto } from "@/app/api/Api";
 import { useUser } from "@/contexts/UserContext";
+import { revalidateLocations } from "@/app/actions/serverActions";
 
 export default function FacilityInfoPanel({ facility }: { facility: Location }) {
   const { toast } = useToast();
@@ -22,8 +23,6 @@ export default function FacilityInfoPanel({ facility }: { facility: Location }) 
 
   const { user } = useUser();
 
-  const apiUrl = getValue("API");
-
   const handleSaveAll = async () => {
     try {
 
@@ -33,6 +32,9 @@ export default function FacilityInfoPanel({ facility }: { facility: Location }) 
       }
 
       await updateLocation(facility.id, locationData, user?.Jwt!);
+      toast({ status: "success", description: "Facility updated successfully" });
+      
+      await revalidateLocations();
     } catch (error) {
       console.error("Error during API request:", error);
       toast({ status: "error", description: "An error occurred. Please try again." });
@@ -46,6 +48,8 @@ export default function FacilityInfoPanel({ facility }: { facility: Location }) 
 
         if (!response.ok) throw new Error("Failed to delete facility");
         toast({ status: "success", description: "Facility deleted successfully" });
+
+      await revalidateLocations();
       } catch (error) {
         toast({ status: "error", description: "Error deleting facility", variant: "destructive" });
       }
