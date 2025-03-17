@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Customer } from "@/types/customer";
-import CustomerService from "@/services/CustomerService";
+import CustomerService from "@/services/customer";
 import { CustomerStatsUpdateRequestDto } from "@/app/api/Api";
 
 export default function DetailsTab({ customer, onCustomerUpdated }: { 

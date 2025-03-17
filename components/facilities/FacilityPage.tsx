@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import FacilityTable from "./FacilityTable";
-import { Facility } from "@/types/facility";
+import { Location } from "@/types/location";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, PlusCircle } from "lucide-react";
@@ -12,10 +12,10 @@ import { toast } from "sonner";
 import getValue from "@/configs/constants";
 import RightDrawer from "@/components/reusable/RightDrawer";
 
-export default function FacilitiesPage({ facilities }: { facilities: Facility[] }) {
+export default function FacilitiesPage({ facilities }: { facilities: Location[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add">("details");
-  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<Location | null>(null);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -30,7 +30,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
       )
     : facilities;
 
-  const handleFacilitySelect = (facility: Facility) => {
+  const handleFacilitySelect = (facility: Location) => {
     setSelectedFacility(facility);
     setDrawerContent("details");
     setDrawerOpen(true);

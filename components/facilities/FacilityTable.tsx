@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Facility } from "@/types/facility";
+import { Location } from "@/types/location";
 import {
   Table,
   TableBody,
@@ -40,14 +40,14 @@ import {
 } from "@/components/ui/select";
 
 interface DataTableProps {
-  facilities: Facility[];
-  onFacilitySelect: (facility: Facility) => void;
+  facilities: Location[];
+  onFacilitySelect: (facility: Location) => void;
   onDeleteFacility?: (facilityId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
   onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
 }
 
-export const columns: ColumnDef<Facility>[] = [
+export const columns: ColumnDef<Location>[] = [
   {
     id: "name",
     accessorKey: "name",
