@@ -1,5 +1,4 @@
 import { 
-    CustomerRegistrationRequestDto, 
     CustomerResponse, 
     CustomerChildRegistrationRequestDto,
     CustomerStatsUpdateRequestDto,
@@ -42,111 +41,111 @@ import {
       }
     }
   
-    async createCustomer(customerData: CustomerRegistrationRequestDto): Promise<any> {
-        try {
-          // Determine which endpoint to use based on role
-          let endpoint = '';
-          let requestData: any = {};
+    // async createCustomer(customerData: CustomerRegistrationRequestDto): Promise<any> {
+    //     try {
+    //       // Determine which endpoint to use based on role
+    //       let endpoint = '';
+    //       let requestData: any = {};
           
-          // Format the data according to the role-specific endpoint requirements
-          if (customerData.role === 'athlete') {
-            endpoint = '/register/athlete';
-            requestData = {
-              age: customerData.age,
-              country_code: customerData.country_code,
-              first_name: customerData.first_name,
-              last_name: customerData.last_name,
-              has_consent_to_email_marketing: customerData.has_consent_to_email_marketing,
-              has_consent_to_sms: customerData.has_consent_to_sms,
-              phone_number: customerData.phone_number,
-              waivers: [{
-                is_waiver_signed: true,
-                waiver_url: "https://example.com/default-waiver"
-              }]
-            };
-          } else if (customerData.role === 'parent') {
-            endpoint = '/register/parent';
-            requestData = {
-              age: customerData.age,
-              country_code: customerData.country_code,
-              first_name: customerData.first_name,
-              last_name: customerData.last_name,
-              has_consent_to_email_marketing: customerData.has_consent_to_email_marketing,
-              has_consent_to_sms: customerData.has_consent_to_sms,
-              phone_number: customerData.phone_number
-            };
-          } else {
-            throw new Error(`Unsupported customer role: ${customerData.role}`);
-          }
+    //       // Format the data according to the role-specific endpoint requirements
+    //       if (customerData.role === 'athlete') {
+    //         endpoint = '/register/athlete';
+    //         requestData = {
+    //           age: customerData.age,
+    //           country_code: customerData.country_code,
+    //           first_name: customerData.first_name,
+    //           last_name: customerData.last_name,
+    //           has_consent_to_email_marketing: customerData.has_consent_to_email_marketing,
+    //           has_consent_to_sms: customerData.has_consent_to_sms,
+    //           phone_number: customerData.phone_number,
+    //           waivers: [{
+    //             is_waiver_signed: true,
+    //             waiver_url: "https://example.com/default-waiver"
+    //           }]
+    //         };
+    //       } else if (customerData.role === 'parent') {
+    //         endpoint = '/register/parent';
+    //         requestData = {
+    //           age: customerData.age,
+    //           country_code: customerData.country_code,
+    //           first_name: customerData.first_name,
+    //           last_name: customerData.last_name,
+    //           has_consent_to_email_marketing: customerData.has_consent_to_email_marketing,
+    //           has_consent_to_sms: customerData.has_consent_to_sms,
+    //           phone_number: customerData.phone_number
+    //         };
+    //       } else {
+    //         throw new Error(`Unsupported customer role: ${customerData.role}`);
+    //       }
           
-          // Add detailed logging to help diagnose the issue
-          console.log(`Creating ${customerData.role} using endpoint: ${this.apiUrl}${endpoint}`);
-          console.log('Request data:', JSON.stringify(requestData, null, 2));
+    //       // Add detailed logging to help diagnose the issue
+    //       console.log(`Creating ${customerData.role} using endpoint: ${this.apiUrl}${endpoint}`);
+    //       console.log('Request data:', JSON.stringify(requestData, null, 2));
           
-          // Get the Firebase token directly from localStorage
-          const firebaseToken = typeof window !== 'undefined' ? localStorage.getItem('firebaseToken') : null;
+    //       // Get the Firebase token directly from localStorage
+    //       const firebaseToken = typeof window !== 'undefined' ? localStorage.getItem('firebaseToken') : null;
           
-          // Check if we have the token before proceeding
-          if (!firebaseToken) {
-            console.error('No Firebase token available. User may not be logged in.');
-            throw new Error('Authentication required. Please log in again.');
-          }
+    //       // Check if we have the token before proceeding
+    //       if (!firebaseToken) {
+    //         console.error('No Firebase token available. User may not be logged in.');
+    //         throw new Error('Authentication required. Please log in again.');
+    //       }
           
-          // Create custom headers including the firebase_token header
-          const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${firebaseToken}`,
-            'firebase_token': firebaseToken
-          };
+    //       // Create custom headers including the firebase_token header
+    //       const headers = {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${firebaseToken}`,
+    //         'firebase_token': firebaseToken
+    //       };
           
-          console.log('Using headers:', headers);
+    //       console.log('Using headers:', headers);
           
-          const response = await fetch(`${this.apiUrl}${endpoint}`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(requestData)
-          });
+    //       const response = await fetch(`${this.apiUrl}${endpoint}`, {
+    //         method: 'POST',
+    //         headers,
+    //         body: JSON.stringify(requestData)
+    //       });
           
-          // Get the full response text for more detailed error information
-          const responseText = await response.text();
-          console.log('Response status:', response.status);
-          console.log('Response body:', responseText);
+    //       // Get the full response text for more detailed error information
+    //       const responseText = await response.text();
+    //       console.log('Response status:', response.status);
+    //       console.log('Response body:', responseText);
           
-          if (!response.ok) {
-            let errorMessage = `Failed to create customer: ${response.statusText}`;
+    //       if (!response.ok) {
+    //         let errorMessage = `Failed to create customer: ${response.statusText}`;
             
-            try {
-              // Try to parse the response as JSON if possible
-              const errorData = JSON.parse(responseText);
-              if (errorData && errorData.error && errorData.error.message) {
-                errorMessage = `Failed to create customer: ${errorData.error.message}`;
-              } else if (errorData && errorData.message) {
-                errorMessage = `Failed to create customer: ${errorData.message}`;
-              } else if (errorData && errorData.error) {
-                errorMessage = `Failed to create customer: ${JSON.stringify(errorData.error)}`;
-              }
+    //         try {
+    //           // Try to parse the response as JSON if possible
+    //           const errorData = JSON.parse(responseText);
+    //           if (errorData && errorData.error && errorData.error.message) {
+    //             errorMessage = `Failed to create customer: ${errorData.error.message}`;
+    //           } else if (errorData && errorData.message) {
+    //             errorMessage = `Failed to create customer: ${errorData.message}`;
+    //           } else if (errorData && errorData.error) {
+    //             errorMessage = `Failed to create customer: ${JSON.stringify(errorData.error)}`;
+    //           }
               
-              console.error('Error data:', errorData);
-            } catch (e) {
-              // JSON parsing failed, use the raw response text
-              console.error('Raw error response:', responseText);
-            }
+    //           console.error('Error data:', errorData);
+    //         } catch (e) {
+    //           // JSON parsing failed, use the raw response text
+    //           console.error('Raw error response:', responseText);
+    //         }
             
-            throw new Error(errorMessage);
-          }
+    //         throw new Error(errorMessage);
+    //       }
       
-          // If we got a valid JSON response, parse it and return
-          try {
-            return JSON.parse(responseText);
-          } catch {
-            // If parsing fails, just return the text
-            return responseText;
-          }
-        } catch (error) {
-          console.error('Error creating customer:', error);
-          throw error;
-        }
-      }
+    //       // If we got a valid JSON response, parse it and return
+    //       try {
+    //         return JSON.parse(responseText);
+    //       } catch {
+    //         // If parsing fails, just return the text
+    //         return responseText;
+    //       }
+    //     } catch (error) {
+    //       console.error('Error creating customer:', error);
+    //       throw error;
+    //     }
+    //   }
     
     /**
      * Add a child customer
