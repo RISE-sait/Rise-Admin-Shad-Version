@@ -3,7 +3,7 @@ import { Api, IdentityUserAuthenticationResponseDto } from "@/app/api/Api";
 
 // Create a singleton instance of the API client
 export const apiClient = new Api<unknown>({
-  baseUrl: "https://api-461776259687.us-west2.run.app/" // Explicitly set base URL
+  baseUrl: "https://rise-web-461776259687.us-west2.run.app/" // Explicitly set base URL
 });
 
 const tryAuthentication = async (token: string): Promise<any> => {
@@ -19,7 +19,7 @@ const tryAuthentication = async (token: string): Promise<any> => {
   for (const path of possiblePaths) {
     try {
       console.log(`Trying authentication at path: ${path}`);
-      const response = await fetch(`https://api-461776259687.us-west2.run.app/${path}`, {
+      const response = await fetch(`https://rise-web-461776259687.us-west2.run.app/${path}`, {
         method: 'POST',
         mode: 'cors', // Ensure CORS headers are processed
         // Remove the credentials: 'include' line
@@ -60,6 +60,9 @@ const parseJwt = (token: string) => {
 export const loginWithFirebaseToken = async (firebaseToken: string): Promise<{user: User; token: string}> => {
   try {
     console.log("Authenticating with Firebase token");
+    
+    // STORE THE FIREBASE TOKEN IMMEDIATELY - KEY CHANGE
+    localStorage.setItem('firebaseToken', firebaseToken);
     
     // First try with our path discovery function
     try {

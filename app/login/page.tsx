@@ -74,10 +74,14 @@ export default function Login() {
       if (result?.user) {
         // Get Firebase token
         const idToken = await result.user.getIdToken();
+        console.log("Firebase Token:", idToken);
         
         // Log the Firebase token (first 20 chars for safety)
-        console.log("Firebase Token:", idToken);
+        console.log("Firebase Token (first 20 chars):", idToken.substring(0, 20) + "...");
         console.log("Full Firebase Token length:", idToken.length);
+        
+        // Store the Firebase token immediately for API calls
+        localStorage.setItem('firebaseToken', idToken);
         
         try {
           // Authenticate with backend
@@ -86,31 +90,25 @@ export default function Login() {
           // Log the JWT token from backend (first 20 chars for safety)
           console.log("JWT Token from backend (first 20 chars):", 
             token ? (token.substring(0, 20) + "...") : "No token received");
-          console.log("Full JWT Token length:", token ? token.length : 0);
+            
+          // Check that both tokens are properly stored
+          console.log("Firebase token stored:", !!localStorage.getItem('firebaseToken'));
+          console.log("JWT token stored:", !!localStorage.getItem('jwtToken'));
           
-          // Store the JWT token
-          localStorage.setItem('jwtToken', token);
-          
-          // Store user data for persistent sessions
-          localStorage.setItem('userData', JSON.stringify(user));
-          
-          // Update user context
+          // Continue with user setup
           setUser(user);
+          router.push('/');
           
-          console.log("Authenticated User:", user);
-          
-          toast.success("Successfully logged in with Google!");
-          router.push("/");
         } catch (authError) {
-          console.error("Backend authentication failed:", authError);
-          toast.error("Authentication failed with backend");
+          console.error("Backend authentication error:", authError);
+          toast.error("Authentication failed. Please try again.");
         }
       } else {
         toast.error("Google sign-in failed. Please try again.");
       }
     } catch (err) {
-      toast.error("An error occurred during Google sign-in. Please try again.");
-      console.error(err);
+      console.error("Google sign-in error:", err);
+      toast.error("An error occurred during sign-in. Please try again.");
     } finally {
       setIsLoading(false);
     }

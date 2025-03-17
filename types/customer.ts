@@ -4,11 +4,15 @@ export interface Customer {
   last_name: string;
   email: string; // email (e.g., alice@example.com)
   phone: string;
-  accountType: string;
+  
   profilePicture: string;
-  membership: string; // membership (e.g., Elite Plan)
-  attendance: number; // attendance (e.g., 0)
-  membership_renewal_date: string; // membership_renewal_date (e.g., 2026-02-11T22:23:38Z)
+  accountType?: string;
+  membership?: any;
+  attendance?: any[];
+  membership_renewal_date?: string | null;
   updated_at?: string | Date;
   updatedAt?: string | Date;
+  hubspot_id?: string;
+  
+  
 }
