@@ -24,7 +24,7 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await fetch(`${apiUrl}/memberships/${membership.id}/plans`);
+        const response = await fetch(`${apiUrl}memberships/${membership.id}/plans`);
         if (!response.ok) throw new Error("Failed to fetch membership plans");
         
         const plansData = await response.json();
@@ -41,7 +41,7 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
   const handleSaveAll = async () => {
     try {
       // Save membership details
-      const response = await fetch(`${apiUrl}/memberships/${membership.id}`, {
+      const response = await fetch(`${apiUrl}memberships/${membership.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(membershipDetails)
@@ -57,7 +57,7 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
 
   const handleDeleteMembership = async () => {
     try {
-      const response = await fetch(`${apiUrl}/memberships/${membership.id}`, {
+      const response = await fetch(`${apiUrl}memberships/${membership.id}`, {
         method: "DELETE"
       });
 

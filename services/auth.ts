@@ -4,7 +4,7 @@ import getValue from "@/configs/constants";
 export const loginWithFirebaseToken = async (firebaseToken: string): Promise<User | null> => {
   try {
           
-    const response = await fetch(`${getValue('API')}/auth`, {
+    const response = await fetch(`${getValue('API')}auth`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

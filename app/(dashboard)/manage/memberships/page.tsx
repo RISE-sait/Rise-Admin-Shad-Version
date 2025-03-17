@@ -8,7 +8,7 @@ export default async function Page() {
   // Get API URL
   const apiUrl = getValue("API");
 
-  const response = await fetch(apiUrl + `/memberships`);
+  const response = await fetch(apiUrl + `memberships`);
   const membershipResponse: MembershipResponse[] = await response.json();
 
   const memberships: Membership[] = membershipResponse.map((m) => ({

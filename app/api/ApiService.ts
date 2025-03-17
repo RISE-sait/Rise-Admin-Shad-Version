@@ -6,7 +6,7 @@ class ApiService {
 
   constructor() {
     try {
-      const baseUrl = getValue("API") || 'http://localhost:80';
+      const baseUrl = getValue("API");
       console.log('Initializing API Service with base URL:', baseUrl);
       this.api = new Api({ baseUrl });
     } catch (error) {

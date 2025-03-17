@@ -25,7 +25,7 @@ import {
           ? `?hubspot_ids=${hubspotIds.join(',')}`
           : '';
         
-        const response = await fetch(`${this.apiUrl}/customers${queryParam}`, {
+        const response = await fetch(`${this.apiUrl}customers${queryParam}`, {
           method: 'GET',
           ...addAuthHeader()
         });
