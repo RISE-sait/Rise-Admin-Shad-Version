@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useUser } from "@/contexts/UserContext";
 import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react";
+import { url } from "inspector";
 
 const data = {
   navMain: [
@@ -54,14 +55,14 @@ const data = {
           title: "Locations",
           url: "/manage/locations",
         },
-        {
-          title: "Instructors",
-          url: "/manage/instructors",
-        },
-        {
-          title: "Trainers",
-          url: "/manage/trainers",
-        },
+        // {
+        //   title: "Instructors",
+        //   url: "/manage/instructors",
+        // },
+        // {
+        //   title: "Trainers",
+        //   url: "/manage/trainers",
+        // },
         {
           title: "Memberships",
           url: "/manage/memberships",
@@ -69,6 +70,10 @@ const data = {
         {
           title: "Barbershop",
           url: "/manage/barbershop",
+        },
+        {
+          title: "Staff",
+          url: "/manage/staff",
         },
       ],
     },
