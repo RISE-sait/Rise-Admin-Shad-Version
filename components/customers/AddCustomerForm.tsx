@@ -4,8 +4,12 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+<<<<<<< HEAD
 import CustomerService from "@/services/CustomerService";
 import { CustomerRegistrationRequestDto } from "@/app/api/Api";
+=======
+import getValue from "../../configs/constants";
+>>>>>>> 2ef6cfaa23d9da29982d2f88a300c108b4fcee7b
 
 interface AddCustomerFormProps {
   onCustomerAdded?: () => void; // Rename from onSuccess to match expected prop

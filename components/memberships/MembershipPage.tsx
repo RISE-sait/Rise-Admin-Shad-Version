@@ -9,7 +9,7 @@ import { Search, PlusCircle } from "lucide-react";
 import MembershipInfoPanel from "./MembershipInfoPanel";
 import AddMembershipForm from "./AddForm";
 import { toast } from "sonner";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import RightDrawer from "@/components/reusable/RightDrawer";
 
 export default function MembershipsPage({ memberships }: { memberships: Membership[] }) {

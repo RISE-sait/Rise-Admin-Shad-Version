@@ -1,6 +1,6 @@
 import MembershipsPage from "@/components/memberships/MembershipPage";
 import { Course } from "@/types/course";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import { MembershipResponse } from "@/app/api/Api";
 import { Membership } from "@/types/membership";
 

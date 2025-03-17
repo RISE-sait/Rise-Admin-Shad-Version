@@ -9,7 +9,7 @@ import { Search, PlusCircle } from "lucide-react";
 import FacilityInfoPanel from "./FacilityInfoPanel";
 import AddFacilityForm from "./AddFacilityForm";
 import { toast } from "sonner";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import RightDrawer from "@/components/reusable/RightDrawer";
 
 export default function FacilitiesPage({ facilities }: { facilities: Facility[] }) {

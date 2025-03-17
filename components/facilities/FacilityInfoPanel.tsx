@@ -6,7 +6,7 @@ import DetailsTab from "./infoTabs/Details";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, BuildingIcon, Calendar } from "lucide-react";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import SchedulesTab from "./infoTabs/Schedule";
 
 export default function FacilityInfoPanel({ facility }: { facility: Facility }) {

@@ -7,7 +7,7 @@ import PlansTab from "./infoTabs/plans/plans";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, CreditCard, ShoppingBag } from "lucide-react";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 
 export default function MembershipInfoPanel({ membership }: { membership: Membership }) {
   const { toast } = useToast();
