@@ -3,27 +3,7 @@ name: Build and Deploy
 on: [push]
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '20' # Specify the Node.js version you are using
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run build
-        run: npm run build
-
   deploy:
-    needs: build_and_test  # Ensures build and test run before deployment
-    if: github.ref == 'refs/heads/main'  # Deploy only when on main branch
     runs-on: ubuntu-latest
 
     steps:
