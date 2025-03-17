@@ -47,8 +47,12 @@ const data = {
           url: "/manage/courses",
         },
         {
-          title: "Facilites",
-          url: "/manage/facilites",
+          title: "Practices",
+          url: "/manage/practices",
+        },
+        {
+          title: "Locations",
+          url: "/manage/locations",
         },
         {
           title: "Instructors",
@@ -114,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
-          <Link href={"/home"}>
+          <Link href={"/"}>
             {" "}
             <Image
               src={"/RiseLogo.svg"}

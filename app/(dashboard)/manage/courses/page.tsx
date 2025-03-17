@@ -7,7 +7,7 @@ export default async function Page() {
   // Get API URL
   const apiUrl = getValue("API");
 
-  const response = await fetch(apiUrl + `/courses`);
+  const response = await fetch(apiUrl + `courses`);
   const coursesResponse: CourseResponseDto[] = await response.json();
 
   const courses: Course[] = coursesResponse.map((course) => ({

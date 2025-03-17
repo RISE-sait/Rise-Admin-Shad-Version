@@ -1,9 +1,9 @@
 export interface Course {
   id: string;
   name: string;
-  description?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
   schedules?: Schedule[];
 }
 

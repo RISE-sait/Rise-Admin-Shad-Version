@@ -6,21 +6,21 @@ export default async function Page() {
   // Get API URL
   const apiUrl = getValue("API");
 
-  let facilities: Facility[] = [];
+  let locations: Facility[] = [];
   
   try {
-    const response = await fetch(apiUrl + `/locations`, {
+    const response = await fetch(apiUrl + `locations`, {
       next: { revalidate: 60 }
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch facilities: ${response.status}`);
+      throw new Error(`Failed to fetch locations: ${response.status}`);
     }
     
-    const facilitiesResponse = await response.json();
+    const locationsResponse = await response.json();
     
     // Map the response to the Facility type - fix the mapping here
-    facilities = facilitiesResponse.map((facility: any) => ({
+    locations = locationsResponse.map((facility: any) => ({
       id: facility.id,
       name: facility.name,
       Address: facility.address // This is likely the issue - the API returns "location", not "address"
@@ -32,7 +32,7 @@ export default async function Page() {
 
   return (
     <div className="p-6 flex">
-      <FacilitiesPage facilities={facilities} />
+      <FacilitiesPage facilities={locations} />
     </div>
   );
 }

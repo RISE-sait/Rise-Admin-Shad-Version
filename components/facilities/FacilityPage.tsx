@@ -38,7 +38,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
 
   const handleDeleteFacility = async (facilityId: string) => {
     try {
-      const response = await fetch(`${apiUrl}/locations/${facilityId}`, {
+      const response = await fetch(`${apiUrl}locations/${facilityId}`, {
         method: "DELETE",
       });
 
@@ -59,9 +59,9 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Facilities</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Locations</h2>
           <p className="text-muted-foreground">
-            Manage your organization's facilities and locations
+            Manage your organization's locations
           </p>
         </div>
         <Button 
@@ -72,7 +72,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
           className="gap-2"
         >
           <PlusCircle className="h-4 w-4" />
-          Add Facility
+          Add Location
         </Button>
       </div>
 
@@ -80,7 +80,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search facilities..."
+            placeholder="Search locations..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
