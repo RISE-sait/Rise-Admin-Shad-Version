@@ -10,5 +10,5 @@ export default async function Page() {
     <div className="p-6 flex">
       <PracticePage practices={practices} practiceLevels={practiceLevels}/>
     </div>
-  );
+  )
 }

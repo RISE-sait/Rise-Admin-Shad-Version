@@ -2,15 +2,18 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { Customer } from "@/types/customer";
 import CustomerService from "@/services/customer";
 import { CustomerStatsUpdateRequestDto } from "@/app/api/Api";
+import { useToast } from "@/hooks/use-toast"
 
 export default function DetailsTab({ customer, onCustomerUpdated }: { 
   customer: Customer;
   onCustomerUpdated?: () => void;
 }) {
+
+    const { toast } = useToast()
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [formData, setFormData] = useState({
@@ -50,7 +53,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
           });
         } catch (error) {
           console.error("Error fetching athlete stats:", error);
-          toast.error("Could not load athlete statistics");
+          toast({ status: "error", description: "Could not load athlete statistics" });
         } finally {
           setIsLoadingStats(false);
         }
@@ -77,7 +80,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
   const handleUpdateCustomer = async () => {
     // Validation
     if (!formData.first_name.trim() || !formData.last_name.trim() || !formData.email.trim()) {
-      toast.error("Name and email are required fields");
+      toast({ status: "error", description: "Name and email are required fields" });
       return;
     }
 
@@ -89,17 +92,17 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
       if (customer.customer_id) {
         await customerService.updateCustomerStats(customer.customer_id, athleteStats);
         
-        toast.success("Customer statistics updated successfully");
+        toast({ status: "success", description: "Customer statistics updated successfully" });
         
         if (onCustomerUpdated) {
           onCustomerUpdated();
         }
       } else {
-        toast.error("Customer ID is missing");
+        toast({ status: "error", description: "Customer ID is missing" });
       }
     } catch (error) {
       console.error("Error updating customer:", error);
-      toast.error("Failed to update customer information");
+      toast({ status: "error", description: "Failed to update customer information" });
     } finally {
       setIsLoading(false);
     }

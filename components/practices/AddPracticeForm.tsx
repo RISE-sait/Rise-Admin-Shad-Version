@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast"
 import { Schedule } from "@/types/course";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
@@ -12,6 +12,7 @@ import { createPractice } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidatePractices } from "@/app/actions/serverActions";
+import { DtoPracticeRequestDto } from "@/app/api/Api";
 
 export default function AddPracticeForm({ levels }: { levels: string[] }) {
   const [activeTab, setActiveTab] = useState("details");
@@ -23,16 +24,23 @@ export default function AddPracticeForm({ levels }: { levels: string[] }) {
 
   const [schedules, setSchedules] = useState<Schedule[]>([]);
 
+  const { toast } = useToast()
+
   const handleSaveAll = async () => {
     // Check if the course name is empty
     if (!data.name.trim()) {
-      toast.error("Practice name is required.");
+      toast({ status: "error", description: "Practice name is required." });
       return;
     }
 
 
     try {
-      const error = await createPractice(data, user?.Jwt!)
+
+      const practiceData: DtoPracticeRequestDto = {
+        ...data
+      }
+
+      const error = await createPractice(practiceData, user?.Jwt!)
 
       if (error === null) {
 
@@ -40,19 +48,18 @@ export default function AddPracticeForm({ levels }: { levels: string[] }) {
 
         await revalidatePractices()
 
-        toast.success("Practice successfully created");
+        toast({ status: "success", description: "Practice successfully created" });
 
         return;
       }
-      // const errorText = await response.text();
-      // console.error("Failed to create practice:", errorText);
-      toast.error(`Failed to create practice: ${error}. Please try again.`)
+
+      toast({ status: "error", description: `Failed to create practice: ${error}. Please try again.` });
       return;
 
 
     } catch (error) {
       console.error("Error during API request:", error);
-      toast.error("An error occurred. Please try again.");
+      toast({ status: "error", description: "An error occurred. Please try again." });
     }
   };
 

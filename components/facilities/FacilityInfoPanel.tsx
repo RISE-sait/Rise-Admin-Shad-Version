@@ -5,16 +5,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Location } from "@/types/location";
 import DetailsTab from "./infoTabs/Details";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, BuildingIcon } from "lucide-react";
 import SchedulesTab from "./infoTabs/Schedule";
 import { deleteLocation, updateLocation } from "@/services/location";
 import { LocationRequestDto } from "@/app/api/Api";
 import { useUser } from "@/contexts/UserContext";
 import { revalidateLocations } from "@/app/actions/serverActions";
+import { useToast } from "@/hooks/use-toast";
 
 export default function FacilityInfoPanel({ facility }: { facility: Location }) {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
   const [facilityDetails, setFacilityDetails] = useState({
     name: facility.name || "",
@@ -22,6 +21,8 @@ export default function FacilityInfoPanel({ facility }: { facility: Location }) 
   });
 
   const { user } = useUser();
+
+  const { toast } = useToast();
 
   const handleSaveAll = async () => {
     try {
@@ -31,27 +32,38 @@ export default function FacilityInfoPanel({ facility }: { facility: Location }) 
         name: facilityDetails.name
       }
 
-      await updateLocation(facility.id, locationData, user?.Jwt!);
-      toast({ status: "success", description: "Facility updated successfully" });
-      
-      await revalidateLocations();
+      const error = await updateLocation(facility.id, locationData, user?.Jwt!);
+
+      if (error === null) {
+        toast({status:"success", description:"Location updated successfully"})
+        await revalidateLocations();
+      }
+      else {
+        toast({ status: "error", description: `Error saving changes: ${error}` });
+      }
     } catch (error) {
-      console.error("Error during API request:", error);
-      toast({ status: "error", description: "An error occurred. Please try again." });
+      toast({ status: "error", description: `Error saving changes: ${error}` });
     }
-  };
+
+  }
+
 
   const handleDeleteFacility = async () => {
     if (confirm("Are you sure you want to delete this facility? This action cannot be undone.")) {
       try {
-        const response = await deleteLocation(facility.id, user?.Jwt!);
+        const error = await deleteLocation(facility.id, user?.Jwt!)
 
-        if (!response.ok) throw new Error("Failed to delete facility");
-        toast({ status: "success", description: "Facility deleted successfully" });
+        if (error === null) {
+          await revalidateLocations();
 
-      await revalidateLocations();
+          toast({ status: "success", description: "Facility deleted successfully" });
+        }
+        else {
+          toast({ status: "error", description: `Error deleting facility: ${error}` });
+        }
       } catch (error) {
-        toast({ status: "error", description: "Error deleting facility", variant: "destructive" });
+        console.error("Error during API request:", error);
+        toast({ status: "error", description: "Error deleting facility" });
       }
     }
   };

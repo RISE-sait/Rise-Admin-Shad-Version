@@ -3,12 +3,15 @@ import React, { useState, useEffect } from 'react';
 import CustomerPage from '@/components/customers/CustomerPage';
 import { Customer } from '@/types/customer';
 import CustomerService from '@/services/customer';
-import { toast } from 'sonner';
+import { useToast } from "@/hooks/use-toast";
 
 export default function CustomersPageContainer() {
+
+  const { toast } = useToast();
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const customerService = new CustomerService();
 
   const loadCustomers = async () => {
@@ -31,7 +34,7 @@ export default function CustomersPageContainer() {
       })));
     } catch (error) {
       console.error('Error loading customers:', error);
-      toast.error('Failed to load customers');
+      toast({ status: "error", description: "Failed to load customers" });
       setCustomers([]);
     } finally {
       setIsLoading(false);
@@ -52,7 +55,7 @@ export default function CustomersPageContainer() {
 
   return (
     <div className="container py-6 space-y-6">
-      <CustomerPage 
+      <CustomerPage
         customers={customers}
         isLoading={isLoading}
         onCustomerUpdated={handleCustomerUpdated}

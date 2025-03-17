@@ -14,10 +14,6 @@ export async function getAllLocations(): Promise<Location[]> {
       ...addAuthHeader()
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch locations: ${response.statusText}`);
-    }
-
     const locationsResponse: LocationResponseDto[] = await response.json();
 
     const locations: Location[] = locationsResponse.map((facility) => ({
@@ -33,7 +29,7 @@ export async function getAllLocations(): Promise<Location[]> {
   }
 }
 
-export async function createLocation(locationData: LocationRequestDto, jwt: string): Promise<any> {
+export async function createLocation(locationData: LocationRequestDto, jwt: string): Promise<string | null> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -89,7 +85,7 @@ export async function createLocation(locationData: LocationRequestDto, jwt: stri
   }
 }
 
-export async function updateLocation(locationID: string, locationData: LocationRequestDto, jwt: string): Promise<any> {
+export async function updateLocation(locationID: string, locationData: LocationRequestDto, jwt: string): Promise<string | null> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -104,39 +100,20 @@ export async function updateLocation(locationID: string, locationData: LocationR
       body: JSON.stringify(locationData)
     });
 
-    // Get the full response text for more detailed error information
-    const responseText = await response.text();
-
     if (!response.ok) {
+
+      const responseJSON = await response.json();
+
       let errorMessage = `Failed to update location: ${response.statusText}`;
 
-      try {
-        // Try to parse the response as JSON if possible
-        const errorData = JSON.parse(responseText);
-        if (errorData && errorData.error && errorData.error.message) {
-          errorMessage = `Failed to update location: ${errorData.error.message}`;
-        } else if (errorData && errorData.message) {
-          errorMessage = `Failed to update location: ${errorData.message}`;
-        } else if (errorData && errorData.error) {
-          errorMessage = `Failed to update location: ${JSON.stringify(errorData.error)}`;
-        }
-
-        console.error('Error data:', errorData);
-      } catch (e) {
-        // JSON parsing failed, use the raw response text
-        console.error('Raw error response:', responseText);
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
       }
 
-      throw new Error(errorMessage);
+      return errorMessage;
     }
 
-    // If we got a valid JSON response, parse it and return
-    try {
-      return JSON.parse(responseText);
-    } catch {
-      // If parsing fails, just return the text
-      return responseText;
-    }
+    return null
   } catch (error) {
     console.error('Error creating location:', error);
     throw error;
@@ -144,7 +121,7 @@ export async function updateLocation(locationID: string, locationData: LocationR
 }
 
 
-export async function deleteLocation(locationID: string, jwt: string): Promise<any> {
+export async function deleteLocation(locationID: string, jwt: string): Promise<string | null> {
   try {
 
 
@@ -158,7 +135,23 @@ export async function deleteLocation(locationID: string, jwt: string): Promise<a
     const response = await fetch(`${getValue('API')}locations/${locationID}`, {
       method: 'DELETE',
       headers
-    });
+    })
+
+    if (!response.ok) {
+
+      const responseJSON = await response.json();
+
+      let errorMessage = `Failed to delete location: ${response.statusText}`;
+
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+
+      return errorMessage;
+
+    }
+
+    return null
 
     
   } catch (error) {

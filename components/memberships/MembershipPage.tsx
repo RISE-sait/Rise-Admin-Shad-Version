@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import MembershipTable from "./MembershipTable";
 import { Membership } from "@/types/membership";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, PlusCircle } from "lucide-react";
 import MembershipInfoPanel from "./MembershipInfoPanel";
 import AddMembershipForm from "./AddForm";
 import { toast } from "sonner";
@@ -13,23 +11,40 @@ import RightDrawer from "@/components/reusable/RightDrawer";
 import { deleteMembership } from "@/services/membership";
 import { useUser } from "@/contexts/UserContext";
 import { revalidateMemberships } from "@/app/actions/serverActions";
+import MembershipTable from "./table/MembershipTable";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
+import columns from "./table/columns";
+import { VisibilityState } from "@tanstack/react-table";
 
 export default function MembershipsPage({ memberships }: { memberships: Membership[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add">("details");
   const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
-  const [columnVisibility, setColumnVisibility] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  const {user} = useUser();
+  const { user } = useUser();
 
   // Filter memberships based on search query
-  const filteredMemberships = searchQuery 
-    ? memberships.filter(membership => 
-        membership.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (membership.description && membership.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
+  const filteredMemberships = searchQuery
+    ? memberships.filter(membership =>
+      membership.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (membership.description && membership.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
     : memberships;
+
+     const handleColumnVisibilityChange = (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+        setColumnVisibility(prev => {
+          const newState = typeof updater === "function" ? updater(prev) : updater;
+          return { ...prev, ...newState };
+        });
+      };
 
   const handleMembershipSelect = (membership: Membership) => {
     setSelectedMembership(membership);
@@ -52,36 +67,61 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
 
   return (
     <div className="w-full space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Memberships</h2>
-          <p className="text-muted-foreground">
-            Manage your organization's membership packages
-          </p>
-        </div>
-        <Button 
+      <h1 className="text-2xl font-semibold mb-6 ">Memberships</h1>
+
+      <div className="flex items-center justify-between gap-4 mb-6">
+
+        <Input
+          placeholder="Search memberships..."
+          className="max-w-xs"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        <Button
           onClick={() => {
             setDrawerContent("add");
             setDrawerOpen(true);
           }}
           className="gap-2"
         >
-          <PlusCircle className="h-4 w-4" />
           Add Membership
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 max-w-sm">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search memberships..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <p className="text-gray-300 text-sm pl-2">{filteredMemberships.length} memberships found</p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              Columns
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {columns
+              .filter(column => column.enableHiding !== false)
+              .map((column) => {
+                const columnId = (column as any).id;
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={columnId}
+                    className="capitalize"
+                    checked={columnVisibility[columnId] ?? true}
+                    onCheckedChange={(value) =>
+                      handleColumnVisibilityChange(prev => ({
+                        ...prev,
+                        [columnId]: value
+                      }))
+                    }
+                  >
+                    {columnId}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
         </div>
-      </div>
 
       <MembershipTable
         memberships={filteredMemberships}

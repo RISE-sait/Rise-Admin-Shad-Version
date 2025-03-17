@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast"
 import CustomerService from "@/services/customer";
 // import { CustomerRegistrationRequestDto } from "@/app/api/Api";
 
@@ -17,6 +17,9 @@ export default function AddCustomerForm({
   onCancel 
 }: AddCustomerFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+
+      const { toast } = useToast()
+  
   // const [formData, setFormData] = useState<CustomerRegistrationRequestDto>({
   //   first_name: "",
   //   last_name: "",

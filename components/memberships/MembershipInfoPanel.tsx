@@ -1,9 +1,10 @@
-"use client";
+"use client"
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Membership, MembershipPlan } from "@/types/membership";
 import DetailsTab from "./infoTabs/Details";
-import PlansTab from "./infoTabs/plans/plans"; 
+import PlansTab from "./infoTabs/plans/plans";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, CreditCard, ShoppingBag } from "lucide-react";
@@ -21,9 +22,9 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
     description: membership.description || ""
   });
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
-  
-    const { user } = useUser();
-  
+
+  const { user } = useUser();
+
   const apiUrl = getValue("API");
 
   // Fetch membership plans when component mounts
@@ -32,7 +33,7 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
       try {
         const response = await fetch(`${apiUrl}memberships/${membership.id}/plans`);
         if (!response.ok) throw new Error("Failed to fetch membership plans");
-        
+
         const plansData = await response.json();
         setPlans(plansData);
       } catch (error) {
@@ -65,7 +66,7 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
   const handleDeleteMembership = async () => {
     try {
       await deleteMembership(membership.id, user?.Jwt!);
-      
+
       toast({ status: "success", description: "Membership deleted successfully" });
 
       await revalidateMemberships()
@@ -77,16 +78,16 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <div className="border-b mb-6">
+        <div className="border-b mb-6">
           <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
-            <TabsTrigger 
+            <TabsTrigger
               value="details"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-amber-600 data-[state=active]:text-amber-600 dark:data-[state=active]:border-amber-500 dark:data-[state=active]:text-amber-500 data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
               <CreditCard className="h-4 w-4" />
               Membership Details
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="plans"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-amber-600 data-[state=active]:text-amber-600 dark:data-[state=active]:border-amber-500 dark:data-[state=active]:text-amber-500 data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
@@ -95,14 +96,14 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
             </TabsTrigger>
           </TabsList>
         </div>
-        
+
         <TabsContent value="details" className="pt-4">
           <DetailsTab
             details={membershipDetails}
             onDetailsChange={setMembershipDetails}
           />
         </TabsContent>
-        
+
         <TabsContent value="plans" className="pt-4">
           <PlansTab
             membershipId={membership.id}
@@ -113,29 +114,29 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
       </Tabs>
 
       <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-      <div className="max-w-5xl mx-auto px-4 flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : 'Never'}</p>
-        
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={handleDeleteMembership}
-            className="border-destructive text-destructive hover:bg-destructive/10"
-          >
-            <TrashIcon className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
-          
-          <Button
-            onClick={handleSaveInfo}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <SaveIcon className="h-4 w-4 mr-2" />
-            Save Changes
-          </Button>
+        <div className="max-w-5xl mx-auto px-4 flex justify-between items-center">
+          <p className="text-sm text-muted-foreground">Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : 'Never'}</p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleDeleteMembership}
+              className="border-destructive text-destructive hover:bg-destructive/10"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+
+            <Button
+              onClick={handleSaveInfo}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <SaveIcon className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

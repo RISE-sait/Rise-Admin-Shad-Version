@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import FacilityTable from "./FacilityTable";
+import FacilityTable from "./table/FacilityTable";
 import { Location } from "@/types/location";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, PlusCircle } from "lucide-react";
 import FacilityInfoPanel from "./FacilityInfoPanel";
 import AddFacilityForm from "./AddFacilityForm";
-import { toast } from "sonner";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { revalidateLocations } from "@/app/actions/serverActions";
 import { deleteLocation } from "@/services/location";
 import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function FacilitiesPage({ facilities }: { facilities: Location[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -20,16 +20,18 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
   const [selectedFacility, setSelectedFacility] = useState<Location | null>(null);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const { user } = useUser();
 
+  const { toast } = useToast()
+
   // Filter facilities based on search query
-  const filteredFacilities = searchQuery 
-    ? facilities.filter(facility => 
-        facility.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (facility.Address && facility.Address.toLowerCase().includes(searchQuery.toLowerCase()))
-        // Changed from lowercase address to uppercase Address
-      )
+  const filteredFacilities = searchQuery
+    ? facilities.filter(facility =>
+      facility.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (facility.Address && facility.Address.toLowerCase().includes(searchQuery.toLowerCase()))
+      // Changed from lowercase address to uppercase Address
+    )
     : facilities;
 
   const handleFacilitySelect = (facility: Location) => {
@@ -40,14 +42,19 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
 
   const handleDeleteFacility = async (facilityId: string) => {
     try {
-      await deleteLocation(facilityId, user?.Jwt!); 
+      const error = await deleteLocation(facilityId, user?.Jwt!);
 
-      toast.success("Facility deleted successfully");
-      // Remove the deleted facility from the list
-      await revalidateLocations();
+      if (error === null) {
+        toast({ status: "success", description: "Location deleted successfully" });
+        await revalidateLocations();
+      }
+      else {
+        toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
+      }
+
     } catch (error) {
       console.error("Error deleting facility:", error);
-      toast.error("Failed to delete facility");
+      toast({ status: "error", description: "Failed to delete practice" });
     }
   };
 
@@ -60,7 +67,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
             Manage your organization's locations
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => {
             setDrawerContent("add");
             setDrawerOpen(true);
@@ -95,7 +102,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
-        drawerWidth={drawerContent === "details" ? "w-[65%]" : "w-[35%] max-w-[450px]"}
+        drawerWidth={drawerContent === "details" ? "w-[50%]" : "w-[35%] max-w-[450px]"}
       >
         <div className="p-6">
           <h2 className="text-2xl font-bold tracking-tight mb-4">

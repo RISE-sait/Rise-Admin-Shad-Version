@@ -4,9 +4,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
-import { TrashIcon, SaveIcon, UserCircle, CreditCard, Clock, RefreshCw } from "lucide-react";
+import { TrashIcon, UserCircle, CreditCard, Clock, RefreshCw } from "lucide-react";
 import CustomerService from "@/services/customer";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast"
 
 interface CustomerStatsProps {
   wins?: number;
@@ -32,7 +32,9 @@ export default function CustomerInfoPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [customerStats, setCustomerStats] = useState<CustomerStatsProps>({});
   const [membershipPlans, setMembershipPlans] = useState([]);
-  
+
+  const { toast } = useToast()
+
   const customerService = new CustomerService();
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function CustomerInfoPanel({
 
   const loadCustomerStats = async () => {
     if (!customer.customer_id) return;
-    
+
     setIsLoading(true);
     try {
       const stats = await customerService.getCustomerStats(customer.customer_id);
@@ -60,7 +62,7 @@ export default function CustomerInfoPanel({
 
   const loadMembershipPlans = async () => {
     if (!customer.customer_id) return;
-    
+
     try {
       const plans = await customerService.getCustomerMembershipPlans(customer.customer_id);
       setMembershipPlans(plans);
@@ -78,7 +80,7 @@ export default function CustomerInfoPanel({
   const handleDeleteCustomer = async () => {
     try {
       // Your delete logic here
-      
+
       // Call the callback without parameters
       if (onCustomerDeleted) {
         onCustomerDeleted();
@@ -100,7 +102,7 @@ export default function CustomerInfoPanel({
         <h2 className="text-xl font-semibold">
           Customer Profile
         </h2>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -113,25 +115,25 @@ export default function CustomerInfoPanel({
           Refresh
         </Button>
       </div>
-      
+
       <Tabs value={tabValue} onValueChange={setTabValue}>
         <div className="border-b mb-6">
           <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
-            <TabsTrigger 
+            <TabsTrigger
               value="details"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
               <UserCircle className="h-4 w-4" />
               Details
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="membership"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
               <CreditCard className="h-4 w-4" />
               Membership
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="attendance"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
@@ -140,18 +142,19 @@ export default function CustomerInfoPanel({
             </TabsTrigger>
           </TabsList>
         </div>
-        
+
         <TabsContent value="details">
-          <DetailsTab 
-            customer={enrichedCustomer} 
+          <DetailsTab
+            customer={enrichedCustomer}
             onCustomerUpdated={() => {
               if (onCustomerUpdated) onCustomerUpdated();
               loadCustomerStats(); // Reload stats after update
-              toast.success("Customer information updated");
-            }} 
+              toast({ status: "success", description: "Customer information updated" });
+
+            }}
           />
         </TabsContent>
-        
+
         <TabsContent value="membership">
           {membershipPlans && membershipPlans.length > 0 ? (
             <div className="space-y-4">
@@ -185,20 +188,20 @@ export default function CustomerInfoPanel({
             </div>
           )}
         </TabsContent>
-        
+
         <TabsContent value="attendance">
           <div className="p-4 text-center text-muted-foreground">
             Attendance history will be available soon.
           </div>
         </TabsContent>
       </Tabs>
-      
+
       <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
         <div className="max-w-full mx-auto px-2 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
             Last updated: {customer.updated_at ? new Date(customer.updated_at).toLocaleString() : 'Never'}
           </p>
-          
+
           <div className="flex items-center gap-3">
             <Button
               variant="outline"

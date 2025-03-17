@@ -1,5 +1,4 @@
 import {
-    DtoPracticeRequestDto,
     MembershipRequestDto,
     MembershipResponse,
 } from '@/app/api/Api';

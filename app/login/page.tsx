@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { loginWithFirebaseToken } from "@/services/auth";
 import { useUser } from "@/contexts/UserContext";
@@ -25,6 +25,7 @@ export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isEmailPwdLoading, setIsEmailPwdLoading] = useState(false)
+  const { toast } = useToast()
 
   const router = useRouter()
 
@@ -37,7 +38,7 @@ export default function Login() {
     event.preventDefault();
 
     if (!email || !password) {
-      toast.error("Please fill in all fields.")
+      toast({ status: "error", description: "Please fill in all fields." });
       return
     }
 
@@ -59,13 +60,13 @@ export default function Login() {
         // Update user context
         setUser(user);
 
-        toast.success("Successfully logged in!");
+        toast({ status: "success", description: "Successfully logged in!" });
         router.push("/");
       } else {
-        toast.error("Invalid email or password. Please try again.");
+        toast({ status: "error", description: "Invalid email or password. Please try again." });
       }
     } catch (err) {
-      toast.error("An error occurred during login. Please try again.");
+      toast({ status: "error", description: "An error occurred during login. Please try again." });
       console.error(err);
     } finally {
       setIsEmailPwdLoading(false);
@@ -92,13 +93,13 @@ export default function Login() {
         // Update user context
         setUser(user);
 
-        toast.success("Successfully logged in with Google!");
+        toast({ status: "success", description: "Successfully logged in with Google!" });
         router.push("/");
       } else {
-        toast.error("Invalid email or password. Please try again.")
+        toast({ status: "error", description: "Invalid email or password. Please try again." });
       }
     } catch (err) {
-      toast.error("An error occurred during Google sign-in. Please try again.");
+      toast({ status: "error", description: "An error occurred during Google sign-in. Please try again." });
       console.error(err);
     } 
   };

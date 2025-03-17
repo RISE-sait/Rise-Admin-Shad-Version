@@ -24,12 +24,7 @@ export default function PracticeInfoPanel({ practice, levels }: { practice: Prac
 
   const { user } = useUser();
 
-  // Initialize with dummy schedules if no schedules exist
-  // const [schedules, setSchedules] = useState<Schedule[]>(
-  //   course.schedules?.length ? course.schedules : dummySchedules
-  // );
-
-  const handleSaveDetails = async () => {
+  const handleSaveAll = async () => {
     try {
 
       const practiceData: DtoPracticeRequestDto = {
@@ -52,26 +47,18 @@ export default function PracticeInfoPanel({ practice, levels }: { practice: Prac
       toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
     }
   }
-  // // Save schedules
-  // const schedulesResponse = await fetch(`/api/courses/${course.id}/schedules`, {
-  //   method: "PUT",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(schedules)
-  // });
-
-  // if (!schedulesResponse.ok) throw new Error("Failed to save schedules");
-
-  //     toast({ status: "success", description: "All changes saved successfully" });
-  //   } catch (error) {
-  //     toast({ status: "error", description: "Error saving changes", variant: "destructive" });
-  //   }
-  // };
 
   const handleDeletePractice = async () => {
     try {
-      await deletePractice(practice.id, user?.Jwt!)
-      toast({ status: "success", description: "Practice deleted successfully" });
-      await revalidatePractices();
+      const error = await deletePractice(practice.id, user?.Jwt!)
+      
+      if (error === null) {
+        toast({ status: "success", description: "Practice updated successfully" });
+        await revalidatePractices();
+      }
+      else {
+        toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
+      }
     } catch (error) {
       toast({ status: "error", description: "Error deleting practice", variant: "destructive" });
     }
@@ -130,7 +117,7 @@ export default function PracticeInfoPanel({ practice, levels }: { practice: Prac
             </Button>
 
             <Button
-              onClick={handleSaveDetails}
+              onClick={handleSaveAll}
               className="bg-green-600 hover:bg-green-700"
             >
               <SaveIcon className="h-4 w-4 mr-2" />

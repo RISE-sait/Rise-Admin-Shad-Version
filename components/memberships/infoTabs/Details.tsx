@@ -1,7 +1,7 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { TicketIcon, PencilIcon } from "lucide-react";
+import { PencilIcon } from "lucide-react";
 
 export default function DetailsTab({
   details,

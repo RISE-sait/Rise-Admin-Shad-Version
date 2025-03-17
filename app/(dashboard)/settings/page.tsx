@@ -10,10 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import Image from 'next/image'
 import EditIcon from "@/public/Icons/Edit.svg"
-import { toast } from "sonner"
 
 // Themes
 import { useTheme } from "next-themes"
+import { useToast } from "@/hooks/use-toast"
 
 export default function Clients() {
 
@@ -32,6 +32,9 @@ export default function Clients() {
   const [alert, setAlert] = useState("")
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false)
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+
+
+  const {toast} = useToast()
 
   // Set Email
   const ChangeEmail = () => {
@@ -83,7 +86,7 @@ export default function Clients() {
   // Clear Instances
   const ClearInstances = () => {
     // API call to clear instances
-    toast("Instances Have Been Cleared")
+    toast({ status: "success", description: "Instances have been cleared" });
   }
 
   // Reset Alert on Dialogues Email

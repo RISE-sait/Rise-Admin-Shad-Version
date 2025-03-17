@@ -2,15 +2,18 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import getValue from "../../configs/constants";
 import { Schedule } from "@/types/course";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
 import { SaveIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast"
 
 export default function AddCourseForm() {
+
+  const { toast } = useToast()
+
   const [activeTab, setActiveTab] = useState("details");
   const [courseDetails, setCourseDetails] = useState({
     name: "",
@@ -23,7 +26,7 @@ export default function AddCourseForm() {
   const handleSaveAll = async () => {
     // Check if the course name is empty
     if (!courseDetails.name.trim()) {
-      toast.error("Course name is required.");
+      toast({ status: "error", description: "Course name is required." });
       return;
     }
 
@@ -42,14 +45,14 @@ export default function AddCourseForm() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Failed to save course:", errorText);
-        toast.error("Failed to save course. Please try again.");
+        toast({ status: "error", description: "Failed to save course. Please try again." });
         return;
       }
 
-      toast.success("Course successfully created");
+      toast({ status: "success", description: "Course successfully created" });
     } catch (error) {
       console.error("Error during API request:", error);
-      toast.error("An error occurred. Please try again.");
+      toast({ status: "error", description: "An error occurred. Please try again." });
     }
   };
 
@@ -60,14 +63,14 @@ export default function AddCourseForm() {
           <TabsTrigger value="details">Course Details</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="details" className="pt-4">
           <DetailsTab
             details={courseDetails}
             onDetailsChange={setCourseDetails}
           />
         </TabsContent>
-        
+
         <TabsContent value="schedule" className="pt-4">
           <ScheduleTab
             schedules={schedules}

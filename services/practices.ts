@@ -132,7 +132,7 @@ export async function updatePractice(practiceID: string, practiceData: DtoPracti
 }
 
 
-export async function deletePractice(practiceID: string, jwt: string): Promise<any> {
+export async function deletePractice(practiceID: string, jwt: string): Promise<string | null> {
   try {
 
 
@@ -141,10 +141,26 @@ export async function deletePractice(practiceID: string, jwt: string): Promise<a
       'Authorization': `Bearer ${jwt}`,
     };
 
-    await fetch(`${getValue('API')}practices/${practiceID}`, {
+    const response = await fetch(`${getValue('API')}practices/${practiceID}`, {
       method: 'DELETE',
       headers
-    });
+    })
+
+    if (!response.ok) {
+
+      const responseJSON = await response.json();
+
+      let errorMessage = `Failed to delete practice: ${response.statusText}`;
+
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+
+      return errorMessage;
+
+    }
+
+    return null
 
 
   } catch (error) {
