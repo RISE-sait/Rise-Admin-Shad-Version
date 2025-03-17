@@ -14,11 +14,24 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 
-export default function CustomersPage({ customers }: { customers: Customer[] }) {
+// Update the props interface to match what's being passed from the page
+interface CustomerPageProps {
+  customers: Customer[];
+  isLoading?: boolean;
+  onCustomerUpdated?: () => void;
+  onCustomerDeleted?: () => void;
+}
+
+export default function CustomersPage({ 
+  customers, 
+  isLoading = false,
+  onCustomerUpdated,
+  onCustomerDeleted
+}: CustomerPageProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
@@ -42,6 +55,35 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
       const newState = typeof updater === "function" ? updater(prev) : updater;
       return { ...prev, ...newState };
     });
+  };
+
+  const handleCustomerAdded = () => {
+    setDrawerOpen(false);
+    if (onCustomerUpdated) {
+      onCustomerUpdated();
+    }
+  };
+
+  const handleCustomerUpdated = () => {
+    if (onCustomerUpdated) {
+      onCustomerUpdated();
+    }
+  };
+
+  // FIX 1: We keep the parameter for table interactions, but create a wrapper for the panel
+  const handleCustomerDeleted = (customerId: string) => {
+    setDrawerOpen(false);
+    if (onCustomerDeleted) {
+      onCustomerDeleted();
+    }
+  };
+
+  // FIX 2: Add a wrapper function with no parameters for the CustomerInfoPanel
+  const handleInfoPanelCustomerDeleted = () => {
+    setDrawerOpen(false);
+    if (onCustomerDeleted) {
+      onCustomerDeleted();
+    }
   };
 
   return (
@@ -100,12 +142,20 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
           </Button>
         </div>
 
-        <CustomerTable
-          customers={filteredCustomers}
-          onCustomerSelect={handleCustomerSelect}
-          columnVisibility={columnVisibility}
-          onColumnVisibilityChange={handleColumnVisibilityChange}
-        />
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-12 bg-muted/20 rounded-lg border">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg text-muted-foreground">Loading customers...</p>
+          </div>
+        ) : (
+          <CustomerTable
+            customers={filteredCustomers}
+            onCustomerSelect={handleCustomerSelect}
+            onDeleteCustomer={handleCustomerDeleted}
+            columnVisibility={columnVisibility}
+            onColumnVisibilityChange={handleColumnVisibilityChange}
+          />
+        )}
       </div>
 
       <RightDrawer
@@ -118,9 +168,18 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
             {drawerContent === "details" ? "Customer Details" : "Add Customer"}
           </h2>
           {drawerContent === "details" && selectedCustomer && (
-            <CustomerInfoPanel customer={selectedCustomer} />
+            <CustomerInfoPanel 
+              customer={selectedCustomer} 
+              onCustomerUpdated={handleCustomerUpdated}
+              onCustomerDeleted={handleInfoPanelCustomerDeleted} // FIX: Use the wrapper function with no parameters
+            />
           )}
-          {drawerContent === "add" && <AddCustomerForm />}
+          {drawerContent === "add" && (
+            <AddCustomerForm 
+              onCustomerAdded={handleCustomerAdded} // FIX: Changed from onSuccess to onCustomerAdded
+              onCancel={() => setDrawerOpen(false)}
+            />
+          )}
         </div>
       </RightDrawer>
     </>
