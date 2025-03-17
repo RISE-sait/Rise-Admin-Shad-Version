@@ -1,3 +1,4 @@
+// CourseTable.tsx
 "use client";
 import * as React from "react";
 import {
@@ -12,7 +13,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Facility } from "@/types/facility";
 import {
   Table,
   TableBody,
@@ -38,16 +38,17 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Practice } from "@/types/practice";
 
 interface DataTableProps {
-  facilities: Facility[];
-  onFacilitySelect: (facility: Facility) => void;
-  onDeleteFacility?: (facilityId: string) => Promise<void> | void;
+  practices: Practice[];
+  onPracticeSelect: (practice: Practice) => void;
+  onDeletePractice?: (practiceId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
   onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
 }
 
-export const columns: ColumnDef<Facility>[] = [
+export const columns: ColumnDef<Practice>[] = [
   {
     id: "name",
     accessorKey: "name",
@@ -57,7 +58,7 @@ export const columns: ColumnDef<Facility>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="font-medium hover:bg-accent hover:text-accent-foreground"
       >
-        Location
+        Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -65,27 +66,22 @@ export const columns: ColumnDef<Facility>[] = [
     size: 250,
   },
   {
-    id: "address",
-    accessorKey: "Address", // Changed to lowercase to match API
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="font-medium hover:bg-accent hover:text-accent-foreground"
-      >
-        Address
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    minSize: 200,
-    size: 300,
+    id: "description",
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => {
+      const desc = row.getValue("description") as string;
+      return desc?.length > 60 ? desc.slice(0, 60) + "..." : desc || "";
+    },
+    minSize: 250,
+    size: 400,
   },
   {
     id: "actions",
     enableHiding: false,
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row, table }) => {
-      const facility = row.original;
+      const course = row.original;
       return (
         <div className="flex justify-end">
           <DropdownMenu>
@@ -103,13 +99,13 @@ export const columns: ColumnDef<Facility>[] = [
               className="border bg-popover text-popover-foreground"
             >
               <DropdownMenuLabel className="px-3 py-2">
-                Facility Actions
+                Course Actions
               </DropdownMenuLabel>
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-accent cursor-pointer"
                 onClick={() => {
-                  const onSelect = (table.options.meta as any)?.onFacilitySelect;
-                  onSelect?.(facility);
+                  const onSelect = (table.options.meta as any)?.onCourseSelect;
+                  onSelect?.(course);
                 }}
               >
                 <span>Edit</span>
@@ -118,9 +114,9 @@ export const columns: ColumnDef<Facility>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
                 onClick={() => {
-                  if (confirm("Are you sure you want to delete this facility?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteFacility;
-                    onDelete?.(facility.id);
+                  if (confirm("Are you sure you want to delete this course?")) {
+                    const onDelete = (table.options.meta as any)?.onDeleteCourse;
+                    onDelete?.(course.id);
                   }
                 }}
               >
@@ -136,10 +132,10 @@ export const columns: ColumnDef<Facility>[] = [
   },
 ];
 
-export default function FacilityTable({
-  facilities,
-  onFacilitySelect,
-  onDeleteFacility,
+export default function PracticeTable({
+  practices,
+  onPracticeSelect,
+  onDeletePractice,
   columnVisibility,
   onColumnVisibilityChange,
 }: DataTableProps) {
@@ -148,7 +144,7 @@ export default function FacilityTable({
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
-    data: facilities,
+    data: practices,
     columns,
     state: {
       sorting,
@@ -170,7 +166,7 @@ export default function FacilityTable({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    meta: { onFacilitySelect, onDeleteFacility },
+    meta: { onPracticeSelect, onDeletePractice },
   });
 
   return (
@@ -207,7 +203,7 @@ export default function FacilityTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onFacilitySelect(row.original)}
+                  onClick={() => onPracticeSelect(row.original)}
                   className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -232,7 +228,7 @@ export default function FacilityTable({
                 >
                   <div className="flex flex-col items-center space-y-2">
                     <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
-                    <span>No locations found</span>
+                    <span>No practice found</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -250,7 +246,7 @@ export default function FacilityTable({
             <span className="font-semibold">
               {table.getFilteredRowModel().rows.length}
             </span>{' '}
-            locations
+            practices
           </div>
           
           <div className="flex items-center space-x-6">
