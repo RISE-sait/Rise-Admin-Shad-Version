@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import RightDrawer from "../reusable/RightDrawer";
 import { Input } from "@/components/ui/input";
 import PracticeTable, { columns } from "./PracticeTable";
-import CourseInfoPanel from "./CourseInfoPanel";
+import PracticeInfoPanel from "./PracticeInfoPanel";
 import AddCourseForm from "./AddCourseForm";
 import {
   DropdownMenu,
@@ -17,14 +17,14 @@ import { ChevronDown } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
 import { Practice } from "@/types/practice";
 
-export default function CoursesPage({ practices }: { practices: Practice[] }) {
+export default function PracticesPage({ practices }: { practices: Practice[] }) {
   const [selectedPractice, setSelectedPractice] = useState<Practice | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  const handleCourseSelect = (practice: Practice) => {
+  const handlePracticeSelect = (practice: Practice) => {
     setSelectedPractice(practice);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -104,7 +104,7 @@ export default function CoursesPage({ practices }: { practices: Practice[] }) {
 
         <PracticeTable
           practices={filteredPractices}
-          onPracticeSelect={handleCourseSelect}
+          onPracticeSelect={handlePracticeSelect}
           columnVisibility={columnVisibility}
           onColumnVisibilityChange={handleColumnVisibilityChange}
         />
@@ -117,10 +117,10 @@ export default function CoursesPage({ practices }: { practices: Practice[] }) {
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Course Details" : "Add Course"}
+            {drawerContent === "details" ? "Practice Details" : "Add Course"}
           </h2>
           {drawerContent === "details" && selectedPractice && (
-            <CourseInfoPanel course={selectedPractice} />
+            <PracticeInfoPanel practice={selectedPractice} />
           )}
           {drawerContent === "add" && <AddCourseForm />}
         </div>

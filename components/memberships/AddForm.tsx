@@ -6,15 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import getValue from "@/configs/constants";
-import { Membership } from "@/types/membership";
+import { useUser } from "@/contexts/UserContext";
+import { createMembership } from "@/services/membership";
+import { MembershipRequestDto } from "@/app/api/Api";
+import { revalidateMemberships } from "@/app/actions/serverActions";
 
 export default function AddMembershipForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const apiUrl = getValue("API");
+  const { user } = useUser();
 
-  const membershipData = {
+  const membershipData: MembershipRequestDto = {
     name,
     description,
   };
@@ -26,31 +29,20 @@ export default function AddMembershipForm() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}/memberships`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(membershipData),
-      });
+      await createMembership(membershipData, user?.Jwt!);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to create membership:", errorText);
-        toast.error("Failed to save membership. Please try again.");
-        return;
-      }
-
-      toast.success("Membership created successfully");
-      
       // Reset form
       setName("");
       setDescription("");
-      
-      // You might want to redirect or reload data here
-      setTimeout(() => window.location.reload(), 1000);
-      
+
+      await revalidateMemberships();
+
+      toast.success("Membership created successfully");
+
+
     } catch (error) {
       console.error("Error during API request:", error);
-      toast.error("An error occurred. Please try again.");
+      toast.error("Failed to add membership. Please try again.");
     }
   };
 

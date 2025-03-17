@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, CreditCard, ShoppingBag } from "lucide-react";
 import getValue from "@/configs/constants";
+import { deleteMembership, updateMembership } from "@/services/membership";
+import { useUser } from "@/contexts/UserContext";
+import { MembershipRequestDto } from "@/app/api/Api";
+import { revalidateMemberships } from "@/app/actions/serverActions";
 
 export default function MembershipInfoPanel({ membership }: { membership: Membership }) {
   const { toast } = useToast();
@@ -17,6 +21,8 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
     description: membership.description || ""
   });
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  
+    const { user } = useUser();
   
   const apiUrl = getValue("API");
 
@@ -38,33 +44,31 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
     fetchPlans();
   }, [membership.id, apiUrl, toast]);
 
-  const handleSaveAll = async () => {
+  const handleSaveInfo = async () => {
     try {
-      // Save membership details
-      const response = await fetch(`${apiUrl}memberships/${membership.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(membershipDetails)
-      });
+      const membershipData: MembershipRequestDto = {
+        description: membershipDetails.description,
+        name: membershipDetails.name
+      }
 
-      if (!response.ok) throw new Error("Failed to save membership details");
-      
-      toast({ status: "success", description: "All changes saved successfully" });
-    } catch (error) {
+      await updateMembership(membership.id, membershipData, user?.Jwt!)
+
+      toast({ status: "success", description: "Membership updated successfully" });
+
+      await revalidateMemberships()
+    }
+    catch (error) {
       toast({ status: "error", description: "Error saving changes", variant: "destructive" });
     }
-  };
+  }
 
   const handleDeleteMembership = async () => {
     try {
-      const response = await fetch(`${apiUrl}memberships/${membership.id}`, {
-        method: "DELETE"
-      });
-
-      if (!response.ok) throw new Error("Failed to delete membership");
+      await deleteMembership(membership.id, user?.Jwt!);
       
       toast({ status: "success", description: "Membership deleted successfully" });
-      window.location.reload(); // Refresh the page to reflect deletion
+
+      await revalidateMemberships()
     } catch (error) {
       toast({ status: "error", description: "Error deleting membership", variant: "destructive" });
     }
@@ -123,7 +127,7 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
           </Button>
           
           <Button
-            onClick={handleSaveAll}
+            onClick={handleSaveInfo}
             className="bg-green-600 hover:bg-green-700"
           >
             <SaveIcon className="h-4 w-4 mr-2" />

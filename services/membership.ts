@@ -1,39 +1,42 @@
 import {
-  LocationRequestDto,
-  LocationResponseDto
+    DtoPracticeRequestDto,
+    MembershipRequestDto,
+    MembershipResponse,
 } from '@/app/api/Api';
 import { addAuthHeader } from '@/lib/auth-header';
 import getValue from '@/configs/constants';
-import { Location } from '@/types/location';
+import { Membership } from '@/types/membership';
 
-export async function getAllLocations(): Promise<Location[]> {
+export async function getAllMemberships(): Promise<Membership[]> {
   try {
 
-    const response = await fetch(`${getValue("API")}locations`, {
+    const response = await fetch(`${getValue("API")}memberships`, {
       method: 'GET',
       ...addAuthHeader()
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch locations: ${response.statusText}`);
+      throw new Error(`Failed to fetch memberships: ${response.statusText}`);
     }
 
-    const locationsResponse: LocationResponseDto[] = await response.json();
+    const membershipsResponse: MembershipResponse[] = await response.json();
 
-    const locations: Location[] = locationsResponse.map((facility) => ({
-      id: facility.id!,
-      name: facility.name!,
-      Address: facility.address!,
+    const memberships: Membership[] = membershipsResponse.map((membership) => ({
+        created_at: new Date(membership.created_at!), // Convert string to Date
+        id: membership.id!,
+        name: membership.name!,
+        updated_at: new Date(membership.updated_at!), // Convert string to Date
+        description: membership.description!,
     }))
 
-    return locations
+    return memberships
   } catch (error) {
-    console.error('Error fetching locations:', error);
+    console.error('Error fetching memberships:', error);
     throw error;
   }
 }
 
-export async function createLocation(locationData: LocationRequestDto, jwt: string): Promise<any> {
+export async function createMembership(membershipData: MembershipRequestDto, jwt: string): Promise<any> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -44,27 +47,28 @@ export async function createLocation(locationData: LocationRequestDto, jwt: stri
 
     console.log('Using headers:', headers);
 
-    const response = await fetch(`${getValue('API')}locations`, {
+    const response = await fetch(`${getValue('API')}memberships`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(locationData)
+      body: JSON.stringify(membershipData)
     });
 
     // Get the full response text for more detailed error information
-    const responseText = await response.text();
 
     if (!response.ok) {
-      let errorMessage = `Failed to create location: ${response.statusText}`;
+        const responseText = await response.json();
+
+      let errorMessage = `Failed to create practice: ${response.statusText}`;
 
       try {
         // Try to parse the response as JSON if possible
         const errorData = JSON.parse(responseText);
         if (errorData && errorData.error && errorData.error.message) {
-          errorMessage = `Failed to create location: ${errorData.error.message}`;
+          errorMessage = `Failed to create membership: ${errorData.error.message}`;
         } else if (errorData && errorData.message) {
-          errorMessage = `Failed to create location: ${errorData.message}`;
+          errorMessage = `Failed to create membership: ${errorData.message}`;
         } else if (errorData && errorData.error) {
-          errorMessage = `Failed to create location: ${JSON.stringify(errorData.error)}`;
+          errorMessage = `Failed to create membership: ${JSON.stringify(errorData.error)}`;
         }
 
         console.error('Error data:', errorData);
@@ -76,20 +80,13 @@ export async function createLocation(locationData: LocationRequestDto, jwt: stri
       throw new Error(errorMessage);
     }
 
-    // If we got a valid JSON response, parse it and return
-    try {
-      return JSON.parse(responseText);
-    } catch {
-      // If parsing fails, just return the text
-      return responseText;
-    }
   } catch (error) {
-    console.error('Error creating location:', error);
+    console.error('Error creating membership:', error);
     throw error;
   }
 }
 
-export async function updateLocation(locationID: string, locationData: LocationRequestDto, jwt: string): Promise<any> {
+export async function updateMembership(membershipID: string, membershipData: MembershipRequestDto, jwt: string): Promise<any> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -98,27 +95,27 @@ export async function updateLocation(locationID: string, locationData: LocationR
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`${getValue('API')}locations/${locationID}`, {
+    const response = await fetch(`${getValue('API')}memberships/${membershipID}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(locationData)
+      body: JSON.stringify(membershipData)
     });
 
     // Get the full response text for more detailed error information
     const responseText = await response.text();
 
     if (!response.ok) {
-      let errorMessage = `Failed to update location: ${response.statusText}`;
+      let errorMessage = `Failed to update membership: ${response.statusText}`;
 
       try {
         // Try to parse the response as JSON if possible
         const errorData = JSON.parse(responseText);
         if (errorData && errorData.error && errorData.error.message) {
-          errorMessage = `Failed to update location: ${errorData.error.message}`;
+          errorMessage = `Failed to update membership: ${errorData.error.message}`;
         } else if (errorData && errorData.message) {
-          errorMessage = `Failed to update location: ${errorData.message}`;
+          errorMessage = `Failed to update membership: ${errorData.message}`;
         } else if (errorData && errorData.error) {
-          errorMessage = `Failed to update location: ${JSON.stringify(errorData.error)}`;
+          errorMessage = `Failed to update membership: ${JSON.stringify(errorData.error)}`;
         }
 
         console.error('Error data:', errorData);
@@ -138,31 +135,29 @@ export async function updateLocation(locationID: string, locationData: LocationR
       return responseText;
     }
   } catch (error) {
-    console.error('Error creating location:', error);
+    console.error('Error creating membership:', error);
     throw error;
   }
 }
 
 
-export async function deleteLocation(locationID: string, jwt: string): Promise<any> {
+export async function deleteMembership(membershipID: string, jwt: string): Promise<any> {
   try {
 
-
-    console.log('Using headers:', jwt);
 
     // Create custom headers including the firebase_token header
     const headers = {
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`${getValue('API')}locations/${locationID}`, {
+    await fetch(`${getValue('API')}memberships/${membershipID}`, {
       method: 'DELETE',
       headers
     });
 
     
   } catch (error) {
-    console.error('Error creating location:', error);
+    console.error('Error creating membership:', error);
     throw error;
   }
 }

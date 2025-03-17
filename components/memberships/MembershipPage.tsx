@@ -9,8 +9,10 @@ import { Search, PlusCircle } from "lucide-react";
 import MembershipInfoPanel from "./MembershipInfoPanel";
 import AddMembershipForm from "./AddForm";
 import { toast } from "sonner";
-import getValue from "@/configs/constants";
 import RightDrawer from "@/components/reusable/RightDrawer";
+import { deleteMembership } from "@/services/membership";
+import { useUser } from "@/contexts/UserContext";
+import { revalidateMemberships } from "@/app/actions/serverActions";
 
 export default function MembershipsPage({ memberships }: { memberships: Membership[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -18,8 +20,8 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
   const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const apiUrl = getValue("API");
+
+  const {user} = useUser();
 
   // Filter memberships based on search query
   const filteredMemberships = searchQuery 
@@ -37,17 +39,11 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
 
   const handleDeleteMembership = async (membershipId: string) => {
     try {
-      const response = await fetch(`${apiUrl}/memberships/${membershipId}`, {
-        method: "DELETE",
-      });
+      await deleteMembership(membershipId, user?.Jwt!);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete membership");
-      }
+      await revalidateMemberships();
 
       toast.success("Membership deleted successfully");
-      // Remove the deleted membership from the list
-      window.location.reload();
     } catch (error) {
       console.error("Error deleting membership:", error);
       toast.error("Failed to delete membership");
