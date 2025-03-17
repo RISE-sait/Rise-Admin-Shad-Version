@@ -81,6 +81,7 @@ export default function Login() {
       if (result?.user) {
         // Get Firebase token
         const idToken = await result.user.getIdToken();
+        console.log(idToken);
 
         const user = await loginWithFirebaseToken(idToken)
 
