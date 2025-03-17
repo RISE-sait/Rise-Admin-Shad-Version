@@ -1,6 +1,6 @@
 import CoursesPage from "@/components/courses/CoursePage";
 import { Course } from "@/types/course";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import { CourseResponseDto } from "@/app/api/Api";
 
 export default async function Page() {

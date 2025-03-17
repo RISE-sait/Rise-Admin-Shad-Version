@@ -1,5 +1,5 @@
 import { Api } from './Api';
-import getValue from '@/components/Singleton';
+import getValue from '@/configs/constants';
 
 class ApiService {
   private api: Api<unknown>;

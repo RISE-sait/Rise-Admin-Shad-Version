@@ -1,6 +1,6 @@
 import CustomersPage from "@/components/customers/CustomerPage";
 import { Customer } from "@/types/customer";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 
 export default async function ManageCustomersPage() {
   // Get API URL

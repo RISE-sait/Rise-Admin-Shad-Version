@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Customer } from "@/types/customer";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 
 export default function DetailsTab({ customer }: { customer: Customer }) {
   // Combine first_name and last_name for the initial state

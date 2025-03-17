@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import { Membership } from "@/types/membership";
 
 export default function AddMembershipForm() {

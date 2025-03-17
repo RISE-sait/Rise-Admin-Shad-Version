@@ -5,7 +5,7 @@ import { MembershipPlan } from '@/types/membership';
 import { PlusCircle, CreditCard, AlertCircle } from 'lucide-react';
 import PlanListItem from './plan-list-item';
 import { useToast } from '@/hooks/use-toast';
-import getValue from '@/components/Singleton';
+import getValue from '@/configs/constants';
 import { v4 as uuidv4 } from 'uuid';
 import { AnimatePresence, motion } from "framer-motion";
 

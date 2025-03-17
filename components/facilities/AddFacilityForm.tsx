@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 
 export default function AddFacilityForm() {
   const [name, setName] = useState("");

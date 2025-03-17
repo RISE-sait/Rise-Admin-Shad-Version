@@ -1,6 +1,6 @@
 import FacilitiesPage from "@/components/facilities/FacilityPage";
 import { Facility } from "@/types/facility";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 
 export default async function Page() {
   // Get API URL

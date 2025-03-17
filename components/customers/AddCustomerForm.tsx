@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import getValue from "../Singleton";
+import getValue from "../../configs/constants";
 
 export default function AddCustomerForm() {
   const [name, setName] = useState("");
