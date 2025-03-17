@@ -31,12 +31,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UserProvider>
-        <ThemeProvider>
-          <>
-            {children}
-            <Toaster />
-          </>
-        </ThemeProvider>
+          <ThemeProvider>
+            <>
+              {children}
+              <Toaster />
+            </>
+          </ThemeProvider>
         </UserProvider>
       </body>
     </html>

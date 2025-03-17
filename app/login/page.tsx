@@ -24,34 +24,41 @@ import { useUser } from "@/contexts/UserContext";
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  
+  const [isEmailPwdLoading, setIsEmailPwdLoading] = useState(false)
+
   const router = useRouter()
-  
+
   const [signInWithEmailPassword, , emailLoading, emailError] = useSignInWithEmailAndPassword(auth)
   const [signInWithGoogle, , googleLoading, googleError] = useSignInWithGoogle(auth)
 
   const { setUser } = useUser();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailPasswordLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
-    
+
+    if (!email || !password) {
+      toast.error("Please fill in all fields.")
+      return
+    }
+
+    setIsEmailPwdLoading(true)
+
     try {
       const result = await signInWithEmailPassword(email, password);
-      
+
       if (result?.user) {
         const idToken = await result.user.getIdToken();
-        
+
         // First authenticate with Firebase, then with your backend
-        const { user, token } = await loginWithFirebaseToken(idToken);
-        
-        // Store the JWT token from your backend (not the Firebase token)
-        localStorage.setItem('jwtToken', token);
-        
+        const user = await loginWithFirebaseToken(idToken);
+
+        if (user === null) {
+          throw new Error("Backend authentication failed");
+        }
+
         // Update user context
         setUser(user);
-        
+
         toast.success("Successfully logged in!");
         router.push("/");
       } else {
@@ -61,71 +68,48 @@ export default function Login() {
       toast.error("An error occurred during login. Please try again.");
       console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsEmailPwdLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    
+
     try {
+
       const result = await signInWithGoogle();
-      
+
       if (result?.user) {
         // Get Firebase token
         const idToken = await result.user.getIdToken();
-        
-        // Log the Firebase token (first 20 chars for safety)
-        console.log("Firebase Token:", idToken);
-        console.log("Full Firebase Token length:", idToken.length);
-        
-        try {
-          // Authenticate with backend
-          const { user, token } = await loginWithFirebaseToken(idToken);
-          
-          // Log the JWT token from backend (first 20 chars for safety)
-          console.log("JWT Token from backend (first 20 chars):", 
-            token ? (token.substring(0, 20) + "...") : "No token received");
-          console.log("Full JWT Token length:", token ? token.length : 0);
-          
-          // Store the JWT token
-          localStorage.setItem('jwtToken', token);
-          
-          // Store user data for persistent sessions
-          localStorage.setItem('userData', JSON.stringify(user));
-          
-          // Update user context
-          setUser(user);
-          
-          console.log("Authenticated User:", user);
-          
-          toast.success("Successfully logged in with Google!");
-          router.push("/");
-        } catch (authError) {
-          console.error("Backend authentication failed:", authError);
-          toast.error("Authentication failed with backend");
+
+        const user = await loginWithFirebaseToken(idToken)
+
+        if (user === null) {
+          throw new Error("Backend authentication failed");
         }
+
+        // Update user context
+        setUser(user);
+
+        toast.success("Successfully logged in with Google!");
+        router.push("/");
       } else {
-        toast.error("Google sign-in failed. Please try again.");
+        toast.error("Invalid email or password. Please try again.")
       }
     } catch (err) {
       toast.error("An error occurred during Google sign-in. Please try again.");
       console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
 
   // Display error messages from Firebase
   const getErrorMessage = () => {
-    if (emailError) {
-      return emailError.message
-    }
-    if (googleError) {
-      return googleError.message
-    }
+    if (emailError) return emailError.message
+    if (googleError) return googleError.message
     return null
   }
+
+  const isSubmitButtonDisabled = isEmailPwdLoading || emailLoading || googleLoading
 
   return (
     <div className={cn("min-h-svh max-w-sm flex items-center mx-auto p-6 md:p-10")}>
@@ -137,7 +121,7 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleEmailPasswordLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -147,7 +131,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isSubmitButtonDisabled}
               />
             </div>
             <div className="space-y-2">
@@ -166,22 +150,22 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isSubmitButtonDisabled}
               />
             </div>
-            
+
             {getErrorMessage() && (
               <div className="text-sm text-red-500 p-2 rounded bg-red-50">
                 {getErrorMessage()}
               </div>
             )}
-            
+
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || emailLoading}
+              disabled={isSubmitButtonDisabled}
             >
-              {(isLoading || emailLoading) ? (
+              {isEmailPwdLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...
@@ -191,7 +175,7 @@ export default function Login() {
               )}
             </Button>
           </form>
-          
+
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -202,14 +186,14 @@ export default function Login() {
               </span>
             </div>
           </div>
-          
+
           <Button
             variant="outline"
             className="w-full"
             onClick={handleGoogleSignIn}
-            disabled={isLoading || googleLoading}
+            disabled={isSubmitButtonDisabled}
           >
-            {(isLoading || googleLoading) ? (
+            {(googleLoading) ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in with Google...

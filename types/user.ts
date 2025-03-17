@@ -7,4 +7,5 @@ export interface User {
         Role: StaffRole;
         IsActive: boolean;
     };
+    Jwt:string
 }
