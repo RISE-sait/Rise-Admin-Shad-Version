@@ -1,7 +1,7 @@
 import {
-  DtoPracticeLevelsResponse,
-  DtoPracticeRequestDto,
-  DtoPracticeResponse,
+  PracticeLevelsResponse,
+  PracticeRequestDto,
+  PracticeResponse,
 } from '@/app/api/Api';
 import { addAuthHeader } from '@/lib/auth-header';
 import getValue from '@/configs/constants';
@@ -19,7 +19,7 @@ export async function getAllPractices(): Promise<Practice[]> {
       throw new Error(`Failed to fetch practices: ${response.statusText}`);
     }
 
-    const practicesResponse: DtoPracticeResponse[] = await response.json();
+    const practicesResponse: PracticeResponse[] = await response.json();
 
     const practices: Practice[] = practicesResponse.map((practice) => ({
       createdAt: new Date(practice.createdAt!), // Convert string to Date
@@ -50,7 +50,7 @@ export async function getAllPracticeLevels(): Promise<string[]> {
       throw new Error(`Failed to fetch practices: ${response.statusText}`);
     }
 
-    const practiceLevelsResponse: DtoPracticeLevelsResponse = await response.json();
+    const practiceLevelsResponse: PracticeLevelsResponse = await response.json();
 
     return practiceLevelsResponse.levels ?? []
   } catch (error) {
@@ -59,7 +59,7 @@ export async function getAllPracticeLevels(): Promise<string[]> {
   }
 }
 
-export async function createPractice(practiceData: DtoPracticeRequestDto, jwt: string): Promise<string | null> {
+export async function createPractice(practiceData: PracticeRequestDto, jwt: string): Promise<string | null> {
   try {
 
     // Create custom headers including the firebase_token header
@@ -95,7 +95,7 @@ export async function createPractice(practiceData: DtoPracticeRequestDto, jwt: s
   }
 }
 
-export async function updatePractice(practiceID: string, practiceData: DtoPracticeRequestDto, jwt: string): Promise<string | null> {
+export async function updatePractice(practiceID: string, practiceData: PracticeRequestDto, jwt: string): Promise<string | null> {
   try {
 
     // Create custom headers including the firebase_token header

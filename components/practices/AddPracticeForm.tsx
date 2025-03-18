@@ -12,7 +12,7 @@ import { createPractice } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidatePractices } from "@/app/actions/serverActions";
-import { DtoPracticeRequestDto } from "@/app/api/Api";
+import { PracticeRequestDto } from "@/app/api/Api";
 
 export default function AddPracticeForm({ levels }: { levels: string[] }) {
   const [activeTab, setActiveTab] = useState("details");
@@ -36,7 +36,7 @@ export default function AddPracticeForm({ levels }: { levels: string[] }) {
 
     try {
 
-      const practiceData: DtoPracticeRequestDto = {
+      const practiceData: PracticeRequestDto = {
         ...data
       }
 

@@ -10,7 +10,7 @@ import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
 import { deletePractice, updatePractice } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { Practice } from "@/types/practice";
-import { DtoPracticeRequestDto } from "@/app/api/Api";
+import { PracticeRequestDto } from "@/app/api/Api";
 import { revalidatePractices } from "@/app/actions/serverActions";
 import { useFormData } from "@/hooks/form-data";
 
@@ -27,7 +27,7 @@ export default function PracticeInfoPanel({ practice, levels }: { practice: Prac
   const handleSaveAll = async () => {
     try {
 
-      const practiceData: DtoPracticeRequestDto = {
+      const practiceData: PracticeRequestDto = {
         description: data.description,
         name: data.name,
         level: data.level,

@@ -39,18 +39,18 @@ export default function CustomerInfoPanel({
 
   useEffect(() => {
     // Load customer stats if customer has ID
-    if (customer.customer_id) {
+    if (customer.id) {
       loadCustomerStats();
       loadMembershipPlans();
     }
-  }, [customer.customer_id]);
+  }, [customer.id]);
 
   const loadCustomerStats = async () => {
-    if (!customer.customer_id) return;
+    if (!customer.id) return;
 
     setIsLoading(true);
     try {
-      const stats = await customerService.getCustomerStats(customer.customer_id);
+      const stats = await customerService.getCustomerStats(customer.id);
       setCustomerStats(stats);
     } catch (error) {
       console.error("Error loading customer stats:", error);
@@ -61,10 +61,10 @@ export default function CustomerInfoPanel({
   };
 
   const loadMembershipPlans = async () => {
-    if (!customer.customer_id) return;
+    if (!customer.id) return;
 
     try {
-      const plans = await customerService.getCustomerMembershipPlans(customer.customer_id);
+      const plans = await customerService.getCustomerMembershipPlans(customer.id);
       setMembershipPlans(plans);
     } catch (error) {
       console.error("Error loading membership plans:", error);

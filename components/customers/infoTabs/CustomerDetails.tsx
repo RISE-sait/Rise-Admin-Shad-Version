@@ -38,11 +38,11 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
   // Fetch athlete stats when component mounts
   useEffect(() => {
     // Only fetch if we have a customer ID
-    if (customer.customer_id) {
+    if (customer.id) {
       const fetchAthleteStats = async () => {
         setIsLoadingStats(true);
         try {
-          const statsData = await customerService.getCustomerStats(customer.customer_id!);
+          const statsData = await customerService.getCustomerStats(customer.id!);
           setAthleteStats({
             wins: statsData.wins || 0,
             losses: statsData.losses || 0,
@@ -61,7 +61,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
 
       fetchAthleteStats();
     }
-  }, [customer.customer_id]);
+  }, [customer.id]);
 
   const handleChange = (field: string, value: string | number) => {
     setFormData((prev) => ({
@@ -89,8 +89,8 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
     try {
       // Note: Since there's no direct endpoint for updating customer general info,
       // we'll just update the athlete stats for now
-      if (customer.customer_id) {
-        await customerService.updateCustomerStats(customer.customer_id, athleteStats);
+      if (customer.id) {
+        await customerService.updateCustomerStats(customer.id, athleteStats);
         
         toast({ status: "success", description: "Customer statistics updated successfully" });
         
@@ -165,7 +165,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
         </div>
       </div>
 
-      {customer.customer_id && (
+      {customer.id && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">
             Athlete Statistics
