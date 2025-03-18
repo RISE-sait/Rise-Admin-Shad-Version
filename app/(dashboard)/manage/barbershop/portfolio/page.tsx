@@ -1,224 +1,127 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 
+type PortfolioItem = {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+};
+
 export default function PortfolioPage() {
-  // Sample data for portfolio photos and cuts
-  const [portfolio, setPortfolio] = useState([
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([
     { id: 1, name: "Fade Cut", description: "A clean fade haircut.", image: "/Alen Reni Thomas.png" },
     { id: 2, name: "Buzz Cut", description: "A short, all-around buzz cut.", image: "/Alen Reni Thomas.png" },
     { id: 3, name: "Pompadour", description: "A stylish pompadour haircut.", image: "/Alen Reni Thomas.png" },
-    { id: 4, name: "Undercut", description: "A trendy undercut with shaved sides.", image: "/Alen Reni Thomas.png" },
-    { id: 5, name: "Crew Cut", description: "A sharp crew cut.", image: "/Alen Reni Thomas.png" },
-    { id: 6, name: "Caesar Cut", description: "A classic Caesar cut.", image: "/Alen Reni Thomas.png" },
   ]);
 
-  const [showModal, setShowModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedCut, setSelectedCut] = useState<any>(null);
-  const [newName, setNewName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newImage, setNewImage] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState<"edit" | "create" | null>(null);
+  const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+  const [formData, setFormData] = useState({ name: "", description: "", image: "" });
 
-  const handleEditClick = (cut: any) => {
-    setSelectedCut(cut);
-    setNewName(cut.name);
-    setNewDescription(cut.description);
-    setShowModal(true);
-  };
-
-  const handleSaveChanges = () => {
-    if (selectedCut) {
-      const updatedPortfolio = portfolio.map((cut) =>
-        cut.id === selectedCut.id
-          ? { ...cut, name: newName, description: newDescription, image: newImage || cut.image }
-          : cut
-      );
-      setPortfolio(updatedPortfolio);
-      setShowModal(false);
+  const handleSubmit = () => {
+    if (modalOpen === "create") {
+      setPortfolio([...portfolio, { 
+        id: portfolio.length + 1, 
+        ...formData,
+        image: formData.image || "/Alen Reni Thomas.png"
+      }]);
+    } else if (selectedItem) {
+      setPortfolio(portfolio.map(item => 
+        item.id === selectedItem.id ? { ...item, ...formData } : item
+      ));
     }
+    setModalOpen(null);
+    setFormData({ name: "", description: "", image: "" });
   };
 
   const handleDelete = () => {
-    const updatedPortfolio = portfolio.filter((cut) => cut.id !== selectedCut.id);
-    setPortfolio(updatedPortfolio);
-    setShowModal(false);
-  };
-
-  const handleAddNewCard = () => {
-    const newId = portfolio.length + 1;
-    const newItem = {
-      id: newId,
-      name: newName,
-      description: newDescription,
-      image: newImage || "/Alen Reni Thomas.png",
-    };
-    setPortfolio([...portfolio, newItem]);
-    setShowCreateModal(false);
+    if (selectedItem) {
+      setPortfolio(portfolio.filter(item => item.id !== selectedItem.id));
+      setModalOpen(null);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white py-6 px-6">
-      <div className="w-full max-w-7xl space-y-6">
-        
-        {/* Back Button */}
-        <div className="mb-2">
-          <Link href="/manage/barbershop">
-            <button className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded-md text-sm">
-              ← Back to Barbershop
-            </button>
-          </Link>
-        </div>
-
-        {/* Title Section */}
-        <div className="bg-gray-950 p-6 rounded-xl shadow-xl border border-gray-800 text-center">
-          <h1 className="text-3xl font-bold text-white">Manage Your Portfolio</h1>
-          <p className="text-gray-400 text-lg mt-2">
-            Upload and manage your photos to showcase your barbering work.
-          </p>
-        </div>
-
-        {/* Add New Portfolio Button */}
-        <div className="mb-6 text-center">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-6 py-4 bg-green-500 hover:bg-green-400 text-white rounded-md text-lg font-bold"
-          >
-            + Add New Portfolio Item
-          </button>
-        </div>
-
-        {/* Portfolio Cards Section with scalable grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {portfolio.map((cut) => (
-            <div key={cut.id} className="bg-gray-950 p-4 rounded-xl shadow-md border border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-lg">
-              <img src={cut.image} alt={cut.name} className="w-full h-48 object-cover rounded-md mb-4" />
-              <h3 className="text-xl font-semibold text-white">{cut.name}</h3>
-              <p className="text-gray-400 mt-2">{cut.description}</p>
-
-              {/* Edit Button */}
-              <div className="mt-4 flex justify-center">
-                <button
-                  onClick={() => handleEditClick(cut)}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded-md text-sm"
-                >
-                  Edit
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="p-6 space-y-6 bg-black text-white">
+      {/* Header */}
+      <div className="space-y-4">
+        <Link href="/manage/barbershop">
+          <Button className="bg-black border border-gray-800">← Back to Barbershop</Button>
+        </Link>
+        <h1 className="text-3xl font-bold">Manage Portfolio</h1>
+        <p className="text-gray-400">Showcase your barbering work</p>
       </div>
 
-      {/* Modal for Creating New Portfolio Item */}
-      {showCreateModal && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-gray-950 p-6 rounded-xl shadow-xl border border-gray-800 w-96">
-            <h2 className="text-2xl font-semibold text-white mb-4">Create New Portfolio Item</h2>
+      {/* Add New Button */}
+      <Button className="w-full bg-green-500 hover:bg-green-400" onClick={() => setModalOpen("create")}>
+        + Add New Item
+      </Button>
 
-            <div className="mb-4">
-              <label className="text-gray-300">Name</label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="text-gray-300">Description</label>
-              <textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
-              ></textarea>
-            </div>
-
-            <div className="mb-4">
-              <label className="text-gray-300">Image</label>
-              <input
-                type="file"
-                onChange={(e) => setNewImage(URL.createObjectURL(e.target.files![0]))}
-                className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
-              />
-            </div>
-
-            <div className="flex justify-between">
-              <button
-                onClick={handleAddNewCard}
-                className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded-md text-sm"
+      {/* Portfolio Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {portfolio.map(item => (
+          <Card key={item.id}>
+            <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
+            <div className="p-4">
+              <h3 className="text-xl font-bold">{item.name}</h3>
+              <p className="text-gray-400">{item.description}</p>
+              <Button 
+                className="w-full mt-4 bg-black hover:bg-yellow-500" 
+                onClick={() => {
+                  setSelectedItem(item);
+                  setFormData(item);
+                  setModalOpen("edit");
+                }}
               >
-                Save
-              </button>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-md text-sm"
-              >
+                Edit
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Combined Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+          <div className="bg-black p-6 rounded-xl border border-gray-800 w-96 space-y-4">
+            <h2 className="text-2xl font-bold">
+              {modalOpen === "create" ? "Create New Item" : `Edit ${selectedItem?.name}`}
+            </h2>
+
+            <input
+              placeholder="Name"
+              className="w-full p-2 bg-gray-900 rounded border border-gray-800"
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+            />
+
+            <textarea
+              placeholder="Description"
+              className="w-full p-2 bg-gray-900 rounded border border-gray-800"
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
+            />
+
+            <input
+              type="file"
+              onChange={e => setFormData({...formData, image: URL.createObjectURL(e.target.files![0])})}
+              className="w-full p-2 bg-gray-900 rounded border border-gray-800"
+            />
+
+            <div className="flex gap-4">
+              <Button className="flex-1 bg-green-500 hover:bg-green-400" onClick={handleSubmit}>
+                {modalOpen === "create" ? "Create" : "Save"}
+              </Button>
+              {modalOpen === "edit" && (
+                <Button className="flex-1 bg-red-500 hover:bg-red-400" onClick={handleDelete}>
+                  Delete
+                </Button>
+              )}
+              <Button className="flex-1 bg-gray-800 hover:bg-gray-700" onClick={() => setModalOpen(null)}>
                 Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Editing */}
-      {showModal && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-gray-950 p-6 rounded-xl shadow-xl border border-gray-800 w-96">
-            <h2 className="text-2xl font-semibold text-white mb-4">Edit {selectedCut.name}</h2>
-
-            <div className="mb-4">
-              <label className="text-gray-300">Name</label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="text-gray-300">Description</label>
-              <textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
-              ></textarea>
-            </div>
-
-            <div className="mb-4">
-              <label className="text-gray-300">Change Image</label>
-              <input
-                type="file"
-                onChange={(e) => setNewImage(URL.createObjectURL(e.target.files![0]))}
-                className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
-              />
-            </div>
-
-            <div className="flex justify-between">
-              <button
-                onClick={handleSaveChanges}
-                className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded-md text-sm"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-sm"
-              >
-                Delete
-              </button>
-            </div>
-
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-md text-sm"
-              >
-                Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -227,3 +130,25 @@ export default function PortfolioPage() {
   );
 }
 
+// Reusable Components
+const Card = ({ children }: { children: React.ReactNode }) => (
+  <div className="bg-black rounded-xl border border-gray-800 overflow-hidden">
+    {children}
+  </div>
+);
+
+const Button = ({ 
+  children, 
+  className = "", 
+  ...props 
+}: { 
+  children: React.ReactNode; 
+  className?: string 
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button
+    className={`px-4 py-2 rounded-md transition-all ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
