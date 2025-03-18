@@ -38,49 +38,29 @@ export async function createLocation(locationData: LocationRequestDto, jwt: stri
       'Authorization': `Bearer ${jwt}`,
     };
 
-    console.log('Using headers:', headers);
-
     const response = await fetch(`${getValue('API')}locations`, {
       method: 'POST',
       headers,
       body: JSON.stringify(locationData)
     });
 
-    // Get the full response text for more detailed error information
-    const responseText = await response.text();
-
     if (!response.ok) {
-      let errorMessage = `Failed to create location: ${response.statusText}`;
 
-      try {
-        // Try to parse the response as JSON if possible
-        const errorData = JSON.parse(responseText);
-        if (errorData && errorData.error && errorData.error.message) {
-          errorMessage = `Failed to create location: ${errorData.error.message}`;
-        } else if (errorData && errorData.message) {
-          errorMessage = `Failed to create location: ${errorData.message}`;
-        } else if (errorData && errorData.error) {
-          errorMessage = `Failed to create location: ${JSON.stringify(errorData.error)}`;
-        }
+      const responseJSON = await response.json();
 
-        console.error('Error data:', errorData);
-      } catch (e) {
-        // JSON parsing failed, use the raw response text
-        console.error('Raw error response:', responseText);
+      let errorMessage = `Failed to update practice: ${response.statusText}`;
+
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
       }
 
-      throw new Error(errorMessage);
+      return errorMessage;
+
     }
 
-    // If we got a valid JSON response, parse it and return
-    try {
-      return JSON.parse(responseText);
-    } catch {
-      // If parsing fails, just return the text
-      return responseText;
-    }
+    return null
   } catch (error) {
-    console.error('Error creating location:', error);
+    console.error('Error creating practice:', error);
     throw error;
   }
 }
@@ -153,7 +133,7 @@ export async function deleteLocation(locationID: string, jwt: string): Promise<s
 
     return null
 
-    
+
   } catch (error) {
     console.error('Error creating location:', error);
     throw error;
