@@ -1,5 +1,4 @@
-"use client"; // Ensures this is a client component
-
+"use client";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -8,168 +7,124 @@ type Barber = {
   name: string;
   image: string;
   availability: "Available" | "Unavailable";
-  unavailableUntil?: string; // Optional field if the barber is unavailable
+  unavailableUntil?: string;
 };
 
 export default function ManageBarbersPage() {
-  const [barbers, setBarbers] = useState<Barber[]>([
-    {
-      id: 1,
-      name: "Alen Reni Thomas",
-      image: "/Alen Reni Thomas.png",
-      availability: "Available",
-    },
-    {
-      id: 2,
-      name: "Sarah Lee",
-      image: "/Alen Reni Thomas.png",
-      availability: "Unavailable",
-      unavailableUntil: "2024-03-15",
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      image: "/Alen Reni Thomas.png",
-      availability: "Available",
-    },
+  const [barbers] = useState<Barber[]>([
+    { id: 1, name: "Alen Reni Thomas", image: "/Alen Reni Thomas.png", availability: "Available" },
+    { id: 2, name: "Sarah Lee", image: "/Alen Reni Thomas.png", availability: "Unavailable", unavailableUntil: "2024-03-15" },
+    { id: 3, name: "Mike Johnson", image: "/Alen Reni Thomas.png", availability: "Available" },
   ]);
 
-  // State for managing the selected barber and edit modal
   const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
   const [availability, setAvailability] = useState<"Available" | "Unavailable">("Available");
-  const [unavailableUntil, setUnavailableUntil] = useState<string>("");
+  const [unavailableDate, setUnavailableDate] = useState("");
 
-  const handleEditClick = (barber: Barber) => {
-    setSelectedBarber(barber);
-    setAvailability(barber.availability);
-    setUnavailableUntil(barber.unavailableUntil || "");
-  };
-
-  const handleSaveChanges = () => {
-    if (selectedBarber) {
-      const updatedBarbers = barbers.map((barber) =>
-        barber.id === selectedBarber.id
-          ? { ...barber, availability, unavailableUntil: availability === "Unavailable" ? unavailableUntil : undefined }
-          : barber
-      );
-      setBarbers(updatedBarbers);
-      setSelectedBarber(null); // Close the modal
-    }
+  const handleSave = () => {
+    setSelectedBarber(null);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white py-6 px-6">
-      <div className="w-full max-w-7xl space-y-6">
+    <div className="p-6 space-y-6 bg-black text-white">
+      {/* Header Section */}
+      <div className="space-y-4">
+        <Link href="/manage/barbershop">
+          <Button className="bg-black text-white border border-gray-800 hover:bg-yellow-500 hover:text-black">
+            ← Back to Barbershop
+          </Button>
+        </Link>
+        <h1 className="text-3xl font-bold">Manage Barbers</h1>
+        <p className="text-gray-400">View and manage barber availability</p>
+      </div>
 
-        {/* Back Button */}
-        <div className="mb-4">
-          <Link href="/manage/barbershop">
-            <button className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded-md text-sm">
-              ← Back to Barbershop
-            </button>
-          </Link>
-        </div>
-
-        {/* Header Section */}
-        <div className="bg-gray-950 p-8 rounded-xl shadow-xl border border-gray-800">
-          <h1 className="text-4xl font-bold text-center text-white">Manage Barbers</h1>
-          <p className="text-gray-400 text-lg text-center mt-2">
-            View and manage your barber's availability and details.
-          </p>
-        </div>
-
-        {/* Barber Cards Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {barbers.map((barber) => (
-            <div
-              key={barber.id}
-              className="bg-gray-950 p-6 rounded-xl shadow-md border border-gray-800 transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              <img
-                src={barber.image}
-                alt={barber.name}
-                className="w-full h-48 object-cover rounded-md mb-4"
-              />
-              <h3 className="text-xl font-semibold text-white">{barber.name}</h3>
-              <p className="text-gray-400 mt-2">
-                Availability:{" "}
-                <span
-                  className={`font-semibold ${
-                    barber.availability === "Available"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  {barber.availability}
-                </span>
-                {barber.availability === "Unavailable" && barber.unavailableUntil && (
-                  <span className="text-gray-500"> - Off until {barber.unavailableUntil}</span>
-                )}
+      {/* Barber Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {barbers.map(barber => (
+          <Card key={barber.id}>
+            <img src={barber.image} alt={barber.name} className="w-full h-48 object-cover rounded-t-xl" />
+            <div className="p-4">
+              <h3 className="text-xl font-bold">{barber.name}</h3>
+              <p className={`mt-2 ${barber.availability === "Available" ? "text-green-400" : "text-red-400"}`}>
+                {barber.availability}
+                {barber.unavailableUntil && <span className="text-gray-400 block">Until {barber.unavailableUntil}</span>}
               </p>
-
-              {/* Edit Button */}
-              <div className="mt-4 flex justify-center">
-                <button
-                  onClick={() => handleEditClick(barber)}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded-md text-sm"
-                >
-                  Edit
-                </button>
-              </div>
+              <Button 
+                className="w-full mt-4 bg-black text-white border border-gray-800 hover:bg-yellow-500 hover:text-black"
+                onClick={() => setSelectedBarber(barber)}
+              >
+                Edit Availability
+              </Button>
             </div>
-          ))}
-        </div>
+          </Card>
+        ))}
+      </div>
 
-        {/* Edit Modal */}
-        {selectedBarber && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-            <div className="bg-gray-950 p-6 rounded-xl shadow-xl border border-gray-800 w-96">
-              <h2 className="text-2xl font-semibold text-white mb-4">Edit Barber: {selectedBarber.name}</h2>
-
-              {/* Availability Dropdown */}
-              <div className="mb-4">
-                <label className="text-gray-300">Availability</label>
+      {/* Edit Modal - Black Theme */}
+      {selectedBarber && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+          <div className="bg-black p-6 rounded-xl border border-gray-800 w-96">
+            <h2 className="text-2xl font-bold mb-4">Edit {selectedBarber.name}</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2">Availability Status</label>
                 <select
                   value={availability}
-                  onChange={(e) => setAvailability(e.target.value as "Available" | "Unavailable")}
-                  className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
+                  onChange={e => setAvailability(e.target.value as any)}
+                  className="w-full p-2 bg-gray-900 text-white rounded-md border border-gray-800"
                 >
-                  <option value="Available">Available</option>
-                  <option value="Unavailable">Unavailable</option>
+                  <option className="bg-black">Available</option>
+                  <option className="bg-black">Unavailable</option>
                 </select>
               </div>
 
-              {/* Unavailable Until Date */}
               {availability === "Unavailable" && (
-                <div className="mb-4">
-                  <label className="text-gray-300">Unavailable Until</label>
+                <div>
+                  <label className="block text-gray-300 mb-2">Unavailable Until</label>
                   <input
                     type="date"
-                    value={unavailableUntil}
-                    onChange={(e) => setUnavailableUntil(e.target.value)}
-                    className="w-full p-2 mt-2 bg-gray-800 text-white rounded-md"
+                    value={unavailableDate}
+                    onChange={e => setUnavailableDate(e.target.value)}
+                    className="w-full p-2 bg-gray-900 text-white rounded-md border border-gray-800"
                   />
                 </div>
               )}
 
-              <div className="flex justify-between">
-                <button
-                  onClick={handleSaveChanges}
-                  className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded-md text-sm"
+              <div className="flex gap-4 mt-6">
+                <Button 
+                  className="flex-1 bg-yellow-500 text-black hover:bg-yellow-400"
+                  onClick={handleSave}
                 >
                   Save Changes
-                </button>
-                <button
-                  onClick={() => setSelectedBarber(null)} // Close the modal
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-md text-sm"
+                </Button>
+                <Button 
+                  className="flex-1 bg-gray-900 text-white hover:bg-gray-800 border border-gray-800"
+                  onClick={() => setSelectedBarber(null)}
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// Reusable Components with Black Theme
+const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={`bg-black rounded-xl border border-gray-800 overflow-hidden ${className}`}>
+    {children}
+  </div>
+);
+
+const Button = ({ children, className, ...props }: { children: React.ReactNode; className?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button 
+    className={`px-4 py-2 rounded-md transition-all duration-200 ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
