@@ -1,36 +1,40 @@
 "use client";
 
 import React, { useState } from "react";
-import FacilityTable from "./FacilityTable";
-import { Facility } from "@/types/facility";
+import FacilityTable from "./table/FacilityTable";
+import { Location } from "@/types/location";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, PlusCircle } from "lucide-react";
 import FacilityInfoPanel from "./FacilityInfoPanel";
 import AddFacilityForm from "./AddFacilityForm";
-import { toast } from "sonner";
-import getValue from "@/components/Singleton";
 import RightDrawer from "@/components/reusable/RightDrawer";
+import { revalidateLocations } from "@/app/actions/serverActions";
+import { deleteLocation } from "@/services/location";
+import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
 
-export default function FacilitiesPage({ facilities }: { facilities: Facility[] }) {
+export default function FacilitiesPage({ facilities }: { facilities: Location[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add">("details");
-  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<Location | null>(null);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const apiUrl = getValue("API");
+
+  const { user } = useUser();
+
+  const { toast } = useToast()
 
   // Filter facilities based on search query
-  const filteredFacilities = searchQuery 
-    ? facilities.filter(facility => 
-        facility.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (facility.Address && facility.Address.toLowerCase().includes(searchQuery.toLowerCase()))
-        // Changed from lowercase address to uppercase Address
-      )
+  const filteredFacilities = searchQuery
+    ? facilities.filter(facility =>
+      facility.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (facility.Address && facility.Address.toLowerCase().includes(searchQuery.toLowerCase()))
+      // Changed from lowercase address to uppercase Address
+    )
     : facilities;
 
-  const handleFacilitySelect = (facility: Facility) => {
+  const handleFacilitySelect = (facility: Location) => {
     setSelectedFacility(facility);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -38,20 +42,19 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
 
   const handleDeleteFacility = async (facilityId: string) => {
     try {
-      const response = await fetch(`${apiUrl}/locations/${facilityId}`, {
-        method: "DELETE",
-      });
+      const error = await deleteLocation(facilityId, user?.Jwt!);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete facility");
+      if (error === null) {
+        toast({ status: "success", description: "Location deleted successfully" });
+        await revalidateLocations();
+      }
+      else {
+        toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
       }
 
-      toast.success("Facility deleted successfully");
-      // Remove the deleted facility from the list
-      window.location.reload();
     } catch (error) {
       console.error("Error deleting facility:", error);
-      toast.error("Failed to delete facility");
+      toast({ status: "error", description: "Failed to delete practice" });
     }
   };
 
@@ -59,12 +62,12 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Facilities</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Locations</h2>
           <p className="text-muted-foreground">
-            Manage your organization's facilities and locations
+            Manage your organization's locations
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => {
             setDrawerContent("add");
             setDrawerOpen(true);
@@ -72,7 +75,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
           className="gap-2"
         >
           <PlusCircle className="h-4 w-4" />
-          Add Facility
+          Add Location
         </Button>
       </div>
 
@@ -80,7 +83,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search facilities..."
+            placeholder="Search locations..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -99,10 +102,10 @@ export default function FacilitiesPage({ facilities }: { facilities: Facility[] 
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
-        drawerWidth={drawerContent === "details" ? "w-[65%]" : "w-[35%] max-w-[450px]"}
+        drawerWidth={drawerContent === "details" ? "w-[50%]" : "w-[35%] max-w-[450px]"}
       >
         <div className="p-6">
-          <h2 className="text-2xl font-semibold mb-4">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Facility Details" : "Add New Facility"}
           </h2>
           {drawerContent === "details" && selectedFacility && (

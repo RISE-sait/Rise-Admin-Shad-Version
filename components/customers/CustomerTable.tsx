@@ -56,8 +56,9 @@ export const columns: ColumnDef<Customer>[] = [
     header: "",
     cell: ({ row }) => (
       <Avatar className="h-8 w-8">
+        <AvatarImage src={row.original.profilePicture || ""} alt={`${row.original.first_name} ${row.original.last_name}`} />
         <AvatarFallback>
-          {row.original.name?.[0]?.toUpperCase() || "?"}
+          {row.original.first_name?.[0]?.toUpperCase() || "?"}
         </AvatarFallback>
       </Avatar>
     ),
@@ -65,7 +66,7 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     id: "name",
-    accessorKey: "name",
+    accessorFn: (row) => `${row.first_name} ${row.last_name}`, // Combine names
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -90,16 +91,16 @@ export const columns: ColumnDef<Customer>[] = [
     id: "membership",
     accessorKey: "membership",
     header: "Membership",
-    cell: ({ row }) => row.original.membership || "None",
+    cell: ({ row }) => row.original.membership_name || "None",
     minSize: 120,
     size: 150,
   },
   {
-    id: "renewal",
-    accessorKey: "membership_renewal_date",
-    header: "Renewal Date",
+    id: "start_date",
+    accessorKey: "membership_start_date",
+    header: "Start Date",
     cell: ({ row }) => {
-      const date = row.original.membership_renewal_date;
+      const date = row.original.membership_start_date;
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
     minSize: 120,
@@ -145,7 +146,7 @@ export const columns: ColumnDef<Customer>[] = [
                 onClick={() => {
                   if (confirm("Are you sure you want to delete this customer?")) {
                     const onDelete = (table.options.meta as any)?.onDeleteCustomer;
-                    onDelete?.(customer.customer_id);
+                    onDelete?.(customer.id);
                   }
                 }}
               >

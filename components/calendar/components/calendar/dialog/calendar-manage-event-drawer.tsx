@@ -400,17 +400,19 @@ export default function CalendarManageEventDrawer() {
         <div className="w-[70%] border-r">
           <Tabs defaultValue="booked" className="w-full">
             {/* Tab List now shows the actual count */}
-            <TabsList className="grid w-full grid-cols-2 h-20">
-              <TabsTrigger
+            <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
+            <TabsTrigger
                 value="booked"
-                className="h-16 flex items-center justify-center text-lg font-semibold"
+                className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
               >
+                <CheckCircle2 className="h-4 w-4" />
                 {bookedAttendees.length} Booked
               </TabsTrigger>
               <TabsTrigger
                 value="cancelled"
-                className="h-16 flex items-center justify-center text-lg font-semibold"
+                className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
               >
+                <XCircle className="h-4 w-4" />
                 {cancelledAttendees.length} Cancelled
               </TabsTrigger>
             </TabsList>

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { toast } from "@/hooks/use-toast";
-import { Facility } from "@/types/facility";
 import { Course } from "@/types/course";
 
 export default function SchedulesTab({ facilityId }: { facilityId: string }) {

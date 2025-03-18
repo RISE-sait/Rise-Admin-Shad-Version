@@ -1,102 +1,304 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
 import { Customer } from "@/types/customer";
-import getValue from "@/components/Singleton";
+import CustomerService from "@/services/customer";
+import { CustomerStatsUpdateRequestDto } from "@/app/api/Api";
+import { useToast } from "@/hooks/use-toast"
 
-export default function DetailsTab({ customer }: { customer: Customer }) {
-  const [data, setData] = useState({
-    name: customer.name || "",
+export default function DetailsTab({ customer, onCustomerUpdated }: { 
+  customer: Customer;
+  onCustomerUpdated?: () => void;
+}) {
+
+    const { toast } = useToast()
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [formData, setFormData] = useState({
+    first_name: customer.first_name || "",
+    last_name: customer.last_name || "",
     email: customer.email || "",
     phone: customer.phone || "",
   });
 
-  const apiUrl = getValue("API");
+  // Initialize with default values
+  const [athleteStats, setAthleteStats] = useState<CustomerStatsUpdateRequestDto>({
+    wins: 0,
+    losses: 0,
+    points: 0,
+    rebounds: 0,
+    assists: 0,
+    steals: 0,
+  });
 
-  const updateField = (field: string, value: string) => {
-    setData((prev) => ({
+  const customerService = new CustomerService();
+
+  // Fetch athlete stats when component mounts
+  useEffect(() => {
+    // Only fetch if we have a customer ID
+    if (customer.customer_id) {
+      const fetchAthleteStats = async () => {
+        setIsLoadingStats(true);
+        try {
+          const statsData = await customerService.getCustomerStats(customer.customer_id!);
+          setAthleteStats({
+            wins: statsData.wins || 0,
+            losses: statsData.losses || 0,
+            points: statsData.points || 0,
+            rebounds: statsData.rebounds || 0,
+            assists: statsData.assists || 0,
+            steals: statsData.steals || 0,
+          });
+        } catch (error) {
+          console.error("Error fetching athlete stats:", error);
+          toast({ status: "error", description: "Could not load athlete statistics" });
+        } finally {
+          setIsLoadingStats(false);
+        }
+      };
+
+      fetchAthleteStats();
+    }
+  }, [customer.customer_id]);
+
+  const handleChange = (field: string, value: string | number) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const updateCustomer = async () => {
-    // Ensure required fields are not empty
-    if (!data.name.trim()) {
-      toast.error("Customer name cannot be empty.");
+  const handleStatsChange = (field: string, value: number) => {
+    setAthleteStats((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleUpdateCustomer = async () => {
+    // Validation
+    if (!formData.first_name.trim() || !formData.last_name.trim() || !formData.email.trim()) {
+      toast({ status: "error", description: "Name and email are required fields" });
       return;
     }
 
-    if (!data.email.trim()) {
-      toast.error("Email cannot be empty.");
-      return;
-    }
+    setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `${apiUrl}/customers/${customer.customer_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            phone: data.phone || undefined,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update customer");
+      // Note: Since there's no direct endpoint for updating customer general info,
+      // we'll just update the athlete stats for now
+      if (customer.customer_id) {
+        await customerService.updateCustomerStats(customer.customer_id, athleteStats);
+        
+        toast({ status: "success", description: "Customer statistics updated successfully" });
+        
+        if (onCustomerUpdated) {
+          onCustomerUpdated();
+        }
+      } else {
+        toast({ status: "error", description: "Customer ID is missing" });
       }
-
-      toast.success("Customer successfully updated");
     } catch (error) {
-      console.error(error);
-      toast.error("An error occurred. Please try again.");
+      console.error("Error updating customer:", error);
+      toast({ status: "error", description: "Failed to update customer information" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4 pt-3">
-      <div className="pb-4">
-        <p className="pb-2">
-          Name <span className="text-red-500">*</span>
-        </p>
-        <Input
-          onChange={(e) => updateField("name", e.target.value)}
-          type="text"
-          value={data.name}
-        />
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Personal Information</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="first_name" className="block text-sm font-medium mb-1">
+              First Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="first_name"
+              value={formData.first_name}
+              onChange={(e) => handleChange("first_name", e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="last_name" className="block text-sm font-medium mb-1">
+              Last Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="last_name"
+              value={formData.last_name}
+              onChange={(e) => handleChange("last_name", e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium mb-1">
+            Phone
+          </label>
+          <Input
+            id="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => handleChange("phone", e.target.value)}
+          />
+        </div>
       </div>
 
-      <div className="pb-4">
-        <p className="pb-2">
-          Email <span className="text-red-500">*</span>
-        </p>
-        <Input
-          onChange={(e) => updateField("email", e.target.value)}
-          type="email"
-          value={data.email}
-        />
-      </div>
+      {customer.customer_id && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">
+            Athlete Statistics
+            {isLoadingStats && <span className="ml-2 text-sm text-muted-foreground">(Loading...)</span>}
+          </h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="wins" className="block text-sm font-medium mb-1">
+                Wins
+              </label>
+              <Input
+                id="wins"
+                type="number"
+                value={String(athleteStats.wins || 0)}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                  setAthleteStats({
+                    ...athleteStats,
+                    wins: isNaN(value) ? 0 : value
+                  });
+                }}
+                min="0"
+              />
+            </div>
+            
+            <div>
+            <label htmlFor="losses" className="block text-sm font-medium mb-1">
+              Losses
+            </label>
+            <Input
+              id="losses"
+              type="number"
+              value={String(athleteStats.losses || 0)}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                setAthleteStats({
+                  ...athleteStats,
+                  losses: isNaN(value) ? 0 : value
+                });
+              }}
+              min="0"
+            />
+          </div>
 
-      <div className="pb-4">
-        <p className="pb-2">Phone</p>
-        <Input
-          onChange={(e) => updateField("phone", e.target.value)}
-          type="tel"
-          value={data.phone}
-        />
-      </div>
+          <div>
+            <label htmlFor="points" className="block text-sm font-medium mb-1">
+              Points
+            </label>
+            <Input
+              id="points"
+              type="number"
+              value={String(athleteStats.points || 0)}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                setAthleteStats({
+                  ...athleteStats,
+                  points: isNaN(value) ? 0 : value
+                });
+              }}
+              min="0"
+            />
+          </div>
 
-      <section className="flex justify-between">
-        <Button onClick={updateCustomer}>Save Changes</Button>
-      </section>
+          <div>
+            <label htmlFor="rebounds" className="block text-sm font-medium mb-1">
+              Rebounds
+            </label>
+            <Input
+              id="rebounds"
+              type="number"
+              value={String(athleteStats.rebounds || 0)}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                setAthleteStats({
+                  ...athleteStats,
+                  rebounds: isNaN(value) ? 0 : value
+                });
+              }}
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="assists" className="block text-sm font-medium mb-1">
+              Assists
+            </label>
+            <Input
+              id="assists"
+              type="number"
+              value={String(athleteStats.assists || 0)}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                setAthleteStats({
+                  ...athleteStats,
+                  assists: isNaN(value) ? 0 : value
+                });
+              }}
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="steals" className="block text-sm font-medium mb-1">
+              Steals
+            </label>
+            <Input
+              id="steals"
+              type="number"
+              value={String(athleteStats.steals || 0)}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                setAthleteStats({
+                  ...athleteStats,
+                  steals: isNaN(value) ? 0 : value
+                });
+              }}
+              min="0"
+            />
+          </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="pt-4">
+        <Button
+          onClick={handleUpdateCustomer}
+          disabled={isLoading}
+          className="w-full md:w-auto"
+        >
+          {isLoading ? "Updating..." : "Update Information"}
+        </Button>
+      </div>
     </div>
   );
 }

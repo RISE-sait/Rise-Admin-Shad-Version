@@ -1,50 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import getValue from "@/components/Singleton";
+import { createLocation } from "@/services/location";
+import { LocationRequestDto } from "@/app/api/Api";
+import { useUser } from "@/contexts/UserContext";
+import { useFormData } from "@/hooks/form-data";
+import { revalidateLocations } from "@/app/actions/serverActions";
+import { useToast } from "@/hooks/use-toast"
 
 export default function AddFacilityForm() {
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
 
-  const apiUrl = getValue("API");
+    const { toast } = useToast()
+  
+  const { data, resetData, updateField } = useFormData(
+    { name: "", address: "", },
+  )
 
-  const facilityData = {
-    name,
-    location: address // This is the format the API expects
-  };
+  const { user } = useUser();
 
   const handleAddFacility = async () => {
-    if (!name.trim()) {
-      toast.error("Facility name is required.");
+    if (!data.name.trim()) {
+      toast({ status: "error", description: "Facility name is required." });
       return;
     }
 
     try {
-      const response = await fetch(apiUrl + `/locations`, {  // Changed from facilities to locations
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(facilityData),
-      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to add facility:", errorText);
-        toast.error("Failed to save facility. Please try again.");
+      const locationData: LocationRequestDto = {
+        ...data
+      }
+
+      const error = await createLocation(locationData, user?.Jwt!)
+
+      if (error === null) {
+
+        resetData();
+
+        toast({ status: "success", description: "Location successfully created" });
+        
+        await revalidateLocations()
+
         return;
       }
 
-      toast.success("Facility Added Successfully");
-      
-      // Reset form
-      setName("");
-      setAddress("");
+      toast({ status: "error", description: `Failed to create location: ${error}. Please try again.` });
+      return;
+
     } catch (error) {
       console.error("Error during API request:", error);
-      toast.error("An error occurred. Please try again.");
+      toast({ status: "error", description: `An error occurred: ${error}. Please try again.` });
     }
   };
 
@@ -53,22 +59,24 @@ export default function AddFacilityForm() {
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            Facility Name <span className="text-red-500">*</span>
+            Name <span className="text-red-500">*</span>
           </label>
           <Input
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => updateField('name', e.target.value)}
             type="text"
-            value={name}
+            value={data.name}
             placeholder="Enter facility name"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Address</label>
+          <label className="text-sm font-medium">
+          Address <span className="text-red-500">*</span>
+          </label>
           <Input
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={(e) => updateField('address', e.target.value)}
             type="text"
-            value={address}
+            value={data.address}
             placeholder="Enter facility address"
           />
         </div>

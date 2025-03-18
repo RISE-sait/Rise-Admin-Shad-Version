@@ -5,7 +5,7 @@ import { MembershipPlan } from '@/types/membership';
 import { PlusCircle, CreditCard, AlertCircle } from 'lucide-react';
 import PlanListItem from './plan-list-item';
 import { useToast } from '@/hooks/use-toast';
-import getValue from '@/components/Singleton';
+import getValue from '@/configs/constants';
 import { v4 as uuidv4 } from 'uuid';
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -171,10 +171,6 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <CreditCard className="h-6 w-6 text-primary" />
-        <h2 className="text-2xl font-bold tracking-tight">Membership Plans</h2>
-      </div>
       
       <div className="space-y-4">
         <AnimatePresence>

@@ -5,41 +5,43 @@ import { useUser } from "@/contexts/UserContext"
 import { LogOut } from "lucide-react"
 import { auth } from "@/configs/firebase"
 import { signOut } from "firebase/auth"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { forwardRef } from "react"
 
 // Add forwardRef to properly handle focus management
 export const LogoutButton = forwardRef<
-  HTMLButtonElement, 
+  HTMLButtonElement,
   { variant?: "default" | "ghost" | "outline" }
 >(({ variant = "default" }, ref) => {
   const { logout } = useUser()
   const [isLoading, setIsLoading] = useState(false)
+
+  const { toast } = useToast()
 
   const handleLogout = async () => {
     setIsLoading(true)
     try {
       // Sign out from Firebase
       await signOut(auth)
-      
+
       // Call our context logout function to clear local state
       logout()
-      
-      toast.success("Successfully logged out")
+
+      toast({ status: "success", description: "Successfully logged out" });
     } catch (error) {
       console.error("Logout failed:", error)
-      toast.error("Logout failed. Please try again.")
+      toast({ status: "error", description: "Logout failed. Please try again." });
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Button 
-      variant={variant} 
-      onClick={handleLogout} 
+    <Button
+      variant={variant}
+      onClick={handleLogout}
       disabled={isLoading}
       className="w-full justify-start"
       ref={ref}

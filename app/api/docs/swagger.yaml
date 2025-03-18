@@ -1,13 +1,20 @@
 definitions:
   course.RequestDto:
     properties:
+      capacity:
+        type: integer
       description:
         type: string
       name:
         type: string
+    required:
+      - capacity
+      - name
     type: object
   course.ResponseDto:
     properties:
+      capacity:
+        type: integer
       createdAt:
         type: string
       description:
@@ -144,6 +151,10 @@ definitions:
         type: string
       last_name:
         type: string
+      membership_name:
+        type: string
+      membership_start_date:
+        type: string
       phone:
         type: string
       profile_pic:
@@ -174,26 +185,6 @@ definitions:
         type: string
     required:
     - waiver_url
-    type: object
-  dto.PracticeRequestDto:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-    type: object
-  dto.PracticeResponse:
-    properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      updatedAt:
-        type: string
     type: object
   enrollment.CreateRequestDto:
     properties:
@@ -398,12 +389,12 @@ definitions:
     type: object
   location.RequestDto:
     properties:
-      location:
+      address:
         type: string
       name:
         type: string
     required:
-      - location
+      - address
       - name
     type: object
   location.ResponseDto:
@@ -452,9 +443,8 @@ definitions:
       price:
         type: string
     required:
-      - amt_periods
     - membership_id
-      - payment_frequency
+    - payment_frequency
     - price
     type: object
   membership_plan.PlanResponse:
@@ -476,6 +466,45 @@ definitions:
       price:
         type: string
       updated_at:
+        type: string
+    type: object
+  practice.LevelsResponse:
+    properties:
+      levels:
+        items:
+          type: string
+        type: array
+    type: object
+  practice.RequestDto:
+    properties:
+      capacity:
+        type: integer
+      description:
+        type: string
+      level:
+        type: string
+      name:
+        type: string
+    required:
+      - capacity
+      - level
+      - name
+    type: object
+  practice.Response:
+    properties:
+      capacity:
+        type: integer
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      level:
+        type: string
+      name:
+        type: string
+      updatedAt:
         type: string
     type: object
   purchase.MembershipPlanRequestDto:
@@ -676,9 +705,9 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a course by HubSpotId
+      description: Delete a course by Id
       parameters:
-      - description: Course HubSpotId
+        - description: Course Id
         in: path
         name: id
         required: true
@@ -689,7 +718,7 @@ paths:
         "204":
           description: No Content
         "400":
-          description: 'Bad Request: Invalid HubSpotId'
+          description: 'Bad Request: Invalid Id'
           schema:
             additionalProperties: true
             type: object
@@ -711,9 +740,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a course by HubSpotId
+      description: Get a course by Id
       parameters:
-      - description: Course HubSpotId
+        - description: Course Id
         in: path
         name: id
         required: true
@@ -726,7 +755,7 @@ paths:
           schema:
             $ref: '#/definitions/course.ResponseDto'
         "400":
-          description: 'Bad Request: Invalid HubSpotId'
+          description: 'Bad Request: Invalid Id'
           schema:
             additionalProperties: true
             type: object
@@ -740,7 +769,7 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Get a course by HubSpotId
+      summary: Get a course by Id
       tags:
       - courses
     put:
@@ -2323,15 +2352,6 @@ paths:
       consumes:
       - application/json
       description: Get a list of practices
-      parameters:
-      - description: Filter by practice name
-        in: query
-        name: name
-        type: string
-      - description: Filter by practice description
-        in: query
-        name: description
-        type: string
       produces:
       - application/json
       responses:
@@ -2339,7 +2359,7 @@ paths:
           description: GetMemberships of practices retrieved successfully
           schema:
             items:
-              $ref: '#/definitions/dto.PracticeResponse'
+              $ref: '#/definitions/practice.Response'
             type: array
         "500":
           description: Internal Server Error
@@ -2359,14 +2379,14 @@ paths:
         name: practice
         required: true
         schema:
-          $ref: '#/definitions/dto.PracticeRequestDto'
+          $ref: '#/definitions/practice.RequestDto'
       produces:
       - application/json
       responses:
         "201":
           description: Practice created successfully
           schema:
-            $ref: '#/definitions/dto.PracticeResponse'
+            $ref: '#/definitions/practice.Response'
         "400":
           description: 'Bad Request: Invalid input'
           schema:
@@ -2433,7 +2453,7 @@ paths:
         name: practice
         required: true
         schema:
-          $ref: '#/definitions/dto.PracticeRequestDto'
+          $ref: '#/definitions/practice.RequestDto'
       produces:
       - application/json
       responses:
@@ -2457,42 +2477,28 @@ paths:
       summary: Update a practice
       tags:
       - practices
-  /practices/{name}:
+  /practices/levels:
     get:
       consumes:
       - application/json
-      description: Get a practice by name
-      parameters:
-      - description: Practice Name
-        in: path
-        name: name
-        required: true
-        type: string
+      description: Retrieves a list of available practice levels.
       produces:
       - application/json
       responses:
         "200":
-          description: Practice retrieved successfully
+          description: Get practice levels retrieved successfully
           schema:
-            $ref: '#/definitions/dto.PracticeResponse'
-        "400":
-          description: 'Bad Request: Invalid Name'
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: 'Not Found: Practice not found'
-          schema:
-            additionalProperties: true
-            type: object
+            items:
+              $ref: '#/definitions/practice.LevelsResponse'
+            type: array
         "500":
           description: Internal Server Error
           schema:
             additionalProperties: true
             type: object
-      summary: Get a practice by name
+      summary: Get practice levels
       tags:
-      - practices
+        - practices
   /purchases/memberships:
     post:
       consumes:

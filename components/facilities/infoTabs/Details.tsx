@@ -1,6 +1,7 @@
-"use client";
+"use client"
+
 import { Input } from "@/components/ui/input";
-import { BuildingIcon, PencilIcon, MapPinIcon } from "lucide-react";
+import { PencilIcon, MapPinIcon } from "lucide-react";
 
 export default function DetailsTab({
   details,
@@ -12,10 +13,6 @@ export default function DetailsTab({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <div className="flex items-center gap-3 mb-6">
-          <BuildingIcon className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold tracking-tight">Facility Information</h2>
-        </div>
 
         <div className="space-y-6">
           <div className="space-y-3">

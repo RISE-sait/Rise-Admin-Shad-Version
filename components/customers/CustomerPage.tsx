@@ -14,11 +14,20 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 
-export default function CustomersPage({ customers }: { customers: Customer[] }) {
+// Update the props interface to match what's being passed from the page
+interface CustomerPageProps {
+  customers: Customer[];
+  isLoading?: boolean;
+}
+
+export default function CustomersPage({ 
+  customers, 
+  isLoading = false,
+}: CustomerPageProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
@@ -33,7 +42,7 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
 
   const filteredCustomers = customers.filter(
     (customer) =>
-      customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -100,12 +109,20 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
           </Button>
         </div>
 
-        <CustomerTable
-          customers={filteredCustomers}
-          onCustomerSelect={handleCustomerSelect}
-          columnVisibility={columnVisibility}
-          onColumnVisibilityChange={handleColumnVisibilityChange}
-        />
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-12 bg-muted/20 rounded-lg border">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg text-muted-foreground">Loading customers...</p>
+          </div>
+        ) : (
+          <CustomerTable
+            customers={filteredCustomers}
+            onCustomerSelect={handleCustomerSelect}
+            onDeleteCustomer={()=>{}}
+            columnVisibility={columnVisibility}
+            onColumnVisibilityChange={handleColumnVisibilityChange}
+          />
+        )}
       </div>
 
       <RightDrawer
@@ -114,13 +131,22 @@ export default function CustomersPage({ customers }: { customers: Customer[] }) 
         drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"}
       >
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-2">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Customer Details" : "Add Customer"}
           </h2>
           {drawerContent === "details" && selectedCustomer && (
-            <CustomerInfoPanel customer={selectedCustomer} />
+            <CustomerInfoPanel 
+              customer={selectedCustomer} 
+              onCustomerUpdated={()=>{}}
+              onCustomerDeleted={()=>{}} // FIX: Use the wrapper function with no parameters
+            />
           )}
-          {drawerContent === "add" && <AddCustomerForm />}
+          {drawerContent === "add" && (
+            <AddCustomerForm 
+              onCustomerAdded={()=>{}} // FIX: Changed from onSuccess to onCustomerAdded
+              onCancel={() => setDrawerOpen(false)}
+            />
+          )}
         </div>
       </RightDrawer>
     </>

@@ -1,13 +1,13 @@
 import CoursesPage from "@/components/courses/CoursePage";
 import { Course } from "@/types/course";
-import getValue from "@/components/Singleton";
+import getValue from "@/configs/constants";
 import { CourseResponseDto } from "@/app/api/Api";
 
 export default async function Page() {
   // Get API URL
   const apiUrl = getValue("API");
 
-  const response = await fetch(apiUrl + `/courses`);
+  const response = await fetch(apiUrl + `courses`);
   const coursesResponse: CourseResponseDto[] = await response.json();
 
   const courses: Course[] = coursesResponse.map((course) => ({

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useUser } from "@/contexts/UserContext";
 import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react";
+import { url } from "inspector";
 
 const data = {
   navMain: [
@@ -47,17 +48,21 @@ const data = {
           url: "/manage/courses",
         },
         {
-          title: "Facilites",
-          url: "/manage/facilites",
+          title: "Practices",
+          url: "/manage/practices",
         },
         {
-          title: "Instructors",
-          url: "/manage/instructors",
+          title: "Locations",
+          url: "/manage/locations",
         },
-        {
-          title: "Trainers",
-          url: "/manage/trainers",
-        },
+        // {
+        //   title: "Instructors",
+        //   url: "/manage/instructors",
+        // },
+        // {
+        //   title: "Trainers",
+        //   url: "/manage/trainers",
+        // },
         {
           title: "Memberships",
           url: "/manage/memberships",
@@ -65,6 +70,10 @@ const data = {
         {
           title: "Barbershop",
           url: "/manage/barbershop",
+        },
+        {
+          title: "Staff",
+          url: "/manage/staff",
         },
       ],
     },
@@ -114,7 +123,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
-          <Link href={"/home"}>
+          <Link href={"/"}>
             {" "}
             <Image
               src={"/RiseLogo.svg"}

@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   VisibilityState,
@@ -12,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Facility } from "@/types/facility";
+import { Location } from "@/types/location";
 import {
   Table,
   TableBody,
@@ -21,120 +20,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal, FolderSearch } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { FolderSearch } from "lucide-react";
+
+import columns from './columns'
 
 interface DataTableProps {
-  facilities: Facility[];
-  onFacilitySelect: (facility: Facility) => void;
+  facilities: Location[];
+  onFacilitySelect: (facility: Location) => void;
   onDeleteFacility?: (facilityId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
   onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
 }
-
-export const columns: ColumnDef<Facility>[] = [
-  {
-    id: "name",
-    accessorKey: "name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="font-medium hover:bg-accent hover:text-accent-foreground"
-      >
-        Facility
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    minSize: 180,
-    size: 250,
-  },
-  {
-    id: "address",
-    accessorKey: "Address", // Changed to lowercase to match API
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="font-medium hover:bg-accent hover:text-accent-foreground"
-      >
-        Address
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    minSize: 200,
-    size: 300,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    header: () => <div className="text-right">Actions</div>,
-    cell: ({ row, table }) => {
-      const facility = row.original;
-      return (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="h-8 w-8 p-0 hover:bg-accent"
-              >
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align="end"
-              className="border bg-popover text-popover-foreground"
-            >
-              <DropdownMenuLabel className="px-3 py-2">
-                Facility Actions
-              </DropdownMenuLabel>
-              <DropdownMenuItem
-                className="px-3 py-2 hover:bg-accent cursor-pointer"
-                onClick={() => {
-                  const onSelect = (table.options.meta as any)?.onFacilitySelect;
-                  onSelect?.(facility);
-                }}
-              >
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                onClick={() => {
-                  if (confirm("Are you sure you want to delete this facility?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteFacility;
-                    onDelete?.(facility.id);
-                  }
-                }}
-              >
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-    minSize: 80,
-    size: 120,
-  },
-];
 
 export default function FacilityTable({
   facilities,
@@ -232,7 +128,7 @@ export default function FacilityTable({
                 >
                   <div className="flex flex-col items-center space-y-2">
                     <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
-                    <span>No facilities found</span>
+                    <span>No locations found</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -250,10 +146,10 @@ export default function FacilityTable({
             <span className="font-semibold">
               {table.getFilteredRowModel().rows.length}
             </span>{' '}
-            facilities
+            locations
           </div>
           
-          <div className="flex items-center space-x-6">
+          {/* <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">Rows per page:</span>
               <Select
@@ -297,7 +193,7 @@ export default function FacilityTable({
                 Next
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

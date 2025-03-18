@@ -116,7 +116,7 @@ export default function CoursesPage({ courses }: { courses: Course[] }) {
         drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[75%]"}
       >
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-2">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Course Details" : "Add Course"}
           </h2>
           {drawerContent === "details" && selectedCourse && (
