@@ -91,16 +91,16 @@ export const columns: ColumnDef<Customer>[] = [
     id: "membership",
     accessorKey: "membership",
     header: "Membership",
-    cell: ({ row }) => row.original.membership || "None",
+    cell: ({ row }) => row.original.membership_name || "None",
     minSize: 120,
     size: 150,
   },
   {
-    id: "renewal",
-    accessorKey: "membership_renewal_date",
-    header: "Renewal Date",
+    id: "start_date",
+    accessorKey: "membership_start_date",
+    header: "Start Date",
     cell: ({ row }) => {
-      const date = row.original.membership_renewal_date;
+      const date = row.original.membership_start_date;
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
     minSize: 120,
@@ -146,7 +146,7 @@ export const columns: ColumnDef<Customer>[] = [
                 onClick={() => {
                   if (confirm("Are you sure you want to delete this customer?")) {
                     const onDelete = (table.options.meta as any)?.onDeleteCustomer;
-                    onDelete?.(customer.customer_id);
+                    onDelete?.(customer.id);
                   }
                 }}
               >

@@ -22,15 +22,11 @@ import { VisibilityState } from "@tanstack/react-table";
 interface CustomerPageProps {
   customers: Customer[];
   isLoading?: boolean;
-  onCustomerUpdated?: () => void;
-  onCustomerDeleted?: () => void;
 }
 
 export default function CustomersPage({ 
   customers, 
   isLoading = false,
-  onCustomerUpdated,
-  onCustomerDeleted
 }: CustomerPageProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -55,35 +51,6 @@ export default function CustomersPage({
       const newState = typeof updater === "function" ? updater(prev) : updater;
       return { ...prev, ...newState };
     });
-  };
-
-  const handleCustomerAdded = () => {
-    setDrawerOpen(false);
-    if (onCustomerUpdated) {
-      onCustomerUpdated();
-    }
-  };
-
-  const handleCustomerUpdated = () => {
-    if (onCustomerUpdated) {
-      onCustomerUpdated();
-    }
-  };
-
-  // FIX 1: We keep the parameter for table interactions, but create a wrapper for the panel
-  const handleCustomerDeleted = (customerId: string) => {
-    setDrawerOpen(false);
-    if (onCustomerDeleted) {
-      onCustomerDeleted();
-    }
-  };
-
-  // FIX 2: Add a wrapper function with no parameters for the CustomerInfoPanel
-  const handleInfoPanelCustomerDeleted = () => {
-    setDrawerOpen(false);
-    if (onCustomerDeleted) {
-      onCustomerDeleted();
-    }
   };
 
   return (
@@ -151,7 +118,7 @@ export default function CustomersPage({
           <CustomerTable
             customers={filteredCustomers}
             onCustomerSelect={handleCustomerSelect}
-            onDeleteCustomer={handleCustomerDeleted}
+            onDeleteCustomer={()=>{}}
             columnVisibility={columnVisibility}
             onColumnVisibilityChange={handleColumnVisibilityChange}
           />
@@ -170,13 +137,13 @@ export default function CustomersPage({
           {drawerContent === "details" && selectedCustomer && (
             <CustomerInfoPanel 
               customer={selectedCustomer} 
-              onCustomerUpdated={handleCustomerUpdated}
-              onCustomerDeleted={handleInfoPanelCustomerDeleted} // FIX: Use the wrapper function with no parameters
+              onCustomerUpdated={()=>{}}
+              onCustomerDeleted={()=>{}} // FIX: Use the wrapper function with no parameters
             />
           )}
           {drawerContent === "add" && (
             <AddCustomerForm 
-              onCustomerAdded={handleCustomerAdded} // FIX: Changed from onSuccess to onCustomerAdded
+              onCustomerAdded={()=>{}} // FIX: Changed from onSuccess to onCustomerAdded
               onCancel={() => setDrawerOpen(false)}
             />
           )}

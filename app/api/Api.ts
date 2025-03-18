@@ -87,6 +87,8 @@ export interface CustomerResponse {
   first_name?: string;
   hubspot_id?: string;
   last_name?: string;
+  membership_name?: string;
+  membership_start_date?: string;
   phone?: string;
   profile_pic?: string;
   user_id?: string;
@@ -104,27 +106,6 @@ export interface CustomerStatsUpdateRequestDto {
 export interface CustomerWaiverSigningRequestDto {
   is_waiver_signed?: boolean;
   waiver_url: string;
-}
-
-export interface DtoPracticeLevelsResponse {
-  levels?: string[];
-}
-
-export interface DtoPracticeRequestDto {
-  capacity: number;
-  description?: string;
-  level: string;
-  name?: string;
-}
-
-export interface DtoPracticeResponse {
-  capacity?: number;
-  createdAt?: string;
-  description?: string;
-  id?: string;
-  level?: string;
-  name?: string;
-  updatedAt?: string;
 }
 
 export interface EnrollmentCreateRequestDto {
@@ -295,6 +276,27 @@ export interface MembershipPlanPlanResponse {
   payment_frequency?: string;
   price?: string;
   updated_at?: string;
+}
+
+export interface PracticeLevelsResponse {
+  levels?: string[];
+}
+
+export interface PracticeRequestDto {
+  capacity: number;
+  description?: string;
+  level: string;
+  name: string;
+}
+
+export interface PracticeResponse {
+  capacity?: number;
+  createdAt?: string;
+  description?: string;
+  id?: string;
+  level?: string;
+  name?: string;
+  updatedAt?: string;
 }
 
 export interface PurchaseMembershipPlanRequestDto {
@@ -1550,19 +1552,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get a list of practices
      * @request GET:/practices
      */
-    practicesList: (
-      query?: {
-        /** Filter by practice name */
-        name?: string;
-        /** Filter by practice description */
-        description?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<DtoPracticeResponse[], Record<string, any>>({
+    practicesList: (params: RequestParams = {}) =>
+      this.request<PracticeResponse[], Record<string, any>>({
         path: `/practices`,
         method: "GET",
-        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1577,8 +1570,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/practices
      * @secure
      */
-    practicesCreate: (practice: DtoPracticeRequestDto, params: RequestParams = {}) =>
-      this.request<DtoPracticeResponse, Record<string, any>>({
+    practicesCreate: (practice: PracticeRequestDto, params: RequestParams = {}) =>
+      this.request<PracticeResponse, Record<string, any>>({
         path: `/practices`,
         method: "POST",
         body: practice,
@@ -1597,7 +1590,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/practices/levels
      */
     levelsList: (params: RequestParams = {}) =>
-      this.request<DtoPracticeLevelsResponse[], Record<string, any>>({
+      this.request<PracticeLevelsResponse[], Record<string, any>>({
         path: `/practices/levels`,
         method: "GET",
         type: ContentType.Json,
@@ -1613,7 +1606,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Update a practice
      * @request PUT:/practices/{id}
      */
-    practicesUpdate: (id: string, practice: DtoPracticeRequestDto, params: RequestParams = {}) =>
+    practicesUpdate: (id: string, practice: PracticeRequestDto, params: RequestParams = {}) =>
       this.request<void, Record<string, any>>({
         path: `/practices/${id}`,
         method: "PUT",
