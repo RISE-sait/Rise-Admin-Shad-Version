@@ -1,19 +1,34 @@
 import { motion } from "framer-motion";
 
 const StatCard = ({ name, icon: Icon, value, color }: any) => {
-	return (
-		<motion.div
-		  className='bg-card backdrop-blur-md overflow-hidden shadow-lg rounded-xl border border-border'
-		  whileHover={{ y: -5, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
-		>
-		  <div className='px-4 py-5 sm:p-6'>
-			<span className='flex items-center text-sm font-medium text-muted-foreground'>
-			  <Icon size={20} className='mr-2' style={{ color }} />
-			  {name}
-			</span>
-			<p className='mt-1 text-3xl font-semibold text-foreground'>{value}</p>
-		  </div>
-		</motion.div>
-	  );
+  return (
+    <motion.div
+      className="h-full bg-card rounded-xl shadow-sm hover:shadow-md border border-border transition-all duration-300 overflow-hidden"
+      whileHover={{ y: -4 }}
+    >
+      <div className="p-4 sm:p-5">
+        <div className="flex items-center gap-3">
+          <div 
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: `${color}20` }}
+          >
+            <Icon size={20} style={{ color }} />
+          </div>
+          <span className="text-sm font-medium text-muted-foreground">
+            {name}
+          </span>
+        </div>
+        <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+      </div>
+      <div 
+        className="w-full h-1"
+        style={{
+          background: `linear-gradient(90deg, ${color}20, ${color}, ${color}20)`,
+          opacity: 0.6
+        }}
+      />
+    </motion.div>
+  );
 };
+
 export default StatCard;

@@ -93,7 +93,7 @@ export default function CalendarBodyMonth() {
                 <div
                   className={cn(
                     'text-sm font-medium w-fit p-1 flex flex-col items-center justify-center rounded-full aspect-square',
-                    isToday && 'bg-primary text-white',
+                    isToday && 'bg-primary text-white dark:text-black',
                   )}
                 >
                   {format(day, 'd')}

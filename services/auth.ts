@@ -7,8 +7,8 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Use
     const response = await fetch(`${getValue('API')}auth`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'firebase_token': firebaseToken,
+        'Authorization': `Bearer ${firebaseToken}`, // 👈 Correct header format
+        'accept': 'application/json', // 👈 Add this if required by your API
       }
     });
 

@@ -41,10 +41,7 @@ export async function getAllPractices(): Promise<Practice[]> {
 export async function getAllPracticeLevels(): Promise<string[]> {
   try {
 
-    const response = await fetch(`${getValue("API")}practices/levels`, {
-      method: 'GET',
-      ...addAuthHeader()
-    });
+    const response = await fetch(`${getValue("API")}practices/levels`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch practices: ${response.statusText}`);
