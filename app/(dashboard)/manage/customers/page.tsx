@@ -7,7 +7,7 @@ export default async function CustomersPageContainer() {
   const customers = await getAllCustomers();
 
   return (
-    <div className="container">
+    <div className='flex'>
       <CustomerPage
         customers={customers}
       />

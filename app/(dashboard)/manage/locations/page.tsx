@@ -1,4 +1,4 @@
-import FacilitiesPage from "@/components/facilities/FacilityPage";
+import FacilitiesPage from "@/components/facilities/LocationPage";
 import { getAllLocations } from "@/services/location";
 
 export default async function Page() {
@@ -6,7 +6,7 @@ export default async function Page() {
   const locations = await getAllLocations()
 
   return (
-    <div className="p-6 flex">
+    <div className="flex">
       <FacilitiesPage facilities={locations} />
     </div>
   );

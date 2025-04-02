@@ -6,7 +6,7 @@ export default async function Page() {
   const memberships = await getAllMemberships()
 
   return (
-    <div className="p-6 flex">
+    <div className="flex">
       <MembershipsPage memberships={memberships} />
     </div>
   );

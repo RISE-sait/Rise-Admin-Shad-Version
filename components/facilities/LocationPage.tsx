@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Membership } from "@/types/membership";
+import { Location } from "@/types/location";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import MembershipInfoPanel from "./MembershipInfoPanel";
-import AddMembershipForm from "./AddForm";
+import FacilityInfoPanel from "./LocationInfoPanel";
+import AddFacilityForm from "./AddLocationForm";
 import { toast } from "sonner";
 import RightDrawer from "@/components/reusable/RightDrawer";
-import { deleteMembership } from "@/services/membership";
+import { deleteLocation } from "@/services/location";
 import { useUser } from "@/contexts/UserContext";
-import { revalidateMemberships } from "@/app/actions/serverActions";
-import MembershipTable from "./table/MembershipTable";
+import { revalidateLocations } from "@/app/actions/serverActions";
+import FacilityTable from "./table/LocationTable";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,10 +25,10 @@ import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { AlertModal } from "@/components/ui/AlertModal";
 
-export default function MembershipsPage({ memberships }: { memberships: Membership[] }) {
+export default function FacilitiesPage({ facilities }: { facilities: Location[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
-  const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<Location | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -36,50 +36,54 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
 
   const { user } = useUser();
 
-  // Filter memberships based on search query
-  const filteredMemberships = searchQuery
-    ? memberships.filter(
-        (membership) =>
-          membership.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (membership.description &&
-            membership.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Filter facilities based on search query
+  const filteredFacilities = searchQuery
+    ? facilities.filter(
+        (facility) =>
+          facility.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (facility.Address &&
+            facility.Address.toLowerCase().includes(searchQuery.toLowerCase()))
       )
-    : memberships;
+    : facilities;
 
-  const handleMembershipSelect = (membership: Membership) => {
-    setSelectedMembership(membership);
+  const handleFacilitySelect = (facility: Location) => {
+    setSelectedFacility(facility);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
 
-  const handleDeleteMembership = async (membershipId: string) => {
+  const handleDeleteFacility = async (facilityId: string) => {
     try {
-      await deleteMembership(membershipId, user?.Jwt!);
-      await revalidateMemberships();
-      toast.success("Membership deleted successfully");
+      const error = await deleteLocation(facilityId, user?.Jwt!);
+      if (error === null) {
+        await revalidateLocations();
+        toast.success("Location deleted successfully");
+      } else {
+        toast.error(`Error deleting location: ${error}`);
+      }
     } catch (error) {
-      console.error("Error deleting membership:", error);
-      toast.error("Failed to delete membership");
+      console.error("Error deleting facility:", error);
+      toast.error("Failed to delete location");
     }
   };
 
   const handleBulkDelete = async () => {
     try {
-      await Promise.all(selectedIds.map((id) => deleteMembership(id, user?.Jwt!)));
-      await revalidateMemberships();
+      await Promise.all(selectedIds.map((id) => deleteLocation(id, user?.Jwt!)));
+      await revalidateLocations();
       setSelectedIds([]);
       setBulkDeleteOpen(false);
-      toast.success("Selected memberships deleted successfully");
+      toast.success("Selected locations deleted successfully");
     } catch (error) {
-      console.error("Error deleting memberships:", error);
-      toast.error("Failed to delete memberships");
+      console.error("Error deleting locations:", error);
+      toast.error("Failed to delete locations");
     }
   };
 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Memberships" description="Manage your memberships and their details" />
+        <Heading title="Locations" description="Manage your organization's locations" />
         <Button
           onClick={() => {
             setDrawerContent("add");
@@ -88,7 +92,7 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
           className="flex items-center gap-2"
         >
           <PlusIcon className="h-4 w-4" />
-          Add Membership
+          Add Location
         </Button>
       </div>
       <Separator />
@@ -97,7 +101,7 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search memberships..."
+            placeholder="Search locations..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -146,10 +150,10 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
         </div>
       </div>
 
-      <MembershipTable
-        memberships={filteredMemberships}
-        onMembershipSelect={handleMembershipSelect}
-        onDeleteMembership={handleDeleteMembership}
+      <FacilityTable
+        facilities={filteredFacilities}
+        onFacilitySelect={handleFacilitySelect}
+        onDeleteFacility={handleDeleteFacility}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={setColumnVisibility}
         selectedIds={selectedIds}
@@ -162,7 +166,6 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
         onConfirm={handleBulkDelete}
         loading={false} // Update with actual loading state if needed
       />
-
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
@@ -170,12 +173,12 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Membership Details" : "Add Membership"}
+            {drawerContent === "details" ? "Facility Details" : "Add New Facility"}
           </h2>
-          {drawerContent === "details" && selectedMembership && (
-            <MembershipInfoPanel membership={selectedMembership} />
+          {drawerContent === "details" && selectedFacility && (
+            <FacilityInfoPanel facility={selectedFacility} />
           )}
-          {drawerContent === "add" && <AddMembershipForm />}
+          {drawerContent === "add" && <AddFacilityForm />}
         </div>
       </RightDrawer>
     </div>

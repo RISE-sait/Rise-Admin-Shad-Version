@@ -3,9 +3,31 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
-const columns: ColumnDef<Membership>[] = [
+export const columns: ColumnDef<Membership>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    size: 40,
+  },
   {
     id: "name",
     accessorKey: "name",
@@ -47,23 +69,20 @@ const columns: ColumnDef<Membership>[] = [
       </Button>
     ),
     cell: ({ row }) => {
-        const updatedAt = row.getValue("updated_at") as string
-
-        const date = new Date(updatedAt);
-
-        if (isNaN(date.getTime())) {
-            return "Invalid date"; // Fallback if conversion fails
-        }
-    
-        return `${date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
-        })} ${date.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false, // Change to `true` for AM/PM format
-        })}`;
+      const updatedAt = row.getValue("updated_at") as string;
+      const date = new Date(updatedAt);
+      if (isNaN(date.getTime())) {
+        return "Invalid date";
+      }
+      return `${date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })} ${date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })}`;
     },
     minSize: 120,
     size: 150,
@@ -78,15 +97,12 @@ const columns: ColumnDef<Membership>[] = [
         <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="h-8 w-8 p-0 hover:bg-accent"
-              >
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-accent">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
+            <DropdownMenuContent
               align="end"
               className="border bg-popover text-popover-foreground"
             >
@@ -124,4 +140,4 @@ const columns: ColumnDef<Membership>[] = [
   },
 ];
 
-export default columns
+export default columns;

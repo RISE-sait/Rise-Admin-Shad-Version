@@ -8,6 +8,7 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -20,16 +21,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { FolderSearch } from "lucide-react";
-
-import columns from './columns'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import columns from "./columns";
 
 interface DataTableProps {
   memberships: Membership[];
   onMembershipSelect: (membership: Membership) => void;
   onDeleteMembership?: (membershipId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
-  onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
+  onColumnVisibilityChange: (
+    updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
+  ) => void;
+  selectedIds: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
 }
 
 export default function MembershipTable({
@@ -38,6 +50,8 @@ export default function MembershipTable({
   onDeleteMembership,
   columnVisibility,
   onColumnVisibilityChange,
+  selectedIds,
+  onSelectionChange,
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -64,9 +78,16 @@ export default function MembershipTable({
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     meta: { onMembershipSelect, onDeleteMembership },
   });
+
+  React.useEffect(() => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    const newSelectedIds = selectedRows.map((row) => row.original.id);
+    onSelectionChange(newSelectedIds);
+  }, [rowSelection, table, onSelectionChange]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -74,10 +95,7 @@ export default function MembershipTable({
         <Table className="border-collapse">
           <TableHeader className="bg-muted/100 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow 
-                key={headerGroup.id}
-                className="hover:bg-transparent border-b"
-              >
+              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -95,7 +113,6 @@ export default function MembershipTable({
               </TableRow>
             ))}
           </TableHeader>
-          
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
@@ -103,7 +120,7 @@ export default function MembershipTable({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => onMembershipSelect(row.original)}
-                  className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50"
+                  className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -121,8 +138,8 @@ export default function MembershipTable({
               ))
             ) : (
               <TableRow>
-                <TableCell 
-                  colSpan={columns.length} 
+                <TableCell
+                  colSpan={columns.length}
                   className="h-24 text-center py-8 text-muted-foreground"
                 >
                   <div className="flex flex-col items-center space-y-2">
@@ -134,6 +151,55 @@ export default function MembershipTable({
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className="bg-muted/30 px-6 py-4 border-t rounded-b-xl">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing <span className="font-semibold">{table.getRowModel().rows.length}</span> of{" "}
+            <span className="font-semibold">{table.getFilteredRowModel().rows.length}</span>{" "}
+            memberships
+          </div>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <Select
+                value={String(table.getState().pagination.pageSize)}
+                onValueChange={(value) => table.setPageSize(Number(value))}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border">
+                  {[5, 10, 20, 50, 100].map((size) => (
+                    <SelectItem key={size} value={String(size)} className="text-sm">
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border hover:bg-accent hover:text-accent-foreground"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border hover:bg-accent hover:text-accent-foreground"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
