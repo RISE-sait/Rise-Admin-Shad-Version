@@ -12,6 +12,7 @@ import { toast } from '@/components/staff/toast'
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import StaffForm from '@/components/staff/StaffForm'
 import { Input } from '@/components/ui/input'
+import { AlertModal } from '@/components/ui/AlertModal' // Adjust import as needed
 
 const StaffPage = () => {
   const [staff, setStaff] = useState<StaffResponseDto[]>([])
@@ -20,23 +21,14 @@ const StaffPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isNewStaff, setIsNewStaff] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+
   const fetchStaff = async (forceRefresh = false) => {
     try {
       setLoading(true)
-      
-      // Get the current timestamp for cache-busting
       const timestamp = Date.now();
-      
-      // Option 1: If your API handles query parameters properly
-      let response;
-      if (forceRefresh) {
-        // Use a different approach to bypass cache
-        response = await ApiService.staffs.staffsList();
-      } else {
-        response = await ApiService.staffs.staffsList();
-      }
-      
+      let response = await ApiService.staffs.staffsList();
       console.log("Staff data fetched:", response.data)
       setStaff(response.data)
     } catch (error) {
@@ -50,7 +42,7 @@ const StaffPage = () => {
       setLoading(false)
     }
   }
-  
+
   useEffect(() => {
     fetchStaff()
   }, [])
@@ -72,7 +64,30 @@ const StaffPage = () => {
     setTimeout(() => {
       setSelectedStaff(null)
       setIsNewStaff(false)
-    }, 300) // Wait for animation
+    }, 300)
+  }
+
+  const handleBulkDelete = async () => {
+    try {
+      setLoading(true)
+      await Promise.all(selectedIds.map(id => ApiService.staffs.staffsDelete(id)))
+      toast({
+        title: "Success",
+        description: "Selected staff members deleted successfully.",
+      })
+      setSelectedIds([])
+      fetchStaff(true)
+    } catch (error) {
+      console.error('Error deleting staff:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete staff members.",
+      })
+    } finally {
+      setLoading(false)
+      setBulkDeleteOpen(false)
+    }
   }
 
   const filteredStaff = staff.filter(member => 
@@ -92,7 +107,7 @@ const StaffPage = () => {
       </div>
       <Separator />
       
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -102,6 +117,15 @@ const StaffPage = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        {selectedIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-4"
+          >
+            Delete Selected ({selectedIds.length})
+          </Button>
+        )}
       </div>
       
       <StaffTable 
@@ -109,44 +133,45 @@ const StaffPage = () => {
         loading={loading}
         onStaffSelect={handleStaffSelect}
         onDelete={fetchStaff}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+      />
+      
+      <AlertModal
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={handleBulkDelete}
+        loading={loading}
       />
       
       <Sheet 
         open={drawerOpen} 
-        onOpenChange={(open) => {
-          if (!open) handleDrawerClose()
-        }}
-        
+        onOpenChange={(open) => { if (!open) handleDrawerClose() }}
       >
         {loading && selectedStaff && (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-            </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+          </div>
         )}
         <SheetContent className="w-full sm:max-w-md md:max-w-xl overflow-y-auto pb-0">
           {isNewStaff ? (
             <StaffForm 
               onSubmit={async (data) => {
                 try {
-                  console.log("Creating staff with data:", data);
-                  await ApiService.register.staffCreate(data);
+                  await ApiService.register.staffCreate(data)
                   toast({
                     title: "Success",
                     description: "Staff member created successfully."
-                  });
-                  setDrawerOpen(false);
-                  
-                  // Force a refresh of the data
-                  setTimeout(() => {
-                    fetchStaff(true);
-                  }, 500);
+                  })
+                  setDrawerOpen(false)
+                  setTimeout(() => fetchStaff(true), 500)
                 } catch (error) {
-                  console.error('Error creating staff:', error);
+                  console.error('Error creating staff:', error)
                   toast({
                     variant: "destructive",
                     title: "Error",
                     description: "Failed to create staff member."
-                  });
+                  })
                 }
               }}
             />
@@ -155,46 +180,38 @@ const StaffPage = () => {
               initialData={selectedStaff}
               onSubmit={async (data) => {
                 try {
-                  await ApiService.staffs.staffsUpdate(selectedStaff.id!, data);
+                  await ApiService.staffs.staffsUpdate(selectedStaff.id!, data)
                   toast({
                     title: "Success",
                     description: "Staff member updated successfully."
-                  });
-                  setDrawerOpen(false);
-                  
-                  // Force a refresh
-                  setTimeout(() => {
-                    fetchStaff(true);
-                  }, 500);
+                  })
+                  setDrawerOpen(false)
+                  setTimeout(() => fetchStaff(true), 500)
                 } catch (error) {
-                  console.error('Error updating staff:', error);
+                  console.error('Error updating staff:', error)
                   toast({
                     variant: "destructive",
                     title: "Error",
                     description: "Failed to update staff member."
-                  });
+                  })
                 }
               }}
               onDelete={async () => {
                 try {
-                  await ApiService.staffs.staffsDelete(selectedStaff.id!);
+                  await ApiService.staffs.staffsDelete(selectedStaff.id!)
                   toast({
                     title: "Success",
                     description: "Staff member deleted successfully."
-                  });
-                  setDrawerOpen(false);
-                  
-                  // Force a refresh
-                  setTimeout(() => {
-                    fetchStaff(true);
-                  }, 500);
+                  })
+                  setDrawerOpen(false)
+                  setTimeout(() => fetchStaff(true), 500)
                 } catch (error) {
-                  console.error('Error deleting staff:', error);
+                  console.error('Error deleting staff:', error)
                   toast({
                     variant: "destructive",
                     title: "Error",
                     description: "Failed to delete staff member."
-                  });
+                  })
                 }
               }}
             />

@@ -1,4 +1,3 @@
-// CustomerTable.tsx
 "use client";
 import * as React from "react";
 import {
@@ -23,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpDown, MoreHorizontal, FolderSearch } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,17 +46,46 @@ interface DataTableProps {
   onCustomerSelect: (customer: Customer) => void;
   onDeleteCustomer?: (customerId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
-  onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
+  onColumnVisibilityChange: (
+    updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
+  ) => void;
+  selectedIds: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
 }
 
 export const columns: ColumnDef<Customer>[] = [
   {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    size: 40,
+  },
+  {
     id: "avatar",
     accessorKey: "name",
-    header: "",
+    header: "Avatar",
     cell: ({ row }) => (
       <Avatar className="h-8 w-8">
-        <AvatarImage src={row.original.profilePicture || ""} alt={`${row.original.first_name} ${row.original.last_name}`} />
+        <AvatarImage
+          src={row.original.profilePicture || ""}
+          alt={`${row.original.first_name} ${row.original.last_name}`}
+        />
         <AvatarFallback>
           {row.original.first_name?.[0]?.toUpperCase() || "?"}
         </AvatarFallback>
@@ -66,7 +95,7 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     id: "name",
-    accessorFn: (row) => `${row.first_name} ${row.last_name}`, // Combine names
+    accessorFn: (row) => `${row.first_name} ${row.last_name}`,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -116,15 +145,12 @@ export const columns: ColumnDef<Customer>[] = [
         <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="h-8 w-8 p-0 hover:bg-accent"
-              >
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-accent">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
+            <DropdownMenuContent
               align="end"
               className="border bg-popover text-popover-foreground"
             >
@@ -168,6 +194,8 @@ export default function CustomerTable({
   onDeleteCustomer,
   columnVisibility,
   onColumnVisibilityChange,
+  selectedIds,
+  onSelectionChange,
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -199,16 +227,19 @@ export default function CustomerTable({
     meta: { onCustomerSelect, onDeleteCustomer },
   });
 
+  React.useEffect(() => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    const newSelectedIds = selectedRows.map((row) => row.original.id);
+    onSelectionChange(newSelectedIds);
+  }, [rowSelection, table, onSelectionChange]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl overflow-hidden border">
         <Table className="border-collapse">
-          <TableHeader className="bg-muted/50 sticky top-0 z-10">
+          <TableHeader className="bg-muted/100 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow 
-                key={headerGroup.id}
-                className="hover:bg-transparent border-b"
-              >
+              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -226,7 +257,6 @@ export default function CustomerTable({
               </TableRow>
             ))}
           </TableHeader>
-          
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
@@ -234,7 +264,7 @@ export default function CustomerTable({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => onCustomerSelect(row.original)}
-                  className="border-b hover:bg-muted/50 transition-colors duration-150 ease-in-out even:bg-muted/10"
+                  className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -252,8 +282,8 @@ export default function CustomerTable({
               ))
             ) : (
               <TableRow>
-                <TableCell 
-                  colSpan={columns.length} 
+                <TableCell
+                  colSpan={columns.length}
                   className="h-24 text-center py-8 text-muted-foreground"
                 >
                   <div className="flex flex-col items-center space-y-2">
@@ -266,19 +296,13 @@ export default function CustomerTable({
           </TableBody>
         </Table>
       </div>
-
       <div className="bg-muted/30 px-6 py-4 border-t rounded-b-xl">
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing{' '}
-            <span className="font-semibold">{table.getRowModel().rows.length}</span>{' '}
-            of{' '}
-            <span className="font-semibold">
-              {table.getFilteredRowModel().rows.length}
-            </span>{' '}
+            Showing <span className="font-semibold">{table.getRowModel().rows.length}</span> of{" "}
+            <span className="font-semibold">{table.getFilteredRowModel().rows.length}</span>{" "}
             customers
           </div>
-          
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">Rows per page:</span>
@@ -291,18 +315,13 @@ export default function CustomerTable({
                 </SelectTrigger>
                 <SelectContent className="border">
                   {[5, 10, 20, 50, 100].map((size) => (
-                    <SelectItem 
-                      key={size} 
-                      value={String(size)}
-                      className="text-sm"
-                    >
+                    <SelectItem key={size} value={String(size)} className="text-sm">
                       {size}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
             <div className="flex space-x-2">
               <Button
                 variant="outline"

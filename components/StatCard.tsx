@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 const StatCard = ({ name, icon: Icon, value, color }: any) => {
   return (
     <motion.div
-      className="h-full bg-card rounded-xl shadow-sm hover:shadow-md border border-border transition-all duration-300 overflow-hidden"
-      whileHover={{ y: -4 }}
+      className="h-full bg-card rounded-xl shadow-sm hover:shadow-md border border-border transition-all duration-0 overflow-hidden"
+      whileHover={{ y: -6 }}
     >
       <div className="p-4 sm:p-5">
         <div className="flex items-center gap-3">
