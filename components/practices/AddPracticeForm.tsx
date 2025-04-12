@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
 import { SaveIcon } from "lucide-react";
-import { createPractice } from "@/services/practices";
+import { createProgram } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidatePractices } from "@/app/actions/serverActions";
@@ -40,7 +40,7 @@ export default function AddPracticeForm({ levels }: { levels: string[] }) {
         ...data
       }
 
-      const error = await createPractice(practiceData, user?.Jwt!)
+      const error = await createProgram(practiceData, user?.Jwt!)
 
       if (error === null) {
 

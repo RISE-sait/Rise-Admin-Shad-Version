@@ -7,7 +7,7 @@ import ScheduleTab from "./infoTabs/Schedule";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
-import { deletePractice, updatePractice } from "@/services/practices";
+import { deleteProgram, updateProgram } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { Practice } from "@/types/practice";
 import { PracticeRequestDto } from "@/app/api/Api";
@@ -34,7 +34,7 @@ export default function PracticeInfoPanel({ practice, levels }: { practice: Prac
         capacity: data.capacity
       }
 
-      const error = await updatePractice(practice.id, practiceData, user?.Jwt!)
+      const error = await updateProgram(practice.id, practiceData, user?.Jwt!)
 
       if (error === null) {
         toast({ status: "success", description: "Practice updated successfully" });
@@ -50,7 +50,7 @@ export default function PracticeInfoPanel({ practice, levels }: { practice: Prac
 
   const handleDeletePractice = async () => {
     try {
-      const error = await deletePractice(practice.id, user?.Jwt!)
+      const error = await deleteProgram(practice.id, user?.Jwt!)
       
       if (error === null) {
         toast({ status: "success", description: "Practice updated successfully" });

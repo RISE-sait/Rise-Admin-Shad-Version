@@ -17,7 +17,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
 import { Practice } from "@/types/practice";
-import { deletePractice } from "@/services/practices";
+import { deleteProgram } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { revalidatePractices } from "@/app/actions/serverActions";
@@ -46,7 +46,7 @@ export default function PracticesPage({ practices, practiceLevels }: PracticePag
 
   const handleDeletePractice = async (practiceId: string) => {
     try {
-      const error = deletePractice(practiceId, user?.Jwt!);
+      const error = deleteProgram(practiceId, user?.Jwt!);
 
       if (error === null) {
         toast({ status: "success", description: "Practice deleted successfully" });
