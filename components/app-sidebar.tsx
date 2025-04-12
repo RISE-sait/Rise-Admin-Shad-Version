@@ -97,10 +97,6 @@ const data = {
           title: "Transactions",
           url: "/reports/transactions",
         },
-        {
-          title: "Financials",
-          url: "/reports/financials",
-        },
       ],
     },
   ],
@@ -137,7 +133,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>{user && <NavUser user={navUserProps} />}</SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
