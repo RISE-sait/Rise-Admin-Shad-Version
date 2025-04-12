@@ -1,40 +1,110 @@
-// Example matching the mina-scheduler event properties
+export type CalendarProps = {
+  events: CalendarEvent[]
+  setEvents: (events: CalendarEvent[]) => void
+  mode: Mode
+  setMode: (mode: Mode) => void
+  date: Date
+  setDate: (date: Date) => void
+  calendarIconIsToday?: boolean
+}
 
-export interface SchedulerEvent {
+export type CalendarContextType = CalendarProps & {
+  newEventDialogOpen: boolean
+  setNewEventDialogOpen: (open: boolean) => void
+  manageEventDialogOpen: boolean
+  setManageEventDialogOpen: (open: boolean) => void
+  selectedEvent: CalendarEvent | null
+  setSelectedEvent: (event: CalendarEvent | null) => void
+}
+// types/calendar.ts
+export interface CalendarEvent {
+  id: string;
+  start_at: Date
+  end_at: Date
+  capacity: number;
+  color?: string;
+  createdBy: {
+    firstName: string;
     id: string;
-    title: string;
-    description: string;
-    start: Date; // Ensure start is a Date object
-    end: Date; // Ensure end is a Date object
-    variant: string; // Add variant property
-    [key: string]: any; // Allow additional properties
-  }
+    lastName: string;
+  };
+  customers: Array<{
+    email: string;
+    firstName: string;
+    gender: string;
+    hasCancelledEnrollment: boolean;
+    id: string;
+    lastName: string;
+    phone: string;
+  }>;
+  location: {
+    address: string;
+    id: string;
+    name: string;
+  };
+  program: {
+    id: string;
+    name: string;
+    type: string;
+  };
+  staff: Array<{
+    email: string;
+    firstName: string;
+    gender: string;
+    id: string;
+    lastName: string;
+    phone: string;
+    roleName: string;
+  }>;
+  team: {
+    id: string;
+    name: string;
+  };
+  updatedBy: {
+    firstName: string;
+    id: string;
+    lastName: string;
+  };
+}
+
+export const calendarModes = ['day', 'week', 'month'] as const
+export type Mode = (typeof calendarModes)[number]
+
     
     // If you have existing Trainer/Class/Facility types, keep them:
     export interface Trainer {
-      id: number
-      name: string
-      checked: boolean
+      coach_stats: {
+        losses: number;
+        wins: number;
+      };
+      country_code: string;
+      created_at: string;
+      email: string;
+      first_name: string;
+      hubspot_id: string;
+      id: string;
+      is_active: boolean;
+      last_name: string;
+      phone: string;
+      role_name: string;
+      updated_at: string;
     }
-    
-    export interface Class {
-      id: number
-      name: string
-      checked: boolean
-    }
-    
-    export interface Facility {
-      id: number
-      name: string
-      checked: boolean
-      warning?: boolean
-    }
-    
+  
     export type AppointmentsType = "booked" | "non-booked" | "both"
     
     export interface FiltersType {
-      trainers: Trainer[]
-      classes: Class[]
-      appointments: AppointmentsType
-      facilities: Facility[]
+      // Date filters
+      after: string; // YYYY-MM-DD
+      before: string; // YYYY-MM-DD
+      
+      // Backend API filter params
+      program_id?: string;
+      user_id?: string;
+      team_id?: string;
+      location_id?: string;
+      program_type?: string;
+      created_by?: string;
+      updated_by?: string;
+
+      appointments: AppointmentsType;
     }

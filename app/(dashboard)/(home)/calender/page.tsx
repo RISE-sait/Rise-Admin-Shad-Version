@@ -1,173 +1,93 @@
-"use client"
+// app/(dashboard)/(home)/calender/page.tsx
+import CalendarPage from '@/components/calendar/CalendarPage';
+import { getAllEvents } from '@/services/events';
+import { CalendarEvent } from '@/types/calendar';
+import { colorOptions } from '@/components/calendar/components/calendar/calendar-tailwind-classes';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import RightDrawer from "@/components/reusable/RightDrawer"
-import FilterComponent from "../../../../components/calendar/Filter"
-import MainCalendar from "../../../../components/calendar/MainCalendar"
-import { SchedulerEvent, FiltersType } from "../../../../types/calendar"
-import { useDrawer } from "../../../../hooks/drawer"
-
-const initialEvents: SchedulerEvent[] = [
-  {
-    id: "1",
-    title: "Event 1",
-    description: "Initial event description",
-    start: new Date(),
-    end: new Date(new Date().getTime() + 60 * 60 * 1000),
-    variant: "primary",
-  },
-  {
-    id: "2",
-    title: "Event 2",
-    description: "Another event",
-    start: new Date(),
-    end: new Date(new Date().getTime() + 2 * 60 * 60 * 1000),
-    variant: "default",
-  },
-]
-
-export default function CalendarPage() {
-  const [selectedEvent, setSelectedEvent] = useState<SchedulerEvent | null>(null)
-  const [filterOpen, setFilterOpen] = useState(true)
-  const [filters, setFilters] = useState<FiltersType>({
-    trainers: [
-      { id: 1, name: "Test Trainer", checked: true },
-      { id: 2, name: "Trainer 2", checked: false },
-      { id: 3, name: "Trainer 3", checked: false },
-    ],
-    classes: [
-      { id: 1, name: "Ball Handling", checked: true },
-      { id: 2, name: "IQ/Footwork/Spacing", checked: true },
-      { id: 3, name: "IQ/Situational Drills", checked: true },
-      { id: 4, name: "OPEN GYM/DROP IN", checked: true },
-      { id: 5, name: "RISE PERFORMANCE", checked: true },
-      { id: 6, name: "Shooting Class", checked: true },
-    ],
-    appointments: "booked",
-    facilities: [
-      { id: 1, name: "Show booked", checked: false },
-      { id: 2, name: "Show non-booked", checked: false },
-      { id: 3, name: "Show both", checked: true },
-      { id: 4, name: "Check out Tryout location", checked: true },
-      { id: 5, name: "Online Facility", checked: false, warning: true },
-      { id: 6, name: "Prolific Sports House", checked: true },
-      { id: 7, name: "Rise Facility - Calgary", checked: false, warning: true },
-      { id: 8, name: "The Genesis Centre", checked: false },
-    ],
-  })
-
-  const [events, setEvents] = useState<SchedulerEvent[]>(initialEvents)
-  const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer()
-
-  const handleAddEvent = (newEvent: SchedulerEvent) => {
-    setEvents((prev) => [...prev, newEvent])
+function mapToCalendarEvents(events: any[] | undefined): CalendarEvent[] {
+  if (!Array.isArray(events)) {
+    console.error('Events is not an array:', events);
+    return [];
   }
 
-  const toggleFilter = () => {
-    setFilterOpen(!filterOpen)
-  }
-
-  // 1) Expand the type
-type FilterChangeType = keyof FiltersType | "settingsTimeFormat" | "settingsWeekStart"
-
-const handleFilterChange = (type: FilterChangeType, value: string, checked: boolean) => {
-  setFilters((prev) => {
-    const updated = { ...prev }
-
-    if (type === "settingsTimeFormat") {
-      // store or handle the time format setting, for instance:
-      // updated.timeFormat = value
-      return updated
-    } else if (type === "settingsWeekStart") {
-      // store or handle the “weekStart” setting
-      // updated.weekStart = value
-      return updated
-    }
-
-    // otherwise handle normal FiltersType keys:
-    if (type === "appointments") {
-      updated.appointments = value as "booked" | "non-booked" | "both"
-      return updated
-    }
-    if (type === "trainers") {
-      updated.trainers = prev.trainers.map((t) =>
-        t.name === value ? { ...t, checked } : t
-      )
-    } else if (type === "classes") {
-      updated.classes = prev.classes.map((c) =>
-        c.name === value ? { ...c, checked } : c
-      )
-    } else if (type === "facilities") {
-      const radioNames = ["Show booked", "Show non-booked", "Show both"]
-      if (radioNames.includes(value)) {
-        updated.facilities = prev.facilities.map((f) =>
-          radioNames.includes(f.name)
-            ? { ...f, checked: f.name === value }
-            : f
-        )
-      } else {
-        updated.facilities = prev.facilities.map((f) =>
-          f.name === value ? { ...f, checked } : f
-        )
-      }
-    }
-
-    return updated
-  })
+  return (events ?? []).map(event => ({
+    id: event.id,
+    color: getEventColor(event.program?.type),
+    start_at: new Date(event.start_at),
+    end_at: new Date(event.end_at),
+    capacity: event.capacity,
+    createdBy: {
+      firstName: event.created_by.first_name,
+      id: event.created_by.id,
+      lastName: event.created_by.last_name,
+    },
+    customers: event.customers?.map((customer: any) => ({
+      email: customer.email,
+      firstName: customer.first_name,
+      gender: customer.gender,
+      hasCancelledEnrollment: customer.has_cancelled_enrollment,
+      id: customer.id,
+      lastName: customer.last_name,
+      phone: customer.phone,
+    })),
+    location: {
+      address: event.location.address,
+      id: event.location.id,
+      name: event.location.name,
+    },
+    program: {
+      id: event.program.id,
+      name: event.program.name,
+      type: event.program.type,
+    },
+    staff: event.staff?.map((staff: any) => ({
+      email: staff.email,
+      firstName: staff.first_name,
+      gender: staff.gender,
+      id: staff.id,
+      lastName: staff.last_name,
+      phone: staff.phone,
+      roleName: staff.role_name,
+    })),
+    team: {
+      id: event.team?.id ?? "",
+      name: event.team?.name ?? "",
+    },
+    updatedBy: {
+      firstName: event.updated_by?.first_name ?? "",
+      id: event.updated_by?.id ?? "",
+      lastName: event.updated_by?.last_name ?? "",
+    },
+  })) || [];
 }
 
-  // Example of toggling all facility checkboxes with IDs 4–8
-  const toggleSelectAllFacilities = (isChecked: boolean) => {
-    setFilters((prev) => {
-      const updated = { ...prev }
-      updated.facilities = updated.facilities.map((f, idx) =>
-        idx >= 3 ? { ...f, checked: isChecked } : f
-      )
-      return updated
-    })
+function getEventColor(programType?: string): string {
+  switch (programType) {
+    case 'practice':
+      return colorOptions[1].value; // Assuming colorOptions is an array of color objects;
+    case 'game':
+      return colorOptions[0].value;
+    case 'course':
+      return colorOptions[2].value;
+    default:
+      return 'gray';
+  }
+}
+
+export default async function Calendar() {
+  let initialEvents: CalendarEvent[] = [];
+
+  try {
+    const events = await getAllEvents({
+      after: '2024-01-01',
+      before: '2026-02-01',
+    });
+    console.log('Events from getAllEvents:', events);
+    initialEvents = mapToCalendarEvents(events);
+  } catch (error) {
+    console.error('Error fetching events in Calendar:', error);
+    initialEvents = [];
   }
 
-  const resetFilters = () => {
-    setFilters((prev) => ({
-      ...prev,
-      trainers: prev.trainers.map((t) => ({ ...t, checked: false })),
-      classes: prev.classes.map((c) => ({ ...c, checked: false })),
-      appointments: "booked",
-      facilities: prev.facilities.map((f) => ({ ...f, checked: false })),
-    }))
-  }
-
-  return (
-    <div className="flex flex-col gap-6 p-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Calendar</h1>
-        <div className="flex">
-          <Button variant="outline" onClick={toggleFilter}>
-            {filterOpen ? "Hide Filters" : "Show Filters"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex flex-row gap-2">
-        {/* Filter Sidebar */}
-        {filterOpen && (
-          <div className="w-1/6 mt-4">
-            <FilterComponent
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              toggleSelectAllFacilities={toggleSelectAllFacilities}
-              resetFilters={resetFilters}
-            />
-          </div>
-        )}
-        {/* Calendar */}
-        <div className={filterOpen ? "w-5/6" : "w-full"}>
-          <MainCalendar />
-        </div>
-      </div>
-    </div>
-  )
+  return <CalendarPage initialEvents={initialEvents} />;
 }

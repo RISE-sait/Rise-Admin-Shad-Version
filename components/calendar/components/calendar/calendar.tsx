@@ -1,4 +1,4 @@
-import type { CalendarProps } from './calendar-types'
+import type { CalendarProps } from '@/types/calendar'
 import CalendarHeader from './header/calendar-header'
 import CalendarBody from './body/calendar-body'
 import CalendarHeaderActions from './header/actions/calendar-header-actions'

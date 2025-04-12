@@ -1,5 +1,5 @@
 import { CalendarContext } from './calendar-context'
-import { CalendarEvent, Mode } from './calendar-types'
+import { CalendarEvent, Mode } from '@/types/calendar'
 import { useState } from 'react'
 import CalendarNewEventDialog from './dialog/calendar-new-event-dialog'
 import CalendarManageEventDialog from './dialog/calendar-manage-event-drawer'

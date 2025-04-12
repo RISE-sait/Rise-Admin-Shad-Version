@@ -327,9 +327,9 @@ export default function CalendarManageEventDrawer() {
   useEffect(() => {
     if (selectedEvent) {
       form.reset({
-        title: selectedEvent.title,
-        start: format(selectedEvent.start, "yyyy-MM-dd'T'HH:mm"),
-        end: format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm"),
+        title: selectedEvent.program.name,
+        start: format(selectedEvent.start_at, "yyyy-MM-dd'T'HH:mm"),
+        end: format(selectedEvent.end_at, "yyyy-MM-dd'T'HH:mm"),
         color: selectedEvent.color,
       })
     }
