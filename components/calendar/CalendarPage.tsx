@@ -74,11 +74,14 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         const query: EventQueryParams = {
           after: filters.after,
           before: filters.before,
+          program_id: filters.program_id || undefined,
+          user_id: filters.user_id || undefined,
+          team_id: filters.team_id || undefined,
+          location_id: filters.location_id || undefined,
           program_type: filters.program_type || undefined,
           created_by: filters.created_by || undefined,
           updated_by: filters.updated_by || undefined,
-          team_id: filters.team_id || undefined,
-        };
+        }
         
         // Handle multi-select location_ids
         if (filters.location_ids?.length) {

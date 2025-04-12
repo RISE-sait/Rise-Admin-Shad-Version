@@ -313,7 +313,7 @@ export default function FilterComponent({
           </AccordionContent>
         </AccordionItem>
 
-        {/* Location Filter - UPDATED to use checkboxes */}
+        {/* Location Filter - Changed from checkboxes to dropdown */}
         <AccordionItem value="location">
           <AccordionTrigger className="text-large font-medium text-gray-900 dark:text-gray-100">
             Location
@@ -322,43 +322,22 @@ export default function FilterComponent({
             {isLoading.locations ? (
               <div>Loading locations...</div>
             ) : (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 pb-2">
-                  <Checkbox 
-                    id="all-locations" 
-                    checked={!filters.location_ids?.length}
-                    onCheckedChange={() => {
-                      // When "All Locations" is checked, clear the location_ids array
-                      onFilterChange("location_ids", []);
-                    }}
-                  />
-                  <Label htmlFor="all-locations" className="text-sm">All Locations</Label>
-                </div>
-                <Separator className="my-2" />
-                <ScrollArea className="h-[200px] pr-4">
-                  <div className="space-y-2">
-                    {locations.map(location => (
-                      <div key={location.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`loc-${location.id}`}
-                          checked={filters.location_ids?.includes(location.id)}
-                          onCheckedChange={(checked) => {
-                            const currentLocations = filters.location_ids || [];
-                            if (checked) {
-                              // Add location to the array if checked
-                              onFilterChange("location_ids", [...currentLocations, location.id]);
-                            } else {
-                              // Remove location from the array if unchecked
-                              onFilterChange("location_ids", currentLocations.filter(id => id !== location.id));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`loc-${location.id}`} className="text-sm">{location.name}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
+              <Select 
+                value={filters.location_id || "all"} 
+                onValueChange={(value) => onFilterChange("location_id", value === "all" ? "" : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {locations.map(location => (
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </AccordionContent>
         </AccordionItem>
@@ -386,54 +365,33 @@ export default function FilterComponent({
                 ))}
               </RadioGroup>
               
-              {/* Program Names - UPDATED to use checkboxes */}
+              {/* Program Names - Changed from checkboxes to dropdown */}
               {filters.program_type && filteredPrograms.length > 0 && (
                 <div className="mt-4">
-                  <Label className="text-sm mb-2 block">Select Programs</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 pb-2">
-                      <Checkbox 
-                        id="all-programs" 
-                        checked={!filters.program_ids?.length}
-                        onCheckedChange={() => {
-                          // When "All Programs" is checked, clear the program_ids array
-                          onFilterChange("program_ids", []);
-                        }}
-                      />
-                      <Label htmlFor="all-programs" className="text-sm">All Programs</Label>
-                    </div>
-                    <Separator className="my-2" />
-                    <ScrollArea className="h-[200px] pr-4">
-                      <div className="space-y-2">
-                        {filteredPrograms.map(program => (
-                          <div key={program.id} className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`program-${program.id}`}
-                              checked={filters.program_ids?.includes(program.id)}
-                              onCheckedChange={(checked) => {
-                                const currentPrograms = filters.program_ids || [];
-                                if (checked) {
-                                  // Add program to the array if checked
-                                  onFilterChange("program_ids", [...currentPrograms, program.id]);
-                                } else {
-                                  // Remove program from the array if unchecked
-                                  onFilterChange("program_ids", currentPrograms.filter(id => id !== program.id));
-                                }
-                              }}
-                            />
-                            <Label htmlFor={`program-${program.id}`} className="text-sm">{program.name}</Label>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
+                  <Label className="text-sm mb-2 block">Select Program</Label>
+                  <Select
+                    value={filters.program_id || "all"}
+                    onValueChange={(value) => onFilterChange("program_id", value === "all" ? "" : value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select program" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Programs</SelectItem>
+                      {filteredPrograms.map(program => (
+                        <SelectItem key={program.id} value={program.id}>
+                          {program.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        {/* Trainers - UPDATED to use checkboxes */}
+        {/* Trainers - Changed from checkboxes to dropdown */}
         <AccordionItem value="trainers">
           <AccordionTrigger className="text-large font-medium text-gray-900 dark:text-gray-100">
             Trainers
@@ -442,43 +400,22 @@ export default function FilterComponent({
             {isLoading.trainers ? (
               <div>Loading trainers...</div>
             ) : (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 pb-2">
-                  <Checkbox 
-                    id="all-trainers" 
-                    checked={!filters.user_ids?.length}
-                    onCheckedChange={() => {
-                      // When "All Trainers" is checked, clear the user_ids array
-                      onFilterChange("user_ids", []);
-                    }}
-                  />
-                  <Label htmlFor="all-trainers" className="text-sm">All Trainers</Label>
-                </div>
-                <Separator className="my-2" />
-                <ScrollArea className="h-[200px] pr-4">
-                  <div className="space-y-2">
-                    {trainers.map(trainer => (
-                      <div key={trainer.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`trainer-${trainer.id}`}
-                          checked={filters.user_ids?.includes(trainer.id)}
-                          onCheckedChange={(checked) => {
-                            const currentTrainers = filters.user_ids || [];
-                            if (checked) {
-                              // Add trainer to the array if checked
-                              onFilterChange("user_ids", [...currentTrainers, trainer.id]);
-                            } else {
-                              // Remove trainer from the array if unchecked
-                              onFilterChange("user_ids", currentTrainers.filter(id => id !== trainer.id));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`trainer-${trainer.id}`} className="text-sm">{trainer.name}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
+              <Select
+                value={filters.user_id || "all"}
+                onValueChange={(value) => onFilterChange("user_id", value === "all" ? "" : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select trainer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Trainers</SelectItem>
+                  {trainers.map(trainer => (
+                    <SelectItem key={trainer.id} value={trainer.id}>
+                      {trainer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </AccordionContent>
         </AccordionItem>
