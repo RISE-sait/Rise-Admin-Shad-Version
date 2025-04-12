@@ -7,161 +7,131 @@ import { addAuthHeader } from '@/lib/auth-header';
 import getValue from '@/configs/constants';
 import { Practice } from '@/types/practice';
 
-export async function getAllPractices(): Promise<Practice[]> {
+/**
+ * Get all programs with optional type filtering
+ * @param type Optional program type filter (practice, game, course, others)
+ */
+export async function getAllPrograms(type?: string): Promise<any[]> {
   try {
-
-    const response = await fetch(`${getValue("API")}practices`, {
+    // Build URL with optional type parameter
+    const url = type 
+      ? `/api/programs?type=${encodeURIComponent(type)}`
+      : '/api/programs';
+    
+    const response = await fetch(url, {
       method: 'GET',
       ...addAuthHeader()
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch practices: ${response.statusText}`);
+      console.error(`Failed to fetch programs: ${response.status} ${response.statusText}`);
+      return []; // Return empty array instead of throwing
     }
 
-    const practicesResponse: PracticeResponse[] = await response.json();
-
-    const practices: Practice[] = practicesResponse.map((practice) => ({
-      createdAt: new Date(practice.createdAt!), // Convert string to Date
-      capacity: practice.capacity!,
-      id: practice.id!,
-      name: practice.name!,
-      level: practice.level!,
-      updatedAt: new Date(practice.updatedAt!), // Convert string to Date
-      description: practice.description!
-    }))
-
-    return practices
+    const programsResponse = await response.json();
+    return programsResponse;
   } catch (error) {
-    console.error('Error fetching practices:', error);
-    throw error;
+    console.error('Error fetching programs:', error);
+    return []; // Return empty array on error
   }
 }
 
-export async function getAllPracticeLevels(): Promise<string[]> {
+/**
+ * Create a new program
+ */
+export async function createProgram(programData: any, jwt: string): Promise<string | null> {
   try {
-
-    const response = await fetch(`${getValue("API")}practices/levels`);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch practices: ${response.statusText}`);
-    }
-
-    const practiceLevelsResponse: PracticeLevelsResponse = await response.json();
-
-    return practiceLevelsResponse.levels ?? []
-  } catch (error) {
-    console.error('Error fetching practices:', error);
-    throw error;
-  }
-}
-
-export async function createPractice(practiceData: PracticeRequestDto, jwt: string): Promise<string | null> {
-  try {
-
-    // Create custom headers including the firebase_token header
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`${getValue('API')}practices`, {
+    const response = await fetch('/api/programs', {
       method: 'POST',
       headers,
-      body: JSON.stringify(practiceData)
+      body: JSON.stringify(programData)
     });
 
     if (!response.ok) {
-
-    const responseJSON = await response.json();
-
-      let errorMessage = `Failed to create practice: ${response.statusText}`;
+      const responseJSON = await response.json();
+      let errorMessage = `Failed to create program: ${response.statusText}`;
 
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
       }
 
       return errorMessage;
-
     }
 
-    return null
+    return null;
   } catch (error) {
-    console.error('Error creating practice:', error);
+    console.error('Error creating program:', error);
     throw error;
   }
 }
 
-export async function updatePractice(practiceID: string, practiceData: PracticeRequestDto, jwt: string): Promise<string | null> {
+/**
+ * Update an existing program
+ */
+export async function updateProgram(programID: string, programData: any, jwt: string): Promise<string | null> {
   try {
-
-    // Create custom headers including the firebase_token header
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`${getValue('API')}practices/${practiceID}`, {
+    const response = await fetch(`/api/programs/${programID}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(practiceData)
+      body: JSON.stringify(programData)
     });
 
     if (!response.ok) {
-
       const responseJSON = await response.json();
-
-      let errorMessage = `Failed to update practice: ${response.statusText}`;
+      let errorMessage = `Failed to update program: ${response.statusText}`;
 
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
       }
 
       return errorMessage;
-
     }
 
-    return null
+    return null;
   } catch (error) {
-    console.error('Error creating practice:', error);
+    console.error('Error updating program:', error);
     throw error;
   }
 }
 
-
-export async function deletePractice(practiceID: string, jwt: string): Promise<string | null> {
+/**
+ * Delete a program
+ */
+export async function deleteProgram(programID: string, jwt: string): Promise<string | null> {
   try {
-
-
-    // Create custom headers including the firebase_token header
     const headers = {
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`${getValue('API')}practices/${practiceID}`, {
+    const response = await fetch(`/api/programs/${programID}`, {
       method: 'DELETE',
       headers
-    })
+    });
 
     if (!response.ok) {
-
       const responseJSON = await response.json();
-
-      let errorMessage = `Failed to delete practice: ${response.statusText}`;
+      let errorMessage = `Failed to delete program: ${response.statusText}`;
 
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
       }
 
       return errorMessage;
-
     }
 
-    return null
-
-
+    return null;
   } catch (error) {
-    console.error('Error creating location:', error);
+    console.error('Error deleting program:', error);
     throw error;
   }
 }

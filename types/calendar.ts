@@ -6,6 +6,7 @@ export type CalendarProps = {
   date: Date
   setDate: (date: Date) => void
   calendarIconIsToday?: boolean
+  onEventSelect?: (event: CalendarEvent) => void  // Added this line
 }
 
 export type CalendarContextType = CalendarProps & {
@@ -15,6 +16,7 @@ export type CalendarContextType = CalendarProps & {
   setManageEventDialogOpen: (open: boolean) => void
   selectedEvent: CalendarEvent | null
   setSelectedEvent: (event: CalendarEvent | null) => void
+  onEventSelect?: (event: CalendarEvent) => void  // Added this line
 }
 // types/calendar.ts
 export interface CalendarEvent {
@@ -71,40 +73,46 @@ export const calendarModes = ['day', 'week', 'month'] as const
 export type Mode = (typeof calendarModes)[number]
 
     
-    // If you have existing Trainer/Class/Facility types, keep them:
-    export interface Trainer {
-      coach_stats: {
-        losses: number;
-        wins: number;
-      };
-      country_code: string;
-      created_at: string;
-      email: string;
-      first_name: string;
-      hubspot_id: string;
-      id: string;
-      is_active: boolean;
-      last_name: string;
-      phone: string;
-      role_name: string;
-      updated_at: string;
-    }
-  
-    export type AppointmentsType = "booked" | "non-booked" | "both"
-    
-    export interface FiltersType {
-      // Date filters
-      after: string; // YYYY-MM-DD
-      before: string; // YYYY-MM-DD
-      
-      // Backend API filter params
-      program_id?: string;
-      user_id?: string;
-      team_id?: string;
-      location_id?: string;
-      program_type?: string;
-      created_by?: string;
-      updated_by?: string;
+// If you have existing Trainer/Class/Facility types, keep them:
+export interface Trainer {
+  coach_stats: {
+    losses: number;
+    wins: number;
+  };
+  country_code: string;
+  created_at: string;
+  email: string;
+  first_name: string;
+  hubspot_id: string;
+  id: string;
+  is_active: boolean;
+  last_name: string;
+  phone: string;
+  role_name: string;
+  updated_at: string;
+}
 
-      appointments: AppointmentsType;
-    }
+export type AppointmentsType = "booked" | "non-booked" | "both"
+
+// Updated FiltersType interface with array support for multiple selections
+export interface FiltersType {
+  // Date filters
+  after: string; // YYYY-MM-DD
+  before: string; // YYYY-MM-DD
+  
+  // Backend API filter params - single selections (legacy)
+  program_id?: string;
+  user_id?: string;
+  team_id?: string;
+  location_id?: string;
+  program_type?: string;
+  created_by?: string;
+  updated_by?: string;
+
+  // New multi-select options
+  location_ids?: string[];  // Multiple locations
+  user_ids?: string[];      // Multiple trainers/users
+  program_ids?: string[];   // Multiple programs
+  
+  appointments: AppointmentsType;
+}

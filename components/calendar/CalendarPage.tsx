@@ -27,7 +27,6 @@ type EventQueryParams = {
   updated_by?: string;
 };
 
-
 export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   // State for events, filtered events, and UI
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
@@ -41,7 +40,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   const thirtyDaysAgo = subDays(today, 30);
   const thirtyDaysLater = addDays(today, 30);
 
-  // Updated filter structure to match Filter.tsx component
+  // Updated filter structure to include array filters
   const [filters, setFilters] = useState<FiltersType>({
     // Date filters
     after: format(thirtyDaysAgo, "yyyy-MM-dd"),
@@ -56,8 +55,13 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
     created_by: "",
     updated_by: "",
     
+    // Multi-select arrays
+    location_ids: [],
+    user_ids: [],
+    program_ids: [],
+    
     // Frontend-only settings
-    appointments: "both" // changed from 'booked' to match Filter.tsx options
+    appointments: "both"
   });
 
   // Fetch filtered events when filters change
@@ -66,20 +70,38 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       setIsLoading(true);
       
       try {
-        // Then use this type
+        // Convert multi-select arrays to comma-separated strings
         const query: EventQueryParams = {
           after: filters.after,
           before: filters.before,
-          program_id: filters.program_id || undefined,
-          user_id: filters.user_id || undefined,
-          team_id: filters.team_id || undefined,
-          location_id: filters.location_id || undefined,
           program_type: filters.program_type || undefined,
           created_by: filters.created_by || undefined,
-          updated_by: filters.updated_by || undefined
+          updated_by: filters.updated_by || undefined,
+          team_id: filters.team_id || undefined,
         };
         
-        // The rest of your code remains the same
+        // Handle multi-select location_ids
+        if (filters.location_ids?.length) {
+          query.location_id = filters.location_ids.join(',');
+        } else {
+          query.location_id = filters.location_id || undefined;
+        }
+        
+        // Handle multi-select user_ids (trainers)
+        if (filters.user_ids?.length) {
+          query.user_id = filters.user_ids.join(',');
+        } else {
+          query.user_id = filters.user_id || undefined;
+        }
+        
+        // Handle multi-select program_ids
+        if (filters.program_ids?.length) {
+          query.program_id = filters.program_ids.join(',');
+        } else {
+          query.program_id = filters.program_id || undefined;
+        }
+        
+        // Remove undefined values
         Object.keys(query).forEach(key => {
           if (query[key as keyof EventQueryParams] === undefined) {
             delete query[key as keyof EventQueryParams];
@@ -88,11 +110,12 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         
         console.log("Fetching events with filters:", query);
         const eventsData = await getAllEvents(query);
+        console.log(`Retrieved ${eventsData.length} events from API`);
 
         function getEventColor(programType?: string): string {
-          switch (programType) {
+          switch (programType?.toLowerCase()) {
             case 'practice':
-              return colorOptions[1].value; // Assuming colorOptions is an array of color objects;
+              return colorOptions[1].value;
             case 'game':
               return colorOptions[0].value;
             case 'course':
@@ -157,6 +180,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         
       } catch (error) {
         console.error("Error fetching events:", error);
+        setEvents([]); // Clear events on error to provide visual feedback
       } finally {
         setIsLoading(false);
       }
@@ -175,13 +199,13 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
     setFilterOpen(!filterOpen);
   };
 
-  // Handle filter changes - updated to match Filter.tsx expectations
+  // Handle filter changes
   const handleFilterChange = (key: keyof FiltersType, value: any) => {
     console.log(`Changing filter ${String(key)} to:`, value);
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  // Reset filters
+  // Reset filters - updated to include array filters
   const resetFilters = () => {
     setFilters({
       after: format(thirtyDaysAgo, "yyyy-MM-dd"),
@@ -193,8 +217,18 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       program_type: "",
       created_by: "",
       updated_by: "",
+      location_ids: [],
+      user_ids: [],
+      program_ids: [],
       appointments: "both"
     });
+  };
+
+  // Handler for event selection
+  const handleEventSelect = (event: CalendarEvent) => {
+    console.log("Event selected:", event);
+    setSelectedEvent(event);
+    openDrawer("details"); // Open the drawer with event details
   };
 
   return (
@@ -206,6 +240,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             {filterOpen ? "Hide Filters" : "Show Filters"}
           </Button>
           {isLoading && <span className="text-sm">Loading events...</span>}
+          <span className="text-sm text-muted-foreground">{events.length} events</span>
         </div>
       </div>
 
@@ -213,7 +248,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       <div className="flex flex-row gap-2">
         {/* Filter Sidebar */}
         {filterOpen && (
-          <div className="w-1/4 mt-4">
+          <div className="w-1/6 mt-4">
             <FilterComponent
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -222,8 +257,11 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           </div>
         )}
         {/* Calendar */}
-        <div className={filterOpen ? "w-3/4" : "w-full"}>
-          <CalendarDemo initialEvents={events} />
+        <div className={filterOpen ? "w-5/6" : "w-full"}>
+        <CalendarDemo 
+          events={events} 
+          onEventSelect={handleEventSelect} 
+        />
         </div>
       </div>
 

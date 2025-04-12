@@ -12,6 +12,7 @@ export default function CalendarProvider({
   date,
   setDate,
   calendarIconIsToday = true,
+  onEventSelect,
   children,
 }: {
   events: CalendarEvent[]
@@ -21,6 +22,7 @@ export default function CalendarProvider({
   date: Date
   setDate: (date: Date) => void
   calendarIconIsToday: boolean
+  onEventSelect?: (event: CalendarEvent) => void
   children: React.ReactNode
 }) {
   const [newEventDialogOpen, setNewEventDialogOpen] = useState(false)
@@ -43,6 +45,7 @@ export default function CalendarProvider({
         setManageEventDialogOpen,
         selectedEvent,
         setSelectedEvent,
+        onEventSelect,  // Pass through the event handler
       }}
     >
       <CalendarNewEventDialog />

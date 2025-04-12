@@ -69,7 +69,7 @@ export default function CalendarEvent({
   month?: boolean
   className?: string
 }) {
-  const { events, setSelectedEvent, setManageEventDialogOpen, date } =
+  const { events, setSelectedEvent, setManageEventDialogOpen, date, onEventSelect } =
     useCalendarContext()
   const style = month ? {} : calculateEventPosition(event, events)
 
@@ -91,8 +91,14 @@ export default function CalendarEvent({
           style={style}
           onClick={(e) => {
             e.stopPropagation()
+            // Update internal calendar state
             setSelectedEvent(event)
             setManageEventDialogOpen(true)
+            
+            // Call the external event handler if provided
+            if (onEventSelect) {
+              onEventSelect(event)
+            }
           }}
           initial={{
             opacity: 0,

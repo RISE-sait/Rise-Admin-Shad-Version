@@ -1,14 +1,21 @@
 import { createContext, useContext } from 'react'
-import type { CalendarContextType } from '@/types/calendar'
+import { CalendarContextType } from '@/types/calendar'
 
-export const CalendarContext = createContext<CalendarContextType | undefined>(
-  undefined
-)
+export const CalendarContext = createContext<CalendarContextType>({
+  events: [],
+  setEvents: () => {},
+  mode: 'week',
+  setMode: () => {},
+  date: new Date(),
+  setDate: () => {},
+  calendarIconIsToday: true,
+  newEventDialogOpen: false,
+  setNewEventDialogOpen: () => {},
+  manageEventDialogOpen: false,
+  setManageEventDialogOpen: () => {},
+  selectedEvent: null,
+  setSelectedEvent: () => {},
+  onEventSelect: undefined,  // Added this line
+})
 
-export function useCalendarContext() {
-  const context = useContext(CalendarContext)
-  if (!context) {
-    throw new Error('useCalendarContext must be used within a CalendarProvider')
-  }
-  return context
-}
+export const useCalendarContext = () => useContext(CalendarContext)
