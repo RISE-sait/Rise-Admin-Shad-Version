@@ -4,8 +4,8 @@ import {
   PracticeResponse,
 } from '@/app/api/Api';
 import { addAuthHeader } from '@/lib/auth-header';
-import { Practice } from '@/types/practice';
-import getValue from './../configs/constants';
+import { Practice } from '@/types/program';
+import getValue from '../configs/constants';
 
 // Helper function to get the full URL for API requests
 function getApiUrl(path: string): string {

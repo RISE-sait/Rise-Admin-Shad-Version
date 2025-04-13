@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FolderSearch } from "lucide-react";
-import { Practice } from "@/types/practice";
+import { Practice } from "@/types/program";
 
 import columns from './columns'
 

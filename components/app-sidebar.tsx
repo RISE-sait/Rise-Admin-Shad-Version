@@ -43,13 +43,13 @@ const data = {
           title: "Customers",
           url: "/manage/customers",
         },
+        // {
+        //   title: "Courses",
+        //   url: "/manage/courses",
+        // },
         {
-          title: "Courses",
-          url: "/manage/courses",
-        },
-        {
-          title: "Practices",
-          url: "/manage/practices",
+          title: "Programs",
+          url: "/manage/programs",
         },
         {
           title: "Locations",
