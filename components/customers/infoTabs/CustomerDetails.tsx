@@ -1,19 +1,22 @@
-"use client";
+"use client"
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { Customer } from "@/types/customer";
-import CustomerService from "@/services/customer";
 import { CustomerStatsUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast"
+import { getCustomerStats, updateCustomerStats } from "@/services/customer";
+import { useUser } from "@/contexts/UserContext";
 
-export default function DetailsTab({ customer, onCustomerUpdated }: { 
+export default function DetailsTab({ customer, onCustomerUpdated }: {
   customer: Customer;
   onCustomerUpdated?: () => void;
 }) {
 
-    const { toast } = useToast()
-  
+  const { toast } = useToast()
+  const { user } = useUser();
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,8 +36,6 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
     steals: 0,
   });
 
-  const customerService = new CustomerService();
-
   // Fetch athlete stats when component mounts
   useEffect(() => {
     // Only fetch if we have a customer ID
@@ -42,7 +43,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
       const fetchAthleteStats = async () => {
         setIsLoadingStats(true);
         try {
-          const statsData = await customerService.getCustomerStats(customer.id!);
+          const statsData = await getCustomerStats(customer.id!);
           setAthleteStats({
             wins: statsData.wins || 0,
             losses: statsData.losses || 0,
@@ -89,11 +90,17 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
     try {
       // Note: Since there's no direct endpoint for updating customer general info,
       // we'll just update the athlete stats for now
+
+      if (!user?.Jwt) {
+        toast({ status: "error", description: "User JWT is missing" });
+        return
+      }
+
       if (customer.id) {
-        await customerService.updateCustomerStats(customer.id, athleteStats);
-        
+        await updateCustomerStats(customer.id, athleteStats, user?.Jwt);
+
         toast({ status: "success", description: "Customer statistics updated successfully" });
-        
+
         if (onCustomerUpdated) {
           onCustomerUpdated();
         }
@@ -112,7 +119,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
     <div className="space-y-6">
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Personal Information</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="first_name" className="block text-sm font-medium mb-1">
@@ -171,7 +178,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
             Athlete Statistics
             {isLoadingStats && <span className="ml-2 text-sm text-muted-foreground">(Loading...)</span>}
           </h3>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="wins" className="block text-sm font-medium mb-1">
@@ -191,105 +198,105 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
                 min="0"
               />
             </div>
-            
+
             <div>
-            <label htmlFor="losses" className="block text-sm font-medium mb-1">
-              Losses
-            </label>
-            <Input
-              id="losses"
-              type="number"
-              value={String(athleteStats.losses || 0)}
-              onChange={(e) => {
-                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-                setAthleteStats({
-                  ...athleteStats,
-                  losses: isNaN(value) ? 0 : value
-                });
-              }}
-              min="0"
-            />
-          </div>
+              <label htmlFor="losses" className="block text-sm font-medium mb-1">
+                Losses
+              </label>
+              <Input
+                id="losses"
+                type="number"
+                value={String(athleteStats.losses || 0)}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                  setAthleteStats({
+                    ...athleteStats,
+                    losses: isNaN(value) ? 0 : value
+                  });
+                }}
+                min="0"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="points" className="block text-sm font-medium mb-1">
-              Points
-            </label>
-            <Input
-              id="points"
-              type="number"
-              value={String(athleteStats.points || 0)}
-              onChange={(e) => {
-                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-                setAthleteStats({
-                  ...athleteStats,
-                  points: isNaN(value) ? 0 : value
-                });
-              }}
-              min="0"
-            />
-          </div>
+            <div>
+              <label htmlFor="points" className="block text-sm font-medium mb-1">
+                Points
+              </label>
+              <Input
+                id="points"
+                type="number"
+                value={String(athleteStats.points || 0)}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                  setAthleteStats({
+                    ...athleteStats,
+                    points: isNaN(value) ? 0 : value
+                  });
+                }}
+                min="0"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="rebounds" className="block text-sm font-medium mb-1">
-              Rebounds
-            </label>
-            <Input
-              id="rebounds"
-              type="number"
-              value={String(athleteStats.rebounds || 0)}
-              onChange={(e) => {
-                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-                setAthleteStats({
-                  ...athleteStats,
-                  rebounds: isNaN(value) ? 0 : value
-                });
-              }}
-              min="0"
-            />
-          </div>
+            <div>
+              <label htmlFor="rebounds" className="block text-sm font-medium mb-1">
+                Rebounds
+              </label>
+              <Input
+                id="rebounds"
+                type="number"
+                value={String(athleteStats.rebounds || 0)}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                  setAthleteStats({
+                    ...athleteStats,
+                    rebounds: isNaN(value) ? 0 : value
+                  });
+                }}
+                min="0"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="assists" className="block text-sm font-medium mb-1">
-              Assists
-            </label>
-            <Input
-              id="assists"
-              type="number"
-              value={String(athleteStats.assists || 0)}
-              onChange={(e) => {
-                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-                setAthleteStats({
-                  ...athleteStats,
-                  assists: isNaN(value) ? 0 : value
-                });
-              }}
-              min="0"
-            />
-          </div>
+            <div>
+              <label htmlFor="assists" className="block text-sm font-medium mb-1">
+                Assists
+              </label>
+              <Input
+                id="assists"
+                type="number"
+                value={String(athleteStats.assists || 0)}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                  setAthleteStats({
+                    ...athleteStats,
+                    assists: isNaN(value) ? 0 : value
+                  });
+                }}
+                min="0"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="steals" className="block text-sm font-medium mb-1">
-              Steals
-            </label>
-            <Input
-              id="steals"
-              type="number"
-              value={String(athleteStats.steals || 0)}
-              onChange={(e) => {
-                const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-                setAthleteStats({
-                  ...athleteStats,
-                  steals: isNaN(value) ? 0 : value
-                });
-              }}
-              min="0"
-            />
-          </div>
+            <div>
+              <label htmlFor="steals" className="block text-sm font-medium mb-1">
+                Steals
+              </label>
+              <Input
+                id="steals"
+                type="number"
+                value={String(athleteStats.steals || 0)}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                  setAthleteStats({
+                    ...athleteStats,
+                    steals: isNaN(value) ? 0 : value
+                  });
+                }}
+                min="0"
+              />
+            </div>
           </div>
         </div>
       )}
-      
+
       <div className="pt-4">
         <Button
           onClick={handleUpdateCustomer}

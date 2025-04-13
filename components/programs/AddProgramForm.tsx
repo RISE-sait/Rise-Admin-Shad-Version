@@ -12,12 +12,12 @@ import { createProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidatePractices } from "@/app/actions/serverActions";
-import { PracticeRequestDto } from "@/app/api/Api";
+import { ProgramRequestDto } from "@/app/api/Api";
 
 export default function AddPracticeForm({ levels }: { levels: string[] }) {
   const [activeTab, setActiveTab] = useState("details");
   const { data, resetData, updateField } = useFormData(
-    { name: "", description: "", level: "all", capacity: 0 },
+    { name: "", description: "", level: "all", capacity: 0, type: "" },
   )
 
   const { user } = useUser();
@@ -36,7 +36,7 @@ export default function AddPracticeForm({ levels }: { levels: string[] }) {
 
     try {
 
-      const practiceData: PracticeRequestDto = {
+      const practiceData: ProgramRequestDto = {
         ...data
       }
 

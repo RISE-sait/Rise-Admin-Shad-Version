@@ -11,7 +11,6 @@ export async function getAllLocations(): Promise<Location[]> {
 
     const response = await fetch(`${getValue("API")}locations`, {
       method: 'GET',
-      ...addAuthHeader()
     });
 
     const locationsResponse: LocationResponseDto[] = await response.json();

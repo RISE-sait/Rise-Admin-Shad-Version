@@ -1,12 +1,13 @@
-"use client";
+"use client"
+
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
 import { TrashIcon, UserCircle, CreditCard, Clock, RefreshCw } from "lucide-react";
-import CustomerService from "@/services/customer";
 import { useToast } from "@/hooks/use-toast"
+import { getCustomerMembershipPlans, getCustomerStats } from "@/services/customer";
 
 interface CustomerStatsProps {
   wins?: number;
@@ -35,8 +36,6 @@ export default function CustomerInfoPanel({
 
   const { toast } = useToast()
 
-  const customerService = new CustomerService();
-
   useEffect(() => {
     // Load customer stats if customer has ID
     if (customer.id) {
@@ -50,7 +49,7 @@ export default function CustomerInfoPanel({
 
     setIsLoading(true);
     try {
-      const stats = await customerService.getCustomerStats(customer.id);
+      const stats = await getCustomerStats(customer.id);
       setCustomerStats(stats);
     } catch (error) {
       console.error("Error loading customer stats:", error);
@@ -64,7 +63,7 @@ export default function CustomerInfoPanel({
     if (!customer.id) return;
 
     try {
-      const plans = await customerService.getCustomerMembershipPlans(customer.id);
+      const plans = await getCustomerMembershipPlans(customer.id);
       setMembershipPlans(plans);
     } catch (error) {
       console.error("Error loading membership plans:", error);
