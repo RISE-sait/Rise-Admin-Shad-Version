@@ -1,5 +1,5 @@
 import { Practice } from "@/types/program";
-import { FacilityLocation } from "@/types/location";
+import { Location } from "@/types/location";
 
 // Mock data for development when API is unavailable
 export const mockPrograms: Practice[] = [
@@ -37,7 +37,7 @@ export const mockPrograms: Practice[] = [
 
 export const mockLevels: string[] = ["all", "beginner", "intermediate", "advanced"];
 
-export const mockLocations: FacilityLocation[] = [
+export const mockLocations: Location[] = [
   {
     id: "1",
     name: "Main Stadium",

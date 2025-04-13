@@ -12,10 +12,10 @@ import { createEvent } from "@/services/events";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidatePractices } from "@/app/actions/serverActions";
-import { PracticeRequestDto } from "@/types/program";
-import { FacilityLocation } from "@/types/location";
+import { Location } from "@/types/location";
 import { getAllTeams, Team } from "@/services/teams";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ProgramRequestDto } from "@/app/api/Api";
 
 export interface ProgramEvent {
   id: string;
@@ -34,11 +34,11 @@ export default function AddProgramForm({
   onClose 
 }: { 
   levels: string[],
-  initialLocations?: FacilityLocation[],
+  initialLocations?: Location[],
   onClose?: () => void
 }) {
   const [activeTab, setActiveTab] = useState("details");
-  const { data, resetData, updateField } = useFormData<PracticeRequestDto>({
+  const { data, resetData, updateField } = useFormData<ProgramRequestDto>({
     name: "",
     description: "",
     level: "all",
@@ -55,7 +55,7 @@ export default function AddProgramForm({
   const [events, setEvents] = useState<ProgramEvent[]>([]);
   
   // Use the server-provided locations
-  const [locations, setLocations] = useState<FacilityLocation[]>(initialLocations);
+  const [locations, setLocations] = useState<Location[]>(initialLocations);
   const [teams, setTeams] = useState<Team[]>([]);
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function AddProgramForm({
     setIsLoading(true);
     try {
       // 1. First create the program
-      const programData: PracticeRequestDto = {
+      const programData: ProgramRequestDto = {
         name: data.name,
         description: data.description,
         level: data.level,

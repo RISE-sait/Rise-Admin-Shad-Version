@@ -1,15 +1,10 @@
-export const addAuthHeader = () => {
-  // Get both tokens - the JWT token and the Firebase token
-  const jwtToken = typeof window !== 'undefined' ? localStorage.getItem('jwtToken') : null;
-  const firebaseToken = typeof window !== 'undefined' ? localStorage.getItem('firebaseToken') : null;
+export const addAuthHeader = (token: string) => {
   
   return {
     headers: {
       // Use the JWT token for general authorization
-      'Authorization': jwtToken ? `Bearer ${jwtToken}` : '',
+      'Authorization': token,
       'Content-Type': 'application/json',
-      // Use the Firebase token specifically for the firebase_token header
-      'firebase_token': firebaseToken || ''
     }
   };
 };

@@ -25,12 +25,12 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { toast } from "./toast"
-import { ApiService } from "@/app/api/ApiService"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { FileText, UserIcon, Save, Trash } from "lucide-react"
 import { AlertModal } from "@/components/ui/AlertModal"
+import { toast } from "@/hooks/use-toast"
+import { User } from "@/types/user"
 
 // Schema for new staff registration
 const newStaffSchema = z.object({
@@ -50,7 +50,7 @@ const updateStaffSchema = z.object({
 });
 
 interface StaffFormProps {
-  initialData?: StaffResponseDto;
+  initialData?: User;
   onSubmit?: (data: any) => Promise<void>;
   loading?: boolean;
   onDelete?: () => void;
@@ -82,8 +82,8 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
   const schema = isEditing ? updateStaffSchema : newStaffSchema;
   
   const defaultValues = isEditing ? {
-    is_active: initialData?.is_active ?? true,
-    role_name: initialData?.role_name ?? "",
+    is_active: initialData.StaffInfo?.IsActive,
+    role_name: initialData?.StaffInfo?.Role,
   } : {
     first_name: "",
     last_name: "",
@@ -98,8 +98,8 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
     // @ts-ignore - TypeScript limitation with conditional types
     resolver: zodResolver(schema),
     defaultValues: isEditing ? {
-      is_active: initialData?.is_active ?? true,
-      role_name: initialData?.role_name ?? "",
+      is_active: initialData?.StaffInfo?.IsActive,
+      role_name: initialData?.StaffInfo?.Role,
     } : {
       first_name: "",
       last_name: "",
@@ -120,14 +120,14 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
     try {
       setLoading(true);
       
-      if (isEditing && initialData?.id) {
+      if (isEditing && initialData?.ID) {
         const data: StaffRequestDto = {
           is_active: values.is_active,
           role_name: values.role_name,
         };
-        await ApiService.staffs.staffsUpdate(initialData.id, data);
+        // await ApiService.staffs.staffsUpdate(initialData.id, data);
         toast({
-          title: "Success",
+          status: "success",
           description: "Staff member updated successfully."
         });
       } else {
@@ -140,9 +140,9 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
           country_code: values.country_code || "ca",
           is_active_staff: values.is_active_staff
         };
-        await ApiService.register.staffCreate(data);
+        // await ApiService.register.staffCreate(data);
         toast({
-          title: "Success",
+          status: "success",
           description: "Staff member created successfully."
         });
       }
@@ -151,8 +151,7 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
-        variant: "destructive",
-        title: "Error",
+        status: "error",
         description: `Failed to ${isEditing ? 'update' : 'create'} staff member.`
       });
     } finally {
@@ -163,20 +162,19 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
   const handleDeleteClick = async () => {
     if (onDelete) {
       await onDelete();
-    } else if (initialData?.id) {
+    } else if (initialData?.ID) {
       try {
         setLoading(true);
-        await ApiService.staffs.staffsDelete(initialData.id);
+        // await ApiService.staffs.staffsDelete(initialData.id);
         toast({
-          title: "Success",
+          status: "success",
           description: "Staff member deleted successfully."
         });
         router.push("/manage/staff");
       } catch (error) {
         console.error('Error deleting staff:', error);
         toast({
-          variant: "destructive",
-          title: "Error",
+        status: "error",
           description: "Failed to delete staff member."
         });
       } finally {
@@ -349,20 +347,20 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <div className="text-sm font-medium">Name</div>
-                        <div className="mt-1">{initialData?.first_name} {initialData?.last_name}</div>
+                        <div className="mt-1">{initialData?.Name}</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium">Email</div>
-                        <div className="mt-1">{initialData?.email || "—"}</div>
+                        <div className="mt-1">{initialData?.Email}</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium">Phone</div>
-                        <div className="mt-1">{initialData?.phone || "—"}</div>
+                        <div className="mt-1">{initialData?.Phone}</div>
                       </div>
                       <div>
                         <div className="text-sm font-medium">Created</div>
                         <div className="mt-1">
-                          {initialData?.created_at ? new Date(initialData.created_at).toLocaleDateString() : "—"}
+                          {initialData?.CreatedAt.toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -452,7 +450,7 @@ export default function StaffForm({ initialData, onSubmit: externalSubmit, loadi
         <div className="max-w-full px-4 mx-auto flex justify-between items-center">
           {isEditing && (
             <p className="text-sm text-muted-foreground">
-              Last updated: {initialData?.updated_at ? new Date(initialData.updated_at).toLocaleString() : 'Never'}
+              Last updated: {new Date(initialData.UpdatedAt).toLocaleString()}
             </p>
           )}
           

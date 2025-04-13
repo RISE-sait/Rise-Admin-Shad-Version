@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import RightDrawer from "../reusable/RightDrawer";
 import { Input } from "@/components/ui/input";
 import ProgramTable from "./table/ProgramTable";
-import columns from "./table/columns";
 import ProgramInfoPanel from "./ProgramInfoPanel";
 import AddProgramForm from "./AddProgramForm";
-import { Practice } from "@/types/program";
+import { Program } from "@/types/program";
 import { deleteProgram, getAllPrograms } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -16,28 +15,28 @@ import { revalidatePractices } from "@/app/actions/serverActions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, GraduationCap, Gamepad2, Box } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
-import { FacilityLocation } from "@/types/location";
+import { Location } from "@/types/location";
 
 type ProgramType = "practice" | "course" | "game" | "all";
 
 interface ProgramPageProps {
-  practices: Practice[];
-  practiceLevels: string[];
-  locations: FacilityLocation[]; // Add this line
+  programs: Program[];
+  programLevels: string[];
+  locations: Location[]; // Add this line
 }
 
 export default function ProgramPage({ 
-  practices: initialPractices, 
-  practiceLevels,
+  programs: initialPractices, 
+  programLevels: practiceLevels,
   locations 
 }: ProgramPageProps) {
-  const [selectedProgram, setSelectedProgram] = useState<Practice | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [activeFilter, setActiveFilter] = useState<ProgramType>("all");
-  const [practices, setPractices] = useState<Practice[]>(initialPractices);
+  const [programs, setPrograms] = useState<Program[]>(initialPractices);
   const [isLoading, setIsLoading] = useState(false);
 
   const { user } = useUser();
@@ -47,14 +46,14 @@ export default function ProgramPage({
   useEffect(() => {
     async function fetchProgramsByType() {
       if (activeFilter === "all") {
-        setPractices(initialPractices);
+        setPrograms(initialPractices);
         return;
       }
       
       setIsLoading(true);
       try {
         const filteredPrograms = await getAllPrograms(activeFilter);
-        setPractices(filteredPrograms);
+        setPrograms(filteredPrograms);
       } catch (error) {
         console.error("Error fetching programs:", error);
         toast({ 
@@ -71,7 +70,7 @@ export default function ProgramPage({
     fetchProgramsByType();
   }, [activeFilter, initialPractices, toast]);
 
-  const handleProgramSelect = (program: Practice) => {
+  const handleProgramSelect = (program: Program) => {
     setSelectedProgram(program);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -85,7 +84,7 @@ export default function ProgramPage({
         toast({ title: "Success", description: "Program deleted successfully", status: "success" });
         await revalidatePractices();
         // Remove from current list for immediate UI update
-        setPractices(practices.filter(p => p.id !== programId));
+        setPrograms(programs.filter(p => p.id !== programId));
       }
       else {
         toast({ title: "Error", description: `Error deleting program: ${error}`, variant: "destructive", status: "error" });
@@ -97,7 +96,7 @@ export default function ProgramPage({
     }
   };
 
-  const filteredPractices = practices.filter(
+  const filteredPractices = programs.filter(
     (program) =>
       program.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (program.description &&

@@ -1,243 +1,181 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { StaffRegistrationRequestDto } from "@/app/api/Api"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Heading } from "@/components/ui/Heading"
-import { Separator } from "@/components/ui/separator"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { toast } from "./toast"
-import { ApiService } from "@/app/api/ApiService"
-import { ArrowLeft } from "lucide-react"
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Heading } from '@/components/ui/Heading'
+import { Separator } from '@/components/ui/separator'
+import { PlusIcon, Search } from 'lucide-react'
+import StaffTable from '@/components/staff/StaffTable'
+import { Sheet, SheetContent } from "@/components/ui/sheet"
+import StaffForm from '@/components/staff/StaffForm'
+import { Input } from '@/components/ui/input'
+import { AlertModal } from '@/components/ui/AlertModal' // Adjust import as needed
+import { toast } from '@/hooks/use-toast'
+import { createStaff, getAllStaffs } from '@/services/staff'
+import { revalidateStaffs } from '@/app/actions/serverActions'
+import { User } from '@/types/user'
 
-const formSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  age: z.coerce.number().min(16, "Staff members must be at least 16 years old"),
-  phone_number: z.string().optional(),
-  role: z.string().min(1, "Role is required"),
-  is_active_staff: z.boolean().default(true),
-})
+export default function StaffPage({staffs}: {staffs: User[]}) {
 
-export default function NewStaffPage() {
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [selectedStaff, setSelectedStaff] = useState<User | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [isNewStaff, setIsNewStaff] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      first_name: "",
-      last_name: "",
-      age: 25,
-      phone_number: "",
-      role: "",
-      is_active_staff: true,
-    },
-  })
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      setLoading(true)
-      const data: StaffRegistrationRequestDto = {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        age: values.age,
-        phone_number: values.phone_number,
-        role: values.role,
-        is_active_staff: values.is_active_staff,
-      }
-
-      await ApiService.register.staffCreate(data)
-      toast({
-        title: "Success",
-        description: "Staff member created successfully."
-      })
-      router.push("staff")
-      router.refresh()
-    } catch (error) {
-      console.error('Error submitting form:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create staff member."
-      })
-    } finally {
-      setLoading(false)
-    }
+  const handleStaffSelect = (staffMember: User) => {
+    setSelectedStaff(staffMember)
+    setIsNewStaff(false)
+    setDrawerOpen(true)
   }
+
+  const handleAddNewClick = () => {
+    setSelectedStaff(null)
+    setIsNewStaff(true)
+    setDrawerOpen(true)
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false)
+    setTimeout(() => {
+      setSelectedStaff(null)
+      setIsNewStaff(false)
+    }, 300)
+  }
+
+  const handleBulkDelete = async () => {
+    // try {
+    //   setLoading(true)
+    //   await Promise.all(selectedIds.map(id => ApiService.staffs.staffsDelete(id)))
+    //   toast({
+    //     status: "success",
+    //     description: "Selected staff members deleted successfully.",
+    //   })
+    //   setSelectedIds([])
+    //   fetchStaff(true)
+    // } catch (error) {
+    //   console.error('Error deleting staff:', error)
+    //   toast({
+    //     status: "error",
+    //     description: "Failed to delete staff members.",
+    //   })
+    // } finally {
+    //   setLoading(false)
+    //   setBulkDeleteOpen(false)
+    // }
+  }
+
+  const filteredStaff = staffs.filter(member => 
+    member.Name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.Email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.StaffInfo!.Role.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
-      <div className="flex items-center">
-        <Button variant="ghost" onClick={() => router.push('/staff')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+      <div className="flex items-center justify-between">
+        <Heading title={`Staff`} description="Manage your staff members and their roles" />
+        <Button onClick={handleAddNewClick} className="flex items-center gap-2">
+          <PlusIcon className="h-4 w-4" />
+          Add Staff
         </Button>
-        <div className="ml-4">
-          <Heading title="Add New Staff Member" description="Create a new staff member account" />
-        </div>
       </div>
       <Separator />
-
-      <div className="max-w-3xl">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="first_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="First name" {...field} disabled={loading} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="last_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Last name" {...field} disabled={loading} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="age"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Age</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="Age" 
-                        {...field} 
-                        disabled={loading} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="+15141234567" 
-                        {...field} 
-                        disabled={loading} 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Format: +[country code][number] (e.g., +15141234567)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      disabled={loading}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Coach">Coach</SelectItem>
-                        <SelectItem value="Instructor">Instructor</SelectItem>
-                        <SelectItem value="Administrator">Administrator</SelectItem>
-                        <SelectItem value="Manager">Manager</SelectItem>
-                        <SelectItem value="Receptionist">Receptionist</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      The role determines access level and responsibilities
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="is_active_staff"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between p-4 border rounded-md">
-                    <div className="space-y-0.5">
-                      <FormLabel>Active Status</FormLabel>
-                      <FormDescription>
-                        Set if this staff member is currently active
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={loading}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex items-center justify-end space-x-2">
-              <Button variant="outline" onClick={() => router.push('/staff')} disabled={loading}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create Staff"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+      
+      <div className="flex items-center justify-between">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search staff..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {selectedIds.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={() => setBulkDeleteOpen(true)}
+            className="ml-4"
+          >
+            Delete Selected ({selectedIds.length})
+          </Button>
+        )}
       </div>
+      
+      <StaffTable 
+        data={filteredStaff} 
+        loading={false}
+        onStaffSelect={handleStaffSelect}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+      />
+      
+      <AlertModal
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={handleBulkDelete}
+        loading={false}
+      />
+      
+      <Sheet 
+        open={drawerOpen} 
+        onOpenChange={(open) => { if (!open) handleDrawerClose() }}
+      >
+        {selectedStaff && (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+          </div>
+        )}
+        <SheetContent className="w-full sm:max-w-md md:max-w-xl overflow-y-auto pb-0">
+          {isNewStaff ? (
+            <StaffForm 
+              onSubmit={async (data) => {
+                // try {
+                //   await createStaff(data)
+                //   toast({
+                //     status: "success",
+                //     description: "Staff member created successfully."
+                //   })
+                //   setDrawerOpen(false)
+                //   setTimeout(() => fetchStaff(true), 500)
+                // } catch (error) {
+                //   console.error('Error creating staff:', error)
+                //   toast({
+                //     status: "error",
+                //     description: "Failed to create staff member."
+                //   })
+                // }
+              }}
+            />
+          ) : selectedStaff ? (
+            <StaffForm 
+              initialData={selectedStaff}
+              onSubmit={async (data) => {
+                // try {
+                //   await ApiService.staffs.staffsUpdate(selectedStaff.id!, data)
+                //   toast({
+                //     status: "success",
+                //     description: "Staff member updated successfully."
+                //   })
+                //   setDrawerOpen(false)
+                //   setTimeout(() => fetchStaff(true), 500)
+                // } catch (error) {
+                //   console.error('Error updating staff:', error)
+                //   toast({
+                //     status: "error",
+                //     description: "Failed to update staff member."
+                //   })
+                // }
+              }}
+              onDelete={async () => {
+                
+              }}
+            />
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

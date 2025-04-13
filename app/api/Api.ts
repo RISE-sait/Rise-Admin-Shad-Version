@@ -9,25 +9,11 @@
  * ---------------------------------------------------------------
  */
 
-export interface CourseRequestDto {
-  capacity: number;
-  description?: string;
-  name: string;
-}
-
-export interface CourseResponseDto {
-  capacity?: number;
-  createdAt?: string;
-  description?: string;
-  id?: string;
-  name?: string;
-  updatedAt?: string;
-}
-
 export interface CustomerAthleteRegistrationRequestDto {
   age: number;
   country_code?: string;
   first_name: string;
+  gender?: "M" | "F";
   has_consent_to_email_marketing?: boolean;
   has_consent_to_sms?: boolean;
   last_name: string;
@@ -38,14 +24,10 @@ export interface CustomerAthleteRegistrationRequestDto {
 
 export interface CustomerAthleteResponseDto {
   assists?: number;
-  created_at?: string;
-  id?: string;
   losses?: number;
   points?: number;
-  profile_pic?: string;
   rebounds?: number;
   steals?: number;
-  updated_at?: string;
   wins?: number;
 }
 
@@ -53,26 +35,24 @@ export interface CustomerChildRegistrationRequestDto {
   age: number;
   country_code?: string;
   first_name: string;
+  gender?: "M" | "F";
   last_name: string;
   waivers?: CustomerWaiverSigningRequestDto[];
 }
 
-export interface CustomerMembershipPlansResponseDto {
-  created_at?: string;
-  customer_id?: string;
-  id?: string;
+export interface CustomerMembershipResponseDto {
   membership_name?: string;
   membership_plan_id?: string;
-  renewal_date?: string;
-  start_date?: string;
-  status?: string;
-  updated_at?: string;
+  membership_plan_name?: string;
+  membership_renewal_date?: string;
+  membership_start_date?: string;
 }
 
 export interface CustomerParentRegistrationRequestDto {
   age: number;
   country_code?: string;
   first_name: string;
+  gender?: "M" | "F";
   has_consent_to_email_marketing?: boolean;
   has_consent_to_sms?: boolean;
   last_name: string;
@@ -82,15 +62,14 @@ export interface CustomerParentRegistrationRequestDto {
 
 export interface CustomerResponse {
   age?: number;
+  athlete_info?: CustomerAthleteResponseDto;
   country_code?: string;
   email?: string;
   first_name?: string;
   hubspot_id?: string;
   last_name?: string;
-  membership_name?: string;
-  membership_start_date?: string;
+  membership_info?: CustomerMembershipResponseDto;
   phone?: string;
-  profile_pic?: string;
   user_id?: string;
 }
 
@@ -108,65 +87,171 @@ export interface CustomerWaiverSigningRequestDto {
   waiver_url: string;
 }
 
-export interface EnrollmentCreateRequestDto {
-  customer_id: string;
-  event_id: string;
-}
-
-export interface EnrollmentResponseDto {
-  checked_in_at?: string;
-  created_at?: string;
-  customer_id?: string;
-  event_id?: string;
-  id?: string;
-  is_cancelled?: boolean;
-  updated_at?: string;
-}
-
-export interface EventRequestDto {
-  /** @example "00000000-0000-0000-0000-000000000000" */
-  course_id?: string;
+export interface EventCreateRequestDto {
+  /** @example 100 */
+  capacity?: number;
   /** @example "2023-10-05T07:00:00Z" */
-  event_end_at: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  event_start_at: string;
-  /** @example "00000000-0000-0000-0000-000000000000" */
-  game_id?: string;
+  end_at: string;
   /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
   location_id?: string;
   /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  practice_id?: string;
+  program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  team_id?: string;
 }
 
-export interface EventResponseDto {
-  course_id?: string;
-  event_end_at?: string;
-  event_start_at?: string;
-  game_id?: string;
+export interface EventCustomerResponseDto {
+  email?: string;
+  first_name?: string;
+  gender?: string;
+  has_cancelled_enrollment?: boolean;
   id?: string;
-  location_id?: string;
-  practice_id?: string;
+  last_name?: string;
+  phone?: string;
+}
+
+export interface EventEventResponseDto {
+  capacity?: number;
+  created_by?: EventPersonResponseDto;
+  customers?: EventCustomerResponseDto[];
+  end_at?: string;
+  id?: string;
+  location?: EventLocationInfo;
+  program?: EventProgramInfo;
+  staff?: EventStaffResponseDto[];
+  start_at?: string;
+  team?: EventTeamInfo;
+  updated_by?: EventPersonResponseDto;
+}
+
+export interface EventLocation {
+  address?: string;
+  id?: string;
+  name?: string;
+}
+
+export interface EventLocationInfo {
+  address?: string;
+  id?: string;
+  name?: string;
+}
+
+export interface EventPersonResponseDto {
+  first_name?: string;
+  id?: string;
+  last_name?: string;
+}
+
+export interface EventProgram {
+  id?: string;
+  name?: string;
+  type?: string;
+}
+
+export interface EventProgramInfo {
+  id?: string;
+  name?: string;
+  type?: string;
+}
+
+export interface EventScheduleResponseDto {
+  day?: string;
+  location?: EventLocation;
+  program?: EventProgram;
+  recurrence_end_at?: string;
+  recurrence_start_at?: string;
   session_end_at?: string;
   session_start_at?: string;
+  team?: EventTeam;
 }
 
-export interface EventStaffEventStaffBase {
-  event_id?: string;
-  staff_id?: string;
+export interface EventStaffResponseDto {
+  email?: string;
+  first_name?: string;
+  gender?: string;
+  id?: string;
+  last_name?: string;
+  phone?: string;
+  role_name?: string;
 }
 
-export interface EventStaffRequestDto {
-  base?: EventStaffEventStaffBase;
+export interface EventTeam {
+  id?: string;
+  name?: string;
+}
+
+export interface EventTeamInfo {
+  id?: string;
+  name?: string;
+}
+
+export interface EventUpdateRequestDto {
+  /** @example 100 */
+  capacity?: number;
+  /** @example "2023-10-05T07:00:00Z" */
+  end_at: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  id?: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  team_id?: string;
 }
 
 export interface GameRequestDto {
-  name?: string;
+  description?: string;
+  lose_score?: number;
+  lose_team?: string;
+  name: string;
+  win_score?: number;
+  win_team?: string;
 }
 
 export interface GameResponseDto {
+  created_at?: string;
+  description?: string;
   id?: string;
+  lose_score?: number;
+  lose_team?: string;
   name?: string;
-  video_link?: string;
+  updated_at?: string;
+  win_score?: number;
+  win_team?: string;
+}
+
+export interface HaircutBarberServiceResponseDto {
+  barber_id?: string;
+  barber_name?: string;
+  created_at?: string;
+  haircut_name?: string;
+  id?: string;
+  service_type_id?: string;
+  updated_at?: string;
+}
+
+export interface HaircutCreateBarberServiceRequestDto {
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  barber_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  haircut_service_id?: string;
+}
+
+export interface HaircutEventResponseDto {
+  barber_id?: string;
+  barber_name?: string;
+  created_at?: string;
+  customer_id?: string;
+  customer_name?: string;
+  end_at?: string;
+  id?: string;
+  start_at?: string;
+  updated_at?: string;
 }
 
 export interface HaircutRequestDto {
@@ -174,60 +259,39 @@ export interface HaircutRequestDto {
   barber_id?: string;
   /** @example "2023-10-05T07:00:00Z" */
   begin_time: string;
-  /** @example "00000000-0000-0000-0000-000000000000" */
-  customer_id?: string;
   /** @example "2023-10-05T07:00:00Z" */
   end_time: string;
 }
 
-export interface HaircutResponseDto {
-  barber_id?: string;
-  begin_time?: string;
-  created_at?: string;
-  customer_id?: string;
-  end_time?: string;
-  id?: string;
-  updated_at?: string;
+export interface IdentityAthleteResponseDto {
+  assists?: number;
+  losses?: number;
+  points?: number;
+  rebounds?: number;
+  steals?: number;
+  wins?: number;
 }
 
-export interface HubspotUserAssociation {
-  results?: HubspotUserAssociationResult[];
-}
-
-export interface HubspotUserAssociationResult {
-  id?: string;
-  type?: string;
-}
-
-export interface HubspotUserAssociations {
-  contacts?: HubspotUserAssociation;
-}
-
-export interface HubspotUserProps {
-  age?: string;
-  email?: string;
-  firstname?: string;
-  has_marketing_email_consent?: string;
-  has_sms_consent?: string;
-  hs_country_region_code?: string;
-  lastname?: string;
-  phone?: string;
-}
-
-export interface HubspotUserResponse {
-  associations?: HubspotUserAssociations;
-  createdAt?: string;
-  id?: string;
-  properties?: HubspotUserProps;
-  updatedAt?: string;
+export interface IdentityMembershipReadResponseDto {
+  membership_benefits?: string;
+  membership_description?: string;
+  membership_name?: string;
+  plan_name?: string;
+  renewal_date?: string;
+  start_date?: string;
 }
 
 export interface IdentityUserAuthenticationResponseDto {
   age?: number;
+  athlete_info?: IdentityAthleteResponseDto;
   country_code?: string;
   email?: string;
   first_name?: string;
+  gender?: string;
+  id?: string;
+  is_active_staff?: boolean;
   last_name?: string;
+  membership_info?: IdentityMembershipReadResponseDto;
   phone?: string;
   role?: string;
 }
@@ -251,6 +315,7 @@ export interface MembershipRequestDto {
 }
 
 export interface MembershipResponse {
+  benefits?: string;
   created_at?: string;
   description?: string;
   id?: string;
@@ -262,53 +327,58 @@ export interface MembershipPlanPlanRequestDto {
   amt_periods?: number;
   membership_id: string;
   name?: string;
-  payment_frequency: string;
-  price: string;
+  stripe_joining_fees_id?: string;
+  stripe_price_id: string;
 }
 
 export interface MembershipPlanPlanResponse {
   amt_periods?: number;
   created_at?: string;
   id?: string;
-  joining_fees?: string;
   membership_id?: string;
   name?: string;
-  payment_frequency?: string;
-  price?: string;
+  stripe_joining_fees_id?: string;
+  stripe_price_id?: string;
   updated_at?: string;
 }
 
-export interface PracticeLevelsResponse {
+export interface PaymentCheckoutResponseDto {
+  payment_url?: string;
+}
+
+export interface ProgramLevelsResponse {
   levels?: string[];
 }
 
-export interface PracticeRequestDto {
-  capacity: number;
+export interface ProgramRequestDto {
+  capacity?: number;
   description?: string;
   level: string;
   name: string;
+  type: string;
 }
 
-export interface PracticeResponse {
+export interface ProgramResponse {
   capacity?: number;
-  createdAt?: string;
+  created_at?: string;
   description?: string;
   id?: string;
   level?: string;
   name?: string;
-  updatedAt?: string;
+  type?: string;
+  updated_at?: string;
 }
 
-export interface PurchaseMembershipPlanRequestDto {
-  membership_plan_id?: string;
-  start_date: string;
-  status?: string;
+export interface StaffCoachStatsResponseDto {
+  losses?: number;
+  wins?: number;
 }
 
 export interface StaffRegistrationRequestDto {
   age: number;
   country_code?: string;
   first_name: string;
+  gender?: "M" | "F";
   is_active_staff?: boolean;
   last_name: string;
   /** @example "+15141234567" */
@@ -322,6 +392,7 @@ export interface StaffRequestDto {
 }
 
 export interface StaffResponseDto {
+  coach_stats?: StaffCoachStatsResponseDto;
   country_code?: string;
   created_at?: string;
   email?: string;
@@ -332,6 +403,21 @@ export interface StaffResponseDto {
   last_name?: string;
   phone?: string;
   role_name?: string;
+  updated_at?: string;
+}
+
+export interface TeamRequestDto {
+  capacity: number;
+  coach_id?: string;
+  name: string;
+}
+
+export interface TeamResponse {
+  capacity?: number;
+  coach_id?: string;
+  created_at?: string;
+  id?: string;
+  name?: string;
   updated_at?: string;
 }
 
@@ -381,7 +467,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "//localhost:80";
+  public baseUrl: string = "";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -546,18 +632,17 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title No title
- * @baseUrl //localhost:80
- * @contact
+ * @title Rise API
+ * @version 1.0
+ * @contact <klintlee1@gmail.com>
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   auth = {
     /**
-     * @description Authenticates a user using Firebase token and returns a JWT token for the authenticated user
+     * No description
      *
      * @tags authentication
      * @name AuthCreate
-     * @summary Authenticate a user and return a JWT token
      * @request POST:/auth
      */
     authCreate: (params: RequestParams = {}) =>
@@ -588,95 +673,108 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  courses = {
+  barbers = {
     /**
-     * @description Get a list of courses
+     * @description Retrieve a list of all barber services
      *
-     * @tags courses
-     * @name CoursesList
-     * @summary Get a list of courses
-     * @request GET:/courses
+     * @tags barber
+     * @name ServicesList
+     * @summary Get all barber services
+     * @request GET:/barbers/services
      */
-    coursesList: (params: RequestParams = {}) =>
-      this.request<CourseResponseDto[], Record<string, any>>({
-        path: `/courses`,
+    servicesList: (params: RequestParams = {}) =>
+      this.request<HaircutBarberServiceResponseDto[], Record<string, any>>({
+        path: `/barbers/services`,
         method: "GET",
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Create a new course
+     * @description Create a new barber service with the provided details
      *
-     * @tags courses
-     * @name CoursesCreate
-     * @summary Create a new course
-     * @request POST:/courses
-     * @secure
+     * @tags barber
+     * @name ServicesCreate
+     * @summary Create a new barber service
+     * @request POST:/barbers/services
      */
-    coursesCreate: (course: CourseRequestDto, params: RequestParams = {}) =>
-      this.request<CourseResponseDto, Record<string, any>>({
-        path: `/courses`,
+    servicesCreate: (request: HaircutCreateBarberServiceRequestDto, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/barbers/services`,
         method: "POST",
-        body: course,
-        secure: true,
+        body: request,
         type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
     /**
-     * @description Get a course by Id
+     * @description Delete a barber service by its ID
      *
-     * @tags courses
-     * @name CoursesDetail
-     * @summary Get a course by Id
-     * @request GET:/courses/{id}
+     * @tags barber
+     * @name ServicesDelete
+     * @summary Delete a barber service
+     * @request DELETE:/barbers/services/{id}
      */
-    coursesDetail: (id: string, params: RequestParams = {}) =>
-      this.request<CourseResponseDto, Record<string, any>>({
-        path: `/courses/${id}`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Update a course
-     *
-     * @tags courses
-     * @name CoursesUpdate
-     * @summary Update a course
-     * @request PUT:/courses/{id}
-     * @secure
-     */
-    coursesUpdate: (id: string, course: CourseRequestDto, params: RequestParams = {}) =>
+    servicesDelete: (id: string, params: RequestParams = {}) =>
       this.request<void, Record<string, any>>({
-        path: `/courses/${id}`,
-        method: "PUT",
-        body: course,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Delete a course by Id
-     *
-     * @tags courses
-     * @name CoursesDelete
-     * @summary Delete a course
-     * @request DELETE:/courses/{id}
-     * @secure
-     */
-    coursesDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, Record<string, any>>({
-        path: `/courses/${id}`,
+        path: `/barbers/services/${id}`,
         method: "DELETE",
+        ...params,
+      }),
+  };
+  checkout = {
+    /**
+     * No description
+     *
+     * @tags payments
+     * @name EventsCreate
+     * @request POST:/checkout/events/{id}
+     * @secure
+     */
+    eventsCreate: (id: string, params: RequestParams = {}) =>
+      this.request<PaymentCheckoutResponseDto, Record<string, any>>({
+        path: `/checkout/events/${id}`,
+        method: "POST",
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Generates a payment link for purchasing a membership plan.
+     *
+     * @tags payments
+     * @name MembershipPlansCreate
+     * @summary CheckoutMembershipPlan a membership plan
+     * @request POST:/checkout/membership_plans/{id}
+     * @secure
+     */
+    membershipPlansCreate: (id: string, params: RequestParams = {}) =>
+      this.request<PaymentCheckoutResponseDto, Record<string, any>>({
+        path: `/checkout/membership_plans/${id}`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags payments
+     * @name ProgramsCreate
+     * @request POST:/checkout/programs/{id}
+     * @secure
+     */
+    programsCreate: (id: string, params: RequestParams = {}) =>
+      this.request<PaymentCheckoutResponseDto, Record<string, any>>({
+        path: `/checkout/programs/${id}`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
@@ -695,10 +793,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         limit?: number;
         /** Number of customers to skip (default: 0) */
         offset?: number;
+        /** Parent ID to filter customers (example: 123e4567-e89b-12d3-a456-426614174000) */
+        parent_id?: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<CustomerResponse[], Record<string, any>>({
+      this.request<CustomerResponse[], void>({
         path: `/customers`,
         method: "GET",
         query: query,
@@ -708,16 +808,15 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Fetches customer statistics (wins, losses, etc.) for the specified customer ID.
+     * No description
      *
      * @tags customers
-     * @name AthleteDetail
-     * @summary Get customer statistics
-     * @request GET:/customers/{customer_id}/athlete
+     * @name EmailDetail
+     * @request GET:/customers/email/{email}
      */
-    athleteDetail: (customerId: string, params: RequestParams = {}) =>
-      this.request<CustomerAthleteResponseDto, Record<string, any>>({
-        path: `/customers/${customerId}/athlete`,
+    emailDetail: (email: string, params: RequestParams = {}) =>
+      this.request<CustomerResponse, void>({
+        path: `/customers/email/${email}`,
         method: "GET",
         type: ContentType.Json,
         format: "json",
@@ -725,12 +824,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Updates customer statistics (wins, losses, etc.) for the specified customer ID
+     * No description
+     *
+     * @tags customers
+     * @name GetCustomers
+     * @request GET:/customers/id/{id}
+     */
+    getCustomers: (id: string, params: RequestParams = {}) =>
+      this.request<CustomerResponse, void>({
+        path: `/customers/id/${id}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
      *
      * @tags customers
      * @name AthletePartialUpdate
-     * @summary Update customer statistics
      * @request PATCH:/customers/{customer_id}/athlete
+     * @secure
      */
     athletePartialUpdate: (
       customerId: string,
@@ -741,166 +856,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/customers/${customerId}/athlete`,
         method: "PATCH",
         body: update_body,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Retrieves a repository's children using the parent's ID
-     *
-     * @tags customers
-     * @name ChildrenDetail
-     * @summary Get a repository's children by parent ID
-     * @request GET:/customers/{id}/children
-     */
-    childrenDetail: (email: string, id: string, params: RequestParams = {}) =>
-      this.request<HubspotUserResponse[], Record<string, any>>({
-        path: `/customers/${id}/children`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Retrieves a list of membership plans associated with a specific customer, using the customer ID as a required parameter.
-     *
-     * @tags customers
-     * @name MembershipPlansDetail
-     * @summary Get membership plans by customer
-     * @request GET:/customers/{id}/membership-plans
-     */
-    membershipPlansDetail: (id: string, params: RequestParams = {}) =>
-      this.request<CustomerMembershipPlansResponseDto[], Record<string, any>>({
-        path: `/customers/${id}/membership-plans`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  enrollments = {
-    /**
-     * @description Get enrollments by customer and event HubSpotId
-     *
-     * @tags enrollments
-     * @name EnrollmentsList
-     * @summary Get enrollments by customer and event HubSpotId
-     * @request GET:/enrollments
-     */
-    enrollmentsList: (
-      query?: {
-        /** Customer ID */
-        customerId?: string;
-        /** Event ID */
-        eventId?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<EnrollmentResponseDto[], Record<string, any>>({
-        path: `/enrollments`,
-        method: "GET",
-        query: query,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Create a new enrollment
-     *
-     * @tags enrollments
-     * @name EnrollmentsCreate
-     * @summary Create a new enrollment
-     * @request POST:/enrollments
-     * @secure
-     */
-    enrollmentsCreate: (enrollment: EnrollmentCreateRequestDto, params: RequestParams = {}) =>
-      this.request<EnrollmentResponseDto, Record<string, any>>({
-        path: `/enrollments`,
-        method: "POST",
-        body: enrollment,
         secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Delete an enrollment by HubSpotId
-     *
-     * @tags enrollments
-     * @name EnrollmentsDelete
-     * @summary Delete an enrollment
-     * @request DELETE:/enrollments/{id}
-     * @secure
-     */
-    enrollmentsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, Record<string, any>>({
-        path: `/enrollments/${id}`,
-        method: "DELETE",
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  eventStaff = {
-    /**
-     * @description Retrieve all staff assigned to an event using event_id as a query parameter.
-     *
-     * @tags event_staff
-     * @name EventStaffList
-     * @summary Get staff assigned to an event
-     * @request GET:/event-staff
-     */
-    eventStaffList: (
-      query: {
-        /** Event ID (UUID) */
-        event_id: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<StaffResponseDto[], Record<string, any>>({
-        path: `/event-staff`,
-        method: "GET",
-        query: query,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Assign a staff member to an event using event_id and staff_id in the request body.
-     *
-     * @tags event_staff
-     * @name EventStaffCreate
-     * @summary Assign a staff member to an event
-     * @request POST:/event-staff
-     */
-    eventStaffCreate: (request: EventStaffRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/event-staff`,
-        method: "POST",
-        body: request,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Remove a staff member from an event using event_id and staff_id in the request body.
-     *
-     * @tags event_staff
-     * @name EventStaffDelete
-     * @summary Unassign a staff member from an event
-     * @request DELETE:/event-staff
-     */
-    eventStaffDelete: (request: EventStaffRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/event-staff`,
-        method: "DELETE",
-        body: request,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -912,45 +868,57 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags events
      * @name EventsList
-     * @summary Get all events
+     * @summary Get events
      * @request GET:/events
      */
     eventsList: (
-      query: {
+      query?: {
         /**
-         * Retrieve events after this date (format: YYYY-MM-DD)
-         * @example ""2024-05-01""
+         * Start date of the events range (YYYY-MM-DD)
+         * @example ""2025-03-01""
          */
-        after: string;
+        after?: string;
         /**
-         * Retrieve events before this date (format: YYYY-MM-DD)
-         * @example ""2024-06-01""
+         * End date of the events range (YYYY-MM-DD)
+         * @example ""2025-03-31""
          */
-        before: string;
+        before?: string;
         /**
-         * Filter by game ID (UUID format)
+         * Filter by program ID (UUID format)
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
-        game_id?: string;
+        program_id?: string;
         /**
-         * Filter by course ID (UUID format)
+         * Filter by user ID (UUID format)
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
-        course_id?: string;
+        user_id?: string;
         /**
-         * Filter by practice ID (UUID format)
+         * Filter by team ID (UUID format)
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
-        practice_id?: string;
+        team_id?: string;
         /**
          * Filter by location ID (UUID format)
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         location_id?: string;
+        /** Program Type (game, practice, course, others) */
+        program_type?: string;
+        /**
+         * ID of person who created the event (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        created_by?: string;
+        /**
+         * ID of person who updated the event (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        updated_by?: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<EventResponseDto[], Record<string, any>>({
+      this.request<EventEventResponseDto[], Record<string, any>>({
         path: `/events`,
         method: "GET",
         query: query,
@@ -966,12 +934,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name EventsCreate
      * @summary Create a new event
      * @request POST:/events
+     * @secure
      */
-    eventsCreate: (event: EventRequestDto, params: RequestParams = {}) =>
+    eventsCreate: (event: EventCreateRequestDto, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events`,
         method: "POST",
         body: event,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Assign a staff member to an event using event_id and staff_id in the request body.
+     *
+     * @tags event_staff
+     * @name StaffsCreate
+     * @summary Assign a staff member to an event
+     * @request POST:/events/{event_id}/staffs/{staff_id}
+     */
+    staffsCreate: (eventId: string, staffId: string, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events/${eventId}/staffs/${staffId}`,
+        method: "POST",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Remove a staff member from an event using event_id and staff_id in the request body.
+     *
+     * @tags event_staff
+     * @name StaffsDelete
+     * @summary Unassign a staff member from an event
+     * @request DELETE:/events/{event_id}/staffs/{staff_id}
+     */
+    staffsDelete: (eventId: string, staffId: string, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events/${eventId}/staffs/${staffId}`,
+        method: "DELETE",
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -985,10 +989,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get event details
      * @request GET:/events/{id}
      */
-    eventsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<EventResponseDto, Record<string, any>>({
+    eventsDetail: (
+      id: string,
+      query?: {
+        /** Choose between 'date' and 'day'. Response type for the schedule, in specific dates or recurring day information. Default is 'day'. */
+        view?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<EventEventResponseDto, Record<string, any>>({
         path: `/events/${id}`,
         method: "GET",
+        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1001,12 +1013,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name EventsUpdate
      * @summary Update an event
      * @request PUT:/events/{id}
+     * @secure
      */
-    eventsUpdate: (id: string, event: EventRequestDto, params: RequestParams = {}) =>
+    eventsUpdate: (id: string, event: EventUpdateRequestDto, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${id}`,
         method: "PUT",
         body: event,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1031,55 +1045,44 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   games = {
     /**
-     * @description Get a list of games
+     * No description
      *
      * @tags games
      * @name GamesList
-     * @summary Get a list of games
      * @request GET:/games
      */
-    gamesList: (
-      query?: {
-        /** Filter by game name */
-        name?: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    gamesList: (params: RequestParams = {}) =>
       this.request<GameResponseDto[], Record<string, any>>({
         path: `/games`,
         method: "GET",
-        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Create a new game
+     * No description
      *
      * @tags games
      * @name GamesCreate
-     * @summary Create a new game
      * @request POST:/games
      * @secure
      */
     gamesCreate: (game: GameRequestDto, params: RequestParams = {}) =>
-      this.request<GameResponseDto, Record<string, any>>({
+      this.request<void, Record<string, any>>({
         path: `/games`,
         method: "POST",
         body: game,
         secure: true,
         type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
     /**
-     * @description Get a game by ID
+     * No description
      *
      * @tags games
      * @name GamesDetail
-     * @summary Get a game by ID
      * @request GET:/games/{id}
      */
     gamesDetail: (id: string, params: RequestParams = {}) =>
@@ -1092,31 +1095,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update a game
+     * No description
      *
      * @tags games
      * @name GamesUpdate
-     * @summary Update a game
      * @request PUT:/games/{id}
      * @secure
      */
     gamesUpdate: (id: string, game: GameRequestDto, params: RequestParams = {}) =>
-      this.request<GameResponseDto, Record<string, any>>({
+      this.request<void, Record<string, any>>({
         path: `/games/${id}`,
         method: "PUT",
         body: game,
         secure: true,
         type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
     /**
-     * @description Delete a game by ID
+     * No description
      *
      * @tags games
      * @name GamesDelete
-     * @summary Delete a game
      * @request DELETE:/games/{id}
      * @secure
      */
@@ -1131,17 +1131,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   haircuts = {
     /**
-     * @description Retrieves all haircut images from a folder in S3. Optionally, specify a barber name to get images from that barber's folder.
+     * @description Retrieves all haircut images from a folder in Google Cloud Storage. Optionally, specify a barber name to get images from that barber's folder.
      *
      * @tags haircut
      * @name HaircutsList
-     * @summary Retrieve haircut images
      * @request GET:/haircuts
      */
     haircutsList: (
       query?: {
-        /** Barber name to filter images */
-        barber?: string;
+        /** Barber ID to filter images */
+        barber_id?: string;
       },
       params: RequestParams = {},
     ) =>
@@ -1155,12 +1154,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Uploads a haircut image to S3 and returns the object URL.
+     * @description Uploads a haircut image to Google Cloud Storage and returns the object URL.
      *
      * @tags haircut
      * @name HaircutsCreate
-     * @summary Upload a haircut image
      * @request POST:/haircuts
+     * @secure
      */
     haircutsCreate: (
       data: {
@@ -1176,21 +1175,32 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/haircuts`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.FormData,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Retrieve all barber events, with optional filters by barber ID and customer ID.
+     * @description Retrieve all haircut events, with optional filters by barber ID and customer ID.
      *
      * @tags haircut
      * @name EventsList
-     * @summary Get all barber events
+     * @summary Get all haircut events
      * @request GET:/haircuts/events
      */
     eventsList: (
       query?: {
+        /**
+         * Start date of the events range (YYYY-MM-DD)
+         * @example ""2025-03-01""
+         */
+        after?: string;
+        /**
+         * End date of the events range (YYYY-MM-DD)
+         * @example ""2025-03-31""
+         */
+        before?: string;
         /** Filter by barber ID */
         barber_id?: string;
         /** Filter by customer ID */
@@ -1198,7 +1208,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {},
     ) =>
-      this.request<HaircutResponseDto[], Record<string, any>>({
+      this.request<HaircutEventResponseDto[], Record<string, any>>({
         path: `/haircuts/events`,
         method: "GET",
         query: query,
@@ -1208,33 +1218,33 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Registers a new barber event with the provided details.
+     * @description Registers a new haircut event with the provided details from request body. Requires an Authorization header containing the customer's JWT, ensuring only logged-in customers can make the request.
      *
      * @tags haircut
      * @name EventsCreate
-     * @summary Create a new barber event
      * @request POST:/haircuts/events
+     * @secure
      */
     eventsCreate: (event: HaircutRequestDto, params: RequestParams = {}) =>
-      this.request<HaircutResponseDto, Record<string, any>>({
+      this.request<HaircutEventResponseDto, Record<string, any>>({
         path: `/haircuts/events`,
         method: "POST",
         body: event,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Retrieves details of a specific barber event based on its ID.
+     * @description Retrieves details of a specific haircut event based on its ID.
      *
      * @tags haircut
      * @name EventsDetail
-     * @summary Get barber event details
      * @request GET:/haircuts/events/{id}
      */
     eventsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<HaircutResponseDto, Record<string, any>>({
+      this.request<HaircutEventResponseDto, Record<string, any>>({
         path: `/haircuts/events/${id}`,
         method: "GET",
         type: ContentType.Json,
@@ -1243,29 +1253,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Updates the details of an existing barber event.
-     *
-     * @tags haircut
-     * @name EventsUpdate
-     * @summary Update a barber event
-     * @request PUT:/haircuts/events/{id}
-     */
-    eventsUpdate: (id: string, event: HaircutRequestDto, params: RequestParams = {}) =>
-      this.request<HaircutResponseDto, Record<string, any>>({
-        path: `/haircuts/events/${id}`,
-        method: "PUT",
-        body: event,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Deletes a barber event by its ID.
+     * @description Deletes a haircut event by its ID.
      *
      * @tags haircut
      * @name EventsDelete
-     * @summary Delete a barber event
      * @request DELETE:/haircuts/events/{id}
      */
     eventsDelete: (id: string, params: RequestParams = {}) =>
@@ -1419,23 +1410,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Retrieves a list of available payment frequencies for membership plans.
-     *
-     * @tags membership-plans
-     * @name PlansPaymentFrequenciesList
-     * @summary Get payment frequencies for membership plans
-     * @request GET:/memberships/plans/payment-frequencies
-     */
-    plansPaymentFrequenciesList: (params: RequestParams = {}) =>
-      this.request<Record<string, string[]>, Record<string, any>>({
-        path: `/memberships/plans/payment-frequencies`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Update a membership plan
      *
      * @tags membership-plans
@@ -1543,38 +1517,45 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  practices = {
+  programs = {
     /**
-     * @description Get a list of practices
+     * @description Get a list of programs
      *
-     * @tags practices
-     * @name PracticesList
-     * @summary Get a list of practices
-     * @request GET:/practices
+     * @tags programs
+     * @name ProgramsList
+     * @summary Get a list of programs
+     * @request GET:/programs
      */
-    practicesList: (params: RequestParams = {}) =>
-      this.request<PracticeResponse[], Record<string, any>>({
-        path: `/practices`,
+    programsList: (
+      query?: {
+        /** Program Type (game, practice, course, others) */
+        type?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ProgramResponse[], Record<string, any>>({
+        path: `/programs`,
         method: "GET",
+        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Create a new practice
+     * @description Create a new program
      *
-     * @tags practices
-     * @name PracticesCreate
-     * @summary Create a new practice
-     * @request POST:/practices
+     * @tags programs
+     * @name ProgramsCreate
+     * @summary Create a new program
+     * @request POST:/programs
      * @secure
      */
-    practicesCreate: (practice: PracticeRequestDto, params: RequestParams = {}) =>
-      this.request<PracticeResponse, Record<string, any>>({
-        path: `/practices`,
+    programsCreate: (program: ProgramRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/programs`,
         method: "POST",
-        body: practice,
+        body: program,
         secure: true,
         type: ContentType.Json,
         format: "json",
@@ -1582,16 +1563,15 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Retrieves a list of available practice levels.
+     * @description Retrieves a list of available program levels.
      *
-     * @tags practices
+     * @tags programs
      * @name LevelsList
-     * @summary Get practice levels
-     * @request GET:/practices/levels
+     * @request GET:/programs/levels
      */
     levelsList: (params: RequestParams = {}) =>
-      this.request<PracticeLevelsResponse[], Record<string, any>>({
-        path: `/practices/levels`,
+      this.request<ProgramLevelsResponse[], Record<string, any>>({
+        path: `/programs/levels`,
         method: "GET",
         type: ContentType.Json,
         format: "json",
@@ -1599,58 +1579,52 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update a practice
+     * No description
      *
-     * @tags practices
-     * @name PracticesUpdate
-     * @summary Update a practice
-     * @request PUT:/practices/{id}
+     * @tags programs
+     * @name ProgramsDetail
+     * @request GET:/programs/{id}
      */
-    practicesUpdate: (id: string, practice: PracticeRequestDto, params: RequestParams = {}) =>
+    programsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<ProgramResponse[], Record<string, any>>({
+        path: `/programs/${id}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update a program
+     *
+     * @tags programs
+     * @name ProgramsUpdate
+     * @summary Update a program
+     * @request PUT:/programs/{id}
+     */
+    programsUpdate: (id: string, program: ProgramRequestDto, params: RequestParams = {}) =>
       this.request<void, Record<string, any>>({
-        path: `/practices/${id}`,
+        path: `/programs/${id}`,
         method: "PUT",
-        body: practice,
+        body: program,
         type: ContentType.Json,
         ...params,
       }),
 
     /**
-     * @description Delete a practice by ID
+     * No description
      *
-     * @tags practices
-     * @name PracticesDelete
-     * @summary Delete a practice
-     * @request DELETE:/practices/{id}
+     * @tags programs
+     * @name ProgramsDelete
+     * @request DELETE:/programs/{id}
      * @secure
      */
-    practicesDelete: (id: string, params: RequestParams = {}) =>
+    programsDelete: (id: string, params: RequestParams = {}) =>
       this.request<void, Record<string, any>>({
-        path: `/practices/${id}`,
+        path: `/programs/${id}`,
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        ...params,
-      }),
-  };
-  purchases = {
-    /**
-     * @description Allows a customer to purchase a membership plan by providing the plan details.
-     *
-     * @tags purchases
-     * @name MembershipsCreate
-     * @summary Purchase a membership plan
-     * @request POST:/purchases/memberships
-     * @secure
-     */
-    membershipsCreate: (request: PurchaseMembershipPlanRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/purchases/memberships`,
-        method: "POST",
-        body: request,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
   };
@@ -1726,6 +1700,89 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description Approves a pending staff member's account in the system
+     *
+     * @tags registration
+     * @name StaffApproveCreate
+     * @summary Approve a pending staff member
+     * @request POST:/register/staff/approve/{id}
+     * @secure
+     */
+    staffApproveCreate: (staffId: string, id: string, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/register/staff/approve/${id}`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  schedules = {
+    /**
+     * No description
+     *
+     * @tags Schedules
+     * @name SchedulesList
+     * @request GET:/schedules
+     */
+    schedulesList: (
+      query?: {
+        /**
+         * Start date of the events range (YYYY-MM-DD format)
+         * @example ""2025-03-01""
+         */
+        after?: string;
+        /**
+         * End date of the events range (YYYY-MM-DD format)
+         * @example ""2025-03-31""
+         */
+        before?: string;
+        /**
+         * Filter by program ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        program_id?: string;
+        /**
+         * Filter by user ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        user_id?: string;
+        /**
+         * Filter by team ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        team_id?: string;
+        /**
+         * Filter by location ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        location_id?: string;
+        /** Filter by program type */
+        program_type?: "game" | "practice" | "course" | "others";
+        /**
+         * Filter by creator ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        created_by?: string;
+        /**
+         * Filter by updater ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        updated_by?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<EventScheduleResponseDto[], Record<string, any>>({
+        path: `/schedules`,
+        method: "GET",
+        query: query,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
   staffs = {
     /**
@@ -1789,6 +1846,95 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  teams = {
+    /**
+     * No description
+     *
+     * @tags teams
+     * @name TeamsList
+     * @request GET:/teams
+     */
+    teamsList: (params: RequestParams = {}) =>
+      this.request<TeamResponse[], Record<string, any>>({
+        path: `/teams`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags teams
+     * @name TeamsCreate
+     * @request POST:/teams
+     * @secure
+     */
+    teamsCreate: (team: TeamRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/teams`,
+        method: "POST",
+        body: team,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags teams
+     * @name TeamsUpdate
+     * @request PUT:/teams/{id}
+     * @secure
+     */
+    teamsUpdate: (id: string, team: TeamRequestDto, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/teams/${id}`,
+        method: "PUT",
+        body: team,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags teams
+     * @name TeamsDelete
+     * @request DELETE:/teams/{id}
+     * @secure
+     */
+    teamsDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/teams/${id}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  webhooks = {
+    /**
+     * @description - checkout.session.completed: Logs completed checkout sessions
+     *
+     * @tags payments
+     * @name StripeCreate
+     * @request POST:/webhooks/stripe
+     */
+    stripeCreate: (request: string, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/webhooks/stripe`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

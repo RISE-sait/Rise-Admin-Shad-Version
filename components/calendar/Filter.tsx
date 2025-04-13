@@ -12,24 +12,18 @@ import { format } from "date-fns"
 import { FiltersType } from "@/types/calendar"
 import { Location } from "@/types/location"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ApiService } from "@/app/api/ApiService"
 import { useUser } from "@/contexts/UserContext"
 import { getAllPrograms } from "@/services/program"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { getAllLocations } from "@/services/location"
+import { getAllStaffs } from "@/services/staff"
+import { User } from "@/types/user"
+import { toast } from "@/hooks/use-toast"
+import { Program } from "@/types/program"
 
 interface FilterComponentProps {
   filters: FiltersType;
   onFilterChange: (key: keyof FiltersType, value: any) => void;
   resetFilters: () => void;
-}
-
-// Define a program interface
-interface Program {
-  id: string;
-  name: string;
-  type: string;
 }
 
 export default function FilterComponent({
@@ -40,7 +34,7 @@ export default function FilterComponent({
   // State for dynamic data
   const { user } = useUser()
   const [locations, setLocations] = useState<Location[]>([]);
-  const [trainers, setTrainers] = useState<{id: string; name: string}[]>([]);
+  const [staffs, setStaffs] = useState<User[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
   const [isLoading, setIsLoading] = useState({
@@ -49,8 +43,14 @@ export default function FilterComponent({
     programs: false,
   });
 
-  // Program types
-  const programTypes = ["game", "practice", "course", "others"];
+  // find unique types
+  const programTypes = programs.reduce((acc: string[], program) => {
+    if (!acc.includes(program.type)) {
+      acc.push(program.type);
+    }
+    return acc;
+  }
+  , []);
 
   // Parse dates for the calendar components
   const afterDate = filters.after ? new Date(filters.after) : undefined;
@@ -61,61 +61,12 @@ export default function FilterComponent({
     async function fetchLocations() {
       setIsLoading(prev => ({ ...prev, locations: true }));
       try {
-        // Try using ApiService first 
         try {
-          console.log("Fetching locations via ApiService");
-          const response = await ApiService.locations.locationsList();
-          
-          if (response && response.data) {
-            console.log(`ApiService: ${response.data.length} locations loaded`);
-            
-            // Add proper typing and null checks
-            const mappedLocations: Location[] = response.data.map((loc): Location => ({
-              id: loc.id || '', // Use empty string as fallback
-              name: loc.name || '', // Use empty string as fallback
-              Address: loc.address || '' // Map from 'address' to 'Address'
-            }));
-            
-            setLocations(mappedLocations);
-            return; // Success, return early
-          }
+          const response = await getAllLocations();
+
+          setLocations(response);
         } catch (apiError) {
           console.log("ApiService failed, trying direct service call", apiError);
-        }
-        
-        // Fallback to direct service call if ApiService failed
-        try {
-          const locationsData = await fetch('/api/locations', {
-            method: 'GET',
-            headers: {
-              'Authorization': user?.Jwt ? `Bearer ${user.Jwt}` : '',
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (locationsData.ok) {
-            const data = await locationsData.json();
-            console.log(`Direct fetch: ${data.length} locations loaded`);
-            
-            // Add proper typing and null checks
-            const mappedLocations: Location[] = data.map((loc: any): Location => ({
-              id: loc.id || '', // Use empty string as fallback
-              name: loc.name || '', // Use empty string as fallback
-              Address: loc.address || '' // Map from 'address' to 'Address'
-            }));
-            
-            setLocations(mappedLocations);
-          } else {
-            throw new Error(`Failed with status: ${locationsData.status}`);
-          }
-        } catch (fetchError) {
-          console.error("Direct fetch failed:", fetchError);
-          // Use mock data as last resort
-          setLocations([
-            { id: "1", name: "Main Facility", Address: "123 Main St" },
-            { id: "2", name: "Downtown Location", Address: "456 Market St" },
-          ]);
-          console.log("Using mock location data as fallback");
         }
       } catch (error) {
         console.error("Error in location fetch flow:", error);
@@ -124,7 +75,7 @@ export default function FilterComponent({
         setIsLoading(prev => ({ ...prev, locations: false }));
       }
     }
-    
+
     fetchLocations();
   }, [user?.Jwt]);
 
@@ -134,46 +85,21 @@ export default function FilterComponent({
       setIsLoading(prev => ({ ...prev, trainers: true }));
       try {
         console.log("Starting trainer fetch, JWT present:", !!user?.Jwt);
-        
+
         // Use ApiService with better error handling
-        const response = await ApiService.staffs.staffsList();
-        
-        if (!response || !response.data) {
-          console.warn("No staff data in response or invalid response format");
-          // Use mock data as fallback
-          setTrainers([
-            { id: "t1", name: "John Smith" },
-            { id: "t2", name: "Sarah Chen" },
-          ]);
-          return;
-        }
-        
-        // Filter for staff with trainer/coach role
-        const trainersData = response.data.filter(staff => 
-          staff.role_name?.toLowerCase()?.includes('trainer') ||
-          staff.role_name?.toLowerCase()?.includes('coach')
-        );
-        
-        // Format the data for the dropdown
-        const formattedTrainers = trainersData.map(staff => ({
-          id: staff.id || '',
-          name: `${staff.first_name || ''} ${staff.last_name || ''}`
-        }));
-        
-        console.log(`Trainers fetched: ${formattedTrainers.length}`);
-        setTrainers(formattedTrainers);
+        const staffs = await getAllStaffs();
+
+        setStaffs(staffs);
       } catch (error) {
-        console.error("Error fetching trainers:", error);
-        // Provide fallback data
-        setTrainers([
-          { id: "t1", name: "John Smith" },
-          { id: "t2", name: "Sarah Chen" },
-        ]);
+        toast({
+          status: "error",
+          description: error instanceof Error ? error.message : "Failed to fetch trainers",
+        });
       } finally {
         setIsLoading(prev => ({ ...prev, trainers: false }));
       }
     }
-    
+
     fetchTrainers();
   }, [user?.Jwt]);
 
@@ -182,53 +108,21 @@ export default function FilterComponent({
     async function fetchPrograms() {
       setIsLoading(prev => ({ ...prev, programs: true }));
       try {
-        console.log("Fetching all programs");
-        
+
         // Get all programs in a single request using the service function
         const allProgramsData = await getAllPrograms();
-        
-        if (allProgramsData && allProgramsData.length > 0) {
-          console.log(`Programs loaded: ${allProgramsData.length}`);
-          
-          // Map the response to the Program interface
-          const formattedPrograms: Program[] = allProgramsData.map((program: any): Program => ({
-            id: program.id || '',
-            name: program.name || '',
-            type: program.type?.toLowerCase() || 'others' // normalize type to lowercase
-          }));
-          
-          // Set all programs
-          setPrograms(formattedPrograms);
-        } else {
-          // If no programs were returned, use fallback mock data
-          console.log("No programs returned from API, using mock data");
-          setPrograms([
-            { id: "p1", name: "Basketball Training", type: "practice" },
-            { id: "p2", name: "Soccer Match", type: "game" },
-            { id: "p3", name: "Tennis Fundamentals", type: "course" },
-            { id: "p4", name: "Swimming Practice", type: "practice" },
-            { id: "p5", name: "Baseball Game", type: "game" },
-            { id: "p6", name: "Yoga Class", type: "course" },
-            { id: "p7", name: "Fitness Assessment", type: "others" }
-          ]);
-        }
+
+        // Set all programs
+        setPrograms(allProgramsData);
       } catch (error) {
         console.error("Error fetching programs:", error);
         // Fallback to mock data on error
-        setPrograms([
-          { id: "p1", name: "Basketball Training", type: "practice" },
-          { id: "p2", name: "Soccer Match", type: "game" },
-          { id: "p3", name: "Tennis Fundamentals", type: "course" },
-          { id: "p4", name: "Swimming Practice", type: "practice" },
-          { id: "p5", name: "Baseball Game", type: "game" },
-          { id: "p6", name: "Yoga Class", type: "course" },
-          { id: "p7", name: "Fitness Assessment", type: "others" }
-        ]);
+
       } finally {
         setIsLoading(prev => ({ ...prev, programs: false }));
       }
     }
-    
+
     fetchPrograms();
   }, [user?.Jwt]);
 
@@ -239,14 +133,14 @@ export default function FilterComponent({
       setFilteredPrograms(programs);
       return;
     }
-    
-    const filtered = programs.filter(program => 
+
+    const filtered = programs.filter(program =>
       program.type.toLowerCase() === filters.program_type?.toLowerCase()
     );
-    
+
     console.log(`Filtered ${filtered.length} programs of type ${filters.program_type}`);
     setFilteredPrograms(filtered);
-    
+
     // Clear program IDs when type changes
     if (filters.program_ids?.length) {
       onFilterChange("program_ids", []);
@@ -289,7 +183,7 @@ export default function FilterComponent({
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               {/* End Date */}
               <div className="space-y-2">
                 <Label>End Date (Before)</Label>
@@ -322,8 +216,8 @@ export default function FilterComponent({
             {isLoading.locations ? (
               <div>Loading locations...</div>
             ) : (
-              <Select 
-                value={filters.location_id || "all"} 
+              <Select
+                value={filters.location_id || "all"}
                 onValueChange={(value) => onFilterChange("location_id", value === "all" ? "" : value)}
               >
                 <SelectTrigger>
@@ -349,8 +243,8 @@ export default function FilterComponent({
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-4">
-              <RadioGroup 
-                value={filters.program_type || ""} 
+              <RadioGroup
+                value={filters.program_type || ""}
                 onValueChange={(value) => onFilterChange("program_type", value)}
               >
                 <div className="flex items-center space-x-2">
@@ -364,7 +258,7 @@ export default function FilterComponent({
                   </div>
                 ))}
               </RadioGroup>
-              
+
               {/* Program Names - Changed from checkboxes to dropdown */}
               {filters.program_type && filteredPrograms.length > 0 && (
                 <div className="mt-4">
@@ -409,9 +303,9 @@ export default function FilterComponent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Trainers</SelectItem>
-                  {trainers.map(trainer => (
-                    <SelectItem key={trainer.id} value={trainer.id}>
-                      {trainer.name}
+                  {staffs.map(trainer => (
+                    <SelectItem key={trainer.Email} value={trainer.Email}>
+                      {trainer.Name}
                     </SelectItem>
                   ))}
                 </SelectContent>

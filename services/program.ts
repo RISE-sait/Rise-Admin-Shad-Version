@@ -1,19 +1,14 @@
-import { Practice, PracticeRequestDto } from "@/types/program";
+import { Program } from "@/types/program";
 import { addAuthHeader } from "@/lib/auth-header";
 import  getValue  from "@/configs/constants";
 import { mockPrograms, mockLevels } from "@/components/programs/api-fallback";
+import { ProgramRequestDto } from "@/app/api/Api";
 
-export async function getAllPrograms(type?: string): Promise<Practice[]> {
+export async function getAllPrograms(type?: string): Promise<Program[]> {
   try {
-    const baseUrl = getValue("API");
     const queryParams = type && type !== "all" ? `?type=${type}` : '';
-    const url = `${baseUrl}programs${queryParams}`;
     
-    const response = await fetch(`/api/programs${queryParams}`, {
-      method: 'GET',
-      ...addAuthHeader(),
-      cache: 'no-store'
-    });
+    const response = await fetch(`${getValue("API")}programs${queryParams}`)
 
     if (!response.ok) {
       console.error(`Failed to fetch programs: ${response.status} ${response.statusText}`);
@@ -38,12 +33,7 @@ export async function getAllPrograms(type?: string): Promise<Practice[]> {
  */
 export async function getAllProgramLevels(): Promise<string[]> {
   try {
-    console.log('Fetching program levels');
-    const response = await fetch('/api/programs/levels', {
-      method: 'GET',
-      ...addAuthHeader(),
-      cache: 'no-store'
-    });
+    const response = await fetch(`${getValue("API")}programs/levels`)
 
     if (!response.ok) {
       console.error(`Failed to fetch program levels: ${response.status} ${response.statusText}`);
@@ -63,16 +53,12 @@ export async function getAllProgramLevels(): Promise<string[]> {
 /**
  * Create a new program
  */
-export async function createProgram(programData: PracticeRequestDto, jwt: string): Promise<string | null> {
+export async function createProgram(programData: ProgramRequestDto, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
 
-    const response = await fetch('/api/programs', {
+    const response = await fetch(`${getValue("API")}programs`, {
       method: 'POST',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(programData)
     });
 
@@ -97,12 +83,9 @@ export async function createProgram(programData: PracticeRequestDto, jwt: string
 /**
  * Get program by ID
  */
-export async function getProgramById(id: string): Promise<Practice | null> {
+export async function getProgramById(id: string): Promise<Program | null> {
   try {
-    const response = await fetch(`/api/programs/${id}`, {
-      method: 'GET',
-      ...addAuthHeader()
-    });
+    const response = await fetch(`${getValue("API")}programs/${id}`)
 
     if (!response.ok) {
       console.error(`Failed to fetch program: ${response.status} ${response.statusText}`);
@@ -119,16 +102,11 @@ export async function getProgramById(id: string): Promise<Practice | null> {
 /**
  * Update a program
  */
-export async function updateProgram(id: string, programData: PracticeRequestDto, jwt: string): Promise<string | null> {
+export async function updateProgram(id: string, programData: ProgramRequestDto, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
-
-    const response = await fetch(`/api/programs/${id}`, {
+    const response = await fetch(`${getValue("API")}programs/${id}`, {
       method: 'PUT',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(programData)
     });
 
@@ -155,13 +133,9 @@ export async function updateProgram(id: string, programData: PracticeRequestDto,
  */
 export async function deleteProgram(id: string, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Authorization': `Bearer ${jwt}`,
-    };
-
-    const response = await fetch(`/api/programs/${id}`, {
+    const response = await fetch(`${getValue("API")}programs/${id}`, {
       method: 'DELETE',
-      headers
+      ...addAuthHeader(jwt),
     });
 
     if (!response.ok) {

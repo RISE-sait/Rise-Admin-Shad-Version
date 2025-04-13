@@ -11,7 +11,6 @@ export async function getAllMemberships(): Promise<Membership[]> {
 
     const response = await fetch(`${getValue("API")}memberships`, {
       method: 'GET',
-      ...addAuthHeader()
     });
 
     if (!response.ok) {

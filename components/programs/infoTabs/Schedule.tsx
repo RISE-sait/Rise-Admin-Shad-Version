@@ -26,12 +26,12 @@ import {
 } from "@/components/ui/select";
 import { Team } from "@/services/teams";
 import { ProgramEvent } from "../AddProgramForm";
-import { FacilityLocation } from '@/types/location';
+import { Location } from '@/types/location';
 
 export interface ScheduleProps {
   events: ProgramEvent[];
   onEventsChange: (events: ProgramEvent[]) => void;
-  locations: FacilityLocation[];
+  locations: Location[];
   teams: Team[];
   programCapacity?: number;
 }

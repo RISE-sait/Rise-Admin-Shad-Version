@@ -1,11 +1,15 @@
-type StaffRole = 'INSTRUCTOR' | 'ADMIN' | 'SUPERADMIN' | 'INSTRUCTOR' | 'COACH'
+export type StaffRole = 'INSTRUCTOR' | 'ADMIN' | 'SUPERADMIN' | 'INSTRUCTOR' | 'COACH'
 
 export interface User {
+    ID : string
     Email: string;
     Name: string;
-    StaffInfo: {
+    Phone: string;
+    StaffInfo?: {
         Role: StaffRole;
         IsActive: boolean;
     };
-    Jwt:string
+    Jwt:string,
+    CreatedAt: Date,
+    UpdatedAt: Date,
 }

@@ -14,7 +14,7 @@ import { revalidatePractices } from "@/app/actions/serverActions";
 import { useFormData } from "@/hooks/form-data";
 import { getAllTeams } from "@/services/teams";
 import { getAllLocations } from "@/services/location";
-import { FacilityLocation } from "@/types/location";
+import { Location } from "@/types/location";
 
 interface ProgramInfoPanelProps {
   practice: Practice;
@@ -25,7 +25,7 @@ interface ProgramInfoPanelProps {
 export default function ProgramInfoPanel({ practice, levels, onClose }: ProgramInfoPanelProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
-  const [locations, setLocations] = useState<FacilityLocation[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);

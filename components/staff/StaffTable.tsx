@@ -6,47 +6,44 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Pencil, Trash, UserX, ArrowUpDown } from "lucide-react"
-import { StaffResponseDto } from "@/app/api/Api"
 import { Badge } from "@/components/ui/badge"
-import { ApiService } from "@/app/api/ApiService"
-import { toast } from "./toast"
 import { AlertModal } from "../ui/AlertModal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { User } from "@/types/user"
 
 interface StaffTableProps {
-  data: StaffResponseDto[]
+  data: User[]
   loading: boolean
-  onStaffSelect: (staff: StaffResponseDto) => void
-  onDelete?: () => void
+  onStaffSelect: (staff: User) => void
   selectedIds: string[]
   onSelectionChange: (selectedIds: string[]) => void
 }
 
-export default function StaffTable({ data, loading, onStaffSelect, onDelete, selectedIds, onSelectionChange }: StaffTableProps) {
+export default function StaffTable({ data, loading, onStaffSelect, selectedIds, onSelectionChange }: StaffTableProps) {
   const [open, setOpen] = useState(false)
   const [loading_, setLoading] = useState(false)
   const [staffToDelete, setStaffToDelete] = useState<string | null>(null)
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(0)
-  const [sortField, setSortField] = useState<keyof StaffResponseDto>('first_name')
+  const [sortField, setSortField] = useState<keyof User>('Name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const handleDelete = async () => {
-    if (!staffToDelete) return
-    try {
-      setLoading(true)
-      await ApiService.staffs.staffsDelete(staffToDelete)
-      toast({ title: "Success", description: "Staff member deleted successfully." })
-      if (onDelete) onDelete()
-    } catch (error) {
-      console.error('Error deleting staff:', error)
-      toast({ variant: "destructive", title: "Error", description: "Failed to delete staff member." })
-    } finally {
-      setOpen(false)
-      setLoading(false)
-      setStaffToDelete(null)
-    }
+    // if (!staffToDelete) return
+    // try {
+    //   setLoading(true)
+    //   await ApiService.staffs.staffsDelete(staffToDelete)
+    //   toast({ title: "Success", description: "Staff member deleted successfully." })
+    //   if (onDelete) onDelete()
+    // } catch (error) {
+    //   console.error('Error deleting staff:', error)
+    //   toast({ variant: "destructive", title: "Error", description: "Failed to delete staff member." })
+    // } finally {
+    //   setOpen(false)
+    //   setLoading(false)
+    //   setStaffToDelete(null)
+    // }
   }
 
   const confirmDelete = (id: string, e: React.MouseEvent) => {
@@ -61,14 +58,14 @@ export default function StaffTable({ data, loading, onStaffSelect, onDelete, sel
   }
 
   const toggleSelectAll = (checked: boolean) => {
-    const currentPageIds = paginatedData.map(staff => staff.id!)
+    const currentPageIds = paginatedData.map(staff => staff.ID!)
     let newSelectedIds: string[]
     if (checked) newSelectedIds = [...new Set([...selectedIds, ...currentPageIds])]
     else newSelectedIds = selectedIds.filter(id => !currentPageIds.includes(id))
     onSelectionChange(newSelectedIds)
   }
 
-  const handleSort = (field: keyof StaffResponseDto) => {
+  const handleSort = (field: keyof User) => {
     if (sortField === field) setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     else { setSortField(field); setSortDirection('asc') }
   }
@@ -95,6 +92,8 @@ export default function StaffTable({ data, loading, onStaffSelect, onDelete, sel
   const paginatedData = sortedData.slice(page * pageSize, (page + 1) * pageSize)
   const totalPages = Math.ceil(sortedData.length / pageSize)
 
+  console.log("paginatedData", paginatedData)
+
   return (
     <>
       <AlertModal isOpen={open} onClose={() => setOpen(false)} onConfirm={handleDelete} loading={loading_} />
@@ -104,31 +103,31 @@ export default function StaffTable({ data, loading, onStaffSelect, onDelete, sel
             <TableHeader className="bg-muted/100 sticky top-0 z-10">
               <TableRow className="hover:bg-transparent border-b">
                 <TableHead className="w-[50px] px-6 py-4">
-                  <Checkbox checked={paginatedData.length > 0 && paginatedData.every(staff => selectedIds.includes(staff.id!))} onCheckedChange={toggleSelectAll} onClick={e => e.stopPropagation()} />
+                  <Checkbox checked={paginatedData.length > 0 && paginatedData.every(staff => selectedIds.includes(staff.ID!))} onCheckedChange={toggleSelectAll} onClick={e => e.stopPropagation()} />
                 </TableHead>
                 <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[220px]">
-                  <Button variant="ghost" onClick={() => handleSort('first_name')}>
+                  <Button variant="ghost" onClick={() => handleSort('Name')}>
                     Name <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[150px]">
-                  <Button variant="ghost" onClick={() => handleSort('role_name')}>
-                    Role <ArrowUpDown className="ml-2 h-4 w-4" />
+                <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[220px]">
+                  <Button variant="ghost">
+                    Role
                   </Button>
                 </TableHead>
                 <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[220px]">
-                  <Button variant="ghost" onClick={() => handleSort('email')}>
+                  <Button variant="ghost" onClick={() => handleSort('Email')}>
                     Email <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
                 <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[150px]">
-                  <Button variant="ghost" onClick={() => handleSort('phone')}>
-                    Phone <ArrowUpDown className="ml-2 h-4 w-4" />
+                  <Button variant="ghost" onClick={() => handleSort('Phone')}>
+                    Phone
                   </Button>
                 </TableHead>
-                <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[120px]">
-                  <Button variant="ghost" onClick={() => handleSort('is_active')}>
-                    Status <ArrowUpDown className="ml-2 h-4 w-4" />
+                <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[150px]">
+                  <Button variant="ghost">
+                    Status
                   </Button>
                 </TableHead>
                 <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b text-right w-[80px]">Actions</TableHead>
@@ -158,17 +157,17 @@ export default function StaffTable({ data, loading, onStaffSelect, onDelete, sel
                 </TableRow>
               ) : (
                 paginatedData.map((staff) => (
-                  <TableRow key={staff.id} className={`border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer ${selectedIds.includes(staff.id!) ? 'bg-muted' : ''}`} onClick={() => onStaffSelect(staff)}>
+                  <TableRow key={staff.ID} className={`border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer ${selectedIds.includes(staff.ID) ? 'bg-muted' : ''}`} onClick={() => onStaffSelect(staff)}>
                     <TableCell className="px-6 py-4">
-                      <Checkbox checked={selectedIds.includes(staff.id!)} onCheckedChange={handleCheckboxChange(staff.id!)} onClick={e => e.stopPropagation()} />
+                      <Checkbox checked={selectedIds.includes(staff.ID)} onCheckedChange={handleCheckboxChange(staff.ID)} onClick={e => e.stopPropagation()} />
                     </TableCell>
-                    <TableCell className="px-6 py-4 text-sm font-medium">{staff.first_name} {staff.last_name}</TableCell>
-                    <TableCell className="px-6 py-4 text-sm">{staff.role_name}</TableCell>
-                    <TableCell className="px-6 py-4 text-sm">{staff.email || "—"}</TableCell>
-                    <TableCell className="px-6 py-4 text-sm">{staff.phone || "—"}</TableCell>
+                    <TableCell className="px-6 py-4 text-sm font-medium">{staff.Name}</TableCell>
+                    <TableCell className="px-6 py-4 text-sm">{staff.StaffInfo?.Role!}</TableCell>
+                    <TableCell className="px-6 py-4 text-sm">{staff.Email}</TableCell>
+                    <TableCell className="px-6 py-4 text-sm">{staff.Phone}</TableCell>
                     <TableCell className="px-6 py-4 text-sm">
-                      <Badge variant={staff.is_active ? "default" : "destructive"} className="font-normal">
-                        {staff.is_active ? "Active" : "Inactive"}
+                      <Badge variant={staff.StaffInfo!.IsActive ? "default" : "destructive"} className="font-normal">
+                        {staff.StaffInfo!.IsActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm text-right">
@@ -185,7 +184,7 @@ export default function StaffTable({ data, loading, onStaffSelect, onDelete, sel
                           <DropdownMenuItem className="px-3 py-2 hover:bg-accent cursor-pointer" onClick={e => { e.stopPropagation(); onStaffSelect(staff) }}>
                             <Pencil className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={e => confirmDelete(staff.id!, e)} className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive">
+                          <DropdownMenuItem onClick={e => confirmDelete(staff.ID!, e)} className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive">
                             <Trash className="mr-2 h-4 w-4" /> Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>

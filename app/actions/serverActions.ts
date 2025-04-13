@@ -13,3 +13,7 @@ export async function revalidatePractices() {
 export async function revalidateMemberships() {
     revalidatePath("/manage/memberships");
 }
+
+export async function revalidateStaffs() {
+    revalidatePath("/manage/staffs");
+}

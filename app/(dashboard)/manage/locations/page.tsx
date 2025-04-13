@@ -1,4 +1,4 @@
-import FacilitiesPage from "@/components/facilities/LocationPage";
+import FacilitiesPage from "@/components/locations/LocationPage";
 import { getAllLocations } from "@/services/location";
 
 export default async function Page() {

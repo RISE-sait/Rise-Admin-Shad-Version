@@ -11,8 +11,8 @@ export default async function Page() {
   return (
     <div className="p-6">
       <ProgramPage 
-        practices={programs} 
-        practiceLevels={programLevels} 
+        programs={programs} 
+        programLevels={programLevels} 
         locations={locations} // This should now work with the updated types
       />
     </div>
