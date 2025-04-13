@@ -6,6 +6,7 @@ import { PlusCircle, CreditCard, AlertCircle } from 'lucide-react';
 import PlanListItem from './plan-list-item';
 import { useToast } from '@/hooks/use-toast';
 import getValue from '@/configs/constants';
+import { useUser } from "@/contexts/UserContext";
 import { v4 as uuidv4 } from 'uuid';
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -32,6 +33,9 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
     setIsAddingPlan(true);
   };
 
+  const { user } = useUser();
+  const jwt = user?.Jwt!
+
   const handleSaveNewPlan = async () => {
     setIsLoading(true);
     try {
@@ -44,10 +48,13 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
         amt_periods: newPlan.amt_periods || 0
       };
 
-      const response = await fetch(`${apiUrl}/memberships/plans`, {
+      console.log(membershipId)
+
+      const response = await fetch(`${apiUrl}memberships/plans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwt}`,
         },
         body: JSON.stringify({
           membership_id: membershipId,
@@ -93,10 +100,11 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
   const handleUpdatePlan = async (updatedPlan: MembershipPlan) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/memberships/plans/${updatedPlan.id}`, {
+      const response = await fetch(`${apiUrl}memberships/plans/${updatedPlan.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwt}`,
         },
         body: JSON.stringify({
           name: updatedPlan.name,
@@ -138,8 +146,11 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
     
     setIsLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/memberships/plans/${planId}`, {
+      const response = await fetch(`${apiUrl}memberships/plans/${planId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+        }
       });
 
       if (!response.ok) {
