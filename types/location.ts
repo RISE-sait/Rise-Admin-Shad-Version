@@ -1,5 +1,5 @@
-export interface Location {
+export interface FacilityLocation {
   id: string;
   name: string;
-  Address: string
+  Address: string;
 }

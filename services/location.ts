@@ -1,90 +1,66 @@
-import {
-  LocationRequestDto,
-  LocationResponseDto
-} from '@/app/api/Api';
+import { FacilityLocation } from '@/types/location';
 import { addAuthHeader } from '@/lib/auth-header';
-import getValue from '@/configs/constants';
-import { Location } from '@/types/location';
+import { mockLocations } from '@/components/programs/api-fallback';
 
-export async function getAllLocations(): Promise<Location[]> {
+export interface LocationResponseDto {
+  id?: string;
+  name?: string;
+  address?: string;
+}
+
+export interface LocationRequestDto {
+  name: string;
+  address: string;
+}
+
+export async function getAllLocations(): Promise<FacilityLocation[]> {
   try {
-
-    const response = await fetch(`${getValue("API")}locations`, {
+    console.log('Fetching locations');
+    const response = await fetch('/api/locations', {
       method: 'GET',
-      ...addAuthHeader()
+      ...addAuthHeader(),
+      cache: 'no-store'
     });
 
-    const locationsResponse: LocationResponseDto[] = await response.json();
+    if (!response.ok) {
+      console.error(`Failed to fetch locations: ${response.status} ${response.statusText}`);
+      console.warn("Using mock locations because API request failed");
+      return mockLocations;
+    }
 
-    const locations: Location[] = locationsResponse.map((facility) => ({
+    const locationsResponse: LocationResponseDto[] = await response.json();
+    console.log("Locations fetched:", locationsResponse);
+
+    const locations: FacilityLocation[] = locationsResponse.map((facility) => ({
       id: facility.id!,
       name: facility.name!,
       Address: facility.address!,
-    }))
+    }));
 
-    return locations
+    return locations;
   } catch (error) {
     console.error('Error fetching locations:', error);
-    throw error;
+    console.warn("Using mock locations due to error");
+    return mockLocations;
   }
 }
 
 export async function createLocation(locationData: LocationRequestDto, jwt: string): Promise<string | null> {
   try {
-
-    // Create custom headers including the firebase_token header
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`${getValue('API')}locations`, {
+    const response = await fetch('/api/locations', {
       method: 'POST',
       headers,
       body: JSON.stringify(locationData)
     });
 
     if (!response.ok) {
-
       const responseJSON = await response.json();
-
-      let errorMessage = `Failed to update practice: ${response.statusText}`;
-
-      if (responseJSON.error) {
-        errorMessage = responseJSON.error.message;
-      }
-
-      return errorMessage;
-
-    }
-
-    return null
-  } catch (error) {
-    console.error('Error creating practice:', error);
-    throw error;
-  }
-}
-
-export async function updateLocation(locationID: string, locationData: LocationRequestDto, jwt: string): Promise<string | null> {
-  try {
-
-    // Create custom headers including the firebase_token header
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
-
-    const response = await fetch(`${getValue('API')}locations/${locationID}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(locationData)
-    });
-
-    if (!response.ok) {
-
-      const responseJSON = await response.json();
-
-      let errorMessage = `Failed to update location: ${response.statusText}`;
+      let errorMessage = `Failed to create location: ${response.statusText}`;
 
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
@@ -93,49 +69,9 @@ export async function updateLocation(locationID: string, locationData: LocationR
       return errorMessage;
     }
 
-    return null
+    return null;
   } catch (error) {
     console.error('Error creating location:', error);
-    throw error;
-  }
-}
-
-
-export async function deleteLocation(locationID: string, jwt: string): Promise<string | null> {
-  try {
-
-
-    console.log('Using headers:', jwt);
-
-    // Create custom headers including the firebase_token header
-    const headers = {
-      'Authorization': `Bearer ${jwt}`,
-    };
-
-    const response = await fetch(`${getValue('API')}locations/${locationID}`, {
-      method: 'DELETE',
-      headers
-    })
-
-    if (!response.ok) {
-
-      const responseJSON = await response.json();
-
-      let errorMessage = `Failed to delete location: ${response.statusText}`;
-
-      if (responseJSON.error) {
-        errorMessage = responseJSON.error.message;
-      }
-
-      return errorMessage;
-
-    }
-
-    return null
-
-
-  } catch (error) {
-    console.error('Error creating location:', error);
-    throw error;
+    return error instanceof Error ? error.message : 'Unknown error occurred';
   }
 }

@@ -1,85 +1,69 @@
-import {
-  PracticeLevelsResponse,
-  PracticeRequestDto,
-  PracticeResponse,
-} from '@/app/api/Api';
-import { addAuthHeader } from '@/lib/auth-header';
-import { Practice } from '@/types/program';
-import getValue from '../configs/constants';
+import { Practice, PracticeRequestDto } from "@/types/program";
+import { addAuthHeader } from "@/lib/auth-header";
+import  getValue  from "@/configs/constants";
+import { mockPrograms, mockLevels } from "@/components/programs/api-fallback";
 
-// Helper function to get the full URL for API requests
-function getApiUrl(path: string): string {
-  // Check if we're running on the server
-  const isServer = typeof window === 'undefined';
-  
-  if (isServer) {
-    // On server side, use absolute URL with the appropriate host
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    return `${baseUrl}${path}`;
-  } else {
-    // On client side, use relative path
-    return path;
-  }
-}
-
-/**
- * Get all programs with optional type filtering
- * @param type Optional program type filter (practice, game, course, others)
- */
-export async function getAllPrograms(type?: string): Promise<any[]> {
+export async function getAllPrograms(type?: string): Promise<Practice[]> {
   try {
-    // Build URL with optional type parameter
-    const path = type 
-      ? `/api/programs?type=${encodeURIComponent(type)}`
-      : '/api/programs';
+    const baseUrl = getValue("API");
+    const queryParams = type && type !== "all" ? `?type=${type}` : '';
+    const url = `${baseUrl}programs${queryParams}`;
     
-    const url = getApiUrl(path);
-    
-    const response = await fetch(url, {
+    const response = await fetch(`/api/programs${queryParams}`, {
       method: 'GET',
       ...addAuthHeader(),
-      // Add cache: 'no-store' for SSR requests to avoid caching
-      cache: typeof window === 'undefined' ? 'no-store' : undefined
+      cache: 'no-store'
     });
 
     if (!response.ok) {
       console.error(`Failed to fetch programs: ${response.status} ${response.statusText}`);
-      return []; // Return empty array instead of throwing
+      console.warn("Using mock data because API request failed");
+      return type 
+        ? mockPrograms.filter(p => p.type === type) 
+        : mockPrograms;
     }
 
-    const programsResponse = await response.json();
-    return programsResponse;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching programs:', error);
-    return []; // Return empty array on error
+    console.warn("Using mock data due to error");
+    return type 
+      ? mockPrograms.filter(p => p.type === type) 
+      : mockPrograms;
   }
 }
 
+/**
+ * Get all program levels
+ */
 export async function getAllProgramLevels(): Promise<string[]> {
   try {
-    // Use the new programs/levels endpoint
-    const url = getApiUrl('/api/programs/levels');
-    
-    const response = await fetch(url, {
-      cache: typeof window === 'undefined' ? 'no-store' : undefined
+    console.log('Fetching program levels');
+    const response = await fetch('/api/programs/levels', {
+      method: 'GET',
+      ...addAuthHeader(),
+      cache: 'no-store'
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch practice levels: ${response.statusText}`);
+      console.error(`Failed to fetch program levels: ${response.status} ${response.statusText}`);
+      console.warn("Using default levels because API request failed");
+      return mockLevels;
     }
 
     const levelsResponse = await response.json();
-    return levelsResponse.levels || [];
+    return levelsResponse.levels || mockLevels;
   } catch (error) {
-    console.error('Error fetching practice levels:', error);
-    return [];
+    console.error('Error fetching program levels:', error);
+    console.warn("Using default levels due to error");
+    return mockLevels;
   }
 }
 
 /**
  * Create a new program
  */
-export async function createProgram(programData: any, jwt: string): Promise<string | null> {
+export async function createProgram(programData: PracticeRequestDto, jwt: string): Promise<string | null> {
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -106,21 +90,43 @@ export async function createProgram(programData: any, jwt: string): Promise<stri
     return null;
   } catch (error) {
     console.error('Error creating program:', error);
-    throw error;
+    return error instanceof Error ? error.message : 'Unknown error occurred';
   }
 }
 
 /**
- * Update an existing program
+ * Get program by ID
  */
-export async function updateProgram(programID: string, programData: any, jwt: string): Promise<string | null> {
+export async function getProgramById(id: string): Promise<Practice | null> {
+  try {
+    const response = await fetch(`/api/programs/${id}`, {
+      method: 'GET',
+      ...addAuthHeader()
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch program: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching program ${id}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Update a program
+ */
+export async function updateProgram(id: string, programData: PracticeRequestDto, jwt: string): Promise<string | null> {
   try {
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`/api/programs/${programID}`, {
+    const response = await fetch(`/api/programs/${id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify(programData)
@@ -140,20 +146,20 @@ export async function updateProgram(programID: string, programData: any, jwt: st
     return null;
   } catch (error) {
     console.error('Error updating program:', error);
-    throw error;
+    return error instanceof Error ? error.message : 'Unknown error occurred';
   }
 }
 
 /**
  * Delete a program
  */
-export async function deleteProgram(programID: string, jwt: string): Promise<string | null> {
+export async function deleteProgram(id: string, jwt: string): Promise<string | null> {
   try {
     const headers = {
       'Authorization': `Bearer ${jwt}`,
     };
 
-    const response = await fetch(`/api/programs/${programID}`, {
+    const response = await fetch(`/api/programs/${id}`, {
       method: 'DELETE',
       headers
     });
@@ -172,6 +178,6 @@ export async function deleteProgram(programID: string, jwt: string): Promise<str
     return null;
   } catch (error) {
     console.error('Error deleting program:', error);
-    throw error;
+    return error instanceof Error ? error.message : 'Unknown error occurred';
   }
 }

@@ -32,7 +32,7 @@ interface DataTableProps {
   onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
 }
 
-export default function PracticeTable({
+export default function ProgramTable({
   practices,
   onPracticeSelect,
   onDeletePractice,

@@ -16,15 +16,21 @@ import { revalidatePractices } from "@/app/actions/serverActions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, GraduationCap, Gamepad2, Box } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
+import { FacilityLocation } from "@/types/location";
 
 type ProgramType = "practice" | "course" | "game" | "all";
 
 interface ProgramPageProps {
   practices: Practice[];
   practiceLevels: string[];
+  locations: FacilityLocation[]; // Add this line
 }
 
-export default function ProgramPage({ practices: initialPractices, practiceLevels }: ProgramPageProps) {
+export default function ProgramPage({ 
+  practices: initialPractices, 
+  practiceLevels,
+  locations 
+}: ProgramPageProps) {
   const [selectedProgram, setSelectedProgram] = useState<Practice | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
@@ -231,7 +237,7 @@ export default function ProgramPage({ practices: initialPractices, practiceLevel
           {drawerContent === "details" && selectedProgram && (
             <ProgramInfoPanel practice={selectedProgram} levels={practiceLevels} />
           )}
-          {drawerContent === "add" && <AddProgramForm levels={practiceLevels} />}
+          {drawerContent === "add" && <AddProgramForm levels={practiceLevels} initialLocations={locations} />}
         </div>
       </RightDrawer>
     </div>
