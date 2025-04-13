@@ -1,26 +1,7 @@
-import {
-  PracticeLevelsResponse,
-  PracticeRequestDto,
-  PracticeResponse,
-} from '@/app/api/Api';
-import { addAuthHeader } from '@/lib/auth-header';
 import { Practice } from '@/types/program';
 import getValue from '../configs/constants';
+import { addAuthHeader } from '@/lib/auth-header';
 
-// Helper function to get the full URL for API requests
-function getApiUrl(path: string): string {
-  // Check if we're running on the server
-  const isServer = typeof window === 'undefined';
-  
-  if (isServer) {
-    // On server side, use absolute URL with the appropriate host
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    return `${baseUrl}${path}`;
-  } else {
-    // On client side, use relative path
-    return path;
-  }
-}
 
 /**
  * Get all programs with optional type filtering
@@ -30,14 +11,13 @@ export async function getAllPrograms(type?: string): Promise<any[]> {
   try {
     // Build URL with optional type parameter
     const path = type 
-      ? `/api/programs?type=${encodeURIComponent(type)}`
-      : '/api/programs';
+      ? `programs?type=${encodeURIComponent(type)}`
+      : 'programs';
     
-    const url = getApiUrl(path);
+    const url = `${getValue('API')}${path}`;
     
     const response = await fetch(url, {
       method: 'GET',
-      ...addAuthHeader(),
       // Add cache: 'no-store' for SSR requests to avoid caching
       cache: typeof window === 'undefined' ? 'no-store' : undefined
     });
@@ -57,9 +37,9 @@ export async function getAllPrograms(type?: string): Promise<any[]> {
 
 export async function getAllProgramLevels(): Promise<string[]> {
   try {
-    // Use the new programs/levels endpoint
-    const url = getApiUrl('/api/programs/levels');
     
+    const url = `${getValue('API')}programs/levels`;
+
     const response = await fetch(url, {
       cache: typeof window === 'undefined' ? 'no-store' : undefined
     });
@@ -81,14 +61,10 @@ export async function getAllProgramLevels(): Promise<string[]> {
  */
 export async function createProgram(programData: any, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
 
-    const response = await fetch('/api/programs', {
+    const response = await fetch('programs', {
       method: 'POST',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(programData)
     });
 
@@ -115,14 +91,10 @@ export async function createProgram(programData: any, jwt: string): Promise<stri
  */
 export async function updateProgram(programID: string, programData: any, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
 
-    const response = await fetch(`/api/programs/${programID}`, {
+    const response = await fetch(`programs/${programID}`, {
       method: 'PUT',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(programData)
     });
 
@@ -149,13 +121,9 @@ export async function updateProgram(programID: string, programData: any, jwt: st
  */
 export async function deleteProgram(programID: string, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Authorization': `Bearer ${jwt}`,
-    };
-
-    const response = await fetch(`/api/programs/${programID}`, {
+    const response = await fetch(`programs/${programID}`, {
       method: 'DELETE',
-      headers
+      ...addAuthHeader(jwt),
     });
 
     if (!response.ok) {

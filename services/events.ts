@@ -1,14 +1,7 @@
 // services/events.ts
+import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 import { CalendarEvent } from '@/types/calendar';
-
-// Determine the base URL based on the environment
-const isServer = typeof window === 'undefined';
-const API_BASE_URL = isServer
-  ? 'http://localhost:80' // Use absolute URL on server (adjust port if needed)
-  : '/api'; // Use relative URL on client
-
-// ... (SchedulerEvent interface remains unchanged)
 
 export async function getAllEvents(query: {
   after: string;
@@ -33,12 +26,11 @@ export async function getAllEvents(query: {
     if (query.created_by) queryParams.append('created_by', query.created_by);
     if (query.updated_by) queryParams.append('updated_by', query.updated_by);
 
-    const url = `${API_BASE_URL}/events?${queryParams.toString()}`;
+    const url = `${getValue('API')}events?${queryParams.toString()}`;
     console.log('Fetching URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
-      ...addAuthHeader(),
     });
 
     if (!response.ok) {
@@ -48,7 +40,6 @@ export async function getAllEvents(query: {
     }
 
     const eventsResponse = await response.json();
-    console.log('Parsed events response:', eventsResponse);
 
     // Ensure it’s an array
     if (!Array.isArray(eventsResponse)) {
@@ -68,14 +59,10 @@ export async function getAllEvents(query: {
  */
 export async function createEvent(eventData: any, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
 
-    const response = await fetch(`${API_BASE_URL}/events`, {
+    const response = await fetch(`${getValue('API')}events`, {
       method: 'POST',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(eventData),
     });
 
@@ -100,14 +87,10 @@ export async function createEvent(eventData: any, jwt: string): Promise<string |
  */
 export async function updateEvent(eventID: string, eventData: any, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
 
-    const response = await fetch(`${API_BASE_URL}/events/${eventID}`, {
+    const response = await fetch(`${getValue('API')}events/${eventID}`, {
       method: 'PUT',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(eventData),
     });
 
@@ -132,13 +115,10 @@ export async function updateEvent(eventID: string, eventData: any, jwt: string):
  */
 export async function deleteEvent(eventID: string, jwt: string): Promise<string | null> {
   try {
-    const headers = {
-      'Authorization': `Bearer ${jwt}`,
-    };
 
-    const response = await fetch(`${API_BASE_URL}/events/${eventID}`, {
+    const response = await fetch(`${getValue('API')}/events/${eventID}`, {
       method: 'DELETE',
-      headers,
+      ...addAuthHeader(jwt),
     });
 
     if (!response.ok) {

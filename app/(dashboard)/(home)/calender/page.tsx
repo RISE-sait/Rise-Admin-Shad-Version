@@ -79,10 +79,9 @@ export default async function Calendar() {
 
   try {
     const events = await getAllEvents({
-      after: '2024-01-01',
-      before: '2026-02-01',
+      after: '2025-04-01',
+      before: '2025-06-01',
     });
-    console.log('Events from getAllEvents:', events);
     initialEvents = mapToCalendarEvents(events);
   } catch (error) {
     console.error('Error fetching events in Calendar:', error);

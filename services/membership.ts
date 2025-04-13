@@ -2,7 +2,6 @@ import {
     MembershipRequestDto,
     MembershipResponse,
 } from '@/app/api/Api';
-import { addAuthHeader } from '@/lib/auth-header';
 import getValue from '@/configs/constants';
 import { Membership } from '@/types/membership';
 
@@ -11,7 +10,6 @@ export async function getAllMemberships(): Promise<Membership[]> {
 
     const response = await fetch(`${getValue("API")}memberships`, {
       method: 'GET',
-      ...addAuthHeader()
     });
 
     if (!response.ok) {
