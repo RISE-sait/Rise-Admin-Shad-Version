@@ -24,10 +24,10 @@ const data = {
       icon: <HomeIcon width={20} height={15} />,
       isActive: true,
       items: [
-        {
-          title: "Dashboard",
-          url: "/",
-        },
+        //{
+        //  title: "Dashboard",
+        //  url: "/",
+        //},
         {
           title: "Calendar",
           url: "/calender",
@@ -77,28 +77,28 @@ const data = {
         },
       ],
     },
-    {
-      title: "Automation",
-      url: "#",
-      icon: <Mailbox width={15} height={15} />,
-      items: [
-        {
-          title: "Messages",
-          url: "/automation/messages",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      url: "#",
-      icon: <BookOpen width={15} height={15} />,
-      items: [
-        {
-          title: "Transactions",
-          url: "/reports/transactions",
-        },
-      ],
-    },
+    //{
+    //  title: "Automation",
+    //  url: "#",
+    //  icon: <Mailbox width={15} height={15} />,
+    //  items: [
+    //    {
+    //      title: "Messages",
+    //      url: "/automation/messages",
+    //    },
+    //  ],
+    //},
+    //{
+    //  title: "Reports",
+    //  url: "#",
+    //  icon: <BookOpen width={15} height={15} />,
+    //  items: [
+    //    {
+    //      title: "Transactions",
+    //      url: "/reports/transactions",
+    //    },
+    //  ],
+    //},
   ],
 };
 
