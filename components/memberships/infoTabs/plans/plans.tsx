@@ -20,11 +20,9 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
   const [isLoading, setIsLoading] = useState(false);
   const [newPlan, setNewPlan] = useState<Partial<MembershipPlan>>({
     name: '',
-    price: 0,
-    payment_frequency: {
-      payment_frequency: 'monthly',
-      amt_periods: 1
-    }
+    stripe_price_id: '',
+    stripe_joining_fees_id: '',
+    amt_periods: 0
   });
 
   const { toast } = useToast();
@@ -41,8 +39,9 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
         id: uuidv4(), 
         membership_id: membershipId,
         name: newPlan.name || '',
-        price: newPlan.price || 0,
-        payment_frequency: newPlan.payment_frequency
+        stripe_price_id: newPlan.stripe_price_id || '',
+        stripe_joining_fees_id: newPlan.stripe_joining_fees_id || '',
+        amt_periods: newPlan.amt_periods || 0
       };
 
       const response = await fetch(`${apiUrl}/memberships/plans`, {
@@ -51,11 +50,11 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          membershipId: membershipId,
+          membership_id: membershipId,
           name: planToAdd.name,
-          price: planToAdd.price,
-          paymentFrequency: planToAdd.payment_frequency?.payment_frequency,
-          amtPeriods: planToAdd.payment_frequency?.amt_periods
+          stripe_price_id: planToAdd.stripe_price_id,
+          stripe_joining_fees_id: planToAdd.stripe_joining_fees_id,
+          amt_periods: planToAdd.amt_periods
         }),
       });
 
@@ -69,11 +68,9 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
       // Reset form
       setNewPlan({
         name: '',
-        price: 0,
-        payment_frequency: {
-          payment_frequency: 'monthly',
-          amt_periods: 1
-        }
+        stripe_price_id: '',
+        stripe_joining_fees_id: '',
+        amt_periods: 0
       });
       setIsAddingPlan(false);
       
@@ -103,9 +100,9 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
         },
         body: JSON.stringify({
           name: updatedPlan.name,
-          price: updatedPlan.price,
-          paymentFrequency: updatedPlan.payment_frequency?.payment_frequency,
-          amtPeriods: updatedPlan.payment_frequency?.amt_periods
+          stripe_price_id: updatedPlan.stripe_price_id,
+          stripe_joining_fees_id: updatedPlan.stripe_joining_fees_id,
+          amt_periods: updatedPlan.amt_periods
         }),
       });
 
@@ -223,8 +220,9 @@ export default function PlansTab({ membershipId, plans, onPlansChange }: PlansTa
                 id: 'new',
                 membership_id: membershipId,
                 name: newPlan.name || '',
-                price: newPlan.price || 0,
-                payment_frequency: newPlan.payment_frequency
+                stripe_price_id: newPlan.stripe_price_id || '',
+                stripe_joining_fees_id: newPlan.stripe_joining_fees_id || '',
+                amt_periods: newPlan.amt_periods || 0
               }}
               onChange={(plan) => setNewPlan(plan)}
               onSave={handleSaveNewPlan}

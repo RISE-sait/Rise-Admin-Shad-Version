@@ -36,13 +36,10 @@ export default function PlanListItem({
   const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (field: string, value: any) => {
-    if (field === 'payment_frequency' || field === 'amt_periods') {
+    if (field === 'amt_periods') {
       setEditedPlan({
         ...editedPlan,
-        payment_frequency: {
-          ...editedPlan.payment_frequency!,
-          [field === 'payment_frequency' ? 'payment_frequency' : 'amt_periods']: value
-        }
+        amt_periods: value
       });
     } else {
       setEditedPlan({ ...editedPlan, [field]: value });
@@ -73,20 +70,15 @@ export default function PlanListItem({
     }).format(price);
   };
 
-  const getFrequencyLabel = (freq?: string, periods?: number) => {
-    if (!freq) return 'Unknown';
-    
-    switch (freq.toLowerCase()) {
-      case 'daily': return periods && periods > 1 ? `Every ${periods} days` : 'Daily';
-      case 'weekly': return periods && periods > 1 ? `Every ${periods} weeks` : 'Weekly';
-      case 'monthly': return periods && periods > 1 ? `Every ${periods} months` : 'Monthly';
-      case 'yearly': return periods && periods > 1 ? `Every ${periods} years` : 'Yearly';
-      default: return freq;
-    }
+  const getPeriodLabel = (periods?: number) => {
+    if (!periods || periods <= 0) return 'One-time payment';
+    if (periods === 1) return 'Monthly';
+    return `Every ${periods} months`;
   };
 
   // Validation
-  const isValid = editedPlan.name.trim() !== '' && editedPlan.price > 0;
+  const isValid = editedPlan.name.trim() !== '' && 
+                 editedPlan.stripe_price_id?.trim() !== '';
 
   return (
     <Card 
@@ -124,30 +116,25 @@ export default function PlanListItem({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`plan-price-${plan.id}`} className="text-sm font-medium flex items-center gap-1">
-                  Price
-                  {editedPlan.price <= 0 && (
+                <Label htmlFor={`plan-stripe-price-${plan.id}`} className="text-sm font-medium flex items-center gap-1">
+                  Stripe Price ID
+                  {!editedPlan.stripe_price_id && (
                     <span className="text-destructive">*</span>
                   )}
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                  <Input 
-                    id={`plan-price-${plan.id}`}
-                    type="number"
-                    value={editedPlan.price}
-                    onChange={(e) => handleChange('price', parseFloat(e.target.value))}
-                    placeholder="0.00"
-                    step="0.01"
-                    className={`pl-7 transition-colors ${
-                      editedPlan.price <= 0 ? 'border-destructive' : ''
-                    }`}
-                  />
-                </div>
-                {editedPlan.price <= 0 && (
+                <Input 
+                  id={`plan-stripe-price-${plan.id}`}
+                  value={editedPlan.stripe_price_id || ''}
+                  onChange={(e) => handleChange('stripe_price_id', e.target.value)}
+                  placeholder="price_1234567890"
+                  className={`transition-colors ${
+                    !editedPlan.stripe_price_id ? 'border-destructive' : ''
+                  }`}
+                />
+                {!editedPlan.stripe_price_id && (
                   <p className="text-xs text-destructive mt-1 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
-                    Price must be greater than zero
+                    Stripe Price ID is required
                   </p>
                 )}
               </div>
@@ -155,41 +142,33 @@ export default function PlanListItem({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label htmlFor={`plan-frequency-${plan.id}`} className="text-sm font-medium">
-                  Payment Frequency
+                <Label htmlFor={`plan-joining-fee-${plan.id}`} className="text-sm font-medium">
+                  Stripe Joining Fee ID
                 </Label>
-                <Select 
-                  value={editedPlan.payment_frequency?.payment_frequency || 'monthly'} 
-                  onValueChange={(value) => handleChange('payment_frequency', value)}
-                >
-                  <SelectTrigger id={`plan-frequency-${plan.id}`}>
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input 
+                  id={`plan-joining-fee-${plan.id}`}
+                  value={editedPlan.stripe_joining_fees_id || ''}
+                  onChange={(e) => handleChange('stripe_joining_fees_id', e.target.value)}
+                  placeholder="price_joining_fee_123"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Optional joining fee for this plan
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor={`plan-periods-${plan.id}`} className="text-sm font-medium">
-                  Period
+                  Billing Period
                 </Label>
                 <Input 
                   id={`plan-periods-${plan.id}`}
                   type="number"
-                  value={editedPlan.payment_frequency?.amt_periods || 1}
+                  value={editedPlan.amt_periods || 0}
                   onChange={(e) => handleChange('amt_periods', parseInt(e.target.value))}
-                  placeholder="1"
-                  min="1"
+                  placeholder="0"
+                  min="0"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {getFrequencyLabel(
-                    editedPlan.payment_frequency?.payment_frequency,
-                    editedPlan.payment_frequency?.amt_periods
-                  )}
+                  {getPeriodLabel(editedPlan.amt_periods)}
                 </p>
               </div>
             </div>
@@ -228,10 +207,8 @@ export default function PlanListItem({
               <div className="flex items-center gap-2 mt-1">
                 <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{formatPrice(plan.price)}</span> • {getFrequencyLabel(
-                    plan.payment_frequency?.payment_frequency,
-                    plan.payment_frequency?.amt_periods
-                  )}
+                  <span className="font-medium text-foreground">{plan.stripe_price_id}</span> 
+                  {plan.amt_periods > 0 && ` • ${getPeriodLabel(plan.amt_periods)}`}
                 </span>
               </div>
             </div>
