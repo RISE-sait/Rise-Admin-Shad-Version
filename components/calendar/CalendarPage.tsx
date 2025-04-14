@@ -120,7 +120,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             case 'practice':
               return colorOptions[1].value;
             case 'game':
-              return colorOptions[0].value;
+              return colorOptions[6].value;
             case 'course':
               return colorOptions[2].value;
             default:
