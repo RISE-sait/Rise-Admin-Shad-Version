@@ -8,7 +8,7 @@ export default async function CustomersPageContainer() {
   const customers = await getAllCustomers();
 
   return (
-    <RoleProtected allowedRoles={['ADMIN', 'SUPERADMIN']} fallback={<h1 className="text-center text-2xl">Access Denied</h1>}>
+    <RoleProtected allowedRoles={['ADMIN', 'SUPERADMIN']}>
     <div className='flex'>
       <CustomerPage
         customers={customers}

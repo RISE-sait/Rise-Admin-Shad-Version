@@ -114,7 +114,6 @@ export default function Clients() {
   }, [isPasswordDialogOpen])
 
   return (
-    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN"]} fallback={<h1 className="text-center text-2xl">Access Denied</h1>} >
     <div className="p-4 pt-1">
       {/* ACCOUNT SETTINGS */}
       <div>
@@ -230,6 +229,5 @@ export default function Clients() {
           </div>
       </div>
     </div>
-    </RoleProtected>
   )
 }

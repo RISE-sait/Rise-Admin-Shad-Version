@@ -10,7 +10,7 @@ export default async function Page() {
   ]);
 
   return (
-    <RoleProtected allowedRoles={['ADMIN', 'SUPERADMIN']} fallback={<h1 className="text-center text-2xl">Access Denied</h1>}>
+    <RoleProtected allowedRoles={['ADMIN', 'SUPERADMIN']}>
     <div className="p-6">
       <ProgramPage
         programs={programs}

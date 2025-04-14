@@ -7,7 +7,7 @@ export default async function Page() {
   const locations = await getAllLocations()
 
   return (
-    <RoleProtected allowedRoles={['ADMIN', 'SUPERADMIN']} fallback={<h1 className="text-center text-2xl">Access Denied</h1>}>
+    <RoleProtected allowedRoles={['ADMIN', 'SUPERADMIN']}>
     <div className="flex">
       <FacilitiesPage facilities={locations} />
     </div>
