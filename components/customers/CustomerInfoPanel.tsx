@@ -5,23 +5,22 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
-import { TrashIcon, UserCircle, CreditCard, Clock, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast"
-import { getCustomerMembershipPlans, getCustomerStats } from "@/services/customer";
+import { TrashIcon, UserCircle, CreditCard, Clock, RefreshCw, Award } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { getCustomerById } from "@/services/customer";
 
-interface CustomerStatsProps {
-  wins?: number;
-  losses?: number;
-  points?: number;
-  assists?: number;
-  rebounds?: number;
-  steals?: number;
+interface MembershipPlan {
+  id: string;
+  membership_name: string;
+  status: string;
+  start_date: Date | null;
+  renewal_date: string;
 }
 
 interface CustomerInfoPanelProps {
   customer: Customer;
   onCustomerUpdated?: () => void;
-  onCustomerDeleted?: () => void; // No customerId parameter
+  onCustomerDeleted?: () => void;
 }
 
 export default function CustomerInfoPanel({
@@ -31,56 +30,54 @@ export default function CustomerInfoPanel({
 }: CustomerInfoPanelProps) {
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
-  const [customerStats, setCustomerStats] = useState<CustomerStatsProps>({});
-  const [membershipPlans, setMembershipPlans] = useState([]);
+  const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
+  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Load customer stats if customer has ID
+    // Update currentCustomer when the customer prop changes
+    setCurrentCustomer(customer);
+    
+    // Load the latest customer data if we have an ID
     if (customer.id) {
-      loadCustomerStats();
-      loadMembershipPlans();
+      refreshCustomerData();
     }
   }, [customer.id]);
 
-  const loadCustomerStats = async () => {
+  const refreshCustomerData = async () => {
     if (!customer.id) return;
-
+  
     setIsLoading(true);
     try {
-      const stats = await getCustomerStats(customer.id);
-      setCustomerStats(stats);
+      // Use the unified getCustomerById function to get all data
+      const refreshedCustomer = await getCustomerById(customer.id);
+      setCurrentCustomer(refreshedCustomer);
+      
+      // Create a membership plan object from the customer data if available
+      if (refreshedCustomer.membership_plan_id) {
+        const membershipPlan: MembershipPlan = {
+          id: refreshedCustomer.membership_plan_id,
+          membership_name: refreshedCustomer.membership_name || "Membership Plan",
+          status: "Active", // Assuming active if it exists
+          start_date: refreshedCustomer.membership_start_date,
+          renewal_date: refreshedCustomer.membership_renewal_date
+        };
+        setMembershipPlans([membershipPlan]);
+      } else {
+        setMembershipPlans([]);
+      }
     } catch (error) {
-      console.error("Error loading customer stats:", error);
-      // Don't show error toast as this might be optional data
+      console.error("Error refreshing customer data:", error);
+      // Don't show error toast as this might be non-critical
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadMembershipPlans = async () => {
-    if (!customer.id) return;
-
-    try {
-      const plans = await getCustomerMembershipPlans(customer.id);
-      setMembershipPlans(plans);
-    } catch (error) {
-      console.error("Error loading membership plans:", error);
-      // Don't show error toast as this might be optional data
-    }
-  };
-
-  const handleSaveChanges = async () => {
-    // This function is now handled in the DetailsTab component
-    console.log("Save changes delegated to child component");
-  };
-
   const handleDeleteCustomer = async () => {
     try {
       // Your delete logic here
-
-      // Call the callback without parameters
       if (onCustomerDeleted) {
         onCustomerDeleted();
       }
@@ -89,29 +86,17 @@ export default function CustomerInfoPanel({
     }
   };
 
-  // Combine customer data with stats
-  const enrichedCustomer = {
-    ...customer,
-    ...customerStats
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">
-          Customer Profile
-        </h2>
-
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            loadCustomerStats();
-            loadMembershipPlans();
-          }}
+          onClick={refreshCustomerData}
+          disabled={isLoading}
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+          {isLoading ? "Refreshing..." : "Refresh"}
         </Button>
       </div>
 
@@ -132,24 +117,30 @@ export default function CustomerInfoPanel({
               <CreditCard className="h-4 w-4" />
               Membership
             </TabsTrigger>
+            {/* <TabsTrigger
+              value="stats"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Award className="h-4 w-4" />
+              Stats
+            </TabsTrigger>
             <TabsTrigger
               value="attendance"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
               <Clock className="h-4 w-4" />
               Attendance
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </div>
 
         <TabsContent value="details">
           <DetailsTab
-            customer={enrichedCustomer}
+            customer={currentCustomer}
             onCustomerUpdated={() => {
               if (onCustomerUpdated) onCustomerUpdated();
-              loadCustomerStats(); // Reload stats after update
+              refreshCustomerData(); // Reload data after update
               toast({ status: "success", description: "Customer information updated" });
-
             }}
           />
         </TabsContent>
@@ -157,9 +148,9 @@ export default function CustomerInfoPanel({
         <TabsContent value="membership">
           {membershipPlans && membershipPlans.length > 0 ? (
             <div className="space-y-4">
-              {membershipPlans.map((plan: any) => (
+              {membershipPlans.map((plan) => (
                 <div key={plan.id} className="border rounded-lg p-4">
-                  <h3 className="text-lg font-medium">{plan.membership_name || "Membership Plan"}</h3>
+                  <h3 className="text-lg font-medium">{plan.membership_name}</h3>
                   <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Status:</span>
@@ -182,23 +173,68 @@ export default function CustomerInfoPanel({
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              No membership plans found for this customer.
+            <div className="p-8 text-center">
+              <div className="mb-4">
+                <CreditCard className="h-12 w-12 mx-auto text-muted-foreground/40" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">No Membership Information</h3>
+              <p className="text-muted-foreground">
+                This customer doesn't have any membership plans associated with their account.
+              </p>
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="attendance">
-          <div className="p-4 text-center text-muted-foreground">
-            Attendance history will be available soon.
+        {/* Stats Tab - This will show the athlete_info data that is available */}
+        {/* <TabsContent value="stats">
+          <div className="border rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-4">Athletic Performance</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+              <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{currentCustomer.assists}</p>
+                <p className="text-sm text-muted-foreground">Assists</p>
+              </div>
+              <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{currentCustomer.points}</p>
+                <p className="text-sm text-muted-foreground">Points</p>
+              </div>
+              <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{currentCustomer.rebounds}</p>
+                <p className="text-sm text-muted-foreground">Rebounds</p>
+              </div>
+              <div className="bg-secondary/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold">{currentCustomer.steals}</p>
+                <p className="text-sm text-muted-foreground">Steals</p>
+              </div>
+              <div className="bg-success/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-success">{currentCustomer.wins}</p>
+                <p className="text-sm text-muted-foreground">Wins</p>
+              </div>
+              <div className="bg-destructive/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-destructive">{currentCustomer.losses}</p>
+                <p className="text-sm text-muted-foreground">Losses</p>
+              </div>
+            </div>
           </div>
         </TabsContent>
+
+        <TabsContent value="attendance">
+          <div className="p-8 text-center">
+            <div className="mb-4">
+              <Clock className="h-12 w-12 mx-auto text-muted-foreground/40" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Attendance History</h3>
+            <p className="text-muted-foreground">
+              Attendance tracking feature will be available soon.
+            </p>
+          </div>
+        </TabsContent>*/}
       </Tabs>
 
       <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
         <div className="max-w-full mx-auto px-2 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            Last updated: {customer.updated_at ? new Date(customer.updated_at).toLocaleString() : 'Never'}
+            Last updated: {currentCustomer.updated_at ? new Date(currentCustomer.updated_at).toLocaleString() : 'Never'}
           </p>
 
           <div className="flex items-center gap-3">

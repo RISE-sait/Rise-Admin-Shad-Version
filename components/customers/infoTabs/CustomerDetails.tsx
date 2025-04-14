@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { Customer } from "@/types/customer";
 import { CustomerStatsUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast"
-import { getCustomerStats, updateCustomerStats } from "@/services/customer";
+import { getCustomerById } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 
 export default function DetailsTab({ customer, onCustomerUpdated }: {
@@ -43,7 +43,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
       const fetchAthleteStats = async () => {
         setIsLoadingStats(true);
         try {
-          const statsData = await getCustomerStats(customer.id!);
+          const statsData = await getCustomerById(customer.id!);
           setAthleteStats({
             wins: statsData.wins || 0,
             losses: statsData.losses || 0,
@@ -78,42 +78,42 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
     }));
   };
 
-  const handleUpdateCustomer = async () => {
-    // Validation
-    if (!formData.first_name.trim() || !formData.last_name.trim() || !formData.email.trim()) {
-      toast({ status: "error", description: "Name and email are required fields" });
-      return;
-    }
+  // const handleUpdateCustomer = async () => {
+  //   // Validation
+  //   if (!formData.first_name.trim() || !formData.last_name.trim() || !formData.email.trim()) {
+  //     toast({ status: "error", description: "Name and email are required fields" });
+  //     return;
+  //   }
 
-    setIsLoading(true);
+  //   setIsLoading(true);
 
-    try {
-      // Note: Since there's no direct endpoint for updating customer general info,
-      // we'll just update the athlete stats for now
+  //   try {
+  //     // Note: Since there's no direct endpoint for updating customer general info,
+  //     // we'll just update the athlete stats for now
 
-      if (!user?.Jwt) {
-        toast({ status: "error", description: "User JWT is missing" });
-        return
-      }
+  //     if (!user?.Jwt) {
+  //       toast({ status: "error", description: "User JWT is missing" });
+  //       return
+  //     }
 
-      if (customer.id) {
-        await updateCustomerStats(customer.id, athleteStats, user?.Jwt);
+  //     if (customer.id) {
+  //       await updateCustomerStats(customer.id, athleteStats, user?.Jwt);
 
-        toast({ status: "success", description: "Customer statistics updated successfully" });
+  //       toast({ status: "success", description: "Customer statistics updated successfully" });
 
-        if (onCustomerUpdated) {
-          onCustomerUpdated();
-        }
-      } else {
-        toast({ status: "error", description: "Customer ID is missing" });
-      }
-    } catch (error) {
-      console.error("Error updating customer:", error);
-      toast({ status: "error", description: "Failed to update customer information" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //       if (onCustomerUpdated) {
+  //         onCustomerUpdated();
+  //       }
+  //     } else {
+  //       toast({ status: "error", description: "Customer ID is missing" });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating customer:", error);
+  //     toast({ status: "error", description: "Failed to update customer information" });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
     <div className="space-y-6">
@@ -297,7 +297,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
         </div>
       )}
 
-      <div className="pt-4">
+      {/* <div className="pt-4">
         <Button
           onClick={handleUpdateCustomer}
           disabled={isLoading}
@@ -305,7 +305,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
         >
           {isLoading ? "Updating..." : "Update Information"}
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

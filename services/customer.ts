@@ -1,266 +1,133 @@
-import {
-  CustomerResponse,
-  CustomerStatsUpdateRequestDto,
-  CustomerAthleteResponseDto
-} from '@/app/api/Api';
-import { addAuthHeader } from '@/lib/auth-header';
-import getValue from '@/configs/constants';
 import { Customer } from '@/types/customer';
+import getValue from '@/configs/constants';
 
+// Define a type for the API response
+interface CustomerApiResponse {
+  age: number;
+  athlete_info?: {
+    assists: number;
+    losses: number;
+    points: number;
+    rebounds: number;
+    steals: number;
+    wins: number;
+  };
+  country_code?: string;
+  email: string;
+  first_name: string;
+  hubspot_id?: string;
+  last_name: string;
+  membership_info?: {
+    membership_name: string;
+    membership_plan_id: string;
+    membership_plan_name: string;
+    membership_renewal_date: string;
+    membership_start_date: string;
+  };
+  phone: string;
+  user_id: string;
+}
+
+// Helper function to map API response to Customer type
+function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
+  console.log('Raw API response:', JSON.stringify(response, null, 2));
+  console.log('Membership info from API:', response.membership_info);
+  console.log('Athlete info from API:', response.athlete_info);
+  
+  const customer = {
+    id: response.user_id,
+    first_name: response.first_name,
+    last_name: response.last_name,
+    email: response.email,
+    phone: response.phone,
+    profilePicture: '', // Default empty string as it's not provided by API
+    
+    // Membership info fields - extract from nested object
+    membership_name: response.membership_info?.membership_name || '',
+    membership_start_date: response.membership_info?.membership_start_date 
+      ? new Date(response.membership_info.membership_start_date) 
+      : null,
+    membership_plan_id: response.membership_info?.membership_plan_id || '',
+    membership_plan_name: response.membership_info?.membership_plan_name || '',
+    membership_renewal_date: response.membership_info?.membership_renewal_date || '',
+    
+    // Athlete info fields - extract from nested object
+    assists: response.athlete_info?.assists || 0,
+    losses: response.athlete_info?.losses || 0,
+    points: response.athlete_info?.points || 0,
+    rebounds: response.athlete_info?.rebounds || 0,
+    steals: response.athlete_info?.steals || 0,
+    wins: response.athlete_info?.wins || 0,
+    
+    // Additional fields not provided by API
+    hubspot_id: response.hubspot_id || '',
+    updated_at: new Date(), // Default to current date
+    create_at: new Date(), // Default to current date
+  };
+  
+  console.log('Mapped customer object:', JSON.stringify(customer, null, 2));
+  return customer;
+}
+
+/**
+ * Get all customers
+ */
 export async function getAllCustomers(hubspotIds?: string[]): Promise<Customer[]> {
   try {
-
-    const response = await fetch(`${getValue("API")}customers`, {
-      method: 'GET',
-    });
-
-    const customersResponse: CustomerResponse[] = await response.json();
-
-    const customers: Customer[] = customersResponse.map((customer) => ({
-      id: customer.user_id!,
-      first_name: customer.first_name!,
-      last_name: customer.last_name!,
-      email: customer.email!,
-      phone: customer.phone!,
-      profilePicture: '',
-      membership_start_date: new Date(customer.membership_info?.membership_start_date!),
-      membership_name: customer.membership_info?.membership_name || '',
-      hubspot_id: customer.hubspot_id || '',
-      updated_at: new Date(),
-      create_at: new Date(),
-    }))
-
-    return customers
-  } catch (error) {
-    console.error('Error fetching locations:', error);
-    throw error;
-  }
-}
-
-// async createCustomer(customerData: CustomerRegistrationRequestDto): Promise<any> {
-//     try {
-//       // Determine which endpoint to use based on role
-//       let endpoint = '';
-//       let requestData: any = {};
-
-//       // Format the data according to the role-specific endpoint requirements
-//       if (customerData.role === 'athlete') {
-//         endpoint = '/register/athlete';
-//         requestData = {
-//           age: customerData.age,
-//           country_code: customerData.country_code,
-//           first_name: customerData.first_name,
-//           last_name: customerData.last_name,
-//           has_consent_to_email_marketing: customerData.has_consent_to_email_marketing,
-//           has_consent_to_sms: customerData.has_consent_to_sms,
-//           phone_number: customerData.phone_number,
-//           waivers: [{
-//             is_waiver_signed: true,
-//             waiver_url: "https://example.com/default-waiver"
-//           }]
-//         };
-//       } else if (customerData.role === 'parent') {
-//         endpoint = '/register/parent';
-//         requestData = {
-//           age: customerData.age,
-//           country_code: customerData.country_code,
-//           first_name: customerData.first_name,
-//           last_name: customerData.last_name,
-//           has_consent_to_email_marketing: customerData.has_consent_to_email_marketing,
-//           has_consent_to_sms: customerData.has_consent_to_sms,
-//           phone_number: customerData.phone_number
-//         };
-//       } else {
-//         throw new Error(`Unsupported customer role: ${customerData.role}`);
-//       }
-
-//       // Add detailed logging to help diagnose the issue
-//       console.log(`Creating ${customerData.role} using endpoint: ${this.apiUrl}${endpoint}`);
-//       console.log('Request data:', JSON.stringify(requestData, null, 2));
-
-//       // Get the Firebase token directly from localStorage
-//       const firebaseToken = typeof window !== 'undefined' ? localStorage.getItem('firebaseToken') : null;
-
-//       // Check if we have the token before proceeding
-//       if (!firebaseToken) {
-//         console.error('No Firebase token available. User may not be logged in.');
-//         throw new Error('Authentication required. Please log in again.');
-//       }
-
-//       // Create custom headers including the firebase_token header
-//       const headers = {
-//         'Content-Type': 'application/json',
-//         'Authorization': `Bearer ${firebaseToken}`,
-//         'firebase_token': firebaseToken
-//       };
-
-//       console.log('Using headers:', headers);
-
-//       const response = await fetch(`${this.apiUrl}${endpoint}`, {
-//         method: 'POST',
-//         headers,
-//         body: JSON.stringify(requestData)
-//       });
-
-//       // Get the full response text for more detailed error information
-//       const responseText = await response.text();
-//       console.log('Response status:', response.status);
-//       console.log('Response body:', responseText);
-
-//       if (!response.ok) {
-//         let errorMessage = `Failed to create customer: ${response.statusText}`;
-
-//         try {
-//           // Try to parse the response as JSON if possible
-//           const errorData = JSON.parse(responseText);
-//           if (errorData && errorData.error && errorData.error.message) {
-//             errorMessage = `Failed to create customer: ${errorData.error.message}`;
-//           } else if (errorData && errorData.message) {
-//             errorMessage = `Failed to create customer: ${errorData.message}`;
-//           } else if (errorData && errorData.error) {
-//             errorMessage = `Failed to create customer: ${JSON.stringify(errorData.error)}`;
-//           }
-
-//           console.error('Error data:', errorData);
-//         } catch (e) {
-//           // JSON parsing failed, use the raw response text
-//           console.error('Raw error response:', responseText);
-//         }
-
-//         throw new Error(errorMessage);
-//       }
-
-//       // If we got a valid JSON response, parse it and return
-//       try {
-//         return JSON.parse(responseText);
-//       } catch {
-//         // If parsing fails, just return the text
-//         return responseText;
-//       }
-//     } catch (error) {
-//       console.error('Error creating customer:', error);
-//       throw error;
-//     }
-//   }
-
-// /**
-//  * Add a child customer
-//  */
-// async createChildCustomer(childData: CustomerChildRegistrationRequestDto): Promise<any> {
-//   try {
-//     // Format data according to child endpoint requirements
-//     const requestData = {
-//       age: childData.age,
-//       first_name: childData.first_name,
-//       last_name: childData.last_name,
-//       waivers: childData.waivers || []
-//     };
-
-//     const response = await fetch(`${this.apiUrl}/register/child`, {
-//       method: 'POST',
-//       ...addAuthHeader(), // Let addAuthHeader provide the Content-Type
-//       body: JSON.stringify(requestData)
-//     });
-
-//     if (!response.ok) {
-//       let errorMessage = `Failed to create child customer: ${response.statusText}`;
-//       try {
-//         const errorData = await response.json();
-//         if (errorData && errorData.message) {
-//           errorMessage = errorData.message;
-//         }
-//       } catch (e) {
-//         // JSON parsing failed, use default error message
-//       }
-//       throw new Error(errorMessage);
-//     }
-
-//     return await response.json();
-//   } catch (error) {
-//     console.error('Error creating child customer:', error);
-//     throw error;
-//   }
-// }
-
-/**
- * Get customer athlete statistics
- */
-export async function getCustomerStats(customerId: string): Promise<CustomerAthleteResponseDto> {
-  try {
-    const response = await fetch(`${getValue("API")}customers/${customerId}/athlete`, {
-      method: 'GET',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch customer stats: ${response.statusText}`);
+    let url = `${getValue('API')}customers`;
+    
+    // Add query parameters for hubspot IDs if provided
+    if (hubspotIds && hubspotIds.length > 0) {
+      const queryParams = hubspotIds.map(id => `hubspot_id=${id}`).join('&');
+      url = `${url}?${queryParams}`;
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching customer stats:', error);
-    throw error;
-  }
-}
-
-/**
- * Update customer athlete statistics
- */
-export async function updateCustomerStats(
-  customerId: string,
-  statsData: CustomerStatsUpdateRequestDto,
-  jwt: string
-): Promise<any> {
-  try {
-    const response = await fetch(`${getValue("API")}customers/${customerId}/athlete`, {
-      method: 'PATCH',
-      ...addAuthHeader(jwt), // Let addAuthHeader provide the Content-Type
-      body: JSON.stringify(statsData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to update customer stats: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error updating customer stats:', error);
-    throw error;
-  }
-}
-
-/**
- * Get membership plans for a customer
- */
-export async function getCustomerMembershipPlans(customerId: string): Promise<any> {
-  try {
-    const response = await fetch(`${getValue("API")}/customers/${customerId}/membership-plans`, {
+    
+    console.log('Fetching customers from URL:', url);
+    
+    const response = await fetch(url, {
       method: 'GET',
     });
-
+    
     if (!response.ok) {
-      throw new Error(`Failed to fetch customer membership plans: ${response.statusText}`);
+      console.error('Failed to fetch customers:', response.status, response.statusText);
+      throw new Error(`Failed to fetch customers: ${response.statusText}`);
     }
-
-    return await response.json();
+    
+    const customersResponse: CustomerApiResponse[] = await response.json();
+    console.log(`Retrieved ${customersResponse.length} customers from API`);
+    
+    // Map API response to Customer type
+    return customersResponse.map(mapApiResponseToCustomer);
   } catch (error) {
-    console.error('Error fetching customer membership plans:', error);
+    console.error('Error fetching customers:', error);
     throw error;
   }
 }
 
 /**
- * Test API connection
+ * Get customer by ID
  */
-export async function testApiConnection(): Promise<boolean> {
+export async function getCustomerById(customerId: string): Promise<Customer> {
   try {
-    // Try to hit a simple endpoint that should always work if API is up
-    const response = await fetch(`${getValue("API")}/customers?limit=1`, {
+    const url = `${getValue('API')}customers/id/${customerId}`;
+    console.log('Fetching customer by ID from URL:', url);
+    
+    const response = await fetch(url, {
       method: 'GET',
     });
-
-    return response.ok;
+    
+    if (!response.ok) {
+      console.error('Failed to fetch customer:', response.status, response.statusText);
+      throw new Error(`Failed to fetch customer: ${response.statusText}`);
+    }
+    
+    const customerResponse: CustomerApiResponse = await response.json();
+    console.log('Retrieved customer by ID:', customerResponse.user_id);
+    
+    // Map API response to Customer type
+    return mapApiResponseToCustomer(customerResponse);
   } catch (error) {
-    console.error('API connection test failed:', error);
-    return false;
+    console.error(`Error fetching customer with ID ${customerId}:`, error);
+    throw error;
   }
 }
