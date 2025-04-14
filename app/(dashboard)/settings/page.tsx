@@ -15,6 +15,7 @@ import { useUser } from "@/contexts/UserContext";
 // Themes
 import { useTheme } from "next-themes"
 import { useToast } from "@/hooks/use-toast"
+import RoleProtected from "@/components/RoleProtected"
 
 export default function Clients() {
 
@@ -113,6 +114,7 @@ export default function Clients() {
   }, [isPasswordDialogOpen])
 
   return (
+    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN"]} fallback={<h1 className="text-center text-2xl">Access Denied</h1>} >
     <div className="p-4 pt-1">
       {/* ACCOUNT SETTINGS */}
       <div>
@@ -228,5 +230,6 @@ export default function Clients() {
           </div>
       </div>
     </div>
+    </RoleProtected>
   )
 }

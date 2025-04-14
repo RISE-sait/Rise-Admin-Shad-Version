@@ -32,6 +32,7 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Use
 
     // Get response body
     const data = await response.json();
+    console.log("Response body of the User:", data);
 
     // Extract user data from response body (per your Swagger response)
     const user = {

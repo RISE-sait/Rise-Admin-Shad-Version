@@ -3,7 +3,7 @@ import CalendarPage from '@/components/calendar/CalendarPage';
 import { getAllEvents } from '@/services/events';
 import { CalendarEvent } from '@/types/calendar';
 import { colorOptions } from '@/components/calendar/components/calendar/calendar-tailwind-classes';
-
+import RoleProtected from '@/components/RoleProtected';
 function mapToCalendarEvents(events: any[] | undefined): CalendarEvent[] {
   if (!Array.isArray(events)) {
     console.error('Events is not an array:', events);
@@ -89,5 +89,9 @@ export default async function Calendar() {
     initialEvents = [];
   }
 
-  return <CalendarPage initialEvents={initialEvents} />;
+  return (
+  <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN", "BARBER", "COACH", "INSTRUCTOR"]}>
+    <CalendarPage initialEvents={initialEvents}/>
+   </RoleProtected>
+  );
 }

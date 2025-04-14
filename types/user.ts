@@ -1,4 +1,4 @@
-export type StaffRole = 'INSTRUCTOR' | 'ADMIN' | 'SUPERADMIN' | 'INSTRUCTOR' | 'COACH'
+export type StaffRole = 'INSTRUCTOR' | 'ADMIN' | 'SUPERADMIN' | 'INSTRUCTOR' | 'COACH' | 'BARBER';
 
 export interface User {
     ID : string

@@ -10,6 +10,9 @@ import CalendarDemo from "./components/calendar-demo";
 import { getAllEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
 import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
+import { useUser } from "@/contexts/UserContext";
+import { usePermissions } from "@/hooks/usePermissions"; 
+
 
 interface CalendarPageProps {
   initialEvents: CalendarEvent[];
@@ -34,6 +37,8 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   const [filterOpen, setFilterOpen] = useState(true);
   const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer();
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
+  const { isSuperAdmin, isBarber, isCoach } = usePermissions();
 
   // Default date range (current month +/- 30 days)
   const today = new Date();
@@ -177,6 +182,18 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             lastName: event.updatedBy?.lastName || '',
           },
         }));
+
+        // Role-based filtering
+        let filteredEvents = calendarEvents;
+        if (!isSuperAdmin()) {
+          if (isBarber() || isCoach()) {
+            filteredEvents = calendarEvents.filter(ev =>
+              ev.staff?.some(staff => staff.id === user?.ID)
+            );
+          }
+          // Add more role-based filters as needed
+        }
+        setEvents(filteredEvents);
         
         // Now set the properly typed events
         setEvents(calendarEvents);
@@ -195,7 +212,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
     }, 500);
     
     return () => clearTimeout(timeoutId);
-  }, [filters]);
+  }, [filters, user]);
 
   // Toggle filter sidebar
   const toggleFilter = () => {

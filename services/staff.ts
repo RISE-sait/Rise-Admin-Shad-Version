@@ -4,9 +4,14 @@ import { StaffRole, User } from '@/types/user';
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 
-export async function getAllStaffs(): Promise<User[]> {
+export async function getAllStaffs(role?: string): Promise<User[]> {
     try {
-        const response = await fetch(`${getValue('API')}staffs`)
+
+        const url = role
+            ? `${getValue('API')}staffs?role=${role}`
+            : `${getValue('API')}staffs`;
+        
+        const response = await fetch(url)
 
         const responseJson = await response.json();
 
