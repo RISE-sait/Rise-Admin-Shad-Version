@@ -251,7 +251,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       <div className="flex flex-row gap-2">
         {/* Filter Sidebar */}
         {filterOpen && (
-          <div className="w-1/6 mt-4">
+          <div className="w-2/12 mt-4">
             <FilterComponent
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -260,7 +260,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           </div>
         )}
         {/* Calendar */}
-        <div className={filterOpen ? "w-5/6" : "w-full"}>
+        <div className={filterOpen ? "w-10/12" : "w-full"}>
         <CalendarDemo 
           events={events} 
           onEventSelect={handleEventSelect} 

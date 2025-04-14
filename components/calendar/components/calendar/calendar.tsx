@@ -29,14 +29,24 @@ export default function Calendar({
       calendarIconIsToday={calendarIconIsToday}
       onEventSelect={onEventSelect}
     >
-      <CalendarHeader>
-        <CalendarHeaderDate />
-        <CalendarHeaderActions>
-          <CalendarHeaderActionsMode />
-          <CalendarHeaderActionsAdd />
-        </CalendarHeaderActions>
-      </CalendarHeader>
-      <CalendarBody />
+      {/* Main container with fixed height and no overflow */}
+      <div className="flex flex-col max-h-[calc(100vh-180px)] overflow-hidden">
+        {/* Header - fixed at the top */}
+        <div className="flex-shrink-0">
+          <CalendarHeader>
+            <CalendarHeaderDate />
+            <CalendarHeaderActions>
+              <CalendarHeaderActionsMode />
+              <CalendarHeaderActionsAdd />
+            </CalendarHeaderActions>
+          </CalendarHeader>
+        </div>
+        
+        {/* Body - scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <CalendarBody />
+        </div>
+      </div>
     </CalendarProvider>
   )
 }
