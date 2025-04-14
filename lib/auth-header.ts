@@ -3,7 +3,7 @@ export const addAuthHeader = (token: string) => {
   return {
     headers: {
       // Use the JWT token for general authorization
-      'Authorization': token,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     }
   };

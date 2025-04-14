@@ -1,8 +1,8 @@
-import { Practice } from "@/types/program";
+import { Program } from "@/types/program";
 import { Location } from "@/types/location";
 
 // Mock data for development when API is unavailable
-export const mockPrograms: Practice[] = [
+export const mockPrograms: Program[] = [
   {
     id: "1",
     name: "Beginner Soccer Training",

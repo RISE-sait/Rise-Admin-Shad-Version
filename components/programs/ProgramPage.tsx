@@ -164,11 +164,11 @@ export default function ProgramPage({
       </div>
 
       <ProgramTable
-        practices={filteredPractices}
-        onPracticeSelect={handleProgramSelect}
+        program={filteredPractices}
+        onProgramSelect={handleProgramSelect}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={setColumnVisibility}
-        onDeletePractice={handleDeleteProgram}
+        onDeleteProgram={handleDeleteProgram}
       />
 
       <RightDrawer

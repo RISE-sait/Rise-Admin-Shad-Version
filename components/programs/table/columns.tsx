@@ -1,4 +1,4 @@
-import { Practice } from "@/types/program";
+import { Program } from "@/types/program";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
@@ -14,7 +14,7 @@ const getProgramTypeColor = (type: string) => {
   }
 };
 
-const columns: ColumnDef<Practice>[] = [
+const columns: ColumnDef<Program>[] = [
   {
     id: "name",
     accessorKey: "name",

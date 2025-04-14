@@ -88,18 +88,7 @@ export interface CustomerWaiverSigningRequestDto {
 }
 
 export interface EventCreateRequestDto {
-  /** @example 100 */
-  capacity?: number;
-  /** @example "2023-10-05T07:00:00Z" */
-  end_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  location_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  program_id?: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  team_id?: string;
+  events: EventRequestDto[];
 }
 
 export interface EventCustomerResponseDto {
@@ -110,6 +99,11 @@ export interface EventCustomerResponseDto {
   id?: string;
   last_name?: string;
   phone?: string;
+}
+
+export interface EventDeleteRequestDto {
+  /** @minItems 1 */
+  ids: string[];
 }
 
 export interface EventEventResponseDto {
@@ -156,6 +150,21 @@ export interface EventProgramInfo {
   type?: string;
 }
 
+export interface EventRequestDto {
+  /** @example 100 */
+  capacity?: number;
+  /** @example "2023-10-05T07:00:00Z" */
+  end_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  team_id?: string;
+}
+
 export interface EventScheduleResponseDto {
   day?: string;
   location?: EventLocation;
@@ -192,8 +201,6 @@ export interface EventUpdateRequestDto {
   capacity?: number;
   /** @example "2023-10-05T07:00:00Z" */
   end_at: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  id?: string;
   /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
   location_id?: string;
   /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
@@ -261,6 +268,8 @@ export interface HaircutRequestDto {
   begin_time: string;
   /** @example "2023-10-05T07:00:00Z" */
   end_time: string;
+  /** @example "Haircut" */
+  service_name: string;
 }
 
 export interface IdentityAthleteResponseDto {
@@ -889,10 +898,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         program_id?: string;
         /**
-         * Filter by user ID (UUID format)
+         * Filter by participant ID (UUID format)
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
-        user_id?: string;
+        participant_id?: string;
         /**
          * Filter by team ID (UUID format)
          * @example ""550e8400-e29b-41d4-a716-446655440000""
@@ -928,11 +937,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Registers a new event with the provided details.
+     * No description
      *
      * @tags events
      * @name EventsCreate
-     * @summary Create a new event
      * @request POST:/events
      * @secure
      */
@@ -941,6 +949,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/events`,
         method: "POST",
         body: event,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags events
+     * @name EventsDelete
+     * @request DELETE:/events
+     * @secure
+     */
+    eventsDelete: (ids: EventDeleteRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events`,
+        method: "DELETE",
+        body: ids,
         secure: true,
         type: ContentType.Json,
         format: "json",
@@ -982,11 +1009,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Retrieves details of a specific event based on its ID.
+     * No description
      *
      * @tags events
      * @name EventsDetail
-     * @summary Get event details
      * @request GET:/events/{id}
      */
     eventsDetail: (
@@ -1007,11 +1033,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Updates the details of an existing event.
+     * No description
      *
      * @tags events
      * @name EventsUpdate
-     * @summary Update an event
      * @request PUT:/events/{id}
      * @secure
      */
@@ -1021,23 +1046,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "PUT",
         body: event,
         secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Deletes an event by its ID.
-     *
-     * @tags events
-     * @name EventsDelete
-     * @summary Delete an event
-     * @request DELETE:/events/{id}
-     */
-    eventsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/events/${id}`,
-        method: "DELETE",
         type: ContentType.Json,
         format: "json",
         ...params,

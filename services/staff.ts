@@ -33,7 +33,9 @@ export async function getAllStaffs(): Promise<User[]> {
                 IsActive: staff.is_active!,
                 Role: staff.role_name as StaffRole,
             },
-            Jwt: ""
+            Jwt: "",
+            CreatedAt: new Date(staff.created_at!),
+            UpdatedAt: new Date(staff.updated_at!),
         }));
 
         return staffs;

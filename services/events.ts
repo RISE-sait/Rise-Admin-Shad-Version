@@ -1,6 +1,7 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 import { CalendarEvent } from '@/types/calendar';
+import { EventRequestDto } from '@/app/api/Api';
 
 export async function getAllEvents(query: {
   after: string;
@@ -54,7 +55,7 @@ export async function getAllEvents(query: {
 /**
  * Create a new event
  */
-export async function createEvent(eventData: any, jwt: string): Promise<string | null> {
+export async function createEvent(eventData: EventRequestDto, jwt: string): Promise<string | null> {
   try {
     const response = await fetch(`${getValue('API')}events`, {
       method: 'POST',

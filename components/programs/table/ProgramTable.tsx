@@ -20,22 +20,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FolderSearch } from "lucide-react";
-import { Practice } from "@/types/program";
+import { Program } from "@/types/program";
 
 import columns from './columns'
 
 interface DataTableProps {
-  practices: Practice[];
-  onPracticeSelect: (practice: Practice) => void;
-  onDeletePractice?: (practiceId: string) => Promise<void> | void;
+  program: Program[];
+  onProgramSelect: (program: Program) => void;
+  onDeleteProgram?: (programId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
   onColumnVisibilityChange: (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => void;
 }
 
 export default function ProgramTable({
-  practices,
-  onPracticeSelect,
-  onDeletePractice,
+  program,
+  onProgramSelect,
+  onDeleteProgram,
   columnVisibility,
   onColumnVisibilityChange,
 }: DataTableProps) {
@@ -44,7 +44,7 @@ export default function ProgramTable({
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
-    data: practices,
+    data: program,
     columns,
     state: {
       sorting,
@@ -65,7 +65,7 @@ export default function ProgramTable({
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    meta: { onPracticeSelect, onDeletePractice },
+    meta: { onProgramSelect, onDeleteProgram },
   });
 
   return (
@@ -102,7 +102,7 @@ export default function ProgramTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onPracticeSelect(row.original)}
+                  onClick={() => onProgramSelect(row.original)}
                   className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -127,7 +127,7 @@ export default function ProgramTable({
                 >
                   <div className="flex flex-col items-center space-y-2">
                     <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
-                    <span>No practice found</span>
+                    <span>No programs found</span>
                   </div>
                 </TableCell>
               </TableRow>

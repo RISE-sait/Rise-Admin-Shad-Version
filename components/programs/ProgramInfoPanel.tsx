@@ -9,15 +9,16 @@ import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
 import { deleteProgram, updateProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
-import { Practice, ProgramRequestDto } from "@/types/program";
+import { Program } from "@/types/program";
 import { revalidatePractices } from "@/app/actions/serverActions";
 import { useFormData } from "@/hooks/form-data";
 import { getAllTeams } from "@/services/teams";
 import { getAllLocations } from "@/services/location";
 import { Location } from "@/types/location";
+import { ProgramRequestDto } from "@/app/api/Api";
 
 interface ProgramInfoPanelProps {
-  practice: Practice;
+  practice: Program;
   levels: string[];
   onClose?: () => void; // Make this optional
 }

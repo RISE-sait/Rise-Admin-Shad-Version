@@ -16,17 +16,9 @@ import { Location } from "@/types/location";
 import { getAllTeams, Team } from "@/services/teams";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ProgramRequestDto } from "@/app/api/Api";
+import { EventRequestDto } from "@/app/api/Api";
 
-export interface ProgramEvent {
-  id: string;
-  location_id: string;
-  location_name?: string;
-  team_id?: string;
-  team_name?: string;
-  capacity: number;
-  start_at: string;
-  end_at: string;
-}
+
 
 export default function AddProgramForm({ 
   levels, 
@@ -52,7 +44,7 @@ export default function AddProgramForm({
   const [isLoadingData, setIsLoadingData] = useState(false);
   
   // Events that will be created for this program
-  const [events, setEvents] = useState<ProgramEvent[]>([]);
+  const [events, setEvents] = useState<EventRequestDto[]>([]);
   
   // Use the server-provided locations
   const [locations, setLocations] = useState<Location[]>(initialLocations);
@@ -148,6 +140,7 @@ export default function AddProgramForm({
             start_at: new Date(event.start_at).toISOString(),
             end_at: new Date(event.end_at).toISOString()
           };
+          console.log("Event Data:", eventData);
           
           const eventError = await createEvent(eventData, user?.Jwt!);
           if (eventError !== null) {
