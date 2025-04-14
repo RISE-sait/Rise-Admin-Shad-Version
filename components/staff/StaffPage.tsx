@@ -42,6 +42,9 @@ export default function StaffPage({ staffs }: { staffs: User[],  },) {
       <div className="flex items-center justify-between">
         <Heading title="Staff" description="Manage your staff members and their roles" />
       </div>
+
+      <Separator />
+
       <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -51,8 +54,6 @@ export default function StaffPage({ staffs }: { staffs: User[],  },) {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
       </div>
-
-      <Separator />
 
       <StaffTable
         data={filteredStaff}
