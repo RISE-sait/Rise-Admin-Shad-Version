@@ -6,8 +6,8 @@ export async function revalidateLocations() {
     revalidatePath("/manage/locations");
 }
 
-export async function revalidatePractices() {
-    revalidatePath("/manage/practices");
+export async function revalidatePrograms() {
+    revalidatePath("/manage/programs");
 }
 
 export async function revalidateMemberships() {

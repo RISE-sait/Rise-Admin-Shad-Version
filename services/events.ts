@@ -1,7 +1,7 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 import { CalendarEvent } from '@/types/calendar';
-import { EventRequestDto } from '@/app/api/Api';
+import { EventCreateRequestDto } from '@/app/api/Api';
 
 export async function getAllEvents(query: {
   after: string;
@@ -53,19 +53,19 @@ export async function getAllEvents(query: {
 }
 
 /**
- * Create a new event
+ * Create new events
  */
-export async function createEvent(eventData: EventRequestDto, jwt: string): Promise<string | null> {
+export async function createEvents(eventsData: EventCreateRequestDto, jwt: string): Promise<string | null> {
   try {
     const response = await fetch(`${getValue('API')}events`, {
       method: 'POST',
       ...addAuthHeader(jwt),
-      body: JSON.stringify(eventData),
+      body: JSON.stringify(eventsData),
     });
 
     if (!response.ok) {
       const responseJSON = await response.json();
-      let errorMessage = `Failed to create event: ${response.statusText}`;
+      let errorMessage = `Failed to create events: ${response.statusText}`;
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
       }
@@ -74,7 +74,7 @@ export async function createEvent(eventData: EventRequestDto, jwt: string): Prom
 
     return null;
   } catch (error) {
-    console.error('Error creating event:', error);
+    console.error('Error creating events:', error);
     throw error;
   }
 }

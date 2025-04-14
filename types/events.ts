@@ -26,16 +26,3 @@ export interface Person {
   first_name: string;
   last_name: string;
 }
-
-export interface EventRequestDto {
-  program_id: string;
-  location_id: string;
-  team_id?: string;
-  capacity: number;
-  start_at: string;
-  end_at: string;
-}
-
-export interface CreateEventsRequestDto {
-  events: EventRequestDto[];
-}
