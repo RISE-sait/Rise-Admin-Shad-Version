@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
-import ScheduleTab from "./infoTabs/Schedule";
+// import ScheduleTab from "./infoTabs/Schedule";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
@@ -156,13 +156,13 @@ export default function ProgramInfoPanel({ practice, levels, onClose }: ProgramI
       </TabsContent>
 
         <TabsContent value="schedule" className="pt-4">
-          <ScheduleTab
+          {/* <ScheduleTab
             events={events}
             onEventsChange={setEvents}
             locations={locations}
             teams={teams}
             programCapacity={data.capacity || 10}
-          />
+          /> */}
         </TabsContent>
       </Tabs>
 

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProgramRequestDto } from "@/types/program";
+import { ProgramRequestDto } from "@/app/api/Api";
 
 interface DetailsTabProps {
   details: ProgramRequestDto;

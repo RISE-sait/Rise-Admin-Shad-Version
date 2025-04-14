@@ -1,16 +1,8 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { ApiService } from "@/app/api/ApiService"
+import { useState } from "react"
 import { StaffResponseDto } from "@/app/api/Api"
-import { toast } from "@/components/staff/toast"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import StaffForm from "@/components/staff/StaffForm"
-import { Button } from "@/components/ui/button"
-import { Trash } from "lucide-react"
-import { AlertModal } from "@/components/ui/AlertModal"
-import { Separator } from "@/components/ui/separator"
 
 export default function StaffDetailPage() {
   const params = useParams()

@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
-import ScheduleTab from "./infoTabs/Schedule";
 import { SaveIcon, Loader2, X } from "lucide-react";
 import { createProgram, getAllPrograms } from "@/services/program";
 import { createEvents } from "@/services/events";
@@ -199,22 +198,6 @@ export default function AddProgramForm({
               updateField={updateField}
               levels={levels}
             />
-          </TabsContent>
-
-          <TabsContent value="schedule" className="pt-4">
-            {isLoadingData ? (
-              <div className="flex items-center justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <ScheduleTab
-                events={eventsDto}
-                onEventsChange={setEvents}
-                locations={locations}
-                teams={teams}
-                programCapacity={data.capacity || 10}
-              />
-            )}
           </TabsContent>
         </Tabs>
 

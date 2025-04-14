@@ -8,7 +8,6 @@ import { Calendar, FileText } from "lucide-react"
 import RightDrawer from "@/components/reusable/RightDrawer"
 import { useCalendarContext } from "../calendar-context"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Form,
   FormField,
@@ -34,6 +33,7 @@ import {
 } from "@/components/ui/tabs"
 
 import { classSchema, facilitySchema } from "./event-schemas"
+import { CalendarEvent } from "@/types/calendar"
 
 export default function CalendarNewEventDrawer() {
   const { newEventDialogOpen, setNewEventDialogOpen, date, events, setEvents } =
@@ -58,19 +58,26 @@ export default function CalendarNewEventDrawer() {
     },
   })
 
-  function onSubmitClass(values: z.infer<typeof classSchema>) {
-    const newEvent = {
-      id: crypto.randomUUID(),
-      title: values.title,
-      start: new Date(values.start),
-      end: new Date(values.end),
-      color: values.color,
-      instructor: values.instructor,
-      // Possibly add recurring info if showRecurringClass is true
-    }
-    setEvents([...events, newEvent])
-    handleClose()
-  }
+  // function onSubmitClass(values: z.infer<typeof classSchema>) {
+  //   const newEvent: CalendarEvent = {
+  //     id: crypto.randomUUID(),
+  //     program: {
+  //       id: crypto.randomUUID(),
+  //       name: values.title,
+  //       type: "class",
+  //     },
+  //     start_at: new Date(values.start),
+  //     end_at: new Date(values.end),
+  //     color: values.color,
+  //     // staff: {
+  //     //   firstName: values.instructor,
+  //     //   id: crypto.randomUUID(),
+  //     //   lastName: "",
+  //     // }
+  //   }
+  //   setEvents([...events, newEvent])
+  //   handleClose()
+  // }
 
   // Facility form
   const facilityForm = useForm<z.infer<typeof facilitySchema>>({
@@ -84,19 +91,19 @@ export default function CalendarNewEventDrawer() {
     },
   })
 
-  function onSubmitFacility(values: z.infer<typeof facilitySchema>) {
-    const newEvent = {
-      id: crypto.randomUUID(),
-      title: values.title,
-      start: new Date(values.start),
-      end: new Date(values.end),
-      color: values.color,
-      facilityId: values.facilityId,
-      // Possibly add recurring info if showRecurringFacility is true
-    }
-    setEvents([...events, newEvent])
-    handleClose()
-  }
+  // function onSubmitFacility(values: z.infer<typeof facilitySchema>) {
+  //   const newEvent: CalendarEvent = {
+  //     id: crypto.randomUUID(),
+  //     title: values.title,
+  //     start: new Date(values.start),
+  //     end: new Date(values.end),
+  //     color: values.color,
+  //     facilityId: values.facilityId,
+  //     // Possibly add recurring info if showRecurringFacility is true
+  //   }
+  //   setEvents([...events, newEvent])
+  //   handleClose()
+  // }
 
   const handleClose = () => {
     setNewEventDialogOpen(false)
@@ -134,7 +141,7 @@ export default function CalendarNewEventDrawer() {
             <TabsContent value="class" className="pt-4">
               <Form {...classForm}>
                 <form
-                  onSubmit={classForm.handleSubmit(onSubmitClass)}
+                  onSubmit={classForm.handleSubmit(()=>{})}
                   className="space-y-5"
                 >
                   {/* Add recurring prompt at top */}
@@ -253,7 +260,7 @@ export default function CalendarNewEventDrawer() {
             <TabsContent value="facility" className="pt-4">
               <Form {...facilityForm}>
                 <form
-                  onSubmit={facilityForm.handleSubmit(onSubmitFacility)}
+                  onSubmit={facilityForm.handleSubmit(()=>{})}
                   className="space-y-5"
                 >
                   {/* Add recurring prompt at top */}
