@@ -116,33 +116,7 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
           />
         </TabsContent>
       </Tabs>
-
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-        <div className="max-w-full px-4 mx-auto flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Last updated: {new Date(program.updated_at).toLocaleString()}
-          </p>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleDeletePractice}
-              className="border-destructive text-destructive hover:bg-destructive/10"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-
-            <Button
-              onClick={handleSaveAll}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <SaveIcon className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
-  );
+  )
 }
+

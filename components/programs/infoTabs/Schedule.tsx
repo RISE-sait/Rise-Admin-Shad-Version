@@ -14,6 +14,7 @@ import { getAllLocations } from "@/services/location";
 import { Location } from "@/types/location";
 import { getAllTeams } from "@/services/teams";
 import { Team } from "@/types/team";
+import { PlusIcon, SaveIcon, TrashIcon } from "lucide-react";
 
 export default function SchedulesTab({ programID }: { programID: string }) {
 
@@ -51,29 +52,29 @@ export default function SchedulesTab({ programID }: { programID: string }) {
     return (
         <div>
             {
-               
-                    loading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-300"></div>
-                        </div>
-                    ) : (
-               
-                schedules.length > 0 ? (
-                    <div className="grid grid-cols-1">
-                        {schedules.map((schedule) => {
 
-                            const key = `${schedule.day}-${schedule.recurrence_start_at.toISOString()}-${schedule.location}`;
-
-                            return (
-                                <ScheduleCard key={key} schedule={schedule} />
-                            )
-                        }
-                        )}
+                loading ? (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-300"></div>
                     </div>
+                ) : (
+
+                    schedules.length > 0 ? (
+                        <div className="grid grid-cols-1">
+                            {schedules.map((schedule) => {
+
+                                const key = `${schedule.day}-${schedule.recurrence_start_at.toISOString()}-${schedule.location}`;
+
+                                return (
+                                    <ScheduleCard key={key} schedule={schedule} />
+                                )
+                            }
+                            )}
+                        </div>
+                    )
+                        :
+                        <p>No schedules available for this program.</p>
                 )
-                    :
-                    <p>No schedules available for this program.</p>
-            )
             }
         </div>
     )
@@ -97,6 +98,27 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
 
     const [locations, setLocations] = useState<Location[]>([])
     const [teams, setTeams] = useState<Team[]>([])
+
+    const handleDeleteSchedule = () => {
+    }
+
+    const handleSave = () => {
+    }
+
+    const isFormChanged = () => {
+        const currentValues = form.getValues()
+        const defaultValues = form.formState.defaultValues!
+
+        return Object.keys(currentValues).some((key) => {
+            const currentValue = currentValues[key as keyof typeof currentValues]
+            const defaultValue = defaultValues[key as keyof typeof defaultValues]
+
+            return currentValue !== defaultValue
+        }
+        )
+    }
+
+    const handleReset = () => form.reset(form.formState.defaultValues!)
 
     useEffect(() => {
         (async () => {
@@ -189,13 +211,13 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                                            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
                                                 .map(day => (
                                                     <SelectItem key={day} value={day.toUpperCase()}>
                                                         {day}
                                                     </SelectItem>
                                                 ))}
-                                            </SelectContent>
+                                        </SelectContent>
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
@@ -215,12 +237,12 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                                {locations.map(location => (
-                                                    <SelectItem key={location.id} value={location.name}>
-                                                        {location.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
+                                            {locations.map(location => (
+                                                <SelectItem key={location.id} value={location.name}>
+                                                    {location.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
@@ -240,13 +262,13 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                                <SelectItem value="none">None</SelectItem>
-                                                {teams.map(team => (
-                                                    <SelectItem key={team.id} value={team.name}>
-                                                        {team.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {teams.map(team => (
+                                                <SelectItem key={team.id} value={team.name}>
+                                                    {team.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
@@ -254,16 +276,37 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
                         />
                     </div>
 
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-3">
                         <Button
-                            type="button"
                             variant="outline"
-                            onClick={() => { }}
+                            onClick={handleDeleteSchedule}
+                            className="border-destructive text-destructive hover:bg-destructive/10"
                         >
-                            Cancel
+                            <TrashIcon className="h-4 w-4 mr-2" />
+                            Delete
                         </Button>
-                        <Button type="submit">
-                            Add Schedule
+                        <Button
+                            variant="default"
+                            type="reset"
+                            onClick={handleReset}
+                            disabled={!isFormChanged()}
+                        >
+                            Reset to Default
+                        </Button>
+                        <Button
+                            onClick={handleSave}
+                            disabled={!isFormChanged()}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            <SaveIcon className="h-4 w-4 mr-2" />
+                            Save Changes
+                        </Button>
+                        <Button
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            
+                            <PlusIcon className="h-4 w-4 mr-2" />
+                            Add Another Schedule
                         </Button>
                     </div>
                 </form>
