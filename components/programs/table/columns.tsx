@@ -100,10 +100,11 @@ const columns: ColumnDef<Program>[] = [
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                onClick={() => {
+                onClick={(event) => {
                   if (confirm("Are you sure you want to delete this program?")) {
-                    const onDelete = (table.options.meta as any)?.onDeletePractice;
+                    const onDelete = (table.options.meta as any)?.onDeleteProgram;
                     onDelete?.(program.id);
+                    event.stopPropagation();
                   }
                 }}
               >

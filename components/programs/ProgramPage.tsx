@@ -15,20 +15,17 @@ import { revalidatePrograms } from "@/app/actions/serverActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, GraduationCap, Gamepad2 } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
-import { Location } from "@/types/location";
 
 type ProgramType = "practice" | "course" | "game" | "all";
 
 interface ProgramPageProps {
   programs: Program[];
   programLevels: string[];
-  locations: Location[]; // Add this line
 }
 
 export default function ProgramPage({
   programs: initialPrograms,
   programLevels,
-  locations
 }: ProgramPageProps) {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -64,8 +61,6 @@ export default function ProgramPage({
       if (error === null) {
         toast({ title: "Success", description: "Program deleted successfully", status: "success" });
         await revalidatePrograms();
-        // Remove from current list for immediate UI update
-        setPrograms(programs.filter(p => p.id !== programId));
       }
       else {
         toast({ title: "Error", description: `Error deleting program: ${error}`, variant: "destructive", status: "error" });
@@ -176,16 +171,16 @@ export default function ProgramPage({
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
-        drawerWidth={drawerContent === "details" ? "w-[50%]" : "w-[75%]"}
+        drawerWidth={"w-[50%]"}
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Program Details" : "Add Program"}
           </h2>
           {drawerContent === "details" && selectedProgram && (
-            <ProgramInfoPanel practice={selectedProgram} levels={programLevels} />
+            <ProgramInfoPanel program={selectedProgram} levels={programLevels} />
           )}
-          {drawerContent === "add" && <AddProgramForm levels={programLevels} initialLocations={locations} />}
+          {drawerContent === "add" && <AddProgramForm levels={programLevels}/>}
         </div>
       </RightDrawer>
     </div>

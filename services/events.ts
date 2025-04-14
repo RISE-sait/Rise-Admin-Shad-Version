@@ -1,7 +1,8 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 import { CalendarEvent } from '@/types/calendar';
-import { EventCreateRequestDto } from '@/app/api/Api';
+import { EventCreateRequestDto, EventScheduleResponseDto } from '@/app/api/Api';
+import { EventSchedule } from '@/types/events';
 
 export async function getAllEvents(query: {
   after: string;
@@ -132,4 +133,59 @@ export async function deleteEvent(eventID: string, jwt: string): Promise<string 
     console.error('Error deleting event:', error);
     throw error;
   }
+}
+
+export async function getSchedulesOfProgram(programID: string): Promise<EventSchedule[]> {
+
+  try {
+
+    const response = await fetch(`${getValue('API')}schedules?program_id=${programID}`)
+
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get schedules of program: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return (responseJSON as EventScheduleResponseDto[]).map((schedule) => {
+
+      const sch: EventSchedule = {
+        day: schedule.day!,
+        recurrence_start_at: new Date(schedule.recurrence_start_at!),
+        recurrence_end_at: new Date(schedule.recurrence_end_at!),
+        event_start_at: schedule.session_start_at!,
+        event_end_at: schedule.session_end_at!,
+        location: {
+          id: schedule.location?.id!,
+          name: schedule.location?.name!,
+          address: schedule.location?.address!,
+        }
+      }
+
+      if (schedule.program) {
+        sch.program = {
+          id: schedule.program.id!,
+          name: schedule.program.name!,
+          type: schedule.program.type!,
+        }
+      }
+
+      if (schedule.team) {
+        sch.team = {
+          id: schedule.team.id!,
+          name: schedule.team.name!,
+        }
+      }
+
+      return sch
+    })
+  } catch (error) {
+    console.error('Error getting schedules of program:', error);
+    throw error;
+  }
+
 }

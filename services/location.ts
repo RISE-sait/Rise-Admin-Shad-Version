@@ -6,11 +6,7 @@ import getValue from '@/configs/constants';
 
 export async function getAllLocations(): Promise<Location[]> {
   try {
-    console.log('Fetching locations');
-    const response = await fetch(`${getValue('API')}locations`, {
-      method: 'GET',
-      cache: 'no-store'
-    });
+    const response = await fetch(`${getValue('API')}locations`)
 
     if (!response.ok) {
       console.error(`Failed to fetch locations: ${response.status} ${response.statusText}`);

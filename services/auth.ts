@@ -1,15 +1,13 @@
 import { User } from "@/types/user";
 import getValue from "@/configs/constants";
+import { addAuthHeader } from "@/lib/auth-header";
 
 export const loginWithFirebaseToken = async (firebaseToken: string): Promise<User | null> => {
   try {
 
     const response = await fetch(`${getValue('API')}auth`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firebaseToken}`,
-        'accept': 'application/json',
-      }
+      ...addAuthHeader(firebaseToken),
     });
 
     console.log("Authentication response received, status:", response.status);
@@ -28,14 +26,12 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Use
 
     if (jwtToken) {
       console.log("JWT Token found (first 20 chars):", jwtToken.substring(0, 20) + "...");
-      console.log("JWT length:", jwtToken.length)
     } else {
       console.warn("No JWT token found in Authorization header!");
     }
 
     // Get response body
     const data = await response.json();
-    console.log("Response data:", data);
 
     // Extract user data from response body (per your Swagger response)
     const user = {

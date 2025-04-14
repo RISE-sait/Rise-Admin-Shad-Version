@@ -1,6 +1,6 @@
 import {
-    MembershipRequestDto,
-    MembershipResponse,
+  MembershipRequestDto,
+  MembershipResponse,
 } from '@/app/api/Api';
 import { addAuthHeader } from '@/lib/auth-header';
 import getValue from '@/configs/constants';
@@ -9,9 +9,7 @@ import { Membership } from '@/types/membership';
 export async function getAllMemberships(): Promise<Membership[]> {
   try {
 
-    const response = await fetch(`${getValue("API")}memberships`, {
-      method: 'GET',
-    });
+    const response = await fetch(`${getValue("API")}memberships`)
 
     if (!response.ok) {
       throw new Error(`Failed to fetch memberships: ${response.statusText}`);
@@ -20,11 +18,11 @@ export async function getAllMemberships(): Promise<Membership[]> {
     const membershipsResponse: MembershipResponse[] = await response.json();
 
     const memberships: Membership[] = membershipsResponse.map((membership) => ({
-        created_at: new Date(membership.created_at!), // Convert string to Date
-        id: membership.id!,
-        name: membership.name!,
-        updated_at: new Date(membership.updated_at!), // Convert string to Date
-        description: membership.description!,
+      created_at: new Date(membership.created_at!), // Convert string to Date
+      id: membership.id!,
+      name: membership.name!,
+      updated_at: new Date(membership.updated_at!), // Convert string to Date
+      description: membership.description!,
     }))
 
     return memberships
@@ -37,24 +35,15 @@ export async function getAllMemberships(): Promise<Membership[]> {
 export async function createMembership(membershipData: MembershipRequestDto, jwt: string): Promise<any> {
   try {
 
-    // Create custom headers including the firebase_token header
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
-
-    console.log('Using headers:', headers);
-
     const response = await fetch(`${getValue('API')}memberships`, {
       method: 'POST',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(membershipData)
     });
 
-    // Get the full response text for more detailed error information
 
     if (!response.ok) {
-        const responseText = await response.json();
+      const responseText = await response.json();
 
       let errorMessage = `Failed to create practice: ${response.statusText}`;
 
@@ -87,15 +76,9 @@ export async function createMembership(membershipData: MembershipRequestDto, jwt
 export async function updateMembership(membershipID: string, membershipData: MembershipRequestDto, jwt: string): Promise<any> {
   try {
 
-    // Create custom headers including the firebase_token header
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
-    };
-
     const response = await fetch(`${getValue('API')}memberships/${membershipID}`, {
       method: 'PUT',
-      headers,
+      ...addAuthHeader(jwt),
       body: JSON.stringify(membershipData)
     });
 
@@ -142,18 +125,12 @@ export async function updateMembership(membershipID: string, membershipData: Mem
 export async function deleteMembership(membershipID: string, jwt: string): Promise<any> {
   try {
 
-
-    // Create custom headers including the firebase_token header
-    const headers = {
-      'Authorization': `Bearer ${jwt}`,
-    };
-
     await fetch(`${getValue('API')}memberships/${membershipID}`, {
       method: 'DELETE',
-      headers
+      ...addAuthHeader(jwt),
     });
 
-    
+
   } catch (error) {
     console.error('Error creating membership:', error);
     throw error;

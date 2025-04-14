@@ -30,9 +30,6 @@ interface CustomerApiResponse {
 
 // Helper function to map API response to Customer type
 function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
-  console.log('Raw API response:', JSON.stringify(response, null, 2));
-  console.log('Membership info from API:', response.membership_info);
-  console.log('Athlete info from API:', response.athlete_info);
   
   const customer = {
     id: response.user_id,
@@ -65,7 +62,6 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     create_at: new Date(), // Default to current date
   };
   
-  console.log('Mapped customer object:', JSON.stringify(customer, null, 2));
   return customer;
 }
 

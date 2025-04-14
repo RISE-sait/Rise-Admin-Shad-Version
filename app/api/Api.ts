@@ -88,7 +88,24 @@ export interface CustomerWaiverSigningRequestDto {
 }
 
 export interface EventCreateRequestDto {
-  events: EventRequestDto[];
+  /** @example 100 */
+  capacity?: number;
+  /** @example "THURSDAY" */
+  day?: string;
+  /** @example "23:00:00+00:00" */
+  end_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  recurrence_end_at: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  recurrence_start_at: string;
+  /** @example "23:00:00+00:00" */
+  start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  team_id?: string;
 }
 
 export interface EventCustomerResponseDto {
@@ -148,21 +165,6 @@ export interface EventProgramInfo {
   id?: string;
   name?: string;
   type?: string;
-}
-
-export interface EventRequestDto {
-  /** @example 100 */
-  capacity?: number;
-  /** @example "2023-10-05T07:00:00Z" */
-  end_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  location_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  program_id?: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  team_id?: string;
 }
 
 export interface EventScheduleResponseDto {
