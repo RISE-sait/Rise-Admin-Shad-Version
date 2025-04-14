@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction, JSX } from "react";
 import { Button } from "@/components/ui/button";
 import RightDrawer from "../reusable/RightDrawer";
 import { Input } from "@/components/ui/input";
@@ -25,10 +23,10 @@ interface ProgramPageProps {
   locations: Location[]; // Add this line
 }
 
-export default function ProgramPage({ 
-  programs: initialPractices, 
-  programLevels: practiceLevels,
-  locations 
+export default function ProgramPage({
+  programs: initialPrograms,
+  programLevels,
+  locations
 }: ProgramPageProps) {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -36,39 +34,20 @@ export default function ProgramPage({
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [activeFilter, setActiveFilter] = useState<ProgramType>("all");
-  const [programs, setPrograms] = useState<Program[]>(initialPractices);
-  const [isLoading, setIsLoading] = useState(false);
+  const [programs, setPrograms] = useState<Program[]>(initialPrograms);
 
   const { user } = useUser();
   const { toast } = useToast();
 
   // Fetch programs when filter changes
   useEffect(() => {
-    async function fetchProgramsByType() {
-      if (activeFilter === "all") {
-        setPrograms(initialPractices);
-        return;
-      }
-      
-      setIsLoading(true);
-      try {
-        const filteredPrograms = await getAllPrograms(activeFilter);
-        setPrograms(filteredPrograms);
-      } catch (error) {
-        console.error("Error fetching programs:", error);
-        toast({ 
-          title: "Error", 
-          description: "Failed to load programs",
-          variant: "destructive",
-          status: "error" // Add this line
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    if (activeFilter === "all") {
+      setPrograms(initialPrograms);
+      return;
     }
-    
-    fetchProgramsByType();
-  }, [activeFilter, initialPractices, toast]);
+    const filteredPrograms = initialPrograms.filter(program => program.type === activeFilter);
+    setPrograms(filteredPrograms)
+  }, [activeFilter, initialPrograms, toast]);
 
   const handleProgramSelect = (program: Program) => {
     setSelectedProgram(program);
@@ -104,10 +83,10 @@ export default function ProgramPage({
   );
 
   // Counts for each program type
-  const practiceCount = initialPractices.filter(p => p.type === "practice").length;
-  const courseCount = initialPractices.filter(p => p.type === "course").length;
-  const gameCount = initialPractices.filter(p => p.type === "game").length;
-  const otherCount = initialPractices.filter(p => 
+  const practiceCount = initialPrograms.filter(p => p.type === "practice").length;
+  const courseCount = initialPrograms.filter(p => p.type === "course").length;
+  const gameCount = initialPrograms.filter(p => p.type === "game").length;
+  const otherCount = initialPrograms.filter(p =>
     !["practice", "course", "game"].includes(p.type || "")).length;
 
   return (
@@ -133,74 +112,42 @@ export default function ProgramPage({
 
       {/* Program type filter cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Card
-          className={`bg-muted/20 ${activeFilter === "all" ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
-          onClick={() => setActiveFilter("all")}
-          role="button"
-          tabIndex={0}
-        >
-          <CardHeader className="pb-1 pt-3 px-4">
-            <CardTitle className="text-base font-medium">All Programs</CardTitle>
-            <CardDescription className="text-xs">View all types</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-3 px-4">
-            <p className="text-xl font-bold">{initialPractices.length}</p>
-          </CardContent>
-        </Card>
 
-        <Card
-          className={`bg-muted/20 ${activeFilter === "practice" ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
-          onClick={() => setActiveFilter("practice")}
-          role="button"
-          tabIndex={0}
-        >
-          <CardHeader className="pb-1 pt-3 px-4">
-            <div className="flex items-center gap-1.5">
-              <GraduationCap className="h-3.5 w-3.5 text-blue-500" />
-              <CardTitle className="text-base font-medium">Practice</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Training sessions</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-3 px-4">
-            <p className="text-xl font-bold">{practiceCount}</p>
-          </CardContent>
-        </Card>
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="all"
+          setFilter={()=> setActiveFilter('all')}
+          programCount={initialPrograms.length}
+          title="All Programs"
+          icon={<></>}
+        />
+        
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="practice"
+          setFilter={()=> setActiveFilter('practice')}
+          programCount={practiceCount}
+          title="Practices"
+          icon={<GraduationCap className="h-3.5 w-3.5 text-blue-500" />}
+        />
 
-        <Card
-          className={`bg-muted/20 ${activeFilter === "course" ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
-          onClick={() => setActiveFilter("course")}
-          role="button"
-          tabIndex={0}
-        >
-          <CardHeader className="pb-1 pt-3 px-4">
-            <div className="flex items-center gap-1.5">
-              <BookOpen className="h-3.5 w-3.5 text-green-500" />
-              <CardTitle className="text-base font-medium">Course</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Educational programs</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-3 px-4">
-            <p className="text-xl font-bold">{courseCount}</p>
-          </CardContent>
-        </Card>
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="course"
+          setFilter={()=> setActiveFilter('course')}
+          programCount={courseCount}
+          title="Courses"
+          icon={<BookOpen className="h-3.5 w-3.5 text-green-500" />}
+        />
 
-        <Card
-          className={`bg-muted/20 ${activeFilter === "game" ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
-          onClick={() => setActiveFilter("game")}
-          role="button"
-          tabIndex={0}
-        >
-          <CardHeader className="pb-1 pt-3 px-4">
-            <div className="flex items-center gap-1.5">
-              <Gamepad2 className="h-3.5 w-3.5 text-amber-500" />
-              <CardTitle className="text-base font-medium">Game</CardTitle>
-            </div>
-            <CardDescription className="text-xs">Game events</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-3 px-4">
-            <p className="text-xl font-bold">{gameCount}</p>
-          </CardContent>
-        </Card>
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="game"
+          setFilter={()=> setActiveFilter('game')}
+          programCount={gameCount}
+          title="Games"
+          icon={<Gamepad2 className="h-3.5 w-3.5 text-amber-500" />}
+        />
       </div>
 
       <div className="flex items-center justify-between gap-4 mb-6">
@@ -212,7 +159,7 @@ export default function ProgramPage({
           className="max-w-xs"
         />
         <p className="text-sm text-muted-foreground">
-          {isLoading ? "Loading programs..." : `${filteredPractices.length} programs found`}
+          {`${filteredPractices.length} programs found`}
         </p>
       </div>
 
@@ -234,11 +181,48 @@ export default function ProgramPage({
             {drawerContent === "details" ? "Program Details" : "Add Program"}
           </h2>
           {drawerContent === "details" && selectedProgram && (
-            <ProgramInfoPanel practice={selectedProgram} levels={practiceLevels} />
+            <ProgramInfoPanel practice={selectedProgram} levels={programLevels} />
           )}
-          {drawerContent === "add" && <AddProgramForm levels={practiceLevels} initialLocations={locations} />}
+          {drawerContent === "add" && <AddProgramForm levels={programLevels} initialLocations={locations} />}
         </div>
       </RightDrawer>
     </div>
   );
+}
+
+function ProgramTypeCard({
+  currfilter,
+  targetFilter,
+  setFilter,
+  programCount,
+  title,
+  icon
+}: {
+  currfilter: ProgramType
+  targetFilter: ProgramType
+  setFilter: Dispatch<SetStateAction<ProgramType>>
+  programCount: number
+  title: string
+  icon: JSX.Element
+}
+) {
+
+  return (
+    <Card
+      className={`bg-muted/20 ${currfilter === targetFilter ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
+      onClick={() => setFilter(currfilter)}
+      role="button"
+      tabIndex={0}
+    >
+      <CardHeader className="pb-1 pt-3 px-4">
+        <div className="flex items-center gap-1.5">
+          {icon}
+          <CardTitle className="text-base font-medium">{title}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-3 px-4">
+        <p className="text-xl font-bold">{programCount}</p>
+      </CardContent>
+    </Card>
+  )
 }
