@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, Dispatch, SetStateAction, JSX } from "react";
 import { Button } from "@/components/ui/button";
 import RightDrawer from "../reusable/RightDrawer";
@@ -6,12 +8,12 @@ import ProgramTable from "./table/ProgramTable";
 import ProgramInfoPanel from "./ProgramInfoPanel";
 import AddProgramForm from "./AddProgramForm";
 import { Program } from "@/types/program";
-import { deleteProgram, getAllPrograms } from "@/services/program";
+import { deleteProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { revalidatePractices } from "@/app/actions/serverActions";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, GraduationCap, Gamepad2, Box } from "lucide-react";
+import { revalidatePrograms } from "@/app/actions/serverActions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, GraduationCap, Gamepad2 } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
 import { Location } from "@/types/location";
 
@@ -61,7 +63,7 @@ export default function ProgramPage({
 
       if (error === null) {
         toast({ title: "Success", description: "Program deleted successfully", status: "success" });
-        await revalidatePractices();
+        await revalidatePrograms();
         // Remove from current list for immediate UI update
         setPrograms(programs.filter(p => p.id !== programId));
       }

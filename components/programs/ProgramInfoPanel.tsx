@@ -10,7 +10,7 @@ import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
 import { deleteProgram, updateProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { Program } from "@/types/program";
-import { revalidatePractices } from "@/app/actions/serverActions";
+import { revalidatePrograms } from "@/app/actions/serverActions";
 import { useFormData } from "@/hooks/form-data";
 import { getAllTeams } from "@/services/teams";
 import { getAllLocations } from "@/services/location";
@@ -98,7 +98,7 @@ export default function ProgramInfoPanel({ practice, levels, onClose }: ProgramI
 
       if (error === null) {
         toast({ status: "success", description: "Practice updated successfully" });
-        await revalidatePractices();
+        await revalidatePrograms();
       }
       else {
         toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
@@ -114,7 +114,7 @@ export default function ProgramInfoPanel({ practice, levels, onClose }: ProgramI
       
       if (error === null) {
         toast({ status: "success", description: "Practice updated successfully" });
-        await revalidatePractices();
+        await revalidatePrograms();
         if (onClose) onClose();
       }
       else {

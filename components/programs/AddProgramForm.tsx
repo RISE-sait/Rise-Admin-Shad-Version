@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast"
@@ -8,17 +6,15 @@ import DetailsTab from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
 import { SaveIcon, Loader2, X } from "lucide-react";
 import { createProgram, getAllPrograms } from "@/services/program";
-import { createEvent } from "@/services/events";
+import { createEvents } from "@/services/events";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
-import { revalidatePractices } from "@/app/actions/serverActions";
+import { revalidatePrograms } from "@/app/actions/serverActions";
 import { Location } from "@/types/location";
 import { getAllTeams, Team } from "@/services/teams";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ProgramRequestDto } from "@/app/api/Api";
+import { EventCreateRequestDto, ProgramRequestDto } from "@/app/api/Api";
 import { EventRequestDto } from "@/app/api/Api";
-
-
 
 export default function AddProgramForm({ 
   levels, 
@@ -44,7 +40,7 @@ export default function AddProgramForm({
   const [isLoadingData, setIsLoadingData] = useState(false);
   
   // Events that will be created for this program
-  const [events, setEvents] = useState<EventRequestDto[]>([]);
+  const [eventsDto, setEvents] = useState<EventRequestDto[]>([]);
   
   // Use the server-provided locations
   const [locations, setLocations] = useState<Location[]>(initialLocations);
@@ -121,46 +117,32 @@ export default function AddProgramForm({
         });
         setIsLoading(false);
         resetData();
-        await revalidatePractices();
+        await revalidatePrograms();
         if (onClose) onClose();
         return;
       }
 
       // 2. Create all events for this program if any
-      if (events.length > 0) {
-        let eventErrors = 0;
-        
-        // Create each event sequentially
-        for (const event of events) {
-          const eventData = {
-            program_id: newProgram.id,
-            location_id: event.location_id,
-            team_id: event.team_id && event.team_id !== "none" ? event.team_id : undefined,
-            capacity: event.capacity,
-            start_at: new Date(event.start_at).toISOString(),
-            end_at: new Date(event.end_at).toISOString()
-          };
-          console.log("Event Data:", eventData);
-          
-          const eventError = await createEvent(eventData, user?.Jwt!);
-          if (eventError !== null) {
-            eventErrors++;
-            console.error("Error creating event:", eventError);
-          }
+      if (eventsDto.length > 0) {
+
+        const createEventsDto: EventCreateRequestDto = {
+          events: eventsDto
         }
-        
+
+        const eventError = await createEvents(createEventsDto, user?.Jwt!);
+
         // Show appropriate message for event creation
-        if (eventErrors > 0) {
+        if (eventError != null) {
           toast({
             title: "Warning",
-            description: `Program created but ${eventErrors} out of ${events.length} events failed to create.`,
+            description: `Program created but failed to create events: ${eventError}.`,
             variant: "default",
             status: "warning"
           });
         } else {
           toast({
             title: "Success",
-            description: `Program and ${events.length} events created successfully!`,
+            description: `Program and ${eventsDto.length} events created successfully!`,
             variant: "default",
             status: "success"
           });
@@ -178,7 +160,7 @@ export default function AddProgramForm({
       // Reset form and reload data
       resetData();
       setEvents([]);
-      await revalidatePractices();
+      await revalidatePrograms();
       if (onClose) onClose();
       
     } catch (error) {
@@ -226,7 +208,7 @@ export default function AddProgramForm({
               </div>
             ) : (
               <ScheduleTab
-                events={events}
+                events={eventsDto}
                 onEventsChange={setEvents}
                 locations={locations}
                 teams={teams}
@@ -239,8 +221,8 @@ export default function AddProgramForm({
         <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
           <div className="flex justify-between px-4">
             <p className="text-sm text-muted-foreground">
-              {events.length > 0 
-                ? `${events.length} event${events.length === 1 ? '' : 's'} will be created with this program` 
+              {eventsDto.length > 0 
+                ? `${eventsDto.length} event${eventsDto.length === 1 ? '' : 's'} will be created with this program` 
                 : 'No events scheduled yet'}
             </p>
             <Button
