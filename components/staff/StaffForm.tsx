@@ -19,6 +19,7 @@ import { useUser } from "@/contexts/UserContext";
 import getValue from '@/configs/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
+import { revalidateStaffs } from "@/app/actions/serverActions";
 
 enum StaffRole {
   Trainer = "trainer",
@@ -50,7 +51,7 @@ export default function StaffForm({ StaffData }: any) {
    const router = useRouter();
 
   const RefreshData = () => {
-    router.refresh();
+    revalidateStaffs();
   }
 
   // updateo staffo
