@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import Image from 'next/image'
 import EditIcon from "@/public/Icons/Edit.svg"
+import { useUser } from "@/contexts/UserContext";
 
 // Themes
 import { useTheme } from "next-themes"
@@ -17,11 +18,14 @@ import { useToast } from "@/hooks/use-toast"
 
 export default function Clients() {
 
+  // get user
+  const { user } = useUser();
+
   // Get Variables of External Components
   const { theme, setTheme } = useTheme()
 
   // Variables
-  const [ email, setEmail ] = useState("example@example.com")
+  const [ email, setEmail ] = useState(user?.Email || "example@example.com")
   const [ password, setPassword ] = useState("pas*********")
   const [ newemail, setNewEmail ] = useState("")
   const [ verifyemail, setVerifyEmail ] = useState("")
