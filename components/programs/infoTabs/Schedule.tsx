@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react"
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from "@/contexts/UserContext";
-import getValue from '@/configs/constants';
-import { getSchedulesOfProgram } from "@/services/events";
+import { deleteEvents, getAllEvents, getSchedulesOfProgram } from "@/services/events";
 import { Card } from "@/components/ui/card";
 import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,15 +14,40 @@ import { Location } from "@/types/location";
 import { getAllTeams } from "@/services/teams";
 import { Team } from "@/types/team";
 import { PlusIcon, SaveIcon, TrashIcon } from "lucide-react";
+import { createEvents } from "../../../services/events";
 
 export default function SchedulesTab({ programID }: { programID: string }) {
 
-    const { user } = useUser();
-    const jwt = user?.Jwt
     const { toast } = useToast();
 
     const [schedules, setSchedules] = useState<EventSchedule[]>([])
     const [loading, setLoading] = useState(false)
+
+    const addAnotherSchedule = (event: React.MouseEvent) => {
+        event.preventDefault()
+        const newSchedule: EventSchedule = {
+            location: {
+                address: "",
+                name: "",
+                id: "",
+            },
+            program: {
+                id: "",
+                name: "",
+                type: "",
+            },
+            team: {
+                id: "",
+                name: "",
+            },
+            recurrence_start_at: new Date(),
+            recurrence_end_at: new Date(),
+            event_start_at: "",
+            event_end_at: "",
+            day: "Monday",
+        }
+        setSchedules(currentSchedules => [...currentSchedules, newSchedule])
+    }
 
     useEffect(() => {
         (async () => {
@@ -52,7 +76,6 @@ export default function SchedulesTab({ programID }: { programID: string }) {
     return (
         <div>
             {
-
                 loading ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-300"></div>
@@ -60,13 +83,13 @@ export default function SchedulesTab({ programID }: { programID: string }) {
                 ) : (
 
                     schedules.length > 0 ? (
-                        <div className="grid grid-cols-1">
+                        <div className="grid grid-cols-1 gap-y-10">
                             {schedules.map((schedule) => {
 
                                 const key = `${schedule.day}-${schedule.recurrence_start_at.toISOString()}-${schedule.location}`;
 
                                 return (
-                                    <ScheduleCard key={key} schedule={schedule} />
+                                    <ScheduleCard key={key} schedule={schedule} addAnotherSchedule={addAnotherSchedule} />
                                 )
                             }
                             )}
@@ -80,9 +103,12 @@ export default function SchedulesTab({ programID }: { programID: string }) {
     )
 }
 
-function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
+function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedule, addAnotherSchedule: (event: React.MouseEvent) => void }) {
 
-    const { toast } = useToast();
+    const { toast } = useToast()
+
+    const { user } = useUser()
+    const jwt = user?.Jwt
 
     const form = useForm({
         defaultValues: {
@@ -98,11 +124,71 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
 
     const [locations, setLocations] = useState<Location[]>([])
     const [teams, setTeams] = useState<Team[]>([])
+    const [eventIDs, setEventIDs] = useState<string[]>([])
 
-    const handleDeleteSchedule = () => {
+    async function handleDeleteSchedule(event: React.MouseEvent) {
+        try {
+
+            event.preventDefault()
+            await deleteEvents({
+                ids: eventIDs,
+            }, jwt!)
+            toast({
+                description: "Schedule deleted successfully",
+                status: "success",
+                variant: "default"
+            })
+        }
+        catch (error) {
+            console.error("Failed to delete schedule", error);
+            toast({
+                description: error instanceof Error ? error.message : "Failed to delete schedule",
+                status: "error",
+                variant: "destructive"
+            });
+        }
     }
 
-    const handleSave = () => {
+    async function handleCreateSchedule(event: React.MouseEvent) {
+        try {
+
+            event.preventDefault()
+
+            const location = locations.find(loc => loc.name === form.getValues("location_name"))
+            const team = teams.find(team => team.name === form.getValues("team_name"))
+
+            const formatTimeToISO = (timeStr: string) => {
+                const [hours, minutes] = timeStr.split(':')
+                return `${hours}:${minutes}:00+00:00`
+            }
+
+            await createEvents({
+                program_id: schedule.program?.id,
+                location_id: location?.id,
+                team_id: team?.id,
+                recurrence_start_at: new Date(form.getValues('recurrence_start_at')).toISOString(),
+                recurrence_end_at: new Date(form.getValues('recurrence_end_at')).toISOString(),
+                start_at: formatTimeToISO(form.getValues('event_start_at')),
+                end_at: formatTimeToISO(form.getValues('event_end_at')),
+                capacity: 20,
+                day: form.getValues('day'),
+            }, jwt!)
+        }
+        catch (error) {
+            console.error("Failed to create schedule", error);
+            toast({
+                description: error instanceof Error ? error.message : "Failed to create schedule",
+                status: "error",
+                variant: "destructive"
+            });
+        }
+    }
+
+    async function handleSave(event: React.MouseEvent) {
+        event.preventDefault()
+        await handleDeleteSchedule(event)
+
+        await handleCreateSchedule(event)
     }
 
     const isFormChanged = () => {
@@ -123,9 +209,41 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
     useEffect(() => {
         (async () => {
             try {
+
+                const after = new Date(schedule.recurrence_start_at.getTime() - 24 * 60 * 60 * 1000)
+                const before = new Date(schedule.recurrence_end_at.getTime() + 24 * 60 * 60 * 1000)
+
+                // after and before should be in YYYY-MM-DD
+                const [events] = await Promise.all([getAllEvents({
+                    program_id: schedule.program?.id,
+                    location_id: schedule.location?.id,
+                    after: after.toISOString().slice(0, 10),
+                    before: before.toISOString().slice(0, 10),
+                })])
+
+                const ids = events.map(event => event.id)
+                setEventIDs(ids)
+            }
+            catch (error) {
+                console.error("Failed to fetch events", error);
+                toast({
+                    description: error instanceof Error ? error.message : "Failed to fetch events",
+                    status: "error",
+                    variant: "destructive"
+                });
+            }
+        })()
+    }, [schedule.program?.id])
+
+
+    useEffect(() => {
+        (async () => {
+            try {
+
                 const [locations, teams] = await Promise.all([getAllLocations(), getAllTeams()])
                 setLocations(locations)
                 setTeams(teams)
+
             } catch (error) {
                 console.error("Failed to fetch locations and teams", error);
                 toast({
@@ -303,8 +421,9 @@ function ScheduleCard({ schedule }: { schedule: EventSchedule }) {
                         </Button>
                         <Button
                             className="bg-green-600 hover:bg-green-700"
+                            onClick={addAnotherSchedule}
                         >
-                            
+
                             <PlusIcon className="h-4 w-4 mr-2" />
                             Add Another Schedule
                         </Button>

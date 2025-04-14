@@ -15,7 +15,6 @@ export async function getAllLocations(): Promise<Location[]> {
     }
 
     const locationsResponse: LocationResponseDto[] = await response.json();
-    console.log("Locations fetched:", locationsResponse);
 
     const locations: Location[] = locationsResponse.map((facility) => ({
       id: facility.id!,

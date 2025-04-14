@@ -1,7 +1,7 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 import { CalendarEvent } from '@/types/calendar';
-import { EventCreateRequestDto, EventScheduleResponseDto } from '@/app/api/Api';
+import { EventCreateRequestDto, EventDeleteRequestDto, EventScheduleResponseDto } from '@/app/api/Api';
 import { EventSchedule } from '@/types/events';
 
 export async function getAllEvents(query: {
@@ -37,8 +37,7 @@ export async function getAllEvents(query: {
       throw new Error(`Failed to fetch events: ${response.statusText}`);
     }
 
-    const eventsResponse = await response.json();
-    console.log('Parsed events response:', eventsResponse);
+    const eventsResponse = await response.json()
 
     // Ensure it’s an array
     if (!Array.isArray(eventsResponse)) {
@@ -108,15 +107,14 @@ export async function updateEvent(eventID: string, eventData: any, jwt: string):
   }
 }
 
-/**
- * Delete an event
- */
-export async function deleteEvent(eventID: string, jwt: string): Promise<string | null> {
+
+export async function deleteEvents(eventIDs: EventDeleteRequestDto, jwt: string) {
   try {
 
-    const response = await fetch(`${getValue('API')}events/${eventID}`, {
+    const response = await fetch(`${getValue('API')}events`, {
       method: 'DELETE',
       ...addAuthHeader(jwt),
+      body: JSON.stringify(eventIDs),
     });
 
     if (!response.ok) {
@@ -125,10 +123,10 @@ export async function deleteEvent(eventID: string, jwt: string): Promise<string 
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
       }
-      return errorMessage;
+
+      throw new Error(errorMessage);
     }
 
-    return null;
   } catch (error) {
     console.error('Error deleting event:', error);
     throw error;
