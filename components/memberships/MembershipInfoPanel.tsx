@@ -1,13 +1,18 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Membership, MembershipPlan } from "@/types/membership";
 import DetailsTab from "./infoTabs/Details";
-import PlansTab from "./infoTabs/plans/plans";
+import PlansTab from "./infoTabs/plans/Plans";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { TrashIcon, SaveIcon, CreditCard, ShoppingBag } from "lucide-react";
+import {
+  TrashIcon,
+  SaveIcon,
+  CreditCard,
+  ShoppingBag,
+} from "lucide-react";
 import getValue from "@/configs/constants";
 import { deleteMembership, updateMembership } from "@/services/membership";
 import { useUser } from "@/contexts/UserContext";
@@ -16,62 +21,70 @@ import { revalidateMemberships } from "@/app/actions/serverActions";
 
 export default function MembershipInfoPanel({ membership }: { membership: Membership }) {
   const { toast } = useToast();
+  const { user } = useUser();
+
   const [activeTab, setActiveTab] = useState("details");
   const [membershipDetails, setMembershipDetails] = useState({
     name: membership.name,
-    description: membership.description || ""
+    description: membership.description || "",
   });
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
 
-  const { user } = useUser();
-
   const apiUrl = getValue("API");
 
-  // Fetch membership plans when component mounts
+  const fetchPlans = async () => {
+    try {
+      const response = await fetch(`${apiUrl}memberships/${membership.id}/plans`);
+      if (!response.ok) throw new Error("Failed to fetch membership plans");
+
+      const plansData = await response.json();
+      setPlans(plansData);
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      toast({
+        status: "error",
+        description: "Error loading membership plans",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const response = await fetch(`${apiUrl}memberships/${membership.id}/plans`);
-        if (!response.ok) throw new Error("Failed to fetch membership plans");
-
-        const plansData = await response.json();
-        setPlans(plansData);
-      } catch (error) {
-        console.error("Error fetching plans:", error);
-        toast({ status: "error", description: "Error loading membership plans", variant: "destructive" });
-      }
-    };
-
     fetchPlans();
-  }, [membership.id, apiUrl, toast]);
+  }, [membership.id]);
 
   const handleSaveInfo = async () => {
     try {
       const membershipData: MembershipRequestDto = {
+        name: membershipDetails.name,
         description: membershipDetails.description,
-        name: membershipDetails.name
-      }
+      };
 
-      await updateMembership(membership.id, membershipData, user?.Jwt!)
+      await updateMembership(membership.id, membershipData, user?.Jwt!);
 
       toast({ status: "success", description: "Membership updated successfully" });
-
-      await revalidateMemberships()
+      await revalidateMemberships();
+    } catch (error) {
+      toast({
+        status: "error",
+        description: "Error saving changes",
+        variant: "destructive",
+      });
     }
-    catch (error) {
-      toast({ status: "error", description: "Error saving changes", variant: "destructive" });
-    }
-  }
+  };
 
   const handleDeleteMembership = async () => {
     try {
       await deleteMembership(membership.id, user?.Jwt!);
 
       toast({ status: "success", description: "Membership deleted successfully" });
-
-      await revalidateMemberships()
+      await revalidateMemberships();
     } catch (error) {
-      toast({ status: "error", description: "Error deleting membership", variant: "destructive" });
+      toast({
+        status: "error",
+        description: "Error deleting membership",
+        variant: "destructive",
+      });
     }
   };
 
@@ -102,41 +115,41 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
             details={membershipDetails}
             onDetailsChange={setMembershipDetails}
           />
+          <div className="max-w-5xl mx-auto px-4 flex justify-between items-center pt-5">
+            <p className="text-sm text-muted-foreground">
+              Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : "Never"}
+            </p>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={handleDeleteMembership}
+                className="border-destructive text-destructive hover:bg-destructive/10"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+
+              <Button
+                 onClick={handleSaveInfo}
+                className="bg-green-600 hover:bg-green-700"
+              >
+              <SaveIcon className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="plans" className="pt-4">
           <PlansTab
-            membershipId={membership.id}
-            plans={plans}
-            onPlansChange={setPlans}
+            RenderPlans={plans}
+            MembershipID={membership.id}
+            refreshPlans={fetchPlans}
           />
         </TabsContent>
       </Tabs>
 
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-        <div className="max-w-5xl mx-auto px-4 flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : 'Never'}</p>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleDeleteMembership}
-              className="border-destructive text-destructive hover:bg-destructive/10"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-
-            <Button
-              onClick={handleSaveInfo}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <SaveIcon className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
