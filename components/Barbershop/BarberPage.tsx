@@ -20,7 +20,7 @@ import { getAllStaffs } from "@/services/staff";
 import Link from "next/link";
 import { StaffRoleEnum, User } from "@/types/user";
 
-export default function BarbershopPage({staffs}:{staffs: User[]}) {
+export default function BarbershopPage({ staffs }: { staffs: User[] }) {
 
   // Regular state
   const [appointments, setAppointments] = useState<HaircutEventResponseDto[]>([]);
@@ -33,7 +33,7 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
   const [services, setServices] = useState<any[]>([]);
   // Add barbers state
   const [barbers, setBarbers] = useState<any[]>([]);
-  
+
   // Stats for cards with default values
   const [stats, setStats] = useState({
     appointmentsThisWeek: 0,
@@ -41,14 +41,14 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
     activeBarbers: 0,
     timeOffRequests: 0
   });
-  
+
   // Hooks
   const { toast } = useToast();
   const { user } = useUser();
 
   // Use refs to prevent infinite loops
   const isFirstRender = useRef(true);
-  
+
   // Pre-compute permission checks once on render
   const isBarber = user?.Role === StaffRoleEnum.BARBER
   const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
@@ -57,40 +57,43 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
     // Skip the effect on first render with a ref check
     if (isFirstRender.current) {
       isFirstRender.current = false;
-      
+
       const fetchData = async () => {
         try {
           setIsLoading(true);
-          
+
           // Get today and 30 days in future for default date range
           const today = new Date();
           const thirtyDaysLater = addDays(today, 30);
-          
+
           // Build query params
           const params: any = {
             after: format(today, "yyyy-MM-dd"),
             before: format(thirtyDaysLater, "yyyy-MM-dd")
           };
-          
+
           // If user is a barber and not admin, filter by their ID
-          if (isBarber && !isSuperAdmin && user?.ID) {
-            params.barber_id = user.ID;
-          }
-          
+          // if (isBarber && !isSuperAdmin && user?.ID) {
+          //   params.barber_id = user.ID;
+          // }
+
           // Fetch appointments
-          const appointmentsData = await getHaircutEvents(params);
+          const appointmentsData = await getHaircutEvents({
+            ...params,
+            // barber_id: isBarber && user.ID
+          });
           setAppointments(appointmentsData);
           setFilteredAppointments(appointmentsData);
-          
+
           // Calculate stats
           try {
             // Fetch barber services to get active barbers
             const barberServices = await getBarberServices();
             setServices(barberServices);
-            
+
             // Get unique barber IDs
             const uniqueBarberIds = new Set(barberServices.map(service => service.barber_id));
-            
+
             setStats({
               appointmentsThisWeek: appointmentsData.length,
               totalAppointments: appointmentsData.length,
@@ -111,7 +114,7 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
           setIsLoading(false);
         }
       };
-      
+
       fetchData();
     }
   }, [user?.ID, toast, isBarber, isSuperAdmin]);
@@ -122,7 +125,7 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
 
       // filter and make sure appointment is upcoming only
 
-      const filtered = appointments.filter(apt => 
+      const filtered = appointments.filter(apt =>
         apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -142,30 +145,30 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
   const handleAppointmentAdded = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Get today and 30 days in future for default date range
       const today = new Date();
       const thirtyDaysLater = addDays(today, 30);
-      
+
       // Build query params
       const params: any = {
         after: format(today, "yyyy-MM-dd"),
         before: format(thirtyDaysLater, "yyyy-MM-dd")
       };
-      
+
       // If user is a barber and not admin, filter by their ID
       if (isBarber && !isSuperAdmin && user?.ID) {
         params.barber_id = user.ID;
       }
-      
+
       const refreshedAppointments = await getHaircutEvents(params);
-      
+
       setAppointments(refreshedAppointments);
       setFilteredAppointments(refreshedAppointments);
-      
+
       toast({ status: "success", description: "Appointment added successfully" });
       setDrawerOpen(false);
-      
+
     } catch (error) {
       console.error("Error refreshing appointments:", error);
       toast({ status: "error", description: "Failed to refresh appointments" });
@@ -224,7 +227,7 @@ export default function BarbershopPage({staffs}:{staffs: User[]}) {
         </div>
       </div>
 
-      
+
 
       {/* Search and Table */}
       <div>
