@@ -20,17 +20,17 @@ import getValue from '@/configs/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { revalidateStaffs } from "@/app/actions/serverActions";
-import { StaffRoleEnum } from "@/types/user";
+import { StaffRoleEnum, User } from "@/types/user";
 
 const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
   label: key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
   value,
 }));
 
-export default function StaffForm({ StaffData }: any) {
+export default function StaffForm({ StaffData }: {StaffData?: User}) {
   const [activeTab, setActiveTab] = useState("details");
-  const [role, setRole] = useState(StaffData?.StaffInfo.Role || "");
-  const [isActive, setIsActive] = useState(StaffData.StaffInfo?.IsActive || false);
+  const [role, setRole] = useState(StaffData?.StaffInfo?.Role || "");
+  const [isActive, setIsActive] = useState(StaffData?.StaffInfo?.IsActive || false);
 
    const { user } = useUser();
    const jwt = user?.Jwt
@@ -45,8 +45,7 @@ export default function StaffForm({ StaffData }: any) {
   // updateo staffo
   const UpdateStaff = async() => {
 
-    // ensure no nil values
-    if (role == "" || role == null) {
+    if (role === "") {
       toast({
         status: "error",
         description: "Staff Role is null, please specify role",
@@ -55,11 +54,11 @@ export default function StaffForm({ StaffData }: any) {
       return
     }
 
-    console.log(jwt)
-    console.log(isActive)
-
     try {
-        const response = await fetch(`${apiUrl}/staffs/${StaffData.ID}`, {
+
+      console.log(role.toLowerCase())
+
+        const response = await fetch(`${apiUrl}staffs/${StaffData?.ID}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,7 +66,7 @@ export default function StaffForm({ StaffData }: any) {
             },
             body: JSON.stringify({
                 is_active: isActive,
-                role_name: role,
+                role_name: role.toLowerCase(),
             })
         })
         if (!response.ok) {
@@ -91,7 +90,7 @@ export default function StaffForm({ StaffData }: any) {
   // deleto staffo 
   const DeleteStaff = async() => {
     try {
-        const response = await fetch(`${apiUrl}/staffs/${StaffData.ID}`, {
+        const response = await fetch(`${apiUrl}/staffs/${StaffData?.ID}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${jwt}`
