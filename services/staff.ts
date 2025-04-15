@@ -1,16 +1,15 @@
-
 import { StaffRequestDto, StaffResponseDto } from '@/app/api/Api';
-import { StaffRole, User } from '@/types/user';
-import getValue from '@/configs/constants';
+import { User } from '@/types/user';
+import getValue, { ROLE_MAPPING } from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 
-export async function getAllStaffs(role?: string): Promise<User[]> {
+export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
     try {
 
-        const url = role
-            ? `${getValue('API')}staffs?role=${role}`
+        const url = roleFilter
+            ? `${getValue('API')}staffs?role=${roleFilter}`
             : `${getValue('API')}staffs`;
-        
+
         const response = await fetch(url)
 
         const responseJson = await response.json();
@@ -29,19 +28,31 @@ export async function getAllStaffs(role?: string): Promise<User[]> {
 
         const staffsResponse = responseJson as StaffResponseDto[]
 
-        const staffs: User[] = staffsResponse.map((staff) => ({
-            ID: staff.id!,
-            Email: staff.email!,
-            Name: staff.first_name! + ' ' + staff.last_name!,
-            Phone: staff.phone!,
-            StaffInfo: {
-                IsActive: staff.is_active!,
-                Role: staff.role_name as StaffRole,
-            },
-            Jwt: "",
-            CreatedAt: new Date(staff.created_at!),
-            UpdatedAt: new Date(staff.updated_at!),
-        }));
+        const staffs: User[] = staffsResponse.map(responseStaff => {
+
+            const roleKey = responseStaff.role_name?.toUpperCase();
+            const role = roleKey ? ROLE_MAPPING[roleKey] : undefined;
+
+            if (!role) {
+                throw new Error("Invalid role type");
+            }
+
+            const staff: User = {
+                ID: responseStaff.id!,
+                Email: responseStaff.email!,
+                Name: responseStaff.first_name! + ' ' + responseStaff.last_name!,
+                Phone: responseStaff.phone!,
+                StaffInfo: {
+                    IsActive: responseStaff.is_active!,
+                    Role: role,
+                },
+                CreatedAt: new Date(responseStaff.created_at!),
+                UpdatedAt: new Date(responseStaff.updated_at!),
+            }
+
+            return staff;
+        }
+        )
 
         return staffs;
     } catch (error) {

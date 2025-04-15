@@ -4,6 +4,7 @@ export enum StaffRoleEnum {
     SUPERADMIN,
     COACH,
     BARBER,
+    RECEPTIONIST,
 }
 
 interface BaseUser {
