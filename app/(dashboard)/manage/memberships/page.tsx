@@ -1,7 +1,7 @@
 import MembershipsPage from "@/components/memberships/MembershipPage";
 import RoleProtected from "@/components/RoleProtected";
-import { getAllMemberships } from "@/services/membership";
 import { StaffRoleEnum } from "@/types/user";
+import { getAllMemberships } from "@/services/membership";
 
 export default async function Page() {
 

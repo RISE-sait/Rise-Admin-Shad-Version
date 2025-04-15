@@ -1,8 +1,7 @@
 import { StaffRequestDto, StaffResponseDto } from '@/app/api/Api';
-import { User } from '@/types/user';
-import getValue, { ROLE_MAPPING } from '@/configs/constants';
+import { StaffRole, StaffRoleEnum, User } from '@/types/user';
+import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
-import { UNDERSCORE_NOT_FOUND_ROUTE } from 'next/dist/shared/lib/constants';
 
 export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
     try {
@@ -31,13 +30,11 @@ export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
 
         const staffs: User[] = staffsResponse.map(responseStaff => {
 
-            const roleKey = responseStaff.role_name?.toUpperCase();
-            const role = roleKey ? ROLE_MAPPING[roleKey] : undefined;
+            const roleKey = responseStaff.role_name?.toUpperCase() as StaffRole;
+            const role = StaffRoleEnum[roleKey]
 
-            // must use undefined instead of !role since !role will be false for falsy values like 0.
             if (role === undefined) {
-                console.log('roleKey')
-                console.log(roleKey)
+                console.error(`Invalid role: ${roleKey}`);
                 throw new Error("Invalid role type");
             }
 

@@ -1,5 +1,5 @@
 import { LoggedInUser, StaffRoleEnum, User } from "@/types/user";
-import getValue, { ROLE_MAPPING } from "@/configs/constants";
+import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
 import { IdentityUserAuthenticationResponseDto } from "@/app/api/Api";
 
@@ -40,8 +40,8 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Log
     // Get response body
     const data: IdentityUserAuthenticationResponseDto = await response.json()
 
-    const roleKey = data.role?.toUpperCase();
-    const role = roleKey ? ROLE_MAPPING[roleKey] : undefined;
+    const roleKey = data.role?.toUpperCase() as typeof StaffRoleEnum[keyof typeof StaffRoleEnum] | undefined;
+    const role = roleKey ? StaffRoleEnum[roleKey] : undefined;
     
     if (role === undefined) {
         throw new Error("Invalid role type");

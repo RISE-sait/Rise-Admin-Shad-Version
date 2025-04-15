@@ -1,12 +1,3 @@
-export enum StaffRoleEnum {
-    INSTRUCTOR,
-    ADMIN,
-    SUPERADMIN,
-    COACH,
-    BARBER,
-    RECEPTIONIST,
-}
-
 interface BaseUser {
     ID: string;
     Email?: string;
@@ -32,3 +23,14 @@ export interface LoggedInUser {
     IsActive: boolean;
     Jwt:string
 }
+
+export enum StaffRoleEnum {
+    INSTRUCTOR = "INSTRUCTOR",
+    ADMIN = "ADMIN",
+    SUPERADMIN = "SUPERADMIN",
+    COACH = "COACH",
+    BARBER = "BARBER",
+    RECEPTIONIST = "RECEPTIONIST",
+  }
+  
+  export type StaffRole = keyof typeof StaffRoleEnum;
