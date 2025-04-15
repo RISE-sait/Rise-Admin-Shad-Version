@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
 import { SaveIcon, Loader2, X } from "lucide-react";
-import { createProgram, getAllPrograms } from "@/services/program";
+import { createProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidatePrograms } from "@/app/actions/serverActions";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ProgramRequestDto } from "@/app/api/Api";
 
 export default function AddProgramForm({
@@ -18,7 +17,6 @@ export default function AddProgramForm({
   levels: string[],
   onClose?: () => void
 }) {
-  const [activeTab, setActiveTab] = useState("details");
   const { data, resetData, updateField } = useFormData<ProgramRequestDto>({
     name: "",
     description: "",

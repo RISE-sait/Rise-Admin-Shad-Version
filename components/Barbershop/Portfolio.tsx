@@ -5,10 +5,10 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import { PlusIcon, X } from "lucide-react";
 import { getHaircuts, uploadHaircut } from "@/services/haircuts";
 import Link from "next/link";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function PortfolioPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,34 +18,32 @@ export default function PortfolioPage() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  
+
   const { toast } = useToast();
   const { user } = useUser();
-  const permissions = usePermissions();
-  
-  // Pre-compute permission checks to avoid dependency issues
-  const isBarber = permissions.isBarber();
-  const isSuperAdmin = permissions.isSuperAdmin();
-  
+
+  const isBarber = user?.Role === StaffRoleEnum.BARBER
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
+
   // Use ref to prevent multiple fetches
   const fetchCompleted = useRef(false);
-  
+
   // Fetch haircut images
   useEffect(() => {
     // Only fetch once
     if (fetchCompleted.current) return;
-    
+
     const fetchHaircuts = async () => {
       try {
         setIsLoading(true);
         setFetchError(null);
-        
+
         // If user is a barber and not admin/superadmin, only fetch their images
-        const barberId = selectedBarber || 
+        const barberId = selectedBarber ||
           (isBarber && !isSuperAdmin ? user?.ID : undefined);
-        
+
         console.log("Fetching haircuts with barberId:", barberId);
-        
+
         const fetchedImages = await getHaircuts(barberId);
         console.log("Fetched images:", fetchedImages);
         setImages(fetchedImages || []);
@@ -58,35 +56,35 @@ export default function PortfolioPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchHaircuts();
   }, [selectedBarber, user?.ID, toast]);
-  
+
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadFile(e.target.files[0]);
     }
   };
-  
+
   // Handle image upload
   const handleUpload = async () => {
     if (!uploadFile || !user?.Jwt) {
       toast({ status: "error", description: "No file selected or not logged in" });
       return;
     }
-    
+
     try {
       setUploading(true);
       await uploadHaircut(uploadFile, user.Jwt);
       toast({ status: "success", description: "Image uploaded successfully" });
-      
+
       // Refresh images
-      const barberId = selectedBarber || 
+      const barberId = selectedBarber ||
         (isBarber && !isSuperAdmin ? user?.ID : undefined);
       const fetchedImages = await getHaircuts(barberId);
       setImages(fetchedImages || []);
-      
+
       // Close modal and reset
       setUploadModalOpen(false);
       setUploadFile(null);
@@ -105,10 +103,10 @@ export default function PortfolioPage() {
       try {
         setIsLoading(true);
         setFetchError(null);
-        
-        const barberId = selectedBarber || 
+
+        const barberId = selectedBarber ||
           (isBarber && !isSuperAdmin ? user?.ID : undefined);
-        
+
         const fetchedImages = await getHaircuts(barberId);
         setImages(fetchedImages || []);
         fetchCompleted.current = true;
@@ -120,7 +118,7 @@ export default function PortfolioPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchHaircuts();
   };
 
@@ -137,11 +135,11 @@ export default function PortfolioPage() {
         </Button>
       </div>
       <Separator />
-      
+
       <Link href="/manage/barbershop">
         <Button variant="outline" className="mb-4">← Back to Barbershop</Button>
       </Link>
-      
+
       {/* Gallery */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {isLoading ? (
@@ -152,7 +150,7 @@ export default function PortfolioPage() {
         ) : fetchError ? (
           <div className="col-span-3 text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-destructive">{fetchError}</p>
-            <Button 
+            <Button
               variant="outline"
               onClick={handleRetry}
               className="mt-4"
@@ -173,8 +171,8 @@ export default function PortfolioPage() {
         ) : (
           <div className="col-span-3 text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-muted-foreground">No images in portfolio yet</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setUploadModalOpen(true)}
               className="mt-4"
             >
@@ -183,7 +181,7 @@ export default function PortfolioPage() {
           </div>
         )}
       </div>
-      
+
       {/* Upload Modal - Only render when open */}
       {uploadModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
@@ -194,18 +192,18 @@ export default function PortfolioPage() {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                <input 
-                  type="file" 
-                  accept="image/*" 
+                <input
+                  type="file"
+                  accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
                   id="image-upload"
                 />
-                <label 
-                  htmlFor="image-upload" 
+                <label
+                  htmlFor="image-upload"
                   className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {uploadFile ? (
@@ -221,27 +219,27 @@ export default function PortfolioPage() {
                   )}
                 </label>
               </div>
-              
+
               {uploadFile && (
                 <div className="flex justify-center">
-                  <img 
-                    src={URL.createObjectURL(uploadFile)} 
-                    alt="Preview" 
+                  <img
+                    src={URL.createObjectURL(uploadFile)}
+                    alt="Preview"
                     className="max-h-40 rounded"
                   />
                 </div>
               )}
-              
+
               <div className="flex justify-end space-x-3 pt-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setUploadModalOpen(false)}
                   disabled={uploading}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleUpload} 
+                <Button
+                  onClick={handleUpload}
                   disabled={!uploadFile || uploading}
                 >
                   {uploading ? "Uploading..." : "Upload"}

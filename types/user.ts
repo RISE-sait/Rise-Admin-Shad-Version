@@ -1,15 +1,36 @@
-export type StaffRole = 'INSTRUCTOR' | 'ADMIN' | 'SUPERADMIN' | 'INSTRUCTOR' | 'COACH' | 'BARBER';
+interface BaseUser {
+    ID: string;
+    Email?: string;
+    Name: string;
+    Phone?: string;
+    CreatedAt: Date;
+    UpdatedAt: Date;
+}
 
-export interface User {
+export interface User extends BaseUser {
+    StaffInfo?: {
+        Role: StaffRoleEnum;
+        IsActive: boolean;
+    }
+}
+
+export interface LoggedInUser {
     ID : string
     Email: string;
     Name: string;
     Phone: string;
-    StaffInfo?: {
-        Role: StaffRole;
-        IsActive: boolean;
-    };
-    Jwt:string,
-    CreatedAt: Date,
-    UpdatedAt: Date,
+    Role: StaffRoleEnum;
+    IsActive: boolean;
+    Jwt:string
 }
+
+export enum StaffRoleEnum {
+    INSTRUCTOR = "INSTRUCTOR",
+    ADMIN = "ADMIN",
+    SUPERADMIN = "SUPERADMIN",
+    COACH = "COACH",
+    BARBER = "BARBER",
+    RECEPTIONIST = "RECEPTIONIST",
+  }
+  
+  export type StaffRole = keyof typeof StaffRoleEnum;

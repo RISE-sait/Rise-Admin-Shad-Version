@@ -4,13 +4,12 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import AppointmentsPage from "@/components/Barbershop/Appointments";
 import RoleProtected from "@/components/RoleProtected";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function AppointmentsPageContainer() {
   return (
-    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN", "BARBER"]}>
-      <Suspense fallback={<PageSkeleton />}>
-        <AppointmentsPage />
-      </Suspense>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}>
+      <AppointmentsPage />
     </RoleProtected>
   );
 }

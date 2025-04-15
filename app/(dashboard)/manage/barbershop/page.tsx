@@ -1,16 +1,19 @@
-"use client";
-
-import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import BarbershopPage from "@/components/Barbershop/BarberPage";
 import RoleProtected from "@/components/RoleProtected";
+import { StaffRoleEnum } from "@/types/user";
+import { getAllStaffs } from "@/services/staff";
 
-export default function BarbershopPageContainer() {
+export default async function BarbershopPageContainer() {
+
+  const staffData = await getAllStaffs(StaffRoleEnum.BARBER.toUpperCase());
+
   return (
-    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN", "BARBER"]}>
-      <Suspense fallback={<PageSkeleton />}>
-        <BarbershopPage />
-      </Suspense>
+    <RoleProtected
+      allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}
+      fallback={<PageSkeleton />}
+    >
+      <BarbershopPage staffs={staffData}/>
     </RoleProtected>
   );
 }
@@ -25,21 +28,21 @@ function PageSkeleton() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-      
+
       <Skeleton className="h-px w-full" />
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map(i => (
           <Skeleton key={i} className="h-24 w-full rounded-lg" />
         ))}
       </div>
-      
+
       <div className="flex gap-4 mt-4">
         {[1, 2, 3].map(i => (
           <Skeleton key={i} className="h-10 w-36" />
         ))}
       </div>
-      
+
       <Skeleton className="h-96 w-full mt-8 rounded-lg" />
     </div>
   );

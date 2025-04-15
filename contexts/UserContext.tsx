@@ -2,19 +2,19 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { User } from "@/types/user";
+import { LoggedInUser, User } from "@/types/user";
 import { onIdTokenChanged } from "firebase/auth";
 import { auth } from "@/configs/firebase";
 import { loginWithFirebaseToken } from "@/services/auth";
 
 type UserContextType = {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  user: LoggedInUser | null;
+  setUser: React.Dispatch<React.SetStateAction<LoggedInUser | null>>;
   logout: () => void;
   isLoading: boolean; // Add this property
 };
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+const UserContext = createContext<UserContextType | null>(null);
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -23,7 +23,7 @@ export const useUser = () => {
 };
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<LoggedInUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Add loading state
   const router = useRouter();
   const pathname = usePathname();

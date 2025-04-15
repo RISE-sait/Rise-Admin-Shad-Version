@@ -41,7 +41,7 @@ export default function FilterComponent({
     locations: false,
     trainers: false,
     programs: false,
-  });
+  })
 
   // find unique types
   const programTypes = programs.reduce((acc: string[], program) => {
@@ -49,14 +49,12 @@ export default function FilterComponent({
       acc.push(program.type);
     }
     return acc;
-  }
-  , []);
+  }, [])
 
   // Parse dates for the calendar components
   const afterDate = filters.after ? new Date(filters.after) : undefined;
   const beforeDate = filters.before ? new Date(filters.before) : undefined;
 
-  // Fetch locations using ApiService instead of direct service call
   useEffect(() => {
     async function fetchLocations() {
       setIsLoading(prev => ({ ...prev, locations: true }));
@@ -304,7 +302,7 @@ export default function FilterComponent({
                 <SelectContent>
                   <SelectItem value="all">All Trainers</SelectItem>
                   {staffs.map(trainer => (
-                    <SelectItem key={trainer.Email} value={trainer.Email}>
+                    <SelectItem key={trainer.Email} value={trainer.Email!}>
                       {trainer.Name}
                     </SelectItem>
                   ))}

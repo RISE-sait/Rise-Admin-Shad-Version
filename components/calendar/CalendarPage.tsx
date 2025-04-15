@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,10 @@ import FilterComponent from "./Filter";
 import { CalendarEvent, FiltersType } from "@/types/calendar";
 import { useDrawer } from "@/hooks/drawer";
 import CalendarDemo from "./components/calendar-demo";
-import { getAllEvents } from "@/services/events";
+import { getEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
 import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
 import { useUser } from "@/contexts/UserContext";
-import { usePermissions } from "@/hooks/usePermissions"; 
-
 
 interface CalendarPageProps {
   initialEvents: CalendarEvent[];
@@ -38,7 +36,6 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer();
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
-  const { isSuperAdmin, isBarber, isCoach } = usePermissions();
 
   // Default date range (current month +/- 30 days)
   const today = new Date();
@@ -50,7 +47,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
     // Date filters
     after: format(thirtyDaysAgo, "yyyy-MM-dd"),
     before: format(thirtyDaysLater, "yyyy-MM-dd"),
-    
+
     // Backend filters
     program_id: "",
     user_id: "",
@@ -59,12 +56,12 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
     program_type: "",
     created_by: "",
     updated_by: "",
-    
+
     // Multi-select arrays
     location_ids: [],
     user_ids: [],
     program_ids: [],
-    
+
     // Frontend-only settings
     appointments: "both"
   });
@@ -73,52 +70,50 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   useEffect(() => {
     async function fetchFilteredEvents() {
       setIsLoading(true);
-      
+
       try {
         // Convert multi-select arrays to comma-separated strings
         const query: EventQueryParams = {
           after: filters.after,
           before: filters.before,
-          program_id: filters.program_id || undefined,
-          user_id: filters.user_id || undefined,
-          team_id: filters.team_id || undefined,
-          location_id: filters.location_id || undefined,
-          program_type: filters.program_type || undefined,
-          created_by: filters.created_by || undefined,
-          updated_by: filters.updated_by || undefined,
+          program_id: filters.program_id,
+          user_id: filters.user_id,
+          team_id: filters.team_id,
+          location_id: filters.location_id,
+          program_type: filters.program_type,
+          created_by: filters.created_by,
+          updated_by: filters.updated_by,
         }
-        
+
         // Handle multi-select location_ids
         if (filters.location_ids?.length) {
           query.location_id = filters.location_ids.join(',');
         } else {
           query.location_id = filters.location_id || undefined;
         }
-        
+
         // Handle multi-select user_ids (trainers)
         if (filters.user_ids?.length) {
           query.user_id = filters.user_ids.join(',');
         } else {
           query.user_id = filters.user_id || undefined;
         }
-        
+
         // Handle multi-select program_ids
         if (filters.program_ids?.length) {
           query.program_id = filters.program_ids.join(',');
         } else {
           query.program_id = filters.program_id || undefined;
         }
-        
+
         // Remove undefined values
         Object.keys(query).forEach(key => {
           if (query[key as keyof EventQueryParams] === undefined) {
             delete query[key as keyof EventQueryParams];
           }
         });
-        
-        console.log("Fetching events with filters:", query);
-        const eventsData = await getAllEvents(query);
-        console.log(`Retrieved ${eventsData.length} events from API`);
+
+        const eventsData = await getEvents(query);
 
         function getEventColor(programType?: string): string {
           switch (programType?.toLowerCase()) {
@@ -133,18 +128,18 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           }
         }
 
-        const calendarEvents: CalendarEvent[] = eventsData.map(event => ({
+        let calendarEvents: CalendarEvent[] = eventsData.map(event => ({
           id: event.id || '',
-          start_at: new Date(event.start_at),
-          end_at: new Date(event.end_at),
+          start_at: new Date(event.start_at!),
+          end_at: new Date(event.end_at!),
           capacity: event.capacity || 0,
-          color: event.color || getEventColor(event.program?.type),
+          color: getEventColor(event.program?.type),
           createdBy: {
-            firstName: event.createdBy?.firstName || '',
-            id: event.createdBy?.id || '',
-            lastName: event.createdBy?.lastName || '',
+            firstName: event.created_by!.first_name!,
+            id: event.created_by!.id || '',
+            lastName: event.created_by!.last_name!,
           },
-          customers: Array.isArray(event.customers) ? event.customers.map((c: any) => ({
+          customers: Array.isArray(event.customers) ? event.customers.map((c) => ({
             email: c.email || '',
             firstName: c.first_name || '',
             gender: c.gender || '',
@@ -163,7 +158,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             name: event.program?.name || '',
             type: event.program?.type || '',
           },
-          staff: Array.isArray(event.staff) ? event.staff.map((s: any) => ({
+          staff: event.staff?.map((s) => ({
             email: s.email || '',
             firstName: s.first_name || '',
             gender: s.gender || '',
@@ -171,33 +166,27 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             lastName: s.last_name || '',
             phone: s.phone || '',
             roleName: s.role_name || '',
-          })) : [],
+          })) ?? [],
           team: {
             id: event.team?.id || '',
             name: event.team?.name || '',
           },
           updatedBy: {
-            firstName: event.updatedBy?.firstName || '',
-            id: event.updatedBy?.id || '',
-            lastName: event.updatedBy?.lastName || '',
+            firstName: event.updated_by!.first_name!,
+            id: event.updated_by?.id!,
+            lastName: event.updated_by?.last_name!,
           },
-        }));
+        }))
 
-        // Role-based filtering
-        let filteredEvents = calendarEvents;
-        if (!isSuperAdmin()) {
-          if (isBarber() || isCoach()) {
-            filteredEvents = calendarEvents.filter(ev =>
-              ev.staff?.some(staff => staff.id === user?.ID)
-            );
-          }
-          // Add more role-based filters as needed
+        if (filters.user_id !== "") {
+
+          calendarEvents = calendarEvents.filter(ev =>
+            ev.staff?.some(staff => staff.email === filters.user_id)
+          )
         }
-        setEvents(filteredEvents);
-        
-        // Now set the properly typed events
+
         setEvents(calendarEvents);
-        
+
       } catch (error) {
         console.error("Error fetching events:", error);
         setEvents([]); // Clear events on error to provide visual feedback
@@ -205,21 +194,21 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         setIsLoading(false);
       }
     }
-    
+
     // Debounce the API calls to prevent too many requests
     const timeoutId = setTimeout(() => {
       fetchFilteredEvents();
     }, 500);
-    
+
     return () => clearTimeout(timeoutId);
   }, [filters, user]);
 
-  // Toggle filter sidebar
+
   const toggleFilter = () => {
     setFilterOpen(!filterOpen);
   };
 
-  // Handle filter changes
+
   const handleFilterChange = (key: keyof FiltersType, value: any) => {
     console.log(`Changing filter ${String(key)} to:`, value);
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -278,10 +267,10 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         )}
         {/* Calendar */}
         <div className={filterOpen ? "w-10/12" : "w-full"}>
-        <CalendarDemo 
-          events={events} 
-          onEventSelect={handleEventSelect} 
-        />
+          <CalendarDemo
+            events={events}
+            onEventSelect={handleEventSelect}
+          />
         </div>
       </div>
 

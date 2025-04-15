@@ -90,7 +90,6 @@ export async function getAllCustomers(hubspotIds?: string[]): Promise<Customer[]
     }
     
     const customersResponse: CustomerApiResponse[] = await response.json();
-    console.log(`Retrieved ${customersResponse.length} customers from API`);
     
     // Map API response to Customer type
     return customersResponse.map(mapApiResponseToCustomer);

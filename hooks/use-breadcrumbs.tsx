@@ -18,7 +18,7 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
   '/home/calendar': [
     { title: 'Home', link: '/home' },
     { title: 'Calendar', link: '/home/calendar' }
-    ],
+  ],
 
   // Manage
   '/manage/customers': [
@@ -33,22 +33,22 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: 'Home', link: '/' },
     { title: 'Store', link: '/manage/store' }
   ],
-    '/manage/facilities': [
-        { title: 'Home', link: '/' },
-        { title: 'Facilities', link: '/manage/facilities' }
-    ],
-    '/manage/instructors': [
-        { title: 'Home', link: '/' },
-        { title: 'Instructors', link: '/manage/instructors' }
-    ],
-    '/manage/trainer': [
-        { title: 'Home', link: '/' },
-        { title: 'Trainer', link: '/manage/trainer' }
-    ],
-    '/manage/membership': [
-        { title: 'Home', link: '/' },
-        { title: 'Membership', link: '/manage/membership' }
-    ],
+  '/manage/facilities': [
+    { title: 'Home', link: '/' },
+    { title: 'Facilities', link: '/manage/facilities' }
+  ],
+  '/manage/instructors': [
+    { title: 'Home', link: '/' },
+    { title: 'Instructors', link: '/manage/instructors' }
+  ],
+  '/manage/trainer': [
+    { title: 'Home', link: '/' },
+    { title: 'Trainer', link: '/manage/trainer' }
+  ],
+  '/manage/membership': [
+    { title: 'Home', link: '/' },
+    { title: 'Membership', link: '/manage/membership' }
+  ],
 
   // Automation
   '/automation/messages': [

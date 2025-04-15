@@ -1,16 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import PortfolioPage from "@/components/Barbershop/Portfolio";
 import RoleProtected from "@/components/RoleProtected";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function PortfolioPageContainer() {
   return (
-    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN", "BARBER"]}>
-      <Suspense fallback={<PageSkeleton />}>
-        <PortfolioPage />
-      </Suspense>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]} fallback={<PageSkeleton />}>
+      <PortfolioPage />
     </RoleProtected>
   );
 }
@@ -25,11 +23,11 @@ function PageSkeleton() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-      
+
       <Skeleton className="h-px w-full" />
-      
+
       <Skeleton className="h-10 w-32 mt-4" />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         {Array.from({ length: 9 }).map((_, i) => (
           <Skeleton key={i} className="aspect-square rounded-lg" />

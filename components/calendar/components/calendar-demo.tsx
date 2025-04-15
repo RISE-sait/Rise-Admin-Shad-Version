@@ -13,14 +13,13 @@ interface CalendarDemoProps {
 export default function CalendarDemo({ events, onEventSelect }: CalendarDemoProps) {
   // Initialize calendar display state
   const [date, setDate] = useState<Date>(new Date())
-  const [mode, setMode] = useState<Mode>('week')
+  const [mode, setMode] = useState<Mode>('month')
   
   // Internal state to manage events
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(events || [])
 
   // This is the critical part - update internal state whenever the events prop changes
   useEffect(() => {
-    console.log(`CalendarDemo: received ${events.length} events from parent`);
     setCalendarEvents(events);
   }, [events]); // This dependency ensures the effect runs when events change
 

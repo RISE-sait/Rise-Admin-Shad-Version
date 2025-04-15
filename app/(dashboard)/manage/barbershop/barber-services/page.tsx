@@ -1,16 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import ManageBarberServices from "@/components/Barbershop/ManageBarberServices"; // Direct import
 import RoleProtected from "@/components/RoleProtected";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function ManageBarbersPageContainer() {
   return (
-    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN"]}>
-      <Suspense fallback={<PageSkeleton />}>
-        <ManageBarberServices />
-      </Suspense>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]} fallback={<PageSkeleton />}>
+      <ManageBarberServices />
     </RoleProtected>
   );
 }
@@ -25,11 +23,11 @@ function PageSkeleton() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-      
+
       <Skeleton className="h-px w-full" />
-      
+
       <Skeleton className="h-10 w-32 mt-4" />
-      
+
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-20 w-full rounded-lg" />

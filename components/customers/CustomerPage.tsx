@@ -74,7 +74,7 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
         <Heading title="Customers" description="Manage your customers and their details" />
-        <Button
+        {/*<Button
           onClick={() => {
             setDrawerContent("add");
             setDrawerOpen(true);
@@ -83,7 +83,7 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
         >
           <PlusIcon className="h-4 w-4" />
           Add Customer
-        </Button>
+        </Button>*/}
       </div>
       <Separator />
 

@@ -198,6 +198,41 @@ export interface EventTeamInfo {
   name?: string;
 }
 
+export interface EventUpdateEventsRequestDto {
+  /** @example 100 */
+  new_capacity?: number;
+  /** @example "23:00:00+00:00" */
+  new_event_end_at: string;
+  /** @example "21:00:00+00:00" */
+  new_event_start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  new_location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  new_program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  new_recurrence_end_at: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  new_recurrence_start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  new_team_id?: string;
+  /** @example 100 */
+  original_capacity?: number;
+  /** @example "13:00:00+00:00" */
+  original_event_end_at: string;
+  /** @example "10:00:00+00:00" */
+  original_event_start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  original_location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  original_program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  original_recurrence_end_at: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  original_recurrence_start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  original_team_id?: string;
+}
+
 export interface EventUpdateRequestDto {
   /** @example 100 */
   capacity?: number;
@@ -942,6 +977,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags events
+     * @name EventsUpdate
+     * @request PUT:/events
+     * @secure
+     */
+    eventsUpdate: (event: EventUpdateEventsRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events`,
+        method: "PUT",
+        body: event,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags events
      * @name EventsCreate
      * @request POST:/events
      * @secure
@@ -1038,11 +1092,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags events
-     * @name EventsUpdate
+     * @name EventsUpdate2
      * @request PUT:/events/{id}
+     * @originalName eventsUpdate
+     * @duplicate
      * @secure
      */
-    eventsUpdate: (id: string, event: EventUpdateRequestDto, params: RequestParams = {}) =>
+    eventsUpdate2: (id: string, event: EventUpdateRequestDto, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${id}`,
         method: "PUT",

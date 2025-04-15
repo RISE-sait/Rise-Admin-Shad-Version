@@ -1,4 +1,5 @@
-"use client";
+"use client"
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
@@ -11,15 +12,16 @@ import { getHaircutEvents } from "@/services/haircuts";
 import { getBarberServices } from "@/services/barber";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import BarberTable from "./BarberTable";
 import AppointmentInfoPanel from "./AppointmentInfoPanel";
 import AddAppointmentForm from "./AddAppointmentForm";
 import { format, addDays } from "date-fns";
 import { getAllStaffs } from "@/services/staff";
 import Link from "next/link";
+import { StaffRoleEnum, User } from "@/types/user";
 
-export default function BarbershopPage() {
+export default function BarbershopPage({staffs}:{staffs: User[]}) {
+
   // Regular state
   const [appointments, setAppointments] = useState<HaircutEventResponseDto[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventResponseDto[]>([]);
@@ -43,34 +45,13 @@ export default function BarbershopPage() {
   // Hooks
   const { toast } = useToast();
   const { user } = useUser();
-  const permissions = usePermissions();
 
   // Use refs to prevent infinite loops
   const isFirstRender = useRef(true);
-  const hasFetchedBarbers = useRef(false); // New ref to track barber fetching
   
   // Pre-compute permission checks once on render
-  const isBarber = permissions.isBarber();
-  const isSuperAdmin = permissions.isSuperAdmin();
-
-  // Add this effect to fetch barbers separately - only once
-  useEffect(() => {
-    if (!hasFetchedBarbers.current) {
-      hasFetchedBarbers.current = true;
-      
-      const fetchBarbers = async () => {
-        try {
-          const staffData = await getAllStaffs("BARBER");
-          setBarbers(staffData);
-        } catch (error) {
-          console.error("Error fetching barbers:", error);
-          // Don't show toast - not critical for UI
-        }
-      };
-      
-      fetchBarbers();
-    }
-  }, []); // No dependencies to run only once
+  const isBarber = user?.Role === StaffRoleEnum.BARBER
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
 
   useEffect(() => {
     // Skip the effect on first render with a ref check
@@ -138,6 +119,9 @@ export default function BarbershopPage() {
   // Filter appointments when search query changes - this is safe
   useEffect(() => {
     if (searchQuery) {
+
+      // filter and make sure appointment is upcoming only
+
       const filtered = appointments.filter(apt => 
         apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -209,9 +193,9 @@ export default function BarbershopPage() {
 
       {/* Quick Navigation - Fixed Links */}
       <div className="flex flex-wrap gap-4">
-        <Button variant="outline" asChild>
+        {/* <Button variant="outline" asChild>
           <Link href="/manage/barbershop/appointments">View All Appointments</Link>
-        </Button>
+        </Button> */}
         <Button variant="outline" asChild>
           <Link href="/manage/barbershop/portfolio">Manage Portfolio</Link>
         </Button>

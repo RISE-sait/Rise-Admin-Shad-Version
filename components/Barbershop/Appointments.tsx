@@ -6,15 +6,15 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { 
-  PlusIcon, 
-  Search, 
-  Calendar as CalendarIcon, 
-  Filter, 
+import {
+  PlusIcon,
+  Search,
+  Calendar as CalendarIcon,
+  Filter,
   X,
-  CalendarDays 
+  CalendarDays
 } from "lucide-react";
-import { 
+import {
   Popover,
   PopoverContent,
   PopoverTrigger
@@ -22,10 +22,8 @@ import {
 import { format, isBefore, isAfter, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import { HaircutEventResponseDto } from "@/app/api/Api";
 import { getHaircutEvents, deleteHaircutEvent } from "@/services/haircuts";
-import { getBarberServices } from "@/services/barber";
 import { getAllStaffs } from "@/services/staff";
 import BarberTable from "./BarberTable";
 import RightDrawer from "../reusable/RightDrawer";
@@ -33,17 +31,18 @@ import AppointmentInfoPanel from "./AppointmentInfoPanel";
 import AddAppointmentForm from "./AddAppointmentForm";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { getAllCustomers } from "@/services/customer";
 import { Customer } from "@/types/customer";
+import { StaffRoleEnum } from "@/types/user";
 
 type AppointmentView = "all" | "upcoming" | "completed";
 
@@ -60,7 +59,7 @@ export default function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventResponseDto | null>(null);
   const [activeView, setActiveView] = useState<AppointmentView>("all");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  
+
   // Filter states
   const [selectedBarber, setSelectedBarber] = useState<string>("all");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("all");
@@ -68,15 +67,13 @@ export default function AppointmentsPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
-  
+
   const { toast } = useToast();
   const { user } = useUser();
-  const permissions = usePermissions();
-  
-  // Pre-compute permission values once
-  const isBarber = permissions.isBarber();
-  const isSuperAdmin = permissions.isSuperAdmin();
-  
+
+  const isBarber = user?.Role === StaffRoleEnum.BARBER
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
+
   // Use ref to prevent multiple fetches on first render
   const isFirstFetch = useRef(true);
 
@@ -92,7 +89,7 @@ export default function AppointmentsPage() {
         setIsLoadingCustomers(false);
       }
     };
-    
+
     fetchCustomers();
   }, []);
 
@@ -109,75 +106,75 @@ export default function AppointmentsPage() {
 
     fetchBarbers();
   }, []);
-  
+
   // Check if any filters are active
   useEffect(() => {
     setHasActiveFilters(
-      (selectedBarber && selectedBarber !== "all") || 
+      (selectedBarber && selectedBarber !== "all") ||
       (selectedCustomer && selectedCustomer !== "all") ||
-      !!startDate || 
+      !!startDate ||
       !!endDate
     );
   }, [selectedBarber, selectedCustomer, startDate, endDate]);
-  
+
   // Fetch appointments based on filters - Modified
   useEffect(() => {
     // Only fetch when filters change or on first render
     const fetchAppointments = async () => {
       try {
         setIsLoading(true);
-        
+
         // Build query params based on all filters
         const params: any = {};
-        
+
         // Add date filters only if they are set
         if (startDate) {
           params.after = format(startDate, "yyyy-MM-dd");
         }
-        
+
         if (endDate) {
           params.before = format(endDate, "yyyy-MM-dd");
         }
-        
+
         if (selectedBarber && selectedBarber !== "all") {
           params.barber_id = selectedBarber;
         } else if (isBarber && !isSuperAdmin && user?.ID) {
           // If user is a barber and no barber is selected, default to current user
           params.barber_id = user.ID;
         }
-        
+
         // Update the query params section in the fetchAppointments function:
         if (selectedCustomer && selectedCustomer !== "all") {
           params.customer_id = selectedCustomer;
         }
-        
+
         console.log("Fetching with params:", params);
-        
+
         // Fetch appointments with filters - add error handling
         try {
           const appointmentsData = await getHaircutEvents(params);
-          
+
           // Sort appointments by date
           appointmentsData.sort((a, b) => {
             const dateA = new Date(a.start_at || "");
             const dateB = new Date(b.start_at || "");
             return dateA.getTime() - dateB.getTime();
           });
-          
+
           setAppointments(appointmentsData);
-          
+
           // Apply view filter (upcoming/completed)
           applyViewFilter(appointmentsData);
-        } catch (apiError:any) {
+        } catch (apiError: any) {
           console.error("API error:", apiError);
-          toast({ 
-            status: "error", 
-            description: `Failed to load appointments: ${apiError.message}` 
+          toast({
+            status: "error",
+            description: `Failed to load appointments: ${apiError.message}`
           });
           setAppointments([]);
           setFilteredAppointments([]);
         }
-        
+
       } catch (error) {
         console.error("Error fetching appointments:", error);
         toast({ status: "error", description: "Failed to load appointments" });
@@ -187,22 +184,22 @@ export default function AppointmentsPage() {
         setIsLoading(false);
       }
     };
-    
+
     // On first load, fetch with minimal params
     if (isFirstFetch.current) {
       isFirstFetch.current = false;
-      
+
       // Just fetch based on user role without date filters
       const initialFetch = async () => {
         setIsLoading(true);
         try {
           const params: any = {};
-          
+
           // Only filter by barber ID if user is a barber
           if (isBarber && !isSuperAdmin && user?.ID) {
             params.barber_id = user.ID;
           }
-          
+
           const appointmentsData = await getHaircutEvents(params);
           setAppointments(appointmentsData);
           setFilteredAppointments(appointmentsData);
@@ -215,7 +212,7 @@ export default function AppointmentsPage() {
           setIsLoading(false);
         }
       };
-      
+
       initialFetch();
     } else {
       fetchAppointments();
@@ -230,9 +227,9 @@ export default function AppointmentsPage() {
         const today = new Date();
         return aptDate >= today;
       });
-      
+
       setFilteredAppointments(applySearchFilter(upcoming));
-    } 
+    }
     else if (activeView === "completed") {
       const completed = appointmentsToFilter.filter(apt => {
         if (!apt.start_at) return false;
@@ -240,9 +237,9 @@ export default function AppointmentsPage() {
         const today = new Date();
         return aptDate < today;
       });
-      
+
       setFilteredAppointments(applySearchFilter(completed));
-    } 
+    }
     else {
       setFilteredAppointments(applySearchFilter(appointmentsToFilter));
     }
@@ -251,45 +248,45 @@ export default function AppointmentsPage() {
   // Apply search filter
   const applySearchFilter = (appointmentsToFilter: HaircutEventResponseDto[]) => {
     if (!searchQuery) return appointmentsToFilter;
-    
-    return appointmentsToFilter.filter(apt => 
+
+    return appointmentsToFilter.filter(apt =>
       apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
-  
+
   // Handle view changes
   useEffect(() => {
     applyViewFilter();
   }, [activeView, appointments]);
-  
+
   // Handle search query changes
   useEffect(() => {
     applyViewFilter();
   }, [searchQuery]);
-  
+
   // Handle appointment selection
   const handleAppointmentSelect = (appointment: HaircutEventResponseDto) => {
     setSelectedAppointment(appointment);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
-  
+
   // Handle appointment deletion
   const handleDeleteAppointment = async (id: string) => {
     if (!user?.Jwt) {
       toast({ status: "error", description: "You must be logged in to delete appointments" });
       return;
     }
-    
+
     try {
       await deleteHaircutEvent(id, user.Jwt);
       toast({ status: "success", description: "Appointment deleted successfully" });
-      
+
       // Remove from state
       setAppointments(prev => prev.filter(apt => apt.id !== id));
       applyViewFilter(appointments.filter(apt => apt.id !== id));
-      
+
       // If deleted appointment is selected, close drawer
       if (selectedAppointment?.id === id) {
         setDrawerOpen(false);
@@ -308,40 +305,40 @@ export default function AppointmentsPage() {
     try {
       // Build query params based on active filters
       const params: any = {};
-      
+
       if (startDate) {
         params.after = format(startDate, "yyyy-MM-dd");
       }
-      
+
       if (endDate) {
         params.before = format(endDate, "yyyy-MM-dd");
       }
-      
+
       if (selectedBarber && selectedBarber !== "all") {
         params.barber_id = selectedBarber;
       } else if (isBarber && !isSuperAdmin && user?.ID) {
         params.barber_id = user.ID;
       }
-      
+
       if (selectedCustomer && selectedCustomer !== "all") {
         params.customer_id = selectedCustomer;
       }
-      
+
       console.log("Refreshing appointments with params:", params);
-      
+
       const refreshedAppointments = await getHaircutEvents(params);
       setAppointments(refreshedAppointments);
       applyViewFilter(refreshedAppointments);
-      
+
       if (showSuccessToast) {
         toast({ status: "success", description: "Appointments updated" });
       }
       return true;
     } catch (error) {
       console.error("Error refreshing appointments:", error);
-      toast({ 
-        status: "warning", 
-        description: "Could not refresh appointments list. Please try again or refresh the page." 
+      toast({
+        status: "warning",
+        description: "Could not refresh appointments list. Please try again or refresh the page."
       });
       return false;
     } finally {
@@ -351,23 +348,23 @@ export default function AppointmentsPage() {
 
   const handleAppointmentAdded = async () => {
     console.log("Appointment added callback triggered");
-    
+
     // Close the drawer right away for better UX
     setDrawerOpen(false);
-    
+
     // Show a loading toast
     toast({ status: "info", description: "Refreshing appointments..." });
-    
+
     try {
       // Then refresh the list
       const success = await refreshAppointments(false);
-      
+
       if (success) {
         toast({ status: "success", description: "Appointment created and list refreshed" });
       } else {
         // If refresh failed but appointment was created
-        toast({ 
-          status: "warning", 
+        toast({
+          status: "warning",
           description: "Appointment created but couldn't refresh list. Please refresh manually."
         });
       }
@@ -375,7 +372,7 @@ export default function AppointmentsPage() {
       console.error("Error in handleAppointmentAdded:", error);
     }
   };
-  
+
 
   // Reset all filters
   const resetFilters = () => {
@@ -392,7 +389,7 @@ export default function AppointmentsPage() {
     const now = startOfDay(new Date());
     return isAfter(aptDate, now) || format(aptDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
   }).length;
-  
+
   const completedCount = appointments.filter(apt => {
     const aptDate = new Date(apt.start_at || "");
     const now = startOfDay(new Date());
@@ -415,7 +412,7 @@ export default function AppointmentsPage() {
         </Button>
       </div>
       <Separator />
-      
+
       <Link href="/manage/barbershop">
         <Button variant="outline" className="mb-4">← Back to Barbershop</Button>
       </Link>
@@ -434,7 +431,7 @@ export default function AppointmentsPage() {
             <p className="text-xl font-bold">{appointments.length}</p>
           </CardContent>
         </Card>
-        
+
         <Card
           className={`bg-muted/20 ${activeView === "upcoming" ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
           onClick={() => setActiveView("upcoming")}
@@ -450,7 +447,7 @@ export default function AppointmentsPage() {
             <p className="text-xl font-bold">{upcomingCount}</p>
           </CardContent>
         </Card>
-        
+
         <Card
           className={`bg-muted/20 ${activeView === "completed" ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
           onClick={() => setActiveView("completed")}
@@ -467,7 +464,7 @@ export default function AppointmentsPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Filters Row */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -480,7 +477,7 @@ export default function AppointmentsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+
           <Sheet open={filterDrawerOpen} onOpenChange={setFilterDrawerOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" className="gap-2 whitespace-nowrap">
@@ -502,19 +499,19 @@ export default function AppointmentsPage() {
                     Reset All
                   </Button>
                 </div>
-                
+
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Date Range</label>
                   <div className="flex flex-col gap-2">
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Start Date</p>
                       <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, "PPP") : "No start date selected"}
-                        </Button>
-                      </PopoverTrigger>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {startDate ? format(startDate, "PPP") : "No start date selected"}
+                          </Button>
+                        </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
@@ -525,16 +522,16 @@ export default function AppointmentsPage() {
                         </PopoverContent>
                       </Popover>
                     </div>
-                    
+
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">End Date</p>
                       <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, "PPP") : "No end date selected"}
-                        </Button>
-                      </PopoverTrigger>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {endDate ? format(endDate, "PPP") : "No end date selected"}
+                          </Button>
+                        </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
@@ -548,7 +545,7 @@ export default function AppointmentsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Barber</label>
                   <Select value={selectedBarber} onValueChange={setSelectedBarber}>
@@ -565,12 +562,12 @@ export default function AppointmentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
-                
+
+
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Customer</label>
-                  <Select 
-                    value={selectedCustomer} 
+                  <Select
+                    value={selectedCustomer}
                     onValueChange={setSelectedCustomer}
                     disabled={isLoadingCustomers}
                   >
@@ -587,10 +584,10 @@ export default function AppointmentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="pt-4 border-t">
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     onClick={() => setFilterDrawerOpen(false)}
                   >
                     Apply Filters
@@ -599,11 +596,11 @@ export default function AppointmentsPage() {
               </div>
             </SheetContent>
           </Sheet>
-          
+
           {hasActiveFilters && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={resetFilters}
               className="h-10 text-xs flex items-center gap-1"
             >
@@ -613,7 +610,7 @@ export default function AppointmentsPage() {
           )}
         </div>
       </div>
-      
+
       {/* Active filters display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -633,14 +630,14 @@ export default function AppointmentsPage() {
               Barber: {barbers.find(b => b.ID === selectedBarber)?.Name}
             </Badge>
           )}
-          
+
           {selectedCustomer && selectedCustomer !== "all" && (
             <Badge variant="secondary" className="flex gap-1 items-center">
               Customer: {
                 (() => {
                   const customer = customers.find(c => c.id === selectedCustomer);
-                  return customer 
-                    ? `${customer.first_name} ${customer.last_name}` 
+                  return customer
+                    ? `${customer.first_name} ${customer.last_name}`
                     : selectedCustomer;
                 })()
               }
@@ -648,7 +645,7 @@ export default function AppointmentsPage() {
           )}
         </div>
       )}
-      
+
       {/* Table */}
       <div className="mt-4">
         <BarberTable
@@ -658,7 +655,7 @@ export default function AppointmentsPage() {
           isLoading={isLoading}
         />
       </div>
-      
+
       {/* Drawer - Only render when open */}
       {drawerOpen && (
         <RightDrawer
