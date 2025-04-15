@@ -2,14 +2,14 @@
 
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import AppointmentsPage from "@/components/Barbershop/Appointments";
+import ManageBarberServices from "@/components/Barbershop/ManageBarberServices"; // Direct import
 import RoleProtected from "@/components/RoleProtected";
 
-export default function AppointmentsPageContainer() {
+export default function ManageBarbersPageContainer() {
   return (
-    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN", "BARBER"]}>
+    <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN"]}>
       <Suspense fallback={<PageSkeleton />}>
-        <AppointmentsPage />
+        <ManageBarberServices />
       </Suspense>
     </RoleProtected>
   );
@@ -30,12 +30,11 @@ function PageSkeleton() {
       
       <Skeleton className="h-10 w-32 mt-4" />
       
-      <div className="flex justify-between items-center mt-4">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-10 w-40" />
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-lg" />
+        ))}
       </div>
-      
-      <Skeleton className="h-96 w-full mt-4 rounded-lg" />
     </div>
   );
 }
