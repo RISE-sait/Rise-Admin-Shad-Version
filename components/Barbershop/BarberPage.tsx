@@ -1,114 +1,280 @@
-"use client";
-import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+"use client"
+
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Heading } from "@/components/ui/Heading";
+import { Separator } from "@/components/ui/separator";
+import { PlusIcon, Search } from "lucide-react";
+import RightDrawer from "../reusable/RightDrawer";
+import { Input } from "@/components/ui/input";
+import { HaircutEventResponseDto } from "@/app/api/Api";
+import { getHaircutEvents } from "@/services/haircuts";
+import { getBarberServices } from "@/services/barber";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/contexts/UserContext";
+import BarberTable from "./BarberTable";
+import AppointmentInfoPanel from "./AppointmentInfoPanel";
+import AddAppointmentForm from "./AddAppointmentForm";
+import { format, addDays } from "date-fns";
+import { getAllStaffs } from "@/services/staff";
 import Link from "next/link";
+import { StaffRoleEnum, User } from "@/types/user";
 
-const mockAppointments = [
-  { id: 1, customer: "John Doe", barber: "Alen Reni Thomas", date: "2024-03-10", status: "Upcoming" },
-  { id: 2, customer: "Jane Smith", barber: "LeBron James", date: "2024-03-05", status: "Completed" },
-  { id: 3, customer: "Mike Johnson", barber: "Charlie Green", date: "2024-03-02", status: "Cancelled" },
-];
+export default function BarbershopPage({staffs}:{staffs: User[]}) {
 
-export default function BarbershopPage() {
-  const [appointments] = useState(mockAppointments);
-  const buttonLinks = [
-    { text: "View Appointments", href: "/manage/barbershop/appointments" },
-    { text: "Manage Portfolio", href: "/manage/barbershop/portfolio" },
-    { text: "Manage Barbers", href: "/manage/barbershop/manage-barbers" }
-  ];
+  // Regular state
+  const [appointments, setAppointments] = useState<HaircutEventResponseDto[]>([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventResponseDto[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventResponseDto | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [services, setServices] = useState<any[]>([]);
+  // Add barbers state
+  const [barbers, setBarbers] = useState<any[]>([]);
+  
+  // Stats for cards with default values
+  const [stats, setStats] = useState({
+    appointmentsThisWeek: 0,
+    totalAppointments: 0,
+    activeBarbers: 0,
+    timeOffRequests: 0
+  });
+  
+  // Hooks
+  const { toast } = useToast();
+  const { user } = useUser();
 
-  const stats = [
-    { title: "Appointments This Week", value: "5" },
-    { title: "Total Appointments", value: "135" },
-    { title: "Active Barbers", value: "8" },
-    { title: "Time Off Requests", value: "2" }
-  ];
+  // Use refs to prevent infinite loops
+  const isFirstRender = useRef(true);
+  
+  // Pre-compute permission checks once on render
+  const isBarber = user?.Role === StaffRoleEnum.BARBER
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
 
-  const getStatusStyle = (status: string) => {
-    switch(status) {
-      case "Upcoming": return "bg-blue-600/20 text-blue-400";
-      case "Completed": return "bg-green-600/20 text-green-400";
-      default: return "bg-red-600/20 text-red-400";
+  useEffect(() => {
+    // Skip the effect on first render with a ref check
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          
+          // Get today and 30 days in future for default date range
+          const today = new Date();
+          const thirtyDaysLater = addDays(today, 30);
+          
+          // Build query params
+          const params: any = {
+            after: format(today, "yyyy-MM-dd"),
+            before: format(thirtyDaysLater, "yyyy-MM-dd")
+          };
+          
+          // If user is a barber and not admin, filter by their ID
+          if (isBarber && !isSuperAdmin && user?.ID) {
+            params.barber_id = user.ID;
+          }
+          
+          // Fetch appointments
+          const appointmentsData = await getHaircutEvents(params);
+          setAppointments(appointmentsData);
+          setFilteredAppointments(appointmentsData);
+          
+          // Calculate stats
+          try {
+            // Fetch barber services to get active barbers
+            const barberServices = await getBarberServices();
+            setServices(barberServices);
+            
+            // Get unique barber IDs
+            const uniqueBarberIds = new Set(barberServices.map(service => service.barber_id));
+            
+            setStats({
+              appointmentsThisWeek: appointmentsData.length,
+              totalAppointments: appointmentsData.length,
+              activeBarbers: uniqueBarberIds.size,
+              timeOffRequests: 0
+            });
+          } catch (serviceError) {
+            console.error("Error fetching barber services:", serviceError);
+            // Continue with partial data
+          }
+        } catch (error) {
+          console.error("Error fetching barbershop data:", error);
+          toast({
+            status: "error",
+            description: "Failed to load barbershop data"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchData();
     }
-  };
+  }, [user?.ID, toast, isBarber, isSuperAdmin]);
+
+  // Filter appointments when search query changes - this is safe
+  useEffect(() => {
+    if (searchQuery) {
+
+      // filter and make sure appointment is upcoming only
+
+      const filtered = appointments.filter(apt => 
+        apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredAppointments(filtered);
+    } else {
+      setFilteredAppointments(appointments);
+    }
+  }, [searchQuery, appointments]);
+
+  // Functions that change state
+  const handleAppointmentSelect = useCallback((appointment: HaircutEventResponseDto) => {
+    setSelectedAppointment(appointment);
+    setDrawerContent("details");
+    setDrawerOpen(true);
+  }, []);
+
+  const handleAppointmentAdded = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get today and 30 days in future for default date range
+      const today = new Date();
+      const thirtyDaysLater = addDays(today, 30);
+      
+      // Build query params
+      const params: any = {
+        after: format(today, "yyyy-MM-dd"),
+        before: format(thirtyDaysLater, "yyyy-MM-dd")
+      };
+      
+      // If user is a barber and not admin, filter by their ID
+      if (isBarber && !isSuperAdmin && user?.ID) {
+        params.barber_id = user.ID;
+      }
+      
+      const refreshedAppointments = await getHaircutEvents(params);
+      
+      setAppointments(refreshedAppointments);
+      setFilteredAppointments(refreshedAppointments);
+      
+      toast({ status: "success", description: "Appointment added successfully" });
+      setDrawerOpen(false);
+      
+    } catch (error) {
+      console.error("Error refreshing appointments:", error);
+      toast({ status: "error", description: "Failed to refresh appointments" });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isBarber, isSuperAdmin, user?.ID, toast]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex-1 space-y-4 p-6 pt-6">
+      <div className="flex items-center justify-between">
+        <Heading title="Barbershop" description="Manage appointments and barbers" />
+        <Button
+          onClick={() => {
+            setDrawerContent("add");
+            setDrawerOpen(true);
+          }}
+          className="flex items-center gap-2"
+        >
+          <PlusIcon className="h-4 w-4" />
+          Add Appointment
+        </Button>
+      </div>
+      <Separator />
+
+      {/* Quick Navigation - Fixed Links */}
+      <div className="flex flex-wrap gap-4">
+        {/* <Button variant="outline" asChild>
+          <Link href="/manage/barbershop/appointments">View All Appointments</Link>
+        </Button> */}
+        <Button variant="outline" asChild>
+          <Link href="/manage/barbershop/portfolio">Manage Portfolio</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/manage/barbershop/barber-services">Manage Barber Services</Link>
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Appointments This Week</div>
+          <div className="text-2xl font-bold">{stats.appointmentsThisWeek}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Total Appointments</div>
+          <div className="text-2xl font-bold">{stats.totalAppointments}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Active Barbers</div>
+          <div className="text-2xl font-bold">{stats.activeBarbers}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Time Off Requests</div>
+          <div className="text-2xl font-bold">{stats.timeOffRequests}</div>
+        </div>
+      </div>
+
+      
+
+      {/* Search and Table */}
       <div>
-        <h2 className="text-3xl font-bold">Barbershop</h2>
-        <p className="text-gray-400">Manage appointments and barbers</p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search appointments..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <BarberTable
+          appointments={filteredAppointments}
+          onAppointmentSelect={handleAppointmentSelect}
+          isLoading={isLoading}
+        />
       </div>
 
-      <div className="flex gap-4">
-        {buttonLinks.map((link, index) => (
-          <Button key={index} asChild className="bg-black text-white hover:bg-yellow-500 hover:text-black border border-gray-700">
-            <Link href={link.href}>{link.text}</Link>
-          </Button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <CardTitle>{stat.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl">{stat.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Appointments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer <ArrowUpDown className="ml-2" /></TableHead>
-                <TableHead>Barber</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {appointments.map(appt => (
-                <TableRow key={appt.id} className="hover:bg-gray-100">
-                  <TableCell className="text-gray-400">{appt.customer}</TableCell>
-                  <TableCell className="text-gray-400">{appt.barber}</TableCell>
-                  <TableCell className="text-gray-400">{appt.date}</TableCell>
-                  <TableCell>
-                    <span className={`text-xs px-3 py-1 rounded-md ${getStatusStyle(appt.status)}`}>
-                      {appt.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        <Button className="bg-black text-white hover:bg-yellow-500">
-                          <MoreHorizontal />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Drawer */}
+      {drawerOpen && (
+        <RightDrawer
+          drawerOpen={drawerOpen}
+          handleDrawerClose={() => setDrawerOpen(false)}
+          drawerWidth="w-[500px]"
+        >
+          <div className="p-4">
+            <h2 className="text-2xl font-bold tracking-tight mb-4">
+              {drawerContent === "details" ? "Appointment Details" : "Add Appointment"}
+            </h2>
+            {drawerContent === "details" && selectedAppointment && (
+              <AppointmentInfoPanel
+                appointment={selectedAppointment}
+                onAppointmentUpdated={handleAppointmentAdded}
+              />
+            )}
+            {drawerContent === "add" && (
+              <AddAppointmentForm
+                onAppointmentAdded={handleAppointmentAdded}
+                onCancel={() => setDrawerOpen(false)}
+                services={services}
+                barbers={barbers} // Pass the fetched barbers to the form
+              />
+            )}
+          </div>
+        </RightDrawer>
+      )}
     </div>
   );
 }

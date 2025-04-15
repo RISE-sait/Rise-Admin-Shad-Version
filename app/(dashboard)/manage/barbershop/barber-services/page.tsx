@@ -1,14 +1,14 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import PortfolioPage from "@/components/Barbershop/Portfolio";
+import ManageBarberServices from "@/components/Barbershop/ManageBarberServices"; // Direct import
 import RoleProtected from "@/components/RoleProtected";
 import { StaffRoleEnum } from "@/types/user";
 
-export default function PortfolioPageContainer() {
+export default function ManageBarbersPageContainer() {
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]} fallback={<PageSkeleton />}>
-      <PortfolioPage />
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]} fallback={<PageSkeleton />}>
+      <ManageBarberServices />
     </RoleProtected>
   );
 }
@@ -28,9 +28,9 @@ function PageSkeleton() {
 
       <Skeleton className="h-10 w-32 mt-4" />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <Skeleton key={i} className="aspect-square rounded-lg" />
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-lg" />
         ))}
       </div>
     </div>
