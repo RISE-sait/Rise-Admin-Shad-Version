@@ -20,18 +20,9 @@ import getValue from '@/configs/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from "next/navigation";
 import { revalidateStaffs } from "@/app/actions/serverActions";
+import { StaffRoleEnum } from "@/types/user";
 
-enum StaffRole {
-  Trainer = "trainer",
-  Coach = "coach",
-  Admin = "admin",
-  Superadmin = "superadmin",
-  Barber = "barber",
-  Instructor = "instructor",
-  Receptionist = "receptionist"
-}
-
-const ROLE_OPTIONS = Object.entries(StaffRole).map(([key, value]) => ({
+const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
   label: key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
   value,
 }));
@@ -40,9 +31,6 @@ export default function StaffForm({ StaffData }: any) {
   const [activeTab, setActiveTab] = useState("details");
   const [role, setRole] = useState(StaffData?.StaffInfo.Role || "");
   const [isActive, setIsActive] = useState(StaffData.StaffInfo?.IsActive || false);
-
-  console.log(StaffData)
-  console.log(StaffData.StaffInfo.Role)
 
    const { user } = useUser();
    const jwt = user?.Jwt
