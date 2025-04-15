@@ -37,6 +37,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Manage",
       url: "/manage/clients",
       icon: <Wrench width={15} height={15} />,
+      isActive: true,
       items: [
 
         // Only Admin/SuperAdmin can see Customers, Programs, Locations, Memberships, Staff
