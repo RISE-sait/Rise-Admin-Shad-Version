@@ -30,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: true,
       items: [
         // Everyone with access can see Calendar
-        { title: "Calendar", url: "/calender" },
+        { title: "Calendar", url: "/" },
       ],
     },
     {
