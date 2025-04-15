@@ -55,10 +55,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ? [{ title: "Barbershop", url: "/manage/barbershop" }]
           : []),
           
-        // Coaches and SuperAdmin can see Teams (example)
-        ...(role == StaffRoleEnum.COACH || role == StaffRoleEnum.SUPERADMIN
-          ? [{ title: "Teams", url: "/manage/teams" }]
-          : []),
       ],
     },
   ];
