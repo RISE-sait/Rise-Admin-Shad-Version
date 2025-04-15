@@ -13,7 +13,7 @@ interface CalendarDemoProps {
 export default function CalendarDemo({ events, onEventSelect }: CalendarDemoProps) {
   // Initialize calendar display state
   const [date, setDate] = useState<Date>(new Date())
-  const [mode, setMode] = useState<Mode>('week')
+  const [mode, setMode] = useState<Mode>('month')
   
   // Internal state to manage events
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(events || [])
