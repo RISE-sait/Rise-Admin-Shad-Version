@@ -41,7 +41,7 @@ export default function FilterComponent({
     locations: false,
     trainers: false,
     programs: false,
-  });
+  })
 
   // find unique types
   const programTypes = programs.reduce((acc: string[], program) => {

@@ -116,9 +116,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           }
         });
 
-        console.log("Fetching events with filters:", query);
         const eventsData = await getEvents(query);
-        console.log(`Retrieved ${eventsData.length} events from API`);
 
         function getEventColor(programType?: string): string {
           switch (programType?.toLowerCase()) {
