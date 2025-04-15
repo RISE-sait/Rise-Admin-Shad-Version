@@ -11,6 +11,7 @@ import { createHaircutEvent } from "@/services/haircuts";
 import { format, addHours } from "date-fns";
 import { getAllCustomers } from "@/services/customer";
 import { Customer } from "@/types/customer";
+import { StaffRoleEnum } from "@/types/user";
 
 interface AddAppointmentFormProps {
   onAppointmentAdded: () => void;
@@ -104,7 +105,7 @@ export default function AddAppointmentForm({
   
   // Set barber ID from user in a separate effect
   useEffect(() => {
-    if (user?.ID && user?.StaffInfo?.Role === "BARBER" && formData.barber_id === "") {
+    if (user?.ID && user?.Role === StaffRoleEnum.BARBER && formData.barber_id === "") {
       setFormData(prev => ({
         ...prev,
         barber_id: user.ID
