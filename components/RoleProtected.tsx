@@ -1,7 +1,7 @@
 "use client"
 
 import { useUser } from "@/contexts/UserContext";
-import { StaffRoleEnum } from "@/types/user";
+import { LoggedInUser, StaffRoleEnum } from "@/types/user";
 import { ReactNode } from "react";
 
 interface RoleProtectedProps {
@@ -27,22 +27,26 @@ export default function RoleProtected({
 }: RoleProtectedProps): ReactNode {
   const { user, isLoading } = useUser();
 
-  console.log("user", user)
-  console.log(user?.StaffInfo?.Role === StaffRoleEnum.SUPERADMIN)
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  const userRole = user?.StaffInfo?.Role || null
+  const isAuthorized = isUserAuthorized(user, allowedRoles)
 
-  const isSuperAdmin = userRole === StaffRoleEnum.SUPERADMIN
-
-  let isAuthorized = false
-
-  if (userRole !== null) isAuthorized = allowedRoles.some((role) => role === userRole)
-
-  if (isAuthorized || isSuperAdmin) return children
+  if (isAuthorized) return children
 
   return fallback || <h1 className="text-center text-2xl">Access Denied</h1>
+}
+
+function isUserAuthorized(user: LoggedInUser | null, allowedRoles: StaffRoleEnum[]) {
+
+  if (user === null) return false
+
+  const userRole = user.Role
+
+  if (userRole === null) return false
+
+  if (userRole === StaffRoleEnum.SUPERADMIN) return true
+
+  return allowedRoles.some((role) => role === userRole)
 }

@@ -13,12 +13,13 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useUser } from "@/contexts/UserContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react";
+import { StaffRoleEnum } from "@/types/user";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser();
-  const { isSuperAdmin, isAdmin, isBarber, isCoach } = usePermissions();
+
+  const role = user?.Role
 
   // Build nav items based on role
   const navMain = [
@@ -37,8 +38,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/manage/clients",
       icon: <Wrench width={15} height={15} />,
       items: [
+
         // Only Admin/SuperAdmin can see Customers, Programs, Locations, Memberships, Staff
-        ...(isAdmin() || isSuperAdmin()
+        ...(role == StaffRoleEnum.ADMIN || role == StaffRoleEnum.SUPERADMIN
           ? [
               { title: "Customers", url: "/manage/customers" },
               { title: "Programs", url: "/manage/programs" },
@@ -47,12 +49,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               { title: "Staff", url: "/manage/staff" },
             ]
           : []),
+
         // Barbers and SuperAdmin can see Barbershop
-        ...(isBarber() || isSuperAdmin() || isAdmin()
+        ...(role == StaffRoleEnum.BARBER || role == StaffRoleEnum.SUPERADMIN || role == StaffRoleEnum.ADMIN
           ? [{ title: "Barbershop", url: "/manage/barbershop" }]
           : []),
+          
         // Coaches and SuperAdmin can see Teams (example)
-        ...(isCoach() || isSuperAdmin()
+        ...(role == StaffRoleEnum.COACH || role == StaffRoleEnum.SUPERADMIN
           ? [{ title: "Teams", url: "/manage/teams" }]
           : []),
       ],

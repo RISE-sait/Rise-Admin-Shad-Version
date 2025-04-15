@@ -11,8 +11,7 @@ import { getEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
 import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
 import { useUser } from "@/contexts/UserContext";
-import { usePermissions } from "@/hooks/usePermissions";
-
+import { StaffRoleEnum } from "@/types/user";
 
 interface CalendarPageProps {
   initialEvents: CalendarEvent[];
@@ -38,7 +37,6 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer();
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
-  const { isSuperAdmin, isBarber, isCoach } = usePermissions();
 
   // Default date range (current month +/- 30 days)
   const today = new Date();
@@ -79,7 +77,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         const query: EventQueryParams = {
           after: filters.after,
           before: filters.before,
-          program_id: filters.program_id ,
+          program_id: filters.program_id,
           user_id: filters.user_id,
           team_id: filters.team_id,
           location_id: filters.location_id,
@@ -181,20 +179,18 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           },
         }));
 
-        // Role-based filtering
-        let filteredEvents = calendarEvents;
-        if (!isSuperAdmin()) {
-          if (isBarber() || isCoach()) {
-            filteredEvents = calendarEvents.filter(ev =>
-              ev.staff?.some(staff => staff.id === user?.ID)
-            );
-          }
-          // Add more role-based filters as needed
-        }
-        setEvents(filteredEvents);
 
-        // Now set the properly typed events
-        setEvents(calendarEvents);
+        let filteredEvents = calendarEvents;
+        
+        if (user?.Role && [StaffRoleEnum.SUPERADMIN, StaffRoleEnum.COACH, StaffRoleEnum.INSTRUCTOR]
+          .includes(user?.Role)) {
+
+          filteredEvents = calendarEvents.filter(ev =>
+            ev.staff?.some(staff => staff.id === user?.ID)
+          );
+        }
+
+        setEvents(filteredEvents);
 
       } catch (error) {
         console.error("Error fetching events:", error);

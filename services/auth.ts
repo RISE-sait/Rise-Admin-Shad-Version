@@ -1,14 +1,14 @@
-import { StaffRoleEnum, User } from "@/types/user";
+import { LoggedInUser, StaffRoleEnum, User } from "@/types/user";
 import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
 import { IdentityUserAuthenticationResponseDto } from "@/app/api/Api";
 
 /**
  * Authenticates a user with a Firebase token by making a request to the backend auth endpoint.
- * Converts the backend response into a standardized User object with role mapping.
+ * Converts the backend response into a standardized LoggedInUser object with role mapping.
  * 
  * @param {string} firebaseToken - The Firebase authentication token
- * @returns {Promise<User>} A promise that resolves to a User object containing auth data
+ * @returns {Promise<LoggedInUser>} A promise that resolves to a LoggedInUser object containing auth data
  * @throws {Error} If authentication fails or if the role type is invalid
  * 
  * @example
@@ -20,7 +20,7 @@ import { IdentityUserAuthenticationResponseDto } from "@/app/api/Api";
  *   // Handle authentication error
  * }
  */
-export const loginWithFirebaseToken = async (firebaseToken: string): Promise<User> => {
+export const loginWithFirebaseToken = async (firebaseToken: string): Promise<LoggedInUser> => {
   try {
 
     const response = await fetch(`${getValue('API')}auth`, {
@@ -62,18 +62,14 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Use
         throw new Error("Invalid role type")
     }
 
-    const user: User = {
+    const user: LoggedInUser = {
       ID: data.id!,
       Email: data.email || '', // Email might not be in response
       Name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-      StaffInfo: {
-        Role: role,
-        IsActive: data.is_active_staff || false,
-      },
+      Role: role,
+      IsActive: data.is_active_staff || false,
       Jwt: jwtToken,
       Phone: data.phone!,
-      CreatedAt: new Date(),
-      UpdatedAt: new Date(),
     };
 
     return user

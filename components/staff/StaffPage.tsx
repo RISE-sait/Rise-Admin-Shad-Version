@@ -33,8 +33,8 @@ export default function StaffPage({ staffs }: { staffs: User[],  },) {
 
   const filteredStaff = staffs.filter(member =>
     member.Name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.Email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.StaffInfo!.Role.toLowerCase().includes(searchQuery.toLowerCase())
+    member.Email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    member.StaffInfo!.Role
   )
 
   return (

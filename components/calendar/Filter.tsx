@@ -302,7 +302,7 @@ export default function FilterComponent({
                 <SelectContent>
                   <SelectItem value="all">All Trainers</SelectItem>
                   {staffs.map(trainer => (
-                    <SelectItem key={trainer.Email} value={trainer.Email}>
+                    <SelectItem key={trainer.Email} value={trainer.Email!}>
                       {trainer.Name}
                     </SelectItem>
                   ))}
