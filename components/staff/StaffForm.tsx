@@ -18,7 +18,6 @@ import { FileText, Trash, Save } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import getValue from '@/configs/constants';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from "next/navigation";
 import { revalidateStaffs } from "@/app/actions/serverActions";
 
 enum StaffRole {
@@ -48,7 +47,6 @@ export default function StaffForm({ StaffData }: any) {
    const jwt = user?.Jwt
    const { toast } = useToast();
    const apiUrl = getValue("API");
-   const router = useRouter();
 
   const RefreshData = () => {
     revalidateStaffs();

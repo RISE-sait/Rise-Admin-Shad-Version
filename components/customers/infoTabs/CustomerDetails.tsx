@@ -123,39 +123,39 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="first_name" className="block text-sm font-medium mb-1">
-              First Name <span className="text-red-500">*</span>
+              First Name <span className="text-red-500"></span>
             </label>
             <Input
               id="first_name"
               value={formData.first_name}
               onChange={(e) => handleChange("first_name", e.target.value)}
-              required
+              disabled
             />
           </div>
 
           <div>
             <label htmlFor="last_name" className="block text-sm font-medium mb-1">
-              Last Name <span className="text-red-500">*</span>
+              Last Name <span className="text-red-500"></span>
             </label>
             <Input
               id="last_name"
               value={formData.last_name}
               onChange={(e) => handleChange("last_name", e.target.value)}
-              required
+              disabled
             />
           </div>
         </div>
 
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email <span className="text-red-500">*</span>
+            Email <span className="text-red-500"></span>
           </label>
           <Input
             id="email"
             type="email"
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
-            required
+            disabled
           />
         </div>
 
@@ -168,6 +168,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
             type="tel"
             value={formData.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
+            disabled
           />
         </div>
       </div>
@@ -187,6 +188,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
               <Input
                 id="wins"
                 type="number"
+                disabled
                 value={String(athleteStats.wins || 0)}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
@@ -206,6 +208,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
               <Input
                 id="losses"
                 type="number"
+                disabled
                 value={String(athleteStats.losses || 0)}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
@@ -225,6 +228,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
               <Input
                 id="points"
                 type="number"
+                disabled
                 value={String(athleteStats.points || 0)}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
@@ -244,6 +248,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
               <Input
                 id="rebounds"
                 type="number"
+                disabled
                 value={String(athleteStats.rebounds || 0)}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
@@ -263,6 +268,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
               <Input
                 id="assists"
                 type="number"
+                disabled
                 value={String(athleteStats.assists || 0)}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
@@ -282,6 +288,7 @@ export default function DetailsTab({ customer, onCustomerUpdated }: {
               <Input
                 id="steals"
                 type="number"
+                disabled
                 value={String(athleteStats.steals || 0)}
                 onChange={(e) => {
                   const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
