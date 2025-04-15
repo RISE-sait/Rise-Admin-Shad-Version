@@ -1,4 +1,10 @@
-export type StaffRole = 'INSTRUCTOR' | 'ADMIN' | 'SUPERADMIN' | 'INSTRUCTOR' | 'COACH' | 'BARBER';
+export enum StaffRoleEnum {
+    INSTRUCTOR,
+    ADMIN,
+    SUPERADMIN,
+    COACH,
+    BARBER,
+}
 
 export interface User {
     ID : string
@@ -6,7 +12,7 @@ export interface User {
     Name: string;
     Phone: string;
     StaffInfo?: {
-        Role: StaffRole;
+        Role: StaffRoleEnum;
         IsActive: boolean;
     };
     Jwt:string,

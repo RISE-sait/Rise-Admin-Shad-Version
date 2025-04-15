@@ -49,14 +49,12 @@ export default function FilterComponent({
       acc.push(program.type);
     }
     return acc;
-  }
-  , []);
+  }, [])
 
   // Parse dates for the calendar components
   const afterDate = filters.after ? new Date(filters.after) : undefined;
   const beforeDate = filters.before ? new Date(filters.before) : undefined;
 
-  // Fetch locations using ApiService instead of direct service call
   useEffect(() => {
     async function fetchLocations() {
       setIsLoading(prev => ({ ...prev, locations: true }));

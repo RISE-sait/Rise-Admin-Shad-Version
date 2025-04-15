@@ -20,7 +20,6 @@ export default function CalendarDemo({ events, onEventSelect }: CalendarDemoProp
 
   // This is the critical part - update internal state whenever the events prop changes
   useEffect(() => {
-    console.log(`CalendarDemo: received ${events.length} events from parent`);
     setCalendarEvents(events);
   }, [events]); // This dependency ensures the effect runs when events change
 

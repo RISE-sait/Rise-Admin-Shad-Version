@@ -6,7 +6,7 @@ import RoleProtected from '@/components/RoleProtected';
 export default async function Page() {
   const staffs = await getAllStaffs()
   return(
-  <RoleProtected  allowedRoles={[ 'SUPERADMIN']}>
+  <RoleProtected>
    <StaffPage staffs={staffs} />
   </RoleProtected>
   );

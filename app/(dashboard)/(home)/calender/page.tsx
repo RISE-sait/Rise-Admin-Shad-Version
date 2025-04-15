@@ -4,6 +4,7 @@ import { CalendarEvent } from '@/types/calendar';
 import { colorOptions } from '@/components/calendar/components/calendar/calendar-tailwind-classes';
 import RoleProtected from '@/components/RoleProtected'
 import { EventEventResponseDto } from '@/app/api/Api';
+import { StaffRoleEnum } from '@/types/user';
 
 function mapToCalendarEvents(events: EventEventResponseDto[]): CalendarEvent[] {
   if (!Array.isArray(events)) {
@@ -90,8 +91,8 @@ export default async function Calendar() {
   }
 
   return (
-  <RoleProtected allowedRoles={["ADMIN", "SUPERADMIN", "BARBER", "COACH", "INSTRUCTOR"]}>
-    <CalendarPage initialEvents={initialEvents}/>
-   </RoleProtected>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER, StaffRoleEnum.COACH, StaffRoleEnum.INSTRUCTOR]}>
+      <CalendarPage initialEvents={initialEvents} />
+    </RoleProtected>
   );
 }
