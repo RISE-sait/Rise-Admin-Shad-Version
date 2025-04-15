@@ -43,7 +43,7 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Log
     const roleKey = data.role?.toUpperCase();
     const role = roleKey ? ROLE_MAPPING[roleKey] : undefined;
     
-    if (!role) {
+    if (role === undefined) {
         throw new Error("Invalid role type");
     }
 
