@@ -135,14 +135,14 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
 
         const calendarEvents: CalendarEvent[] = eventsData.map(event => ({
           id: event.id || '',
-          start_at: new Date(event.start_at),
-          end_at: new Date(event.end_at),
+          start_at: new Date(event.start_at!),
+          end_at: new Date(event.end_at!),
           capacity: event.capacity || 0,
-          color: event.color || getEventColor(event.program?.type),
+          color: getEventColor(event.program?.type),
           createdBy: {
-            firstName: event.createdBy?.firstName || '',
-            id: event.createdBy?.id || '',
-            lastName: event.createdBy?.lastName || '',
+            firstName: event.created_by!.first_name!,
+            id: event.created_by!.id || '',
+            lastName: event.created_by!.last_name!,
           },
           customers: Array.isArray(event.customers) ? event.customers.map((c: any) => ({
             email: c.email || '',
@@ -177,9 +177,9 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             name: event.team?.name || '',
           },
           updatedBy: {
-            firstName: event.updatedBy?.firstName || '',
-            id: event.updatedBy?.id || '',
-            lastName: event.updatedBy?.lastName || '',
+            firstName: event.updated_by!.first_name!,
+            id: event.updated_by?.id!,
+            lastName: event.updated_by?.last_name!,
           },
         }));
 

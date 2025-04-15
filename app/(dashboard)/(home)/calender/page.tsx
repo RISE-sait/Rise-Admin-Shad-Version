@@ -83,7 +83,6 @@ export default async function Calendar() {
       after: '2024-01-01',
       before: '2026-02-01',
     });
-    console.log('Events from getAllEvents:', events);
     initialEvents = mapToCalendarEvents(events);
   } catch (error) {
     console.error('Error fetching events in Calendar:', error);
