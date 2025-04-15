@@ -2,18 +2,16 @@
 
 import * as React from "react";
 import { NavMain } from "@/components/nav-main";
-import { NavUser } from "@/components/nav-user";
 import Link from "next/link";
 import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useUser } from "@/contexts/UserContext";
-import { BookOpen, HomeIcon, Mailbox, Wrench } from "lucide-react";
+import { HomeIcon, Wrench } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

@@ -11,7 +11,6 @@ import { getEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
 import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
 import { useUser } from "@/contexts/UserContext";
-import { StaffRoleEnum } from "@/types/user";
 
 interface CalendarPageProps {
   initialEvents: CalendarEvent[];
