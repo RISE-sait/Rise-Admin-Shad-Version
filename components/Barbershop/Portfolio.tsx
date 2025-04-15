@@ -1,4 +1,5 @@
-"use client";
+"use client"
+
 import { useState, useEffect, useRef } from "react";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";

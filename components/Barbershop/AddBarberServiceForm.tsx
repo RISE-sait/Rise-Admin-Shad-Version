@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import { HaircutCreateBarberServiceRequestDto, HaircutBarberServiceResponseDto } from "@/app/api/Api";
 import { createBarberService, getBarberServices } from "@/services/barber";
+import { StaffRoleEnum } from "@/types/user";
 
 interface AddBarberServiceFormProps {
   onServiceAdded: () => void;
@@ -74,7 +75,7 @@ export default function AddBarberServiceForm({ onServiceAdded, onCancel, barbers
 
   // If user is a barber, preselect them
   useEffect(() => {
-    if (user?.StaffInfo?.Role === "BARBER" && user?.ID) {
+    if (user?.Role === StaffRoleEnum.BARBER && user?.ID) {
       setFormData(prev => ({ ...prev, barber_id: user.ID }));
     }
   }, [user]);
