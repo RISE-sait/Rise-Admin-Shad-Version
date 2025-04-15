@@ -7,7 +7,7 @@ import FilterComponent from "./Filter";
 import { CalendarEvent, FiltersType } from "@/types/calendar";
 import { useDrawer } from "@/hooks/drawer";
 import CalendarDemo from "./components/calendar-demo";
-import { getAllEvents } from "@/services/events";
+import { getEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
 import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
 import { useUser } from "@/contexts/UserContext";
@@ -117,7 +117,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
         });
         
         console.log("Fetching events with filters:", query);
-        const eventsData = await getAllEvents(query);
+        const eventsData = await getEvents(query);
         console.log(`Retrieved ${eventsData.length} events from API`);
 
         function getEventColor(programType?: string): string {

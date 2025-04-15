@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from "@/contexts/UserContext";
-import { deleteEvents, getAllEvents, getSchedulesOfProgram } from "@/services/events";
+import { deleteEvents, getEvents, getSchedulesOfProgram } from "@/services/events";
 import { Card } from "@/components/ui/card";
 import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -16,37 +16,41 @@ import { Team } from "@/types/team";
 import { PlusIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { createEvents } from "../../../services/events";
 
-export default function SchedulesTab({ programID }: { programID: string }) {
+export default function SchedulesTab({ programID, capacity }: { programID: string, capacity?: number }) {
 
-    const { toast } = useToast();
+    const { toast } = useToast()
 
     const [schedules, setSchedules] = useState<EventSchedule[]>([])
     const [loading, setLoading] = useState(false)
 
-    const addAnotherSchedule = (event: React.MouseEvent) => {
-        event.preventDefault()
-        const newSchedule: EventSchedule = {
-            location: {
-                address: "",
-                name: "",
-                id: "",
-            },
-            program: {
-                id: "",
-                name: "",
-                type: "",
-            },
-            team: {
-                id: "",
-                name: "",
-            },
-            recurrence_start_at: new Date(),
-            recurrence_end_at: new Date(),
-            event_start_at: "",
-            event_end_at: "",
-            day: "Monday",
-        }
-        setSchedules(currentSchedules => [...currentSchedules, newSchedule])
+    function addScheduleCard() {
+
+        setSchedules((prev) => {
+
+            const newSchedule: EventSchedule = {
+                program: {
+                    id: programID,
+                    name: "",
+                    type: "",
+                },
+                location: {
+                    id: "",
+                    name: "",
+                    address: "",
+                },
+                team: {
+                    id: "",
+                    name: "",
+                },
+                recurrence_start_at: new Date(),
+                recurrence_end_at: new Date(),
+                event_start_at: "",
+                event_end_at: "",
+                day: "Monday",
+            }
+
+            return [...prev, newSchedule]
+        })
     }
 
     useEffect(() => {
@@ -82,6 +86,7 @@ export default function SchedulesTab({ programID }: { programID: string }) {
                     </div>
                 ) : (
 
+
                     schedules.length > 0 ? (
                         <div className="grid grid-cols-1 gap-y-10">
                             {schedules.map((schedule) => {
@@ -89,21 +94,32 @@ export default function SchedulesTab({ programID }: { programID: string }) {
                                 const key = `${schedule.day}-${schedule.recurrence_start_at.toISOString()}-${schedule.location}`;
 
                                 return (
-                                    <ScheduleCard key={key} schedule={schedule} addAnotherSchedule={addAnotherSchedule} />
+                                    <ScheduleCard key={key} schedule={schedule} capacity={capacity} />
                                 )
                             }
                             )}
+
                         </div>
                     )
                         :
-                        <p>No schedules available for this program.</p>
+                        <p className="text-center">No schedules available for this program.</p>
                 )
             }
+            <div className="flex justify-end mt-10">
+                <Button
+                    className="bg-green-600 hover:bg-green-700 w-min"
+                    onClick={addScheduleCard}
+                >
+
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Another Schedule
+                </Button>
+            </div>
         </div>
     )
 }
 
-function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedule, addAnotherSchedule: (event: React.MouseEvent) => void }) {
+function ScheduleCard({ schedule, capacity, isAddCard = false }: { schedule: EventSchedule, capacity?: number, isAddCard?: boolean }) {
 
     const { toast } = useToast()
 
@@ -112,13 +128,14 @@ function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedul
 
     const form = useForm({
         defaultValues: {
-            recurrence_start_at: schedule.recurrence_start_at.toISOString().slice(0, 16),
-            recurrence_end_at: schedule.recurrence_end_at.toISOString().slice(0, 16),
-            event_start_at: schedule.event_start_at,
-            event_end_at: schedule.event_end_at,
-            day: schedule.day,
-            location_name: schedule.location?.name,
-            team_name: schedule.team?.name,
+            recurrence_start_at: schedule.recurrence_start_at.toISOString().slice(0, 16) as string,
+            recurrence_end_at: schedule.recurrence_end_at.toISOString().slice(0, 16) as string,
+            event_start_at: schedule.event_start_at as string,
+            event_end_at: schedule.event_end_at as string,
+            day: schedule.day as string,
+            location_name: schedule.location?.name as string,
+            team_name: schedule.team?.name as string,
+            capacity: capacity,
         },
     })
 
@@ -170,9 +187,15 @@ function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedul
                 recurrence_end_at: new Date(form.getValues('recurrence_end_at')).toISOString(),
                 start_at: formatTimeToISO(form.getValues('event_start_at')),
                 end_at: formatTimeToISO(form.getValues('event_end_at')),
-                capacity: 20,
+                capacity: form.getValues('capacity'),
                 day: form.getValues('day'),
             }, jwt!)
+
+            toast({
+                description: "Schedule created successfully",
+                status: "success",
+                variant: "default"
+            })
         }
         catch (error) {
             console.error("Failed to create schedule", error);
@@ -186,9 +209,10 @@ function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedul
 
     async function handleSave(event: React.MouseEvent) {
         event.preventDefault()
-        await handleDeleteSchedule(event)
 
-        await handleCreateSchedule(event)
+        if (isAddCard) {
+            await handleCreateSchedule(event)
+        }
     }
 
     const isFormChanged = () => {
@@ -214,14 +238,14 @@ function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedul
                 const before = new Date(schedule.recurrence_end_at.getTime() + 24 * 60 * 60 * 1000)
 
                 // after and before should be in YYYY-MM-DD
-                const [events] = await Promise.all([getAllEvents({
+                const [events] = await Promise.all([getEvents({
                     program_id: schedule.program?.id,
                     location_id: schedule.location?.id,
                     after: after.toISOString().slice(0, 10),
                     before: before.toISOString().slice(0, 10),
                 })])
 
-                const ids = events.map(event => event.id)
+                const ids = events.map(event => event.id!) ?? []
                 setEventIDs(ids)
             }
             catch (error) {
@@ -369,6 +393,18 @@ function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedul
 
                         <FormField
                             control={form.control}
+                            name="capacity"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Capacity</FormLabel>
+                                    <Input type="number" {...field} placeholder="NULL" />
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
                             name="team_name"
                             render={({ field }) => (
                                 <FormItem>
@@ -419,14 +455,7 @@ function ScheduleCard({ schedule, addAnotherSchedule }: { schedule: EventSchedul
                             <SaveIcon className="h-4 w-4 mr-2" />
                             Save Changes
                         </Button>
-                        <Button
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={addAnotherSchedule}
-                        >
 
-                            <PlusIcon className="h-4 w-4 mr-2" />
-                            Add Another Schedule
-                        </Button>
                     </div>
                 </form>
             </FormProvider>

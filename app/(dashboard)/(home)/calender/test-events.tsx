@@ -2,14 +2,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { getAllEvents } from "@/services/events"; // Adjust the import path
+import { getEvents } from "@/services/events"; // Adjust the import path
 
 export default function TestEvents() {
   useEffect(() => {
     const testGetAllEvents = async () => {
       try {
         console.log("Testing getAllEvents...");
-        const events = await getAllEvents({
+        const events = await getEvents({
           after: "2024-01-01",
           before: "2026-01-01",
         });

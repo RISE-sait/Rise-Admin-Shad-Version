@@ -88,7 +88,7 @@ export default function DetailsTab({ details, updateField, levels }: DetailsTabP
             id="capacity"
             type="number"
             min={1}
-            placeholder="Enter capacity"
+            placeholder="NULL"
             value={details.capacity || ""}
             onChange={(e) => handleChangeField("capacity", parseInt(e.target.value) || 0)}
           />

@@ -1,10 +1,9 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
-import { CalendarEvent } from '@/types/calendar';
-import { EventCreateRequestDto, EventDeleteRequestDto, EventScheduleResponseDto } from '@/app/api/Api';
+import { EventCreateRequestDto, EventDeleteRequestDto, EventEventResponseDto, EventScheduleResponseDto, EventUpdateEventsRequestDto, EventUpdateRequestDto } from '@/app/api/Api';
 import { EventSchedule } from '@/types/events';
 
-export async function getAllEvents(query: {
+export async function getEvents(query: {
   after: string;
   before: string;
   program_id?: string;
@@ -14,7 +13,7 @@ export async function getAllEvents(query: {
   program_type?: string;
   created_by?: string;
   updated_by?: string;
-}): Promise<CalendarEvent[]> {
+}): Promise<EventEventResponseDto[]> {
   try {
     const queryParams = new URLSearchParams();
     queryParams.append('after', query.after);
@@ -27,25 +26,19 @@ export async function getAllEvents(query: {
     if (query.created_by) queryParams.append('created_by', query.created_by);
     if (query.updated_by) queryParams.append('updated_by', query.updated_by);
 
-    const url = `${getValue('API')}events?${queryParams.toString()}`;
+    const response = await fetch(`${getValue('API')}events?${queryParams.toString()}`)
 
-    const response = await fetch(url)
+    const responseJSON = await response.json()
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      throw new Error(`Failed to fetch events: ${response.statusText}`);
+      let errorMessage = `Failed to get events: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
     }
 
-    const eventsResponse = await response.json()
-
-    // Ensure it’s an array
-    if (!Array.isArray(eventsResponse)) {
-      console.error('Response is not an array:', eventsResponse);
-      return [];
-    }
-
-    return eventsResponse as CalendarEvent[];
+    return responseJSON as EventEventResponseDto[];
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;
@@ -55,12 +48,20 @@ export async function getAllEvents(query: {
 /**
  * Create new events
  */
-export async function createEvents(eventsData: EventCreateRequestDto, jwt: string): Promise<string | null> {
+export async function createEvents(eventsData: EventCreateRequestDto, jwt: string) {
   try {
+
+    const requestData = {
+      ...eventsData,
+      ...(typeof eventsData.capacity !== 'undefined' && { 
+        capacity: Number(eventsData.capacity) 
+      })
+    };
+
     const response = await fetch(`${getValue('API')}events`, {
       method: 'POST',
       ...addAuthHeader(jwt),
-      body: JSON.stringify(eventsData),
+      body: JSON.stringify(requestData),
     });
 
     if (!response.ok) {
@@ -69,7 +70,7 @@ export async function createEvents(eventsData: EventCreateRequestDto, jwt: strin
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
       }
-      return errorMessage;
+      throw new Error(errorMessage);
     }
 
     return null;
@@ -82,7 +83,7 @@ export async function createEvents(eventsData: EventCreateRequestDto, jwt: strin
 /**
  * Update an existing event
  */
-export async function updateEvent(eventID: string, eventData: any, jwt: string): Promise<string | null> {
+export async function updateEvent(eventID: string, eventData: EventUpdateRequestDto, jwt: string): Promise<string | null> {
   try {
 
     const response = await fetch(`${getValue('API')}events/${eventID}`, {
@@ -103,6 +104,34 @@ export async function updateEvent(eventID: string, eventData: any, jwt: string):
     return null;
   } catch (error) {
     console.error('Error updating event:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update existing events
+ */
+export async function updateEvents(eventData: EventUpdateEventsRequestDto, jwt: string): Promise<string | null> {
+  try {
+
+    const response = await fetch(`${getValue('API')}events`, {
+      method: 'PUT',
+      ...addAuthHeader(jwt),
+      body: JSON.stringify(eventData),
+    });
+
+    if (!response.ok) {
+      const responseJSON = await response.json();
+      let errorMessage = `Failed to update events: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error updating events:', error);
     throw error;
   }
 }

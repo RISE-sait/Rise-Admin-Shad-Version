@@ -4,9 +4,8 @@ import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsTab from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { TrashIcon, SaveIcon, FileText, Calendar } from "lucide-react";
+import { FileText, Calendar } from "lucide-react";
 import { deleteProgram, updateProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { Program } from "@/types/program";
@@ -28,7 +27,7 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
     name: program.name,
     description: program.description || "",
     level: program.level,
-    capacity: program.capacity || 10,
+    capacity: program.capacity || 0,
     type: program.type // Add the missing type field
   });
 
@@ -38,30 +37,6 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
   const handleUpdateField = (field: keyof ProgramRequestDto, value: string | number) => {
     updateField(field as any, value);
   };
-
-  const handleSaveAll = async () => {
-    try {
-      const practiceData = {
-        description: data.description,
-        name: data.name,
-        level: data.level,
-        capacity: data.capacity || 10, // Ensure capacity is never undefined
-        type: data.type // Include the type field
-      };
-
-      const error = await updateProgram(program.id, practiceData, user?.Jwt!)
-
-      if (error === null) {
-        toast({ status: "success", description: "Program updated successfully" });
-        await revalidatePrograms();
-      }
-      else {
-        toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
-      }
-    } catch (error) {
-      toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
-    }
-  }
 
   const handleDeletePractice = async () => {
     try {
@@ -113,6 +88,7 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
         <TabsContent value="schedule" className="pt-4">
           <ScheduleTab
             programID={program.id}
+            capacity={program.capacity}
           />
         </TabsContent>
       </Tabs>
