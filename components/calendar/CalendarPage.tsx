@@ -237,7 +237,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   const handleEventSelect = (event: CalendarEvent) => {
     console.log("Event selected:", event);
     setSelectedEvent(event);
-    openDrawer("details"); // Open the drawer with event details
+    //openDrawer("details"); // Open the drawer with event details
   };
 
   return (
