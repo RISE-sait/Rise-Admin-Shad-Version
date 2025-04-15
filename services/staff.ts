@@ -34,6 +34,8 @@ export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
             const role = roleKey ? ROLE_MAPPING[roleKey] : undefined;
 
             if (!role) {
+                console.log('roleKey')
+                console.log(roleKey)
                 throw new Error("Invalid role type");
             }
 
