@@ -129,7 +129,7 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           }
         }
 
-        const calendarEvents: CalendarEvent[] = eventsData.map(event => ({
+        let calendarEvents: CalendarEvent[] = eventsData.map(event => ({
           id: event.id || '',
           start_at: new Date(event.start_at!),
           end_at: new Date(event.end_at!),
@@ -177,20 +177,16 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
             id: event.updated_by?.id!,
             lastName: event.updated_by?.last_name!,
           },
-        }));
+        }))
 
+        if (filters.user_id !== "") {
 
-        let filteredEvents = calendarEvents;
-        
-        if (user?.Role && [StaffRoleEnum.SUPERADMIN, StaffRoleEnum.COACH, StaffRoleEnum.INSTRUCTOR]
-          .includes(user?.Role)) {
-
-          filteredEvents = calendarEvents.filter(ev =>
-            ev.staff?.some(staff => staff.id === user?.ID)
-          );
+          calendarEvents = calendarEvents.filter(ev =>
+            ev.staff?.some(staff => staff.email === filters.user_id)
+          )
         }
 
-        setEvents(filteredEvents);
+        setEvents(calendarEvents);
 
       } catch (error) {
         console.error("Error fetching events:", error);
