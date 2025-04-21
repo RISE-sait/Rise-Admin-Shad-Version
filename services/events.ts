@@ -1,6 +1,6 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
-import { EventCreateRequestDto, EventDeleteRequestDto, EventEventResponseDto, EventScheduleResponseDto, EventUpdateEventsRequestDto, EventUpdateRequestDto } from '@/app/api/Api';
+import { EventEventRequestDto, EventDeleteRequestDto, EventEventResponseDto, EventRecurrenceResponseDto, EventRecurrenceRequestDto } from '@/app/api/Api';
 import { EventSchedule } from '@/types/events';
 
 export async function getEvents(query: {
@@ -48,7 +48,7 @@ export async function getEvents(query: {
 /**
  * Create new events
  */
-export async function createEvents(eventsData: EventCreateRequestDto, jwt: string) {
+export async function createEvents(eventsData: EventRecurrenceRequestDto, jwt: string) {
   try {
 
     const requestData = {
@@ -58,7 +58,7 @@ export async function createEvents(eventsData: EventCreateRequestDto, jwt: strin
       })
     };
 
-    const response = await fetch(`${getValue('API')}events`, {
+    const response = await fetch(`${getValue('API')}events/recurring`, {
       method: 'POST',
       ...addAuthHeader(jwt),
       body: JSON.stringify(requestData),
@@ -83,7 +83,7 @@ export async function createEvents(eventsData: EventCreateRequestDto, jwt: strin
 /**
  * Update an existing event
  */
-export async function updateEvent(eventID: string, eventData: EventUpdateRequestDto, jwt: string): Promise<string | null> {
+export async function updateEvent(eventID: string, eventData: EventEventRequestDto, jwt: string): Promise<string | null> {
   try {
 
     const response = await fetch(`${getValue('API')}events/${eventID}`, {
@@ -111,7 +111,7 @@ export async function updateEvent(eventID: string, eventData: EventUpdateRequest
 /**
  * Update existing events
  */
-export async function updateEvents(eventData: EventUpdateEventsRequestDto, jwt: string): Promise<string | null> {
+export async function updateEvents(eventData: EventEventRequestDto, jwt: string): Promise<string | null> {
   try {
 
     const response = await fetch(`${getValue('API')}events`, {
@@ -166,7 +166,7 @@ export async function getSchedulesOfProgram(programID: string): Promise<EventSch
 
   try {
 
-    const response = await fetch(`${getValue('API')}schedules?program_id=${programID}`)
+    const response = await fetch(`${getValue('API')}events?program_id=${programID}&response_type=day`)
 
     const responseJSON = await response.json();
 
@@ -178,7 +178,7 @@ export async function getSchedulesOfProgram(programID: string): Promise<EventSch
       throw new Error(errorMessage);
     }
 
-    return (responseJSON as EventScheduleResponseDto[]).map((schedule) => {
+    return (responseJSON as EventRecurrenceResponseDto[]).map((schedule) => {
 
       const sch: EventSchedule = {
         day: schedule.day!,

@@ -1,12 +1,12 @@
 import {
-    HaircutBarberServiceResponseDto,
-    HaircutCreateBarberServiceRequestDto,
+    HaircutServiceBarberServiceResponseDto,
+    HaircutServiceCreateBarberServiceRequestDto,
   } from '@/app/api/Api';
   import { addAuthHeader } from '@/lib/auth-header';
   import getValue from '@/configs/constants';
   
   // Get all barber services
-  export async function getBarberServices(): Promise<HaircutBarberServiceResponseDto[]> {
+  export async function getBarberServices(): Promise<HaircutServiceBarberServiceResponseDto[]> {
     try {
       const response = await fetch(`${getValue('API')}barbers/services`);
   
@@ -40,7 +40,7 @@ export async function getHaircutServices(): Promise<any[]> {
   }
   
   export async function createBarberService(
-    request: HaircutCreateBarberServiceRequestDto, 
+    request: HaircutServiceCreateBarberServiceRequestDto, 
     jwt: string
   ): Promise<void> {
     try {

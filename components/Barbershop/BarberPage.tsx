@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { PlusIcon, Search } from "lucide-react";
 import RightDrawer from "../reusable/RightDrawer";
 import { Input } from "@/components/ui/input";
-import { HaircutEventResponseDto } from "@/app/api/Api";
+import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { getHaircutEvents } from "@/services/haircuts";
 import { getBarberServices } from "@/services/barber";
 import { useToast } from "@/hooks/use-toast";
@@ -23,10 +23,10 @@ import { StaffRoleEnum, User } from "@/types/user";
 export default function BarbershopPage({ staffs }: { staffs: User[] }) {
 
   // Regular state
-  const [appointments, setAppointments] = useState<HaircutEventResponseDto[]>([]);
-  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventResponseDto[]>([]);
+  const [appointments, setAppointments] = useState<HaircutEventEventResponseDto[]>([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventEventResponseDto[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventResponseDto | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventEventResponseDto | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -136,7 +136,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   }, [searchQuery, appointments]);
 
   // Functions that change state
-  const handleAppointmentSelect = useCallback((appointment: HaircutEventResponseDto) => {
+  const handleAppointmentSelect = useCallback((appointment: HaircutEventEventResponseDto) => {
     setSelectedAppointment(appointment);
     setDrawerContent("details");
     setDrawerOpen(true);

@@ -24,7 +24,7 @@ export async function getAllTeams(): Promise<Team[]> {
         created_at: new Date(team.created_at!), // Convert string to Date
         updated_at: new Date(team.updated_at!), // Convert string to Date
         capacity: team.capacity!,
-        coach_id: team.coach_id!,
+        coach_id: team.coach?.id!,
       }))
   } catch (error) {
     console.error('Error fetching teams:', error);

@@ -2,15 +2,9 @@ import CalendarPage from '@/components/calendar/CalendarPage';
 import { getEvents } from '@/services/events';
 import { CalendarEvent } from '@/types/calendar';
 import { colorOptions } from '@/components/calendar/components/calendar/calendar-tailwind-classes';
-import RoleProtected from '@/components/RoleProtected'
 import { EventEventResponseDto } from '@/app/api/Api';
-import { StaffRoleEnum } from '@/types/user';
 
 function mapToCalendarEvents(events: EventEventResponseDto[]): CalendarEvent[] {
-  if (!Array.isArray(events)) {
-    console.error('Events is not an array:', events);
-    return [];
-  }
 
   return events.map(event => ({
     id: event.id!,
@@ -79,10 +73,14 @@ function getEventColor(programType?: string): string {
 export default async function Calendar() {
   let initialEvents: CalendarEvent[] = [];
 
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
   try {
     const events = await getEvents({
-      after: '2024-01-01',
-      before: '2026-02-01',
+      after: firstDay.toISOString().split('T')[0],
+      before: lastDay.toISOString().split('T')[0],
     });
     initialEvents = mapToCalendarEvents(events);
   } catch (error) {
@@ -91,8 +89,6 @@ export default async function Calendar() {
   }
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER, StaffRoleEnum.COACH, StaffRoleEnum.INSTRUCTOR]}>
-      <CalendarPage initialEvents={initialEvents} />
-    </RoleProtected>
+    <CalendarPage initialEvents={initialEvents} />
   );
 }

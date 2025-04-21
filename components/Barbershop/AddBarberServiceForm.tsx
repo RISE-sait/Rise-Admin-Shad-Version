@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
-import { HaircutCreateBarberServiceRequestDto, HaircutBarberServiceResponseDto } from "@/app/api/Api";
+import { HaircutServiceCreateBarberServiceRequestDto } from "@/app/api/Api";
 import { createBarberService, getBarberServices } from "@/services/barber";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -49,9 +49,9 @@ export default function AddBarberServiceForm({ onServiceAdded, onCancel, barbers
         const uniqueServices = new Map<string, ServiceTypeOption>();
         
         barberServices.forEach(service => {
-          if (service.service_type_id && !uniqueServices.has(service.service_type_id)) {
-            uniqueServices.set(service.service_type_id, {
-              id: service.service_type_id,
+          if (service.haircut_id && !uniqueServices.has(service.haircut_id)) {
+            uniqueServices.set(service.haircut_id, {
+              id: service.haircut_id,
               name: service.haircut_name || 'Unknown Service'
             });
           }
@@ -105,7 +105,7 @@ export default function AddBarberServiceForm({ onServiceAdded, onCancel, barbers
       console.log("Creating barber service with:", formData);
       
       // Create the request DTO
-      const serviceData: HaircutCreateBarberServiceRequestDto = {
+      const serviceData: HaircutServiceCreateBarberServiceRequestDto = {
         barber_id: formData.barber_id,
         haircut_service_id: formData.haircut_service_id
       };

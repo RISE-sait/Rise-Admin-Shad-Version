@@ -37,6 +37,8 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
 
+  console.log(initialEvents, "initialEvents")
+
   // Default date range (current month +/- 30 days)
   const today = new Date();
   const thirtyDaysAgo = subDays(today, 30);

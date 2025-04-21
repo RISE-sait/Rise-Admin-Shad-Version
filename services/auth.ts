@@ -37,6 +37,8 @@ export const loginWithFirebaseToken = async (firebaseToken: string): Promise<Log
     const authHeader = authHeaderKey ? response.headers.get(authHeaderKey) || "" : "";
     const jwtToken = authHeader.replace("Bearer ", "");
 
+    console.log("JWT Token:", jwtToken);
+
     // Get response body
     const data: IdentityUserAuthenticationResponseDto = await response.json()
 
