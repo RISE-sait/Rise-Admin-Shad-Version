@@ -9,9 +9,23 @@
  * ---------------------------------------------------------------
  */
 
+export interface ApiInternalDomainsTeamDtoRosterMemberInfo {
+  assists?: number;
+  country?: string;
+  email?: string;
+  id?: string;
+  losses?: number;
+  name?: string;
+  points?: number;
+  rebounds?: number;
+  steals?: number;
+  wins?: number;
+}
+
 export interface CustomerAthleteRegistrationRequestDto {
-  age: number;
   country_code?: string;
+  /** @example "2000-01-01" */
+  dob: string;
   first_name: string;
   gender?: "M" | "F";
   has_consent_to_email_marketing?: boolean;
@@ -32,8 +46,9 @@ export interface CustomerAthleteResponseDto {
 }
 
 export interface CustomerChildRegistrationRequestDto {
-  age: number;
   country_code?: string;
+  /** @example "2000-01-01" */
+  dob: string;
   first_name: string;
   gender?: "M" | "F";
   last_name: string;
@@ -49,8 +64,9 @@ export interface CustomerMembershipResponseDto {
 }
 
 export interface CustomerParentRegistrationRequestDto {
-  age: number;
   country_code?: string;
+  /** @example "2000-01-01" */
+  dob: string;
   first_name: string;
   gender?: "M" | "F";
   has_consent_to_email_marketing?: boolean;
@@ -61,9 +77,9 @@ export interface CustomerParentRegistrationRequestDto {
 }
 
 export interface CustomerResponse {
-  age?: number;
   athlete_info?: CustomerAthleteResponseDto;
   country_code?: string;
+  dob?: string;
   email?: string;
   first_name?: string;
   hubspot_id?: string;
@@ -87,27 +103,6 @@ export interface CustomerWaiverSigningRequestDto {
   waiver_url: string;
 }
 
-export interface EventCreateRequestDto {
-  /** @example 100 */
-  capacity?: number;
-  /** @example "THURSDAY" */
-  day?: string;
-  /** @example "23:00:00+00:00" */
-  end_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  location_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  program_id?: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  recurrence_end_at: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  recurrence_start_at: string;
-  /** @example "23:00:00+00:00" */
-  start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  team_id?: string;
-}
-
 export interface EventCustomerResponseDto {
   email?: string;
   first_name?: string;
@@ -121,6 +116,21 @@ export interface EventCustomerResponseDto {
 export interface EventDeleteRequestDto {
   /** @minItems 1 */
   ids: string[];
+}
+
+export interface EventEventRequestDto {
+  /** @example 100 */
+  capacity?: number;
+  /** @example "2023-10-05T07:00:00Z" */
+  end_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  team_id?: string;
 }
 
 export interface EventEventResponseDto {
@@ -167,7 +177,28 @@ export interface EventProgramInfo {
   type?: string;
 }
 
-export interface EventScheduleResponseDto {
+export interface EventRecurrenceRequestDto {
+  /** @example 100 */
+  capacity?: number;
+  /** @example "THURSDAY" */
+  day?: string;
+  /** @example "23:00:00+00:00" */
+  event_end_at: string;
+  /** @example "23:00:00+00:00" */
+  event_start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  location_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  program_id?: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  recurrence_end_at: string;
+  /** @example "2023-10-05T07:00:00Z" */
+  recurrence_start_at: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  team_id?: string;
+}
+
+export interface EventRecurrenceResponseDto {
   day?: string;
   location?: EventLocation;
   program?: EventProgram;
@@ -198,56 +229,6 @@ export interface EventTeamInfo {
   name?: string;
 }
 
-export interface EventUpdateEventsRequestDto {
-  /** @example 100 */
-  new_capacity?: number;
-  /** @example "23:00:00+00:00" */
-  new_event_end_at: string;
-  /** @example "21:00:00+00:00" */
-  new_event_start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  new_location_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  new_program_id?: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  new_recurrence_end_at: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  new_recurrence_start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  new_team_id?: string;
-  /** @example 100 */
-  original_capacity?: number;
-  /** @example "13:00:00+00:00" */
-  original_event_end_at: string;
-  /** @example "10:00:00+00:00" */
-  original_event_start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  original_location_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  original_program_id?: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  original_recurrence_end_at: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  original_recurrence_start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  original_team_id?: string;
-}
-
-export interface EventUpdateRequestDto {
-  /** @example 100 */
-  capacity?: number;
-  /** @example "2023-10-05T07:00:00Z" */
-  end_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  location_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  program_id?: string;
-  /** @example "2023-10-05T07:00:00Z" */
-  start_at: string;
-  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
-  team_id?: string;
-}
-
 export interface GameRequestDto {
   description?: string;
   lose_score?: number;
@@ -269,24 +250,7 @@ export interface GameResponseDto {
   win_team?: string;
 }
 
-export interface HaircutBarberServiceResponseDto {
-  barber_id?: string;
-  barber_name?: string;
-  created_at?: string;
-  haircut_name?: string;
-  id?: string;
-  service_type_id?: string;
-  updated_at?: string;
-}
-
-export interface HaircutCreateBarberServiceRequestDto {
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  barber_id?: string;
-  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
-  haircut_service_id?: string;
-}
-
-export interface HaircutEventResponseDto {
+export interface HaircutEventEventResponseDto {
   barber_id?: string;
   barber_name?: string;
   created_at?: string;
@@ -298,7 +262,7 @@ export interface HaircutEventResponseDto {
   updated_at?: string;
 }
 
-export interface HaircutRequestDto {
+export interface HaircutEventRequestDto {
   /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
   barber_id?: string;
   /** @example "2023-10-05T07:00:00Z" */
@@ -307,6 +271,23 @@ export interface HaircutRequestDto {
   end_time: string;
   /** @example "Haircut" */
   service_name: string;
+}
+
+export interface HaircutServiceBarberServiceResponseDto {
+  barber_id?: string;
+  barber_name?: string;
+  created_at?: string;
+  haircut_id?: string;
+  haircut_name?: string;
+  id?: string;
+  updated_at?: string;
+}
+
+export interface HaircutServiceCreateBarberServiceRequestDto {
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  barber_id?: string;
+  /** @example "f0e21457-75d4-4de6-b765-5ee13221fd72" */
+  haircut_service_id?: string;
 }
 
 export interface IdentityAthleteResponseDto {
@@ -328,7 +309,7 @@ export interface IdentityMembershipReadResponseDto {
 }
 
 export interface IdentityUserAuthenticationResponseDto {
-  age?: number;
+  age?: string;
   athlete_info?: IdentityAthleteResponseDto;
   country_code?: string;
   email?: string;
@@ -421,8 +402,9 @@ export interface StaffCoachStatsResponseDto {
 }
 
 export interface StaffRegistrationRequestDto {
-  age: number;
   country_code?: string;
+  /** @example "2000-01-01" */
+  dob: string;
   first_name: string;
   gender?: "M" | "F";
   is_active_staff?: boolean;
@@ -452,19 +434,52 @@ export interface StaffResponseDto {
   updated_at?: string;
 }
 
+export interface StaffActivityLogsStaffActivityLogResponse {
+  activity_description?: string;
+  created_at?: string;
+  email?: string;
+  first_name?: string;
+  id?: string;
+  last_name?: string;
+  staff_id?: string;
+}
+
+export interface TeamCoach {
+  email?: string;
+  id?: string;
+  name?: string;
+}
+
 export interface TeamRequestDto {
   capacity: number;
+  /** @example "faae4b3a-ad9f-463c-ae4b-3aad9fb63c9b" */
   coach_id?: string;
   name: string;
 }
 
 export interface TeamResponse {
   capacity?: number;
-  coach_id?: string;
+  coach?: TeamCoach;
   created_at?: string;
   id?: string;
   name?: string;
+  roster?: ApiInternalDomainsTeamDtoRosterMemberInfo[];
   updated_at?: string;
+}
+
+export interface UserUpdateRequestDto {
+  /** @example "US" */
+  country_alpha2_code: string;
+  /** @example "2000-01-01" */
+  dob: string;
+  email?: string;
+  first_name: string;
+  gender?: "M" | "F";
+  has_marketing_email_consent: boolean;
+  has_sms_consent: boolean;
+  last_name: string;
+  parent_id?: string;
+  phone?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -683,6 +698,43 @@ export class HttpClient<SecurityDataType = unknown> {
  * @contact <klintlee1@gmail.com>
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  athletes = {
+    /**
+     * No description
+     *
+     * @tags athletes
+     * @name TeamUpdate
+     * @request PUT:/athletes/{athlete_id}/team/{team_id}
+     * @secure
+     */
+    teamUpdate: (athleteId: string, teamId: string, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/athletes/${athleteId}/team/${teamId}`,
+        method: "PUT",
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags athletes
+     * @name StatsPartialUpdate
+     * @request PATCH:/athletes/{id}/stats
+     * @secure
+     */
+    statsPartialUpdate: (id: string, update_body: CustomerStatsUpdateRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/athletes/${id}/stats`,
+        method: "PATCH",
+        body: update_body,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   auth = {
     /**
      * No description
@@ -719,55 +771,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  barbers = {
-    /**
-     * @description Retrieve a list of all barber services
-     *
-     * @tags barber
-     * @name ServicesList
-     * @summary Get all barber services
-     * @request GET:/barbers/services
-     */
-    servicesList: (params: RequestParams = {}) =>
-      this.request<HaircutBarberServiceResponseDto[], Record<string, any>>({
-        path: `/barbers/services`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Create a new barber service with the provided details
-     *
-     * @tags barber
-     * @name ServicesCreate
-     * @summary Create a new barber service
-     * @request POST:/barbers/services
-     */
-    servicesCreate: (request: HaircutCreateBarberServiceRequestDto, params: RequestParams = {}) =>
-      this.request<void, Record<string, any>>({
-        path: `/barbers/services`,
-        method: "POST",
-        body: request,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Delete a barber service by its ID
-     *
-     * @tags barber
-     * @name ServicesDelete
-     * @summary Delete a barber service
-     * @request DELETE:/barbers/services/{id}
-     */
-    servicesDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, Record<string, any>>({
-        path: `/barbers/services/${id}`,
-        method: "DELETE",
-        ...params,
-      }),
-  };
   checkout = {
     /**
      * No description
@@ -792,7 +795,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags payments
      * @name MembershipPlansCreate
-     * @summary CheckoutMembershipPlan a membership plan
      * @request POST:/checkout/membership_plans/{id}
      * @secure
      */
@@ -826,7 +828,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   customers = {
     /**
-     * @description Retrieves a list of customers, optionally filtered by HubSpot IDs, with pagination support.
+     * @description Retrieves a list of customers, optionally filtered by fields like parent ID, name, email, phone, and ID, with pagination support.
      *
      * @tags customers
      * @name CustomersList
@@ -835,10 +837,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     customersList: (
       query?: {
-        /** Number of customers to retrieve (default: 20) */
+        /** Number of customers to retrieve (default: 20, max: 20) */
         limit?: number;
         /** Number of customers to skip (default: 0) */
         offset?: number;
+        /** Search term to filter customers */
+        search?: string;
         /** Parent ID to filter customers (example: 123e4567-e89b-12d3-a456-426614174000) */
         parent_id?: string;
       },
@@ -884,128 +888,83 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
-
-    /**
-     * No description
-     *
-     * @tags customers
-     * @name AthletePartialUpdate
-     * @request PATCH:/customers/{customer_id}/athlete
-     * @secure
-     */
-    athletePartialUpdate: (
-      customerId: string,
-      update_body: CustomerStatsUpdateRequestDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/customers/${customerId}/athlete`,
-        method: "PATCH",
-        body: update_body,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
   };
   events = {
     /**
-     * @description Retrieve all events within a specific date range, with optional filters by course, location, game, and practice.
+     * No description
      *
      * @tags events
      * @name EventsList
-     * @summary Get events
      * @request GET:/events
      */
     eventsList: (
       query?: {
         /**
          * Start date of the events range (YYYY-MM-DD)
+         * @format date
          * @example ""2025-03-01""
          */
         after?: string;
         /**
          * End date of the events range (YYYY-MM-DD)
+         * @format date
          * @example ""2025-03-31""
          */
         before?: string;
         /**
-         * Filter by program ID (UUID format)
+         * Filter by program ID
+         * @format uuid
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         program_id?: string;
         /**
-         * Filter by participant ID (UUID format)
+         * Filter by participant ID
+         * @format uuid
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         participant_id?: string;
         /**
-         * Filter by team ID (UUID format)
+         * Filter by team ID
+         * @format uuid
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         team_id?: string;
         /**
-         * Filter by location ID (UUID format)
+         * Filter by location ID
+         * @format uuid
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         location_id?: string;
-        /** Program Type (game, practice, course, others) */
-        program_type?: string;
         /**
-         * ID of person who created the event (UUID format)
+         * Filter by program type
+         * @example "game"
+         */
+        program_type?: "game" | "practice" | "course" | "others";
+        /**
+         * Response format type
+         * @default "date"
+         * @example "date"
+         */
+        response_type?: "date" | "day";
+        /**
+         * ID of person who created the event
+         * @format uuid
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         created_by?: string;
         /**
-         * ID of person who updated the event (UUID format)
+         * ID of person who updated the event
+         * @format uuid
          * @example ""550e8400-e29b-41d4-a716-446655440000""
          */
         updated_by?: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<EventEventResponseDto[], Record<string, any>>({
+      this.request<EventRecurrenceResponseDto[], Record<string, any>>({
         path: `/events`,
         method: "GET",
         query: query,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags events
-     * @name EventsUpdate
-     * @request PUT:/events
-     * @secure
-     */
-    eventsUpdate: (event: EventUpdateEventsRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/events`,
-        method: "PUT",
-        body: event,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags events
-     * @name EventsCreate
-     * @request POST:/events
-     * @secure
-     */
-    eventsCreate: (event: EventCreateRequestDto, params: RequestParams = {}) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/events`,
-        method: "POST",
-        body: event,
-        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1024,6 +983,63 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/events`,
         method: "DELETE",
         body: ids,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags events
+     * @name OneTimeCreate
+     * @request POST:/events/one-time
+     * @secure
+     */
+    oneTimeCreate: (event: EventEventRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events/one-time`,
+        method: "POST",
+        body: event,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags events
+     * @name RecurringCreate
+     * @request POST:/events/recurring
+     * @secure
+     */
+    recurringCreate: (event: EventRecurrenceRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events/recurring`,
+        method: "POST",
+        body: event,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags events
+     * @name RecurringUpdate
+     * @request PUT:/events/recurring/{id}
+     * @secure
+     */
+    recurringUpdate: (id: string, event: EventRecurrenceRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/events/recurring/${id}`,
+        method: "PUT",
+        body: event,
         secure: true,
         type: ContentType.Json,
         format: "json",
@@ -1071,18 +1087,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name EventsDetail
      * @request GET:/events/{id}
      */
-    eventsDetail: (
-      id: string,
-      query?: {
-        /** Choose between 'date' and 'day'. Response type for the schedule, in specific dates or recurring day information. Default is 'day'. */
-        view?: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    eventsDetail: (id: string, params: RequestParams = {}) =>
       this.request<EventEventResponseDto, Record<string, any>>({
         path: `/events/${id}`,
         method: "GET",
-        query: query,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -1092,13 +1100,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags events
-     * @name EventsUpdate2
+     * @name EventsUpdate
      * @request PUT:/events/{id}
-     * @originalName eventsUpdate
-     * @duplicate
      * @secure
      */
-    eventsUpdate2: (id: string, event: EventUpdateRequestDto, params: RequestParams = {}) =>
+    eventsUpdate: (id: string, event: EventEventRequestDto, params: RequestParams = {}) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${id}`,
         method: "PUT",
@@ -1199,7 +1205,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * @description Retrieves all haircut images from a folder in Google Cloud Storage. Optionally, specify a barber name to get images from that barber's folder.
      *
-     * @tags haircut
+     * @tags haircuts
      * @name HaircutsList
      * @request GET:/haircuts
      */
@@ -1222,7 +1228,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * @description Uploads a haircut image to Google Cloud Storage and returns the object URL.
      *
-     * @tags haircut
+     * @tags haircuts
      * @name HaircutsCreate
      * @request POST:/haircuts
      * @secure
@@ -1250,7 +1256,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * @description Retrieve all haircut events, with optional filters by barber ID and customer ID.
      *
-     * @tags haircut
+     * @tags haircuts
      * @name EventsList
      * @summary Get all haircut events
      * @request GET:/haircuts/events
@@ -1274,7 +1280,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {},
     ) =>
-      this.request<HaircutEventResponseDto[], Record<string, any>>({
+      this.request<HaircutEventEventResponseDto[], Record<string, any>>({
         path: `/haircuts/events`,
         method: "GET",
         query: query,
@@ -1286,13 +1292,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * @description Registers a new haircut event with the provided details from request body. Requires an Authorization header containing the customer's JWT, ensuring only logged-in customers can make the request.
      *
-     * @tags haircut
+     * @tags haircuts
      * @name EventsCreate
      * @request POST:/haircuts/events
      * @secure
      */
-    eventsCreate: (event: HaircutRequestDto, params: RequestParams = {}) =>
-      this.request<HaircutEventResponseDto, Record<string, any>>({
+    eventsCreate: (event: HaircutEventRequestDto, params: RequestParams = {}) =>
+      this.request<HaircutEventEventResponseDto, Record<string, any>>({
         path: `/haircuts/events`,
         method: "POST",
         body: event,
@@ -1305,12 +1311,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * @description Retrieves details of a specific haircut event based on its ID.
      *
-     * @tags haircut
+     * @tags haircuts
      * @name EventsDetail
      * @request GET:/haircuts/events/{id}
      */
     eventsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<HaircutEventResponseDto, Record<string, any>>({
+      this.request<HaircutEventEventResponseDto, Record<string, any>>({
         path: `/haircuts/events/${id}`,
         method: "GET",
         type: ContentType.Json,
@@ -1321,7 +1327,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * @description Deletes a haircut event by its ID.
      *
-     * @tags haircut
+     * @tags haircuts
      * @name EventsDelete
      * @request DELETE:/haircuts/events/{id}
      */
@@ -1332,14 +1338,58 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags haircuts
+     * @name ServicesList
+     * @request GET:/haircuts/services
+     */
+    servicesList: (params: RequestParams = {}) =>
+      this.request<HaircutServiceBarberServiceResponseDto[], Record<string, any>>({
+        path: `/haircuts/services`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags haircuts
+     * @name ServicesCreate
+     * @request POST:/haircuts/services
+     */
+    servicesCreate: (request: HaircutServiceCreateBarberServiceRequestDto, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/haircuts/services`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags haircuts
+     * @name ServicesDelete
+     * @request DELETE:/haircuts/services/{id}
+     */
+    servicesDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/haircuts/services/${id}`,
+        method: "DELETE",
+        ...params,
+      }),
   };
   locations = {
     /**
-     * @description Retrieves a list of all locations.
+     * No description
      *
      * @tags locations
      * @name LocationsList
-     * @summary Get all locations
      * @request GET:/locations
      */
     locationsList: (params: RequestParams = {}) =>
@@ -1352,11 +1402,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Registers a new Location with the provided details.
+     * No description
      *
      * @tags locations
      * @name LocationsCreate
-     * @summary Create a new Location
      * @request POST:/locations
      */
     locationsCreate: (body: LocationRequestDto, params: RequestParams = {}) =>
@@ -1370,11 +1419,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Retrieves a Location by its unique identifier.
+     * No description
      *
      * @tags locations
      * @name LocationsDetail
-     * @summary Get a Location by ID
      * @request GET:/locations/{id}
      */
     locationsDetail: (id: string, params: RequestParams = {}) =>
@@ -1387,11 +1435,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Updates the details of an existing Location by its UUID.
+     * No description
      *
      * @tags locations
      * @name LocationsUpdate
-     * @summary Update a Location
      * @request PUT:/locations/{id}
      */
     locationsUpdate: (id: string, body: LocationRequestDto, params: RequestParams = {}) =>
@@ -1404,11 +1451,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Deletes a Location by its UUID.
+     * No description
      *
      * @tags locations
      * @name LocationsDelete
-     * @summary Delete a Location
      * @request DELETE:/locations/{id}
      */
     locationsDelete: (id: string, params: RequestParams = {}) =>
@@ -1421,11 +1467,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   memberships = {
     /**
-     * @description Get a list of memberships
+     * No description
      *
      * @tags memberships
      * @name MembershipsList
-     * @summary Get a list of memberships
      * @request GET:/memberships
      */
     membershipsList: (params: RequestParams = {}) =>
@@ -1438,11 +1483,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Create a new membership
+     * No description
      *
      * @tags memberships
      * @name MembershipsCreate
-     * @summary Create a new membership
      * @request POST:/memberships
      * @secure
      */
@@ -1457,11 +1501,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Create a new membership plan
+     * No description
      *
      * @tags membership-plans
      * @name PlansCreate
-     * @summary Create a new membership plan
      * @request POST:/memberships/plans
      * @secure
      */
@@ -1476,11 +1519,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update a membership plan
+     * No description
      *
      * @tags membership-plans
      * @name PlansUpdate
-     * @summary Update a membership plan
      * @request PUT:/memberships/plans/{id}
      * @secure
      */
@@ -1495,11 +1537,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Delete a membership plan by ID
+     * No description
      *
      * @tags membership-plans
      * @name PlansDelete
-     * @summary Delete a membership plan
      * @request DELETE:/memberships/plans/{id}
      * @secure
      */
@@ -1513,11 +1554,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Get a membership by ID
+     * No description
      *
      * @tags memberships
      * @name MembershipsDetail
-     * @summary Get a membership by ID
      * @request GET:/memberships/{id}
      */
     membershipsDetail: (id: string, params: RequestParams = {}) =>
@@ -1530,11 +1570,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update a membership
+     * No description
      *
      * @tags memberships
      * @name MembershipsUpdate
-     * @summary Update a membership
      * @request PUT:/memberships/{id}
      * @secure
      */
@@ -1549,11 +1588,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Delete a membership by ID
+     * No description
      *
      * @tags memberships
      * @name MembershipsDelete
-     * @summary Delete a membership
      * @request DELETE:/memberships/{id}
      * @secure
      */
@@ -1567,11 +1605,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Get membership plans by membership ID
+     * No description
      *
      * @tags membership-plans
      * @name PlansDetail
-     * @summary Get membership plans by membership ID
      * @request GET:/memberships/{id}/plans
      */
     plansDetail: (id: string, params: RequestParams = {}) =>
@@ -1585,11 +1622,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   programs = {
     /**
-     * @description Get a list of programs
+     * No description
      *
      * @tags programs
      * @name ProgramsList
-     * @summary Get a list of programs
      * @request GET:/programs
      */
     programsList: (
@@ -1609,11 +1645,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Create a new program
+     * No description
      *
      * @tags programs
      * @name ProgramsCreate
-     * @summary Create a new program
      * @request POST:/programs
      * @secure
      */
@@ -1629,7 +1664,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Retrieves a list of available program levels.
+     * No description
      *
      * @tags programs
      * @name LevelsList
@@ -1661,11 +1696,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update a program
+     * No description
      *
      * @tags programs
      * @name ProgramsUpdate
-     * @summary Update a program
      * @request PUT:/programs/{id}
      */
     programsUpdate: (id: string, program: ProgramRequestDto, params: RequestParams = {}) =>
@@ -1786,77 +1820,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  schedules = {
+  staffs = {
     /**
      * No description
      *
-     * @tags Schedules
-     * @name SchedulesList
-     * @request GET:/schedules
-     */
-    schedulesList: (
-      query?: {
-        /**
-         * Start date of the events range (YYYY-MM-DD format)
-         * @example ""2025-03-01""
-         */
-        after?: string;
-        /**
-         * End date of the events range (YYYY-MM-DD format)
-         * @example ""2025-03-31""
-         */
-        before?: string;
-        /**
-         * Filter by program ID (UUID format)
-         * @example ""550e8400-e29b-41d4-a716-446655440000""
-         */
-        program_id?: string;
-        /**
-         * Filter by user ID (UUID format)
-         * @example ""550e8400-e29b-41d4-a716-446655440000""
-         */
-        user_id?: string;
-        /**
-         * Filter by team ID (UUID format)
-         * @example ""550e8400-e29b-41d4-a716-446655440000""
-         */
-        team_id?: string;
-        /**
-         * Filter by location ID (UUID format)
-         * @example ""550e8400-e29b-41d4-a716-446655440000""
-         */
-        location_id?: string;
-        /** Filter by program type */
-        program_type?: "game" | "practice" | "course" | "others";
-        /**
-         * Filter by creator ID (UUID format)
-         * @example ""550e8400-e29b-41d4-a716-446655440000""
-         */
-        created_by?: string;
-        /**
-         * Filter by updater ID (UUID format)
-         * @example ""550e8400-e29b-41d4-a716-446655440000""
-         */
-        updated_by?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<EventScheduleResponseDto[], Record<string, any>>({
-        path: `/schedules`,
-        method: "GET",
-        query: query,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  staffs = {
-    /**
-     * @description Retrieves staff members based on optional role filter.
-     *
      * @tags staff
      * @name StaffsList
-     * @summary Get a list of staff members
      * @request GET:/staffs
      */
     staffsList: (
@@ -1879,11 +1848,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update a staff member
+     * @description Retrieves a paginated list of staff activity logs with optional filtering
+     *
+     * @tags staff_activity_logs
+     * @name LogsList
+     * @summary Get staff activity logs
+     * @request GET:/staffs/logs
+     */
+    logsList: (
+      query?: {
+        /**
+         * Filter by staff member ID (UUID format)
+         * @example ""550e8400-e29b-41d4-a716-446655440000""
+         */
+        staff_id?: string;
+        /** Search term to filter activity descriptions (case-insensitive partial match) */
+        search_description?: string;
+        /**
+         * Number of records to return (default: 10)
+         * @example 10
+         */
+        limit?: number;
+        /**
+         * Number of records to skip for pagination (default: 0)
+         * @example 0
+         */
+        offset?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<StaffActivityLogsStaffActivityLogResponse[], Record<string, any>>({
+        path: `/staffs/logs`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
      *
      * @tags staff
      * @name StaffsUpdate
-     * @summary Update a staff member
      * @request PUT:/staffs/{id}
      * @secure
      */
@@ -1898,11 +1904,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Delete a staff member by HubSpotId
+     * No description
      *
      * @tags staff
      * @name StaffsDelete
-     * @summary Delete a staff member
      * @request DELETE:/staffs/{id}
      * @secure
      */
@@ -1955,6 +1960,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags teams
+     * @name TeamsDetail
+     * @request GET:/teams/{id}
+     */
+    teamsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<TeamResponse, Record<string, any>>({
+        path: `/teams/${id}`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags teams
      * @name TeamsUpdate
      * @request PUT:/teams/{id}
      * @secure
@@ -1983,6 +2004,26 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  users = {
+    /**
+     * No description
+     *
+     * @tags users
+     * @name UsersUpdate
+     * @request PUT:/users/{id}
+     * @secure
+     */
+    usersUpdate: (id: string, user: UserUpdateRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/users/${id}`,
+        method: "PUT",
+        body: user,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

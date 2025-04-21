@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
-import { HaircutRequestDto } from "@/app/api/Api";
+import { HaircutEventRequestDto } from "@/app/api/Api";
 import { createHaircutEvent } from "@/services/haircuts";
 import { format, addHours } from "date-fns";
 import { getAllCustomers } from "@/services/customer";
@@ -157,7 +157,7 @@ export default function AddAppointmentForm({
       const endDateTime = new Date(`${formData.date}T${formData.endTime}`).toISOString();
       
       // Create request DTO
-      const appointmentData: HaircutRequestDto = {
+      const appointmentData: HaircutEventRequestDto = {
         barber_id: formData.barber_id,
         begin_time: startDateTime,
         end_time: endDateTime,
