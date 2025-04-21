@@ -1,6 +1,6 @@
 import {
-    HaircutEventResponseDto,
-    HaircutRequestDto,
+    HaircutEventEventResponseDto,
+    HaircutEventRequestDto,
   } from '@/app/api/Api';
   import { addAuthHeader } from '@/lib/auth-header';
   import getValue from '@/configs/constants';
@@ -72,7 +72,7 @@ export async function getHaircutEvents(params?: {
     before?: string;
     barber_id?: string;
     customer_id?: string;
-  }): Promise<HaircutEventResponseDto[]> {
+  }): Promise<HaircutEventEventResponseDto[]> {
     try {
       // Set default time range if none provided
       const today = new Date();
@@ -120,7 +120,7 @@ export async function getHaircutEvents(params?: {
   }
   
   // Create a new haircut event
-  export async function createHaircutEvent(event: HaircutRequestDto, jwt: string): Promise<HaircutEventResponseDto> {
+  export async function createHaircutEvent(event: HaircutEventRequestDto, jwt: string): Promise<HaircutEventEventResponseDto> {
     try {
       const response = await fetch(`${getValue('API')}haircuts/events`, {
         method: 'POST',
@@ -153,7 +153,7 @@ export async function getHaircutEvents(params?: {
   }
   
   // Get a specific haircut event by ID
-  export async function getHaircutEventById(id: string): Promise<HaircutEventResponseDto> {
+  export async function getHaircutEventById(id: string): Promise<HaircutEventEventResponseDto> {
     try {
       const response = await fetch(`${getValue('API')}haircuts/events/${id}`);
   

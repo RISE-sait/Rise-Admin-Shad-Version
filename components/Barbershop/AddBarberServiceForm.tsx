@@ -49,9 +49,9 @@ export default function AddBarberServiceForm({ onServiceAdded, onCancel, barbers
         const uniqueServices = new Map<string, ServiceTypeOption>();
         
         barberServices.forEach(service => {
-          if (service.service_type_id && !uniqueServices.has(service.service_type_id)) {
-            uniqueServices.set(service.service_type_id, {
-              id: service.service_type_id,
+          if (service.haircut_id && !uniqueServices.has(service.haircut_id)) {
+            uniqueServices.set(service.haircut_id, {
+              id: service.haircut_id,
               name: service.haircut_name || 'Unknown Service'
             });
           }
