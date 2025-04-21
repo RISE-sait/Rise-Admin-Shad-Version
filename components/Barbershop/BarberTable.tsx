@@ -19,12 +19,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { HaircutEventResponseDto } from "@/app/api/Api";
+import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { format } from "date-fns";
 
 interface BarberTableProps {
-  appointments: HaircutEventResponseDto[];
-  onAppointmentSelect: (appointment: HaircutEventResponseDto) => void;
+  appointments: HaircutEventEventResponseDto[];
+  onAppointmentSelect: (appointment: HaircutEventEventResponseDto) => void;
   onDeleteAppointment?: (appointmentId: string) => Promise<void>;
   isLoading?: boolean;
 }
@@ -83,7 +83,7 @@ export default function BarberTable({
   }, [appointments, sortColumn, sortDirection]);
 
   // Function to determine appointment status
-  const getAppointmentStatus = (appointment: HaircutEventResponseDto): string => {
+  const getAppointmentStatus = (appointment: HaircutEventEventResponseDto): string => {
     if (!appointment.start_at) return "Unknown";
     
     const now = new Date();

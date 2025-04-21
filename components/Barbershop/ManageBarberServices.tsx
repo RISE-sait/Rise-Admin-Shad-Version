@@ -30,21 +30,16 @@ import {
 import { MoreHorizontal, FolderSearch } from "lucide-react";
 import RightDrawer from "../reusable/RightDrawer";
 import AddBarberServiceForm from "./AddBarberServiceForm";
-import { HaircutBarberServiceResponseDto } from "@/app/api/Api";
-
-// Using the exact API interface since we'll display directly from API data
-interface BarberService extends HaircutBarberServiceResponseDto {
-  // No need to add additional fields as we're using the API model directly
-}
+import { HaircutServiceBarberServiceResponseDto } from "@/app/api/Api";
 
 export default function ManageBarberServicesPage() {
-  const [services, setServices] = useState<BarberService[]>([]);
-  const [filteredServices, setFilteredServices] = useState<BarberService[]>([]);
+  const [services, setServices] = useState<HaircutServiceBarberServiceResponseDto[]>([]);
+  const [filteredServices, setFilteredServices] = useState<HaircutServiceBarberServiceResponseDto[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<BarberService | null>(null);
+  const [selectedService, setSelectedService] = useState<HaircutServiceBarberServiceResponseDto | null>(null);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   
@@ -89,7 +84,7 @@ export default function ManageBarberServicesPage() {
     }
   }, [searchQuery, services]);
 
-  const handleServiceSelect = (service: BarberService) => {
+  const handleServiceSelect = (service: HaircutServiceBarberServiceResponseDto) => {
     setSelectedService(service);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -229,7 +224,7 @@ export default function ManageBarberServicesPage() {
                     {service.haircut_name || "Unknown Service"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium">
-                    {service.service_type_id || "N/A"}
+                    {service.haircut_id || "N/A"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium text-right">
                     <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
@@ -305,7 +300,7 @@ export default function ManageBarberServicesPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Service Type ID</h3>
-                  <p className="text-lg">{selectedService.service_type_id || "N/A"}</p>
+                  <p className="text-lg">{selectedService.haircut_id || "N/A"}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Created At</h3>

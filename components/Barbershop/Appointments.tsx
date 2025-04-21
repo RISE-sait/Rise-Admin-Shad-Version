@@ -22,7 +22,7 @@ import {
 import { format, isBefore, isAfter, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
-import { HaircutEventResponseDto } from "@/app/api/Api";
+import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { getHaircutEvents, deleteHaircutEvent } from "@/services/haircuts";
 import { getAllStaffs } from "@/services/staff";
 import BarberTable from "./BarberTable";
@@ -47,8 +47,8 @@ import { StaffRoleEnum } from "@/types/user";
 type AppointmentView = "all" | "upcoming" | "completed";
 
 export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<HaircutEventResponseDto[]>([]);
-  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventResponseDto[]>([]);
+  const [appointments, setAppointments] = useState<HaircutEventEventResponseDto[]>([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventEventResponseDto[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -56,7 +56,7 @@ export default function AppointmentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventResponseDto | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventEventResponseDto | null>(null);
   const [activeView, setActiveView] = useState<AppointmentView>("all");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
@@ -246,7 +246,7 @@ export default function AppointmentsPage() {
   };
 
   // Apply search filter
-  const applySearchFilter = (appointmentsToFilter: HaircutEventResponseDto[]) => {
+  const applySearchFilter = (appointmentsToFilter: HaircutEventEventResponseDto[]) => {
     if (!searchQuery) return appointmentsToFilter;
 
     return appointmentsToFilter.filter(apt =>
@@ -266,7 +266,7 @@ export default function AppointmentsPage() {
   }, [searchQuery]);
 
   // Handle appointment selection
-  const handleAppointmentSelect = (appointment: HaircutEventResponseDto) => {
+  const handleAppointmentSelect = (appointment: HaircutEventEventResponseDto) => {
     setSelectedAppointment(appointment);
     setDrawerContent("details");
     setDrawerOpen(true);

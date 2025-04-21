@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { HaircutEventResponseDto } from "@/app/api/Api";
+import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar, ClipboardList, Clock, User } from "lucide-react";
 
 interface AppointmentInfoPanelProps {
-  appointment: HaircutEventResponseDto;
+  appointment: HaircutEventEventResponseDto;
   onAppointmentUpdated?: () => void;
 }
 
