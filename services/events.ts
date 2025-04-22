@@ -11,9 +11,10 @@ export async function getEvents(query: {
   team_id?: string;
   location_id?: string;
   program_type?: string;
+  response_type: 'day' | 'date'
   created_by?: string;
   updated_by?: string;
-}): Promise<EventEventResponseDto[]> {
+}): Promise<typeof query['response_type'] extends 'date' ? EventEventResponseDto[] : EventRecurrenceResponseDto[]> {
   try {
     const queryParams = new URLSearchParams();
     queryParams.append('after', query.after);
@@ -26,7 +27,7 @@ export async function getEvents(query: {
     if (query.created_by) queryParams.append('created_by', query.created_by);
     if (query.updated_by) queryParams.append('updated_by', query.updated_by);
 
-    const response = await fetch(`${getValue('API')}events?${queryParams.toString()}`)
+    const response = await fetch(`${getValue('API')}events?${queryParams.toString()}&response_type=${query.response_type}`)
 
     const responseJSON = await response.json()
 
@@ -38,7 +39,7 @@ export async function getEvents(query: {
       throw new Error(errorMessage);
     }
 
-    return responseJSON as EventEventResponseDto[];
+    return responseJSON as typeof query['response_type'] extends 'date' ? EventEventResponseDto[] : EventRecurrenceResponseDto[]
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;
@@ -111,13 +112,17 @@ export async function updateEvent(eventID: string, eventData: EventEventRequestD
 /**
  * Update existing events
  */
-export async function updateEvents(eventData: EventEventRequestDto, jwt: string): Promise<string | null> {
+export async function updateRecurrence(eventData: EventRecurrenceRequestDto, recurringId: string, jwt: string): Promise<string | null> {
   try {
 
-    const response = await fetch(`${getValue('API')}events`, {
+    // convert capacity to number if it exists in the request data
+    const response = await fetch(`${getValue('API')}events/recurring/${recurringId}`, {
       method: 'PUT',
       ...addAuthHeader(jwt),
-      body: JSON.stringify(eventData),
+      body: JSON.stringify({
+        ...eventData,
+        capacity: Number(eventData.capacity),
+      }),
     });
 
     if (!response.ok) {
@@ -137,13 +142,12 @@ export async function updateEvents(eventData: EventEventRequestDto, jwt: string)
 }
 
 
-export async function deleteEvents(eventIDs: EventDeleteRequestDto, jwt: string) {
+export async function deleteEventsByRecurrenceID(id: string, jwt: string) {
   try {
 
-    const response = await fetch(`${getValue('API')}events`, {
+    const response = await fetch(`${getValue('API')}events/recurring/${id}`, {
       method: 'DELETE',
       ...addAuthHeader(jwt),
-      body: JSON.stringify(eventIDs),
     });
 
     if (!response.ok) {
@@ -181,6 +185,7 @@ export async function getSchedulesOfProgram(programID: string): Promise<EventSch
     return (responseJSON as EventRecurrenceResponseDto[]).map((schedule) => {
 
       const sch: EventSchedule = {
+        id: schedule.id!,
         day: schedule.day!,
         recurrence_start_at: new Date(schedule.recurrence_start_at!),
         recurrence_end_at: new Date(schedule.recurrence_end_at!),

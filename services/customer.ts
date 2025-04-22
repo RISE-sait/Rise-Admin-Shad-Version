@@ -65,24 +65,16 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
   return customer;
 }
 
-/**
- * Get all customers
- */
-export async function getAllCustomers(hubspotIds?: string[]): Promise<Customer[]> {
+
+export async function getCustomers(search?: string): Promise<Customer[]> {
   try {
     let url = `${getValue('API')}customers`;
-    
-    // Add query parameters for hubspot IDs if provided
-    if (hubspotIds && hubspotIds.length > 0) {
-      const queryParams = hubspotIds.map(id => `hubspot_id=${id}`).join('&');
-      url = `${url}?${queryParams}`;
+
+    if (search) {
+      url += `?search=${encodeURIComponent(search)}`;
     }
     
-    console.log('Fetching customers from URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-    });
+    const response = await fetch(url)
     
     if (!response.ok) {
       console.error('Failed to fetch customers:', response.status, response.statusText);

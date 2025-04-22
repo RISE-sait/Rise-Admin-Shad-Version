@@ -1,30 +1,39 @@
 import { Program } from "@/types/program";
 import { addAuthHeader } from "@/lib/auth-header";
-import  getValue  from "@/configs/constants";
-import { mockPrograms, mockLevels } from "@/components/programs/api-fallback";
-import { ProgramRequestDto } from "@/app/api/Api";
+import getValue from "@/configs/constants";
+import { ProgramLevelsResponse, ProgramRequestDto, ProgramResponse } from "@/app/api/Api";
 
 export async function getAllPrograms(type?: string): Promise<Program[]> {
   try {
     const queryParams = type && type !== "all" ? `?type=${type}` : '';
-    
+
     const response = await fetch(`${getValue("API")}programs${queryParams}`)
 
+    const responseJSON = await response.json()
+
     if (!response.ok) {
-      console.error(`Failed to fetch programs: ${response.status} ${response.statusText}`);
-      console.warn("Using mock data because API request failed");
-      return type 
-        ? mockPrograms.filter(p => p.type === type) 
-        : mockPrograms;
+      let errorMessage = `Failed to get programs: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
     }
 
-    return await response.json();
+    const programs: Program[] = (responseJSON as ProgramResponse[]).map((program) => ({
+      id: program.id!,
+      name: program.name!,
+      description: program.description || "",
+      level: program.level || "",
+      type: program.type || "",
+      capacity: program.capacity || 0,
+      created_at: program.created_at || "",
+      updated_at: program.updated_at || "",
+    }))
+
+    return programs
   } catch (error) {
     console.error('Error fetching programs:', error);
-    console.warn("Using mock data due to error");
-    return type 
-      ? mockPrograms.filter(p => p.type === type) 
-      : mockPrograms;
+    throw error;
   }
 }
 
@@ -35,18 +44,20 @@ export async function getAllProgramLevels(): Promise<string[]> {
   try {
     const response = await fetch(`${getValue("API")}programs/levels`)
 
+    const responseJSON = await response.json()
+
     if (!response.ok) {
-      console.error(`Failed to fetch program levels: ${response.status} ${response.statusText}`);
-      console.warn("Using default levels because API request failed");
-      return mockLevels;
+      let errorMessage = `Failed to get program levels: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
     }
 
-    const levelsResponse = await response.json();
-    return levelsResponse.levels || mockLevels;
+    return (responseJSON as ProgramLevelsResponse).levels!
   } catch (error) {
     console.error('Error fetching program levels:', error);
-    console.warn("Using default levels due to error");
-    return mockLevels;
+    throw error;
   }
 }
 

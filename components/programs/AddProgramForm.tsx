@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast"
-import DetailsTab from "./infoTabs/Details";
-import { SaveIcon, Loader2, X } from "lucide-react";
+import DetailsForm from "./infoTabs/Details";
+import { X } from "lucide-react";
 import { createProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
-import { useFormData } from "@/hooks/form-data";
-import { revalidatePrograms } from "@/app/actions/serverActions";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ProgramRequestDto } from "@/app/api/Api";
+import { revalidatePrograms } from "@/actions/serverActions";
 
 export default function AddProgramForm({
   levels,
@@ -17,44 +16,19 @@ export default function AddProgramForm({
   levels: string[],
   onClose?: () => void
 }) {
-  const { data, resetData, updateField } = useFormData<ProgramRequestDto>({
-    name: "",
-    description: "",
-    level: "all",
-    type: "practice",
-    capacity: 10
-  });
 
   const { user } = useUser();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSaveAll = async () => {
-    // Check if the program name is empty
-    if (!data.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Program name is required.",
-        variant: "destructive",
-        status: "error"
-      });
-      return;
-    }
+  async function handleSaveAll(name: string, description: string, level: string, type: string, capacity: number) {
 
-    // Validate type field
-    if (!data.type) {
-      updateField("type", "practice"); // Set default if missing
-    }
-
-    setIsLoading(true);
     try {
-      // 1. First create the program
       const programData: ProgramRequestDto = {
-        name: data.name,
-        description: data.description,
-        level: data.level,
-        capacity: data.capacity,
-        type: data.type
+        name,
+        description,
+        level,
+        type,
+        capacity: capacity || 0,
       };
 
       // Create program
@@ -67,7 +41,6 @@ export default function AddProgramForm({
           variant: "destructive",
           status: "error"
         });
-        setIsLoading(false);
         return;
       }
 
@@ -76,8 +49,6 @@ export default function AddProgramForm({
         description: "Program created successfully.",
         status: "success"
       })
-      setIsLoading(false);
-      resetData();
       await revalidatePrograms();
       if (onClose) onClose();
       return;
@@ -89,8 +60,6 @@ export default function AddProgramForm({
         variant: "destructive",
         status: "error"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -104,23 +73,20 @@ export default function AddProgramForm({
         )}
       </CardHeader>
       <CardContent>
-        <DetailsTab
-          details={data}
-          updateField={updateField}
+        <DetailsForm
+          program={
+            {
+              name: "",
+              description: "",
+              level: "",
+              type: "",
+              capacity: 0,
+            }
+          }
+          saveAction={handleSaveAll}
           levels={levels}
         />
-        <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-          <div className="flex justify-between px-4">
-            <Button
-              onClick={handleSaveAll}
-              className="gap-2 bg-green-600 hover:bg-green-700"
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SaveIcon className="h-4 w-4" />}
-              Create Program
-            </Button>
-          </div>
-        </div>
+
       </CardContent>
     </Card>
   );

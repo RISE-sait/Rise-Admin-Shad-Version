@@ -8,18 +8,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProgramRequestDto } from "@/app/api/Api";
+import { Button } from "@/components/ui/button";
+import { SaveIcon } from "lucide-react";
+import { Program } from "@/types/program";
+import { useForm } from "react-hook-form";
+import { JSX } from "react";
 
-interface DetailsTabProps {
-  details: ProgramRequestDto;
-  updateField: any; // Change to 'any' to accept any update function
-  levels: string[];
-}
+export default function DetailsForm(
+  { saveAction, program, levels, DeleteButton }:
+    {
+      saveAction: (name: string, description: string, level: string, type: string, capacity: number) => Promise<void>,
+      program: Omit<Program, "id" | "created_at" | "updated_at">,
+      levels: string[],
+      DeleteButton?: JSX.Element
+    }) {
 
-export default function DetailsTab({ details, updateField, levels }: DetailsTabProps) {
-  const handleChangeField = (field: keyof ProgramRequestDto, value: string | number) => {
-    updateField(field, value);
-  };
+  const { register, getValues, watch, setValue } = useForm<Program>({
+    defaultValues: {
+      ...program,
+    }
+  })
+
+  const currentType = watch("type");
+  const currentLevel = watch("level");
+
+  const handleSubmit = async () => {
+
+    const name = getValues("name");
+    const description = getValues("description");
+    const level = getValues("level");
+    const type = getValues("type");
+    const capacity = getValues("capacity") || 0;
+
+    await saveAction(name, description, level, type, capacity);
+  }
 
   return (
     <div className="space-y-6">
@@ -28,9 +50,8 @@ export default function DetailsTab({ details, updateField, levels }: DetailsTabP
           <Label htmlFor="name">Program Name</Label>
           <Input
             id="name"
+            {...register("name")}
             placeholder="Enter program name"
-            value={details.name}
-            onChange={(e) => handleChangeField("name", e.target.value)}
           />
         </div>
 
@@ -39,8 +60,7 @@ export default function DetailsTab({ details, updateField, levels }: DetailsTabP
           <Textarea
             id="description"
             placeholder="Enter program description"
-            value={details.description}
-            onChange={(e) => handleChangeField("description", e.target.value)}
+            {...register("description")}
             className="min-h-[100px]"
           />
         </div>
@@ -48,8 +68,8 @@ export default function DetailsTab({ details, updateField, levels }: DetailsTabP
         <div className="grid gap-2">
           <Label htmlFor="level">Level</Label>
           <Select
-            value={details.level}
-            onValueChange={(value) => handleChangeField("level", value)}
+            defaultValue={program.level}
+            onValueChange={(value) => setValue("level", value)}
           >
             <SelectTrigger id="level">
               <SelectValue placeholder="Select level" />
@@ -67,8 +87,8 @@ export default function DetailsTab({ details, updateField, levels }: DetailsTabP
         <div className="grid gap-2">
           <Label htmlFor="type">Program Type</Label>
           <Select
-            value={details.type}
-            onValueChange={(value) => handleChangeField("type", value)}
+            defaultValue={program.type}
+            onValueChange={(value) => setValue("type", value)}
           >
             <SelectTrigger id="type">
               <SelectValue placeholder="Select type" />
@@ -89,11 +109,24 @@ export default function DetailsTab({ details, updateField, levels }: DetailsTabP
             type="number"
             min={1}
             placeholder="NULL"
-            value={details.capacity || ""}
-            onChange={(e) => handleChangeField("capacity", parseInt(e.target.value) || 0)}
+            {...register("capacity", { valueAsNumber: true })}
           />
+        </div>
+
+
+        <div className="flex items-center justify-end gap-3 mt-4">
+
+          <Button
+            onClick={handleSubmit}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+
+          {DeleteButton && DeleteButton}
         </div>
       </div>
     </div>
-  );
+  )
 }

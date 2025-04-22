@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { deleteLocation } from "@/services/location";
 import { useUser } from "@/contexts/UserContext";
-import { revalidateLocations } from "@/app/actions/serverActions";
+import { revalidateLocations } from "@/actions/serverActions";
 import FacilityTable from "./table/LocationTable";
 import {
   DropdownMenu,
@@ -41,8 +41,8 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
     ? facilities.filter(
         (facility) =>
           facility.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (facility.Address &&
-            facility.Address.toLowerCase().includes(searchQuery.toLowerCase()))
+          (facility.address &&
+            facility.address.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : facilities;
 

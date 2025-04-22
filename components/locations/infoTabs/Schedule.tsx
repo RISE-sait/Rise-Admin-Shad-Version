@@ -12,23 +12,6 @@ export default function SchedulesTab({ facilityId }: { facilityId: string }) {
 
   const [schedules, setSchedules] = useState<Schedule[]>([])
 
-  useEffect(() => {
-    // Fetch the schedules based on the facilityId
-    (async () => {
-      const response = await fetch("/api/events?facility_id=" + facilityId)
-
-      if (!response.ok) {
-        console.error("Failed to fetch schedules")
-        console.error(await response.text())
-        return
-      }
-
-      const schedules = await response.json()
-
-      setSchedules(schedules)
-    })()
-  }, [facilityId])
-
   return (
     <div className="p-4 space-y-4">
       {

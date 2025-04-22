@@ -11,22 +11,11 @@ import { getEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
 import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
 import { useUser } from "@/contexts/UserContext";
+import { EventEventRequestDto, EventEventResponseDto } from "@/app/api/Api";
 
 interface CalendarPageProps {
   initialEvents: CalendarEvent[];
 }
-
-type EventQueryParams = {
-  after: string;
-  before: string;
-  program_id?: string;
-  user_id?: string;
-  team_id?: string;
-  location_id?: string;
-  program_type?: string;
-  created_by?: string;
-  updated_by?: string;
-};
 
 export default function CalendarPage({ initialEvents }: CalendarPageProps) {
   // State for events, filtered events, and UI
@@ -74,8 +63,8 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       setIsLoading(true);
 
       try {
-        // Convert multi-select arrays to comma-separated strings
-        const query: EventQueryParams = {
+
+        const eventsData = await getEvents({
           after: filters.after,
           before: filters.before,
           program_id: filters.program_id,
@@ -85,37 +74,8 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           program_type: filters.program_type,
           created_by: filters.created_by,
           updated_by: filters.updated_by,
-        }
-
-        // Handle multi-select location_ids
-        if (filters.location_ids?.length) {
-          query.location_id = filters.location_ids.join(',');
-        } else {
-          query.location_id = filters.location_id || undefined;
-        }
-
-        // Handle multi-select user_ids (trainers)
-        if (filters.user_ids?.length) {
-          query.user_id = filters.user_ids.join(',');
-        } else {
-          query.user_id = filters.user_id || undefined;
-        }
-
-        // Handle multi-select program_ids
-        if (filters.program_ids?.length) {
-          query.program_id = filters.program_ids.join(',');
-        } else {
-          query.program_id = filters.program_id || undefined;
-        }
-
-        // Remove undefined values
-        Object.keys(query).forEach(key => {
-          if (query[key as keyof EventQueryParams] === undefined) {
-            delete query[key as keyof EventQueryParams];
-          }
-        });
-
-        const eventsData = await getEvents(query);
+          response_type: "date",
+        }) as EventEventResponseDto[];
 
         function getEventColor(programType?: string): string {
           switch (programType?.toLowerCase()) {

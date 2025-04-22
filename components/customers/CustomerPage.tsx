@@ -21,12 +21,26 @@ import { ChevronDown } from "lucide-react";
 import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 import { AlertModal } from "@/components/ui/AlertModal";
+import { useRouterQuery } from "@/hooks/router-query";
 
 interface CustomerPageProps {
+  searchTerm: string;
   customers: Customer[];
 }
 
-export default function CustomersPage({ customers }: CustomerPageProps) {
+const debounce = (func: Function, delay: number) => {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: any[]) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+}
+
+export default function CustomersPage({ customers, searchTerm }: CustomerPageProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
@@ -35,17 +49,15 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
+  const { replace, val } = useRouterQuery({
+    search: searchTerm,
+  });
+
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
-
-  const filteredCustomers = customers.filter(
-    (customer) =>
-      customer.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      customer.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleColumnVisibilityChange = (
     updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
@@ -74,16 +86,6 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
         <Heading title="Customers" description="Manage your customers and their details" />
-        {/*<Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add Customer
-        </Button>*/}
       </div>
       <Separator />
 
@@ -94,7 +96,10 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
             placeholder="Search customers..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              debounce(() => replace({ search: e.target.value }), 30)()
+            }}
           />
         </div>
         <div className="flex items-center gap-4">
@@ -141,9 +146,9 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
       </div>
 
       <CustomerTable
-        customers={filteredCustomers}
+        customers={customers}
         onCustomerSelect={handleCustomerSelect}
-        onDeleteCustomer={() => {}}
+        onDeleteCustomer={() => { }}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         selectedIds={selectedIds}
@@ -169,13 +174,13 @@ export default function CustomersPage({ customers }: CustomerPageProps) {
           {drawerContent === "details" && selectedCustomer && (
             <CustomerInfoPanel
               customer={selectedCustomer}
-              onCustomerUpdated={() => {}}
-              onCustomerDeleted={() => {}}
+              onCustomerUpdated={() => { }}
+              onCustomerDeleted={() => { }}
             />
           )}
           {drawerContent === "add" && (
             <AddCustomerForm
-              onCustomerAdded={() => {}}
+              onCustomerAdded={() => { }}
               onCancel={() => setDrawerOpen(false)}
             />
           )}

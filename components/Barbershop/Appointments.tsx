@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { getAllCustomers } from "@/services/customer";
+import { getCustomers } from "@/services/customer";
 import { Customer } from "@/types/customer";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -81,7 +81,7 @@ export default function AppointmentsPage() {
     const fetchCustomers = async () => {
       try {
         setIsLoadingCustomers(true);
-        const customerData = await getAllCustomers();
+        const customerData = await getCustomers();
         setCustomers(customerData);
       } catch (error) {
         console.error("Error fetching customers:", error);
