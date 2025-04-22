@@ -51,7 +51,7 @@ export default function CalendarPage({ events }: CalendarPageProps) {
             setDate={setDate}
             mode={mode}
             setMode={setMode}
-            onEventSelect={() => setSelectedEvent(selectedEvent)}
+            onEventSelect={(event) => setSelectedEvent(event)}
           />
         </div>
       </div>
