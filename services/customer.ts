@@ -66,11 +66,11 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
 }
 
 
-export async function getCustomers(search: string): Promise<Customer[]> {
+export async function getCustomers(search?: string): Promise<Customer[]> {
   try {
     let url = `${getValue('API')}customers`;
 
-    if (search.length > 0) {
+    if (search) {
       url += `?search=${encodeURIComponent(search)}`;
     }
     
