@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import RightDrawer from "@/components/reusable/RightDrawer";
 import FilterComponent from "./Filter";
 import { CalendarEvent, Mode } from "@/types/calendar";
 import { useDrawer } from "@/hooks/drawer";
@@ -16,7 +15,6 @@ export default function CalendarPage({ events }: CalendarPageProps) {
 
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [filterOpen, setFilterOpen] = useState(true);
-  const { drawerOpen, drawerContent, closeDrawer } = useDrawer();
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(events || [])
 
   const [date, setDate] = useState<Date>(new Date())
@@ -55,35 +53,6 @@ export default function CalendarPage({ events }: CalendarPageProps) {
           />
         </div>
       </div>
-
-      {/* Right Drawer */}
-      <RightDrawer
-        drawerOpen={drawerOpen}
-        handleDrawerClose={closeDrawer}
-        drawerWidth="w-[50%]"
-      >
-        {drawerContent === "details" && selectedEvent && (
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">
-              {selectedEvent.program?.name || "Unnamed Event"}
-            </h2>
-            <p className="mb-2"><strong>Start:</strong> {selectedEvent.start_at?.toLocaleString()}</p>
-            <p className="mb-2"><strong>End:</strong> {selectedEvent.end_at?.toLocaleString()}</p>
-            <p className="mb-2"><strong>Location:</strong> {selectedEvent.location?.name}</p>
-            <p className="mb-2"><strong>Capacity:</strong> {selectedEvent.capacity}</p>
-            {selectedEvent.staff && selectedEvent.staff.length > 0 && (
-              <div className="mb-2">
-                <strong>Staff:</strong>
-                <ul className="ml-4 mt-1">
-                  {selectedEvent.staff.map(s => (
-                    <li key={s.id}>{s.firstName} {s.lastName}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-      </RightDrawer>
     </div>
   );
 }
