@@ -200,6 +200,7 @@ export interface EventRecurrenceRequestDto {
 
 export interface EventRecurrenceResponseDto {
   day?: string;
+  id?: string;
   location?: EventLocation;
   program?: EventProgram;
   recurrence_end_at?: string;

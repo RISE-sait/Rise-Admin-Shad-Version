@@ -54,7 +54,7 @@ export const columns: ColumnDef<Location>[] = [
   },
   {
     id: "address",
-    accessorKey: "Address", // Matches your API casing
+    accessorKey: "address",
     header: ({ column }) => (
       <Button
         variant="ghost"

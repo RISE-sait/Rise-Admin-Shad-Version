@@ -1,16 +1,12 @@
 {
-    "schemes": [],
     "swagger": "2.0",
     "info": {
-        "description": "",
         "title": "Rise API",
         "contact": {
             "email": "klintlee1@gmail.com"
         },
         "version": "1.0"
     },
-    "host": "",
-    "basePath": "",
     "paths": {
         "/athletes/{athlete_id}/team/{team_id}": {
             "put": {
@@ -4144,6 +4140,9 @@
             "type": "object",
             "properties": {
                 "day": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "location": {
