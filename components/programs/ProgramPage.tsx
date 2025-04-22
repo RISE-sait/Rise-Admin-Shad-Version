@@ -11,7 +11,7 @@ import { Program } from "@/types/program";
 import { deleteProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { revalidatePrograms } from "@/app/actions/serverActions";
+import { revalidatePrograms } from "@/actions/serverActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, GraduationCap, Gamepad2 } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";

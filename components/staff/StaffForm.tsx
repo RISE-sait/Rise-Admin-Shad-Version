@@ -18,7 +18,7 @@ import { FileText, Trash, Save } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import getValue from '@/configs/constants';
 import { useToast } from '@/hooks/use-toast';
-import { revalidateStaffs } from "@/app/actions/serverActions";
+import { revalidateStaffs } from "@/actions/serverActions";
 import { StaffRoleEnum, User } from "@/types/user";
 
 const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({

@@ -12,12 +12,12 @@ export default async function Page() {
 
   return (
     <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
-    <div className="p-6">
-      <ProgramPage
-        programs={programs}
-        programLevels={programLevels}
-      />
-    </div>
+      <div className="p-6">
+        <ProgramPage
+          programs={programs}
+          programLevels={programLevels}
+        />
+      </div>
     </RoleProtected>
   );
 }

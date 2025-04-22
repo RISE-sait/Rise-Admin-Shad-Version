@@ -1,50 +1,38 @@
-"use client";
+"use client"
 
 import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import DetailsTab from "./infoTabs/Details";
+import DetailsForm from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedule";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Calendar } from "lucide-react";
+import { FileText, Calendar, TrashIcon } from "lucide-react";
 import { deleteProgram, updateProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
 import { Program } from "@/types/program";
-import { revalidatePrograms } from "@/app/actions/serverActions";
-import { useFormData } from "@/hooks/form-data";
+import { revalidatePrograms } from "@/actions/serverActions";
 import { ProgramRequestDto } from "@/app/api/Api";
+import { Button } from "@/components/ui/button";
 
 interface ProgramInfoPanelProps {
   program: Program;
   levels: string[];
-  onClose?: () => void; // Make this optional
+  onClose?: () => void;
 }
 
 export default function ProgramInfoPanel({ program, levels, onClose }: ProgramInfoPanelProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
 
-  const { data, resetData, updateField } = useFormData({
-    name: program.name,
-    description: program.description || "",
-    level: program.level,
-    capacity: program.capacity || 0,
-    type: program.type // Add the missing type field
-  });
-
   const { user } = useUser();
 
-  // Handle the updateField call with proper typing
-  const handleUpdateField = (field: keyof ProgramRequestDto, value: string | number) => {
-    updateField(field as any, value);
-  };
 
-  const handleDeletePractice = async () => {
+  const handleDeleteProgram = async () => {
     try {
       const error = await deleteProgram(program.id, user?.Jwt!)
 
       if (error === null) {
         toast({ status: "success", description: "Practice updated successfully" });
-        await revalidatePrograms();
+        await revalidatePrograms()
         if (onClose) onClose();
       }
       else {
@@ -53,6 +41,34 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
     } catch (error) {
       toast({ status: "error", description: "Error deleting practice", variant: "destructive" });
     }
+  }
+
+
+  async function handleSaveAll(name: string, description: string, level: string, type: string, capacity: number) {
+
+    try {
+
+      const programData: ProgramRequestDto = {
+        name,
+        description,
+        level,
+        type,
+        capacity: capacity || 0,
+      }
+
+      const error = await updateProgram(program.id, programData, user?.Jwt!);
+
+      if (error === null) {
+        toast({ status: "success", description: "Program updated successfully" })
+        await revalidatePrograms();
+      }
+      else {
+        toast({ status: "error", description: `Error saving changes: ${error}` });
+      }
+    } catch (error) {
+      toast({ status: "error", description: `Error saving changes: ${error}` });
+    }
+
   }
 
   return (
@@ -78,10 +94,20 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
         </div>
 
         <TabsContent value="details" className="pt-4">
-          <DetailsTab
-            details={data}
-            updateField={handleUpdateField}
+          <DetailsForm
+            saveAction={handleSaveAll}
+            program={program}
             levels={levels}
+            DeleteButton={
+              <Button
+                variant="destructive"
+                onClick={handleDeleteProgram}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete Program
+              </Button>
+            }
           />
         </TabsContent>
 

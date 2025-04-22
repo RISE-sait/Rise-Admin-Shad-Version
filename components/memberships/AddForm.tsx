@@ -9,7 +9,7 @@ import getValue from "@/configs/constants";
 import { useUser } from "@/contexts/UserContext";
 import { createMembership } from "@/services/membership";
 import { MembershipRequestDto } from "@/app/api/Api";
-import { revalidateMemberships } from "@/app/actions/serverActions";
+import { revalidateMemberships } from "@/actions/serverActions";
 
 export default function AddMembershipForm() {
   const [name, setName] = useState("");

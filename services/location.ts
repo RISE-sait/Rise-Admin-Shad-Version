@@ -1,6 +1,5 @@
 import { Location } from '@/types/location';
 import { addAuthHeader } from '@/lib/auth-header';
-import { mockLocations } from '@/components/programs/api-fallback';
 import { LocationRequestDto, LocationResponseDto } from '@/app/api/Api';
 import getValue from '@/configs/constants';
 
@@ -8,25 +7,27 @@ export async function getAllLocations(): Promise<Location[]> {
   try {
     const response = await fetch(`${getValue('API')}locations`)
 
+    const responseJSON = await response.json()
+
     if (!response.ok) {
-      console.error(`Failed to fetch locations: ${response.status} ${response.statusText}`);
-      console.warn("Using mock locations because API request failed");
-      return mockLocations;
+      let errorMessage = `Failed to get locations: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
     }
 
-    const locationsResponse: LocationResponseDto[] = await response.json();
-
-    const locations: Location[] = locationsResponse.map((facility) => ({
+    const locations: Location[] = (responseJSON as LocationResponseDto[]).map((facility) => ({
       id: facility.id!,
       name: facility.name!,
-      Address: facility.address!,
+      address: facility.address!,
     }));
 
-    return locations;
+    return locations
+
   } catch (error) {
     console.error('Error fetching locations:', error);
-    console.warn("Using mock locations due to error");
-    return mockLocations;
+    throw error;
   }
 }
 
@@ -58,7 +59,7 @@ export async function createLocation(locationData: LocationRequestDto, jwt: stri
 }
 
 
-export async function updateLocation(id:string, locationData: LocationRequestDto, jwt: string): Promise<string | null> {
+export async function updateLocation(id: string, locationData: LocationRequestDto, jwt: string): Promise<string | null> {
   try {
 
     const response = await fetch(`${getValue('API')}locations/${id}`, {

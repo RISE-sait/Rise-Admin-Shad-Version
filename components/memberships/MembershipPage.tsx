@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { deleteMembership } from "@/services/membership";
 import { useUser } from "@/contexts/UserContext";
-import { revalidateMemberships } from "@/app/actions/serverActions";
+import { revalidateMemberships } from "@/actions/serverActions";
 import MembershipTable from "./table/MembershipTable";
 import {
   DropdownMenu,

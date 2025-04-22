@@ -9,7 +9,7 @@ import { useUser } from "@/contexts/UserContext";
 import { HaircutEventRequestDto } from "@/app/api/Api";
 import { createHaircutEvent } from "@/services/haircuts";
 import { format, addHours } from "date-fns";
-import { getAllCustomers } from "@/services/customer";
+import { getCustomers } from "@/services/customer";
 import { Customer } from "@/types/customer";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -63,7 +63,7 @@ export default function AddAppointmentForm({
     const fetchCustomers = async () => {
       try {
         setIsLoadingCustomers(true);
-        const customerData = await getAllCustomers();
+        const customerData = await getCustomers();
         setCustomers(customerData);
       } catch (error) {
         console.error("Error fetching customers:", error);

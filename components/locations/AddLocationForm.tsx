@@ -7,7 +7,7 @@ import { createLocation } from "@/services/location";
 import { LocationRequestDto } from "@/app/api/Api";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
-import { revalidateLocations } from "@/app/actions/serverActions";
+import { revalidateLocations } from "@/actions/serverActions";
 import { useToast } from "@/hooks/use-toast"
 
 export default function AddFacilityForm() {
