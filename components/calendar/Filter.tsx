@@ -9,7 +9,6 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { FiltersType } from "@/types/calendar"
 import { Location } from "@/types/location"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getAllPrograms } from "@/services/program"
@@ -18,18 +17,9 @@ import { getAllStaffs } from "@/services/staff"
 import { User } from "@/types/user"
 import { toast } from "@/hooks/use-toast"
 import { Program } from "@/types/program"
+import { useRouterQuery } from "@/hooks/router-query"
 
-interface FilterComponentProps {
-  filters: FiltersType;
-  onFilterChange: (key: keyof FiltersType, value: any) => void;
-  resetFilters: () => void;
-}
-
-export default function FilterComponent({
-  filters,
-  onFilterChange,
-  resetFilters,
-}: FilterComponentProps) {
+export default function FilterComponent() {
   // State for dynamic data
   const [locations, setLocations] = useState<Location[]>([]);
   const [staffs, setStaffs] = useState<User[]>([]);
@@ -40,66 +30,63 @@ export default function FilterComponent({
     programs: false,
   })
 
+  const {val, replace, reset} = useRouterQuery(
+    {
+      program_id: "",
+      participant_id: "",
+      location_id: "",
+      program_type: "",
+      after: "",
+      before: ""
+    }
+  )
+
   const programTypes = programs.reduce((acc: string[], program) => {
     if (!acc.includes(program.type)) acc.push(program.type)
     return acc
   }, [])
 
   // Parse dates for the calendar components
-  const afterDate = filters.after ? new Date(filters.after) : undefined;
-  const beforeDate = filters.before ? new Date(filters.before) : undefined;
+  const afterDate = val.after ? new Date(val.after) : undefined;
+  const beforeDate = val.before ? new Date(val.before) : undefined;
 
   useEffect(() => {
-    (async () => {
-      // Set all loading states at once
+    const fetchAllData = async () => {
       setIsLoading({ locations: true, trainers: true, programs: true });
       
       try {
-        // Fetch all data in parallel
-        const [locationsData, staffsData, programsData] = await Promise.all([
-          getAllLocations().catch(error => {
-            toast({
-              status: "error",
-              description: error instanceof Error ? error.message : "Failed to fetch locations",
-            })
-            return [];
-          }),
-          getAllStaffs().catch(error => {
-            toast({
-              status: "error",
-              description: error instanceof Error ? error.message : "Failed to fetch trainers",
-            });
-            return [];
-          }),
-          getAllPrograms().catch(error => {
-            toast({
-              status: "error",
-              description: error instanceof Error ? error.message : "Failed to fetch programs",
-            });
-            return [];
-          })
+        const [locations, staffs, programs] = await Promise.all([
+          getAllLocations().catch(handleError('locations')),
+          getAllStaffs().catch(handleError('trainers')),
+          getAllPrograms().catch(handleError('programs'))
         ]);
-        
-        setLocations(locationsData);
-        setStaffs(staffsData);
-        setPrograms(programsData);
-      } catch (error) {
-
-        console.error("Error fetching data:", error)
-
+  
+        setLocations(locations || []);
+        setStaffs(staffs || []);
+        setPrograms(programs || []);
       } finally {
-
-        setIsLoading({ locations: false, trainers: false, programs: false })
-
+        setIsLoading({ locations: false, trainers: false, programs: false });
       }
-    })()
-  }, [])
+    };
+  
+    const handleError = (type: string) => (error: unknown) => {
+      toast({
+        status: "error",
+        description: error instanceof Error 
+          ? error.message 
+          : `Failed to fetch ${type}`,
+      });
+      return undefined;
+    };
+  
+    fetchAllData();
+  }, []);
 
   return (
     <div className="p-4 bg-white dark:bg-black dark:border-gray-900 rounded-lg shadow space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
-        <Button variant="ghost" size="sm" onClick={resetFilters}>
+        <Button variant="ghost" size="sm" onClick={reset}>
           Reset
         </Button>
       </div>
@@ -126,7 +113,11 @@ export default function FilterComponent({
                     <Calendar
                       mode="single"
                       selected={afterDate}
-                      onSelect={(date) => onFilterChange("after", date ? format(date, "yyyy-MM-dd") : "")}
+                      onSelect={(date) =>
+                        replace({
+                          after: date ? format(date, "yyyy-MM-dd") : "",
+                        })
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -146,7 +137,9 @@ export default function FilterComponent({
                     <Calendar
                       mode="single"
                       selected={beforeDate}
-                      onSelect={(date) => onFilterChange("before", date ? format(date, "yyyy-MM-dd") : "")}
+                      onSelect={(date) => replace({
+                        before: date ? format(date, "yyyy-MM-dd") : "",
+                      })}
                     />
                   </PopoverContent>
                 </Popover>
@@ -165,8 +158,11 @@ export default function FilterComponent({
               <div>Loading locations...</div>
             ) : (
               <Select
-                value={filters.location_id || "all"}
-                onValueChange={(value) => onFilterChange("location_id", value === "all" ? "" : value)}
+                value={val.location_id || "all"}
+                onValueChange={(value) => replace({
+                  location_id: value === "all" ? "" : value
+                })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select location" />
@@ -192,8 +188,10 @@ export default function FilterComponent({
           <AccordionContent>
             <div className="space-y-4">
               <RadioGroup
-                value={filters.program_type || ""}
-                onValueChange={(value) => onFilterChange("program_type", value)}
+                value={val.program_type || ""}
+                onValueChange={(value) => replace({
+                  program_type: value
+                })}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="" id="all-types" />
@@ -208,12 +206,14 @@ export default function FilterComponent({
               </RadioGroup>
 
               {/* Program Names - Changed from checkboxes to dropdown */}
-              {filters.program_type && programs.length > 0 && (
+              {val.program_type && programs.length > 0 && (
                 <div className="mt-4">
                   <Label className="text-sm mb-2 block">Select Program</Label>
                   <Select
-                    value={filters.program_id || "all"}
-                    onValueChange={(value) => onFilterChange("program_id", value === "all" ? "" : value)}
+                    value={val.program_id || "all"}
+                    onValueChange={(value) => replace({
+                      program_id: value === "all" ? "" : value
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select program" />
@@ -243,8 +243,11 @@ export default function FilterComponent({
               <div>Loading trainers...</div>
             ) : (
               <Select
-                value={filters.user_id || "all"}
-                onValueChange={(value) => onFilterChange("user_id", value === "all" ? "" : value)}
+                value={val.participant_id || "all"}
+                onValueChange={(value) => replace({
+                  participant_id: value === "all" ? "" : value
+                })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select trainer" />

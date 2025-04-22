@@ -1,13 +1,13 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
-import { EventEventRequestDto, EventDeleteRequestDto, EventEventResponseDto, EventRecurrenceResponseDto, EventRecurrenceRequestDto } from '@/app/api/Api';
+import { EventEventRequestDto, EventEventResponseDto, EventRecurrenceResponseDto, EventRecurrenceRequestDto } from '@/app/api/Api';
 import { EventSchedule } from '@/types/events';
 
 export async function getEvents(query: {
   after: string;
   before: string;
   program_id?: string;
-  user_id?: string;
+  participant_id?: string;
   team_id?: string;
   location_id?: string;
   program_type?: string;
@@ -16,11 +16,12 @@ export async function getEvents(query: {
   updated_by?: string;
 }): Promise<typeof query['response_type'] extends 'date' ? EventEventResponseDto[] : EventRecurrenceResponseDto[]> {
   try {
-    const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams()
+    
     queryParams.append('after', query.after);
     queryParams.append('before', query.before);
     if (query.program_id) queryParams.append('program_id', query.program_id);
-    if (query.user_id) queryParams.append('user_id', query.user_id);
+    if (query.participant_id) queryParams.append('participant_id', query.participant_id);
     if (query.team_id) queryParams.append('team_id', query.team_id);
     if (query.location_id) queryParams.append('location_id', query.location_id);
     if (query.program_type) queryParams.append('program_type', query.program_type);
