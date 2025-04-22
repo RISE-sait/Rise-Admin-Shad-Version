@@ -23,8 +23,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import { DateTimePicker } from "../../form/date-time-picker"
-import { ColorPicker } from "../../form/color-picker"
+import { DateTimePicker } from "../form/date-time-picker"
+import { ColorPicker } from "../form/color-picker"
 import {
   Tabs,
   TabsList,

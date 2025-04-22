@@ -1,7 +1,7 @@
 import CalendarPage from '@/components/calendar/CalendarPage';
 import { getEvents } from '@/services/events';
 import { CalendarEvent } from '@/types/calendar';
-import { colorOptions } from '@/components/calendar/components/calendar/calendar-tailwind-classes';
+import { colorOptions } from '@/components/calendar/calendar-tailwind-classes';
 import { EventEventResponseDto } from '@/app/api/Api';
 
 function mapToCalendarEvents(events: EventEventResponseDto[]): CalendarEvent[] {
@@ -90,6 +90,6 @@ export default async function Calendar() {
   }
 
   return (
-    <CalendarPage initialEvents={initialEvents} />
+    <CalendarPage events={initialEvents} />
   );
 }

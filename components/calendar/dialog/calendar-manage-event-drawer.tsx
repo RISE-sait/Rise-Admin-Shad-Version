@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { DateTimePicker } from "../../form/date-time-picker"
-import { ColorPicker } from "../../form/color-picker"
+import { DateTimePicker } from "../form/date-time-picker"
+import { ColorPicker } from "../form/color-picker"
 import {
   AlertDialog,
   AlertDialogAction,

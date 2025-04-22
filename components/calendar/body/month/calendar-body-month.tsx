@@ -11,7 +11,7 @@ import {
   isWithinInterval,
 } from 'date-fns'
 import { cn } from '@/lib/utils'
-import CalendarEvent from '../../calendar-event'
+import CalendarEvent from '../../event/calendar-event'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export default function CalendarBodyMonth() {

@@ -4,29 +4,30 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import FilterComponent from "./Filter";
-import { CalendarEvent, FiltersType } from "@/types/calendar";
+import { CalendarEvent, FiltersType, Mode } from "@/types/calendar";
 import { useDrawer } from "@/hooks/drawer";
-import CalendarDemo from "./components/calendar-demo";
 import { getEvents } from "@/services/events";
 import { format, addDays, subDays } from "date-fns";
-import { colorOptions } from "./components/calendar/calendar-tailwind-classes";
+import { colorOptions } from "./calendar-tailwind-classes";
 import { useUser } from "@/contexts/UserContext";
-import { EventEventRequestDto, EventEventResponseDto } from "@/app/api/Api";
+import { EventEventResponseDto } from "@/app/api/Api";
+import Calendar from "./calendar";
 
 interface CalendarPageProps {
-  initialEvents: CalendarEvent[];
+  events: CalendarEvent[];
 }
 
-export default function CalendarPage({ initialEvents }: CalendarPageProps) {
-  // State for events, filtered events, and UI
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+export default function CalendarPage({ events }: CalendarPageProps) {
+  
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [filterOpen, setFilterOpen] = useState(true);
-  const { drawerOpen, drawerContent, openDrawer, closeDrawer } = useDrawer();
+  const { drawerOpen, drawerContent, closeDrawer } = useDrawer();
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(events || [])
 
-  console.log(initialEvents, "initialEvents")
+  const [date, setDate] = useState<Date>(new Date())
+  const [mode, setMode] = useState<Mode>('month')
 
   // Default date range (current month +/- 30 days)
   const today = new Date();
@@ -52,9 +53,6 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
     location_ids: [],
     user_ids: [],
     program_ids: [],
-
-    // Frontend-only settings
-    appointments: "both"
   });
 
   // Fetch filtered events when filters change
@@ -140,18 +138,11 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           },
         }))
 
-        if (filters.user_id !== "") {
-
-          calendarEvents = calendarEvents.filter(ev =>
-            ev.staff?.some(staff => staff.email === filters.user_id)
-          )
-        }
-
-        setEvents(calendarEvents);
+        setCalendarEvents(calendarEvents);
 
       } catch (error) {
         console.error("Error fetching events:", error);
-        setEvents([]); // Clear events on error to provide visual feedback
+        setCalendarEvents([]); // Clear events on error to provide visual feedback
       } finally {
         setIsLoading(false);
       }
@@ -164,12 +155,6 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
 
     return () => clearTimeout(timeoutId);
   }, [filters, user]);
-
-
-  const toggleFilter = () => {
-    setFilterOpen(!filterOpen);
-  };
-
 
   const handleFilterChange = (key: keyof FiltersType, value: any) => {
     console.log(`Changing filter ${String(key)} to:`, value);
@@ -191,7 +176,6 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       location_ids: [],
       user_ids: [],
       program_ids: [],
-      appointments: "both"
     });
   };
 
@@ -207,11 +191,11 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">Calendar</h1>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={toggleFilter}>
+          <Button variant="outline" onClick={() => setFilterOpen(!filterOpen)}>
             {filterOpen ? "Hide Filters" : "Show Filters"}
           </Button>
           {isLoading && <span className="text-sm">Loading events...</span>}
-          <span className="text-sm text-muted-foreground">{events.length} events</span>
+          <span className="text-sm text-muted-foreground">{calendarEvents.length} events</span>
         </div>
       </div>
 
@@ -228,9 +212,14 @@ export default function CalendarPage({ initialEvents }: CalendarPageProps) {
           </div>
         )}
         {/* Calendar */}
-        <div className={filterOpen ? "w-10/12" : "w-full"}>
-          <CalendarDemo
-            events={events}
+        <div className={`bg-white dark:bg-black shadow rounded-lg p-4 ${filterOpen ? "w-10/12" : "w-full"}`}>
+          <Calendar
+            events={calendarEvents}
+            setEvents={setCalendarEvents}
+            date={date}
+            setDate={setDate}
+            mode={mode}
+            setMode={setMode}
             onEventSelect={handleEventSelect}
           />
         </div>
