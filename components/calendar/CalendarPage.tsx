@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import FilterComponent from "./Filter";
 import { CalendarEvent, Mode } from "@/types/calendar";
-import { useDrawer } from "@/hooks/drawer";
 import Calendar from "./calendar";
 
 interface CalendarPageProps {
@@ -50,9 +49,9 @@ export default function CalendarPage({ events }: CalendarPageProps) {
             mode={mode}
             setMode={setMode}
             onEventSelect={(event) => setSelectedEvent(event)}
-          />
-        </div>
+            />
       </div>
     </div>
+  </div>
   );
 }
