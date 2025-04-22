@@ -1,6 +1,8 @@
+"use"
+
 import { useUser } from "@/contexts/UserContext"
 import { useToast } from "@/hooks/use-toast"
-import { deleteEvents, getEvents, getSchedulesOfProgram, createEvents } from "@/services/events";
+import { createEvents, deleteEventsByRecurrenceID, updateRecurrence } from "@/services/events";
 import { EventSchedule } from "@/types/events"
 import { Team } from "@/types/team"
 import { Location } from "@/types/location";
@@ -10,12 +12,16 @@ import { getAllLocations } from "@/services/location";
 import { Card } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { getAllTeams } from "@/services/teams";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@radix-ui/react-select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { TrashIcon, SaveIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export default function ScheduleCard({ schedule, capacity, isAddCard = false }: { schedule: EventSchedule, capacity?: number, isAddCard?: boolean }) {
+export default function ScheduleCard({onDeleteSchedule, refreshSchedules, schedule, isAddCard = false }: {
+    onDeleteSchedule: (id: string) => void,
+    refreshSchedules: () => void, 
+    schedule: EventSchedule, isAddCard?: boolean 
+}) {
 
     const { toast } = useToast()
 
@@ -28,24 +34,21 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
             recurrence_end_at: schedule.recurrence_end_at.toISOString().slice(0, 16) as string,
             event_start_at: schedule.event_start_at as string,
             event_end_at: schedule.event_end_at as string,
-            day: schedule.day as string,
+            day: schedule.day.toUpperCase() as string,
             location_name: schedule.location?.name as string,
             team_name: schedule.team?.name as string,
-            capacity: capacity,
         },
     })
 
     const [locations, setLocations] = useState<Location[]>([])
     const [teams, setTeams] = useState<Team[]>([])
-    const [eventIDs, setEventIDs] = useState<string[]>([])
 
     async function handleDeleteSchedule(event: React.MouseEvent) {
         try {
 
             event.preventDefault()
-            // await deleteEvents({
-            //     ids: eventIDs,
-            // }, jwt!)
+            await deleteEventsByRecurrenceID(schedule.id, jwt!)
+            onDeleteSchedule(schedule.id)
             toast({
                 description: "Schedule deleted successfully",
                 status: "success",
@@ -75,17 +78,20 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
                 return `${hours}:${minutes}:00+00:00`
             }
 
-            await createEvents({
-                program_id: schedule.program?.id,
-                location_id: location?.id,
-                team_id: team?.id,
-                recurrence_start_at: new Date(form.getValues('recurrence_start_at')).toISOString(),
-                recurrence_end_at: new Date(form.getValues('recurrence_end_at')).toISOString(),
-                event_start_at: formatTimeToISO(form.getValues('event_start_at')),
-                event_end_at: formatTimeToISO(form.getValues('event_end_at')),
-                capacity: form.getValues('capacity'),
-                day: form.getValues('day'),
-            }, jwt!)
+            await createEvents(
+                {
+                    program_id: schedule.program?.id,
+                    location_id: location?.id,
+                    team_id: team?.id,
+                    recurrence_start_at: new Date(form.getValues('recurrence_start_at')).toISOString(),
+                    recurrence_end_at: new Date(form.getValues('recurrence_end_at')).toISOString(),
+                    event_start_at: formatTimeToISO(form.getValues('event_start_at')),
+                    event_end_at: formatTimeToISO(form.getValues('event_end_at')),
+                    day: form.getValues('day'),
+                },
+                jwt!)
+
+            refreshSchedules()
 
             toast({
                 description: "Schedule created successfully",
@@ -103,12 +109,55 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
         }
     }
 
+    async function handleUpdateSchedule(event: React.MouseEvent) {
+        try {
+
+            event.preventDefault()
+
+            const location = locations.find(loc => loc.name === form.getValues("location_name"))
+            const team = teams.find(team => team.name === form.getValues("team_name"))
+
+            // should be mdt timezone
+            const formatTimeToISO = (timeStr: string) => {
+                const [hours, minutes] = timeStr.split(':')
+                return `${hours}:${minutes}:00-06:00`
+            }
+
+            await updateRecurrence(
+                {
+                    program_id: schedule.program?.id,
+                    location_id: location?.id,
+                    team_id: team?.id,
+                    recurrence_start_at: new Date(form.getValues('recurrence_start_at')).toISOString(),
+                    recurrence_end_at: new Date(form.getValues('recurrence_end_at')).toISOString(),
+                    event_start_at: formatTimeToISO(form.getValues('event_start_at')),
+                    event_end_at: formatTimeToISO(form.getValues('event_end_at')),
+                    day: form.getValues('day'),
+                },
+                schedule.id,
+                jwt!)
+
+            toast({
+                description: "Schedule updated successfully",
+                status: "success",
+                variant: "default"
+            })
+        }
+        catch (error) {
+            console.error("Failed to update schedule", error);
+            toast({
+                description: error instanceof Error ? error.message : "Failed to update schedule",
+                status: "error",
+                variant: "destructive"
+            });
+        }
+    }
+
     async function handleSave(event: React.MouseEvent) {
         event.preventDefault()
 
-        if (isAddCard) {
-            await handleCreateSchedule(event)
-        }
+        if (isAddCard) await handleCreateSchedule(event)
+        else await handleUpdateSchedule(event)
     }
 
     const isFormChanged = () => {
@@ -125,36 +174,6 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
     }
 
     const handleReset = () => form.reset(form.formState.defaultValues!)
-
-    useEffect(() => {
-        (async () => {
-            try {
-
-                // const after = new Date(schedule.recurrence_start_at.getTime() - 24 * 60 * 60 * 1000)
-                // const before = new Date(schedule.recurrence_end_at.getTime() + 24 * 60 * 60 * 1000)
-
-                // // after and before should be in YYYY-MM-DD
-                // const [events] = await Promise.all([getEvents({
-                //     program_id: schedule.program?.id,
-                //     location_id: schedule.location?.id,
-                //     after: after.toISOString().slice(0, 10),
-                //     before: before.toISOString().slice(0, 10),
-                // })])
-
-                // const ids = events.map(event => event.id!) ?? []
-                // setEventIDs(ids)
-            }
-            catch (error) {
-                console.error("Failed to fetch events", error);
-                toast({
-                    description: error instanceof Error ? error.message : "Failed to fetch events",
-                    status: "error",
-                    variant: "destructive"
-                });
-            }
-        })()
-    }, [schedule.program?.id])
-
 
     useEffect(() => {
         (async () => {
@@ -242,19 +261,20 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Day</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value.toUpperCase()}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select location" />
+                                                <SelectValue placeholder="Select Day" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
                                             {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
                                                 .map(day => (
                                                     <SelectItem key={day} value={day.toUpperCase()}>
-                                                        {day}
+                                                        {day.toUpperCase()}
                                                     </SelectItem>
-                                                ))}
+                                                )
+                                                )}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -289,18 +309,6 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
 
                         <FormField
                             control={form.control}
-                            name="capacity"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Capacity</FormLabel>
-                                    <Input type="number" {...field} placeholder="NULL" />
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
                             name="team_name"
                             render={({ field }) => (
                                 <FormItem>
@@ -327,14 +335,17 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
                     </div>
 
                     <div className="flex justify-end gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={handleDeleteSchedule}
-                            className="border-destructive text-destructive hover:bg-destructive/10"
-                        >
-                            <TrashIcon className="h-4 w-4 mr-2" />
-                            Delete
-                        </Button>
+                        {
+                            !isAddCard &&
+                            <Button
+                                variant="outline"
+                                onClick={handleDeleteSchedule}
+                                className="border-destructive text-destructive hover:bg-destructive/10"
+                            >
+                                <TrashIcon className="h-4 w-4 mr-2" />
+                                Delete
+                            </Button>
+                        }
                         <Button
                             variant="default"
                             type="reset"
@@ -349,7 +360,9 @@ export default function ScheduleCard({ schedule, capacity, isAddCard = false }: 
                             className="bg-green-600 hover:bg-green-700"
                         >
                             <SaveIcon className="h-4 w-4 mr-2" />
-                            Save Changes
+                            {
+                                isAddCard ? "Create" : "Save"
+                            }
                         </Button>
 
                     </div>

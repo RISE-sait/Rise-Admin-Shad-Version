@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsForm from "./infoTabs/Details";
-import ScheduleTab from "./infoTabs/Schedule";
+import ScheduleTab from "./infoTabs/Schedules";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Calendar, TrashIcon } from "lucide-react";
 import { deleteProgram, updateProgram } from "@/services/program";
@@ -114,7 +114,6 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
         <TabsContent value="schedule" className="pt-4">
           <ScheduleTab
             programID={program.id}
-            capacity={program.capacity}
           />
         </TabsContent>
       </Tabs>

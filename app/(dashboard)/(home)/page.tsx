@@ -81,6 +81,7 @@ export default async function Calendar() {
     const events = await getEvents({
       after: firstDay.toISOString().split('T')[0],
       before: lastDay.toISOString().split('T')[0],
+      response_type: 'date',
     });
     initialEvents = mapToCalendarEvents(events);
   } catch (error) {
