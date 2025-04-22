@@ -92,8 +92,6 @@ export interface Trainer {
   updated_at: string;
 }
 
-export type AppointmentsType = "booked" | "non-booked" | "both"
-
 // Updated FiltersType interface with array support for multiple selections
 export interface FiltersType {
   // Date filters
@@ -113,6 +111,4 @@ export interface FiltersType {
   location_ids?: string[];  // Multiple locations
   user_ids?: string[];      // Multiple trainers/users
   program_ids?: string[];   // Multiple programs
-  
-  appointments: AppointmentsType;
 }

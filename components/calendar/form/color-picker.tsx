@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
-import { colorOptions } from '../calendar/calendar-tailwind-classes'
+import { colorOptions } from '../calendar-tailwind-classes'
 
 interface ColorPickerProps {
   field: {

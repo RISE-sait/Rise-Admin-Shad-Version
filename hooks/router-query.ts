@@ -25,5 +25,10 @@ export function useRouterQuery<T extends QueryType>(defaults: T) {
     router.replace(`?${queryString}`)
   }
 
-  return { val: defaults, replace }
+  function reset() {
+    const queryString = new URLSearchParams(defaults).toString()
+    router.replace(`?${queryString}`)
+  }
+
+  return { val: defaults, replace, reset }
 }

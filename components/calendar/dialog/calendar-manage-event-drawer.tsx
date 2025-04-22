@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { DateTimePicker } from "../../form/date-time-picker"
-import { ColorPicker } from "../../form/color-picker"
+import { DateTimePicker } from "../form/date-time-picker"
+import { ColorPicker } from "../form/color-picker"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,39 +62,10 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CheckCircle2, XCircle, MoreVertical } from "lucide-react"
 import RightDrawer from "@/components/reusable/RightDrawer"
 import { useCalendarContext } from "../calendar-context"
-
-// ----------------- ZOD SCHEMA -----------------
-const formSchema = z
-  .object({
-    title: z.string().min(1, "Title is required"),
-    start: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid start date",
-    }),
-    end: z.string().refine((val) => !isNaN(Date.parse(val)), {
-      message: "Invalid end date",
-    }),
-    color: z.string(),
-  })
-  .refine(
-    (data) => {
-      try {
-        const start = new Date(data.start)
-        const end = new Date(data.end)
-        return end >= start
-      } catch {
-        return false
-      }
-    },
-    {
-      message: "End time must be after start time",
-      path: ["end"],
-    }
-  )
 
 // ----------------- ATTENDEE TYPE -----------------
 type Attendee = {
@@ -314,45 +285,45 @@ export default function CalendarManageEventDrawer() {
 
   const [showEditForm, setShowEditForm] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      start: "",
-      end: "",
-      color: "blue",
-    },
-  })
+  // const form = useForm<z.infer<typeof formSchema>>({
+  //   resolver: zodResolver(formSchema),
+  //   defaultValues: {
+  //     title: "",
+  //     start: "",
+  //     end: "",
+  //     color: "blue",
+  //   },
+  // })
 
-  useEffect(() => {
-    if (selectedEvent) {
-      form.reset({
-        title: selectedEvent.program.name,
-        start: format(selectedEvent.start_at, "yyyy-MM-dd'T'HH:mm"),
-        end: format(selectedEvent.end_at, "yyyy-MM-dd'T'HH:mm"),
-        color: selectedEvent.color,
-      })
-    }
-  }, [selectedEvent, form])
+  // useEffect(() => {
+  //   if (selectedEvent) {
+  //     form.reset({
+  //       title: selectedEvent.program.name,
+  //       start: format(selectedEvent.start_at, "yyyy-MM-dd'T'HH:mm"),
+  //       end: format(selectedEvent.end_at, "yyyy-MM-dd'T'HH:mm"),
+  //       color: selectedEvent.color,
+  //     })
+  //   }
+  // }, [selectedEvent, form])
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!selectedEvent) return
+  // function onSubmit(values: z.infer<typeof formSchema>) {
+  //   if (!selectedEvent) return
 
-    const updatedEvent = {
-      ...selectedEvent,
-      title: values.title,
-      start: new Date(values.start),
-      end: new Date(values.end),
-      color: values.color,
-    }
+  //   const updatedEvent = {
+  //     ...selectedEvent,
+  //     title: values.title,
+  //     start: new Date(values.start),
+  //     end: new Date(values.end),
+  //     color: values.color,
+  //   }
 
-    setEvents(
-      events.map((event) =>
-        event.id === selectedEvent.id ? updatedEvent : event
-      )
-    )
-    setShowEditForm(false)
-  }
+  //   setEvents(
+  //     events.map((event) =>
+  //       event.id === selectedEvent.id ? updatedEvent : event
+  //     )
+  //   )
+  //   setShowEditForm(false)
+  // }
 
   function handleDelete() {
     if (!selectedEvent) return
@@ -363,7 +334,7 @@ export default function CalendarManageEventDrawer() {
   function handleClose() {
     setManageEventDialogOpen(false)
     setSelectedEvent(null)
-    form.reset()
+    // form.reset()
     setShowEditForm(false)
   }
 
@@ -432,7 +403,7 @@ export default function CalendarManageEventDrawer() {
         {/* Right Section */}
         <div className="w-[30%] p-6 space-y-6">
           <h1 className="text-xl font-semibold">
-            OPEN GYM/DROP IN-Select Courts
+            {selectedEvent?.program.name || "Unnamed Event"}
           </h1>
           <p className="text-base text-muted-foreground">
             Sunday 03/02/2025, 5:00 pm - 11:00 pm
@@ -441,7 +412,7 @@ export default function CalendarManageEventDrawer() {
           <p className="text-base text-muted-foreground">
             Rise Facility - Calgary Central
           </p>
-          <p className="text-base text-muted-foreground">Sportsplex</p>
+          <p className="text-base text-muted-foreground">{selectedEvent?.location.name}</p>
 
           <Separator />
 
@@ -490,7 +461,7 @@ export default function CalendarManageEventDrawer() {
             </Button>
           </div>
 
-          {showEditForm && (
+          {/* {showEditForm && (
             <div className="mt-6 space-y-6">
               <Separator />
               <h2 className="text-lg font-semibold">Edit Event</h2>
@@ -558,7 +529,7 @@ export default function CalendarManageEventDrawer() {
                 </form>
               </Form>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </RightDrawer>

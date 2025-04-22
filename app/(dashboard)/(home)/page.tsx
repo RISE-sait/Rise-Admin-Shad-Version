@@ -1,7 +1,7 @@
 import CalendarPage from '@/components/calendar/CalendarPage';
 import { getEvents } from '@/services/events';
 import { CalendarEvent } from '@/types/calendar';
-import { colorOptions } from '@/components/calendar/components/calendar/calendar-tailwind-classes';
+import { colorOptions } from '@/components/calendar/calendar-tailwind-classes';
 import { EventEventResponseDto } from '@/app/api/Api';
 
 function mapToCalendarEvents(events: EventEventResponseDto[]): CalendarEvent[] {
@@ -70,19 +70,41 @@ function getEventColor(programType?: string): string {
   }
 }
 
-export default async function Calendar() {
+export default async function Calendar(
+  { searchParams }: {
+    searchParams: Promise<{ [key: string]: string | undefined }>
+  }
+) {
   let initialEvents: CalendarEvent[] = [];
 
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const searchParamsObj = await searchParams
 
+  const val = {
+    after: searchParamsObj.after || "",
+    before: searchParamsObj.before || "",
+    program_id: searchParamsObj.program_id || undefined,
+    participant_id: searchParamsObj.participant_id || undefined,
+    location_id: searchParamsObj.location_id || undefined,
+    program_type: searchParamsObj.program_type || undefined,
+    // created_by: searchParamsObj.created_by || undefined,
+    // updated_by: searchParamsObj.updated_by || undefined,
+  }
+
+  if (val.before === "" || val.after === "") {
+    const beforeDate = new Date();
+    beforeDate.setMonth(beforeDate.getMonth() + 1);
+    val.before = beforeDate.toISOString().split("T")[0];
+
+    const afterDate = new Date();
+    afterDate.setMonth(afterDate.getMonth() - 1);
+    val.after = afterDate.toISOString().split("T")[0];
+  }
   try {
     const events = await getEvents({
-      after: firstDay.toISOString().split('T')[0],
-      before: lastDay.toISOString().split('T')[0],
-      response_type: 'date',
-    });
+      ...val,
+      response_type: "date",
+    }) as EventEventResponseDto[];
+
     initialEvents = mapToCalendarEvents(events);
   } catch (error) {
     console.error('Error fetching events in Calendar:', error);
@@ -90,6 +112,6 @@ export default async function Calendar() {
   }
 
   return (
-    <CalendarPage initialEvents={initialEvents} />
+    <CalendarPage events={initialEvents} />
   );
 }
