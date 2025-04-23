@@ -30,7 +30,7 @@ export default function FilterComponent() {
     programs: false,
   })
 
-  const {val, replace, reset} = useRouterQuery(
+  const { val, replace, reset } = useRouterQuery(
     {
       program_id: "",
       participant_id: "",
@@ -53,14 +53,14 @@ export default function FilterComponent() {
   useEffect(() => {
     const fetchAllData = async () => {
       setIsLoading({ locations: true, trainers: true, programs: true });
-      
+
       try {
         const [locations, staffs, programs] = await Promise.all([
           getAllLocations().catch(handleError('locations')),
           getAllStaffs().catch(handleError('trainers')),
           getAllPrograms().catch(handleError('programs'))
         ]);
-  
+
         setLocations(locations || []);
         setStaffs(staffs || []);
         setPrograms(programs || []);
@@ -68,17 +68,17 @@ export default function FilterComponent() {
         setIsLoading({ locations: false, trainers: false, programs: false });
       }
     };
-  
+
     const handleError = (type: string) => (error: unknown) => {
       toast({
         status: "error",
-        description: error instanceof Error 
-          ? error.message 
+        description: error instanceof Error
+          ? error.message
           : `Failed to fetch ${type}`,
       });
       return undefined;
     };
-  
+
     fetchAllData();
   }, []);
 
@@ -113,10 +113,9 @@ export default function FilterComponent() {
                     <Calendar
                       mode="single"
                       selected={afterDate}
-                      onSelect={(date) =>
-                        replace({
-                          after: date ? format(date, "yyyy-MM-dd") : "",
-                        })
+                      onSelect={(date) => replace({
+                        after: date ? format(date, "yyyy-MM-dd") : "",
+                      })
                       }
                     />
                   </PopoverContent>
