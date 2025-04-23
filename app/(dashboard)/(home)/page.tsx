@@ -1,8 +1,12 @@
+"use client"
+
 import CalendarPage from '@/components/calendar/CalendarPage';
 import { getEvents } from '@/services/events';
 import { CalendarEvent } from '@/types/calendar';
 import { colorOptions } from '@/components/calendar/calendar-tailwind-classes';
 import { EventEventResponseDto } from '@/app/api/Api';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 function mapToCalendarEvents(events: EventEventResponseDto[]): CalendarEvent[] {
 
@@ -70,48 +74,53 @@ function getEventColor(programType?: string): string {
   }
 }
 
-export default async function Calendar(
-  { searchParams }: {
-    searchParams: Promise<{ [key: string]: string | undefined }>
-  }
-) {
-  let initialEvents: CalendarEvent[] = [];
+export default function Calendar() {
+  const searchParams = useSearchParams()
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const searchParamsObj = await searchParams
+  useEffect(() => {
 
-  const val = {
-    after: searchParamsObj.after || "",
-    before: searchParamsObj.before || "",
-    program_id: searchParamsObj.program_id || undefined,
-    participant_id: searchParamsObj.participant_id || undefined,
-    location_id: searchParamsObj.location_id || undefined,
-    program_type: searchParamsObj.program_type || undefined,
-    // created_by: searchParamsObj.created_by || undefined,
-    // updated_by: searchParamsObj.updated_by || undefined,
-  }
+    const fetchEvents = async () => {
+      setIsLoading(true)
+      
+      try {         
 
-  if (val.before === "" || val.after === "") {
-    const beforeDate = new Date();
-    beforeDate.setMonth(beforeDate.getMonth() + 1);
-    val.before = beforeDate.toISOString().split("T")[0];
+        let before = searchParams.get('before') || ""
+        let after = searchParams.get('after') || ""
 
-    const afterDate = new Date();
-    afterDate.setMonth(afterDate.getMonth() - 1);
-    val.after = afterDate.toISOString().split("T")[0];
-  }
-  try {
-    const events = await getEvents({
-      ...val,
-      response_type: "date",
-    }) as EventEventResponseDto[];
+        if (before === "" || after === "") {
+          const beforeDate = new Date();
+          beforeDate.setMonth(beforeDate.getMonth() + 1);
+          before = beforeDate.toISOString().split("T")[0];
+      
+          const afterDate = new Date();
+          afterDate.setMonth(afterDate.getMonth() - 1);
+          after = afterDate.toISOString().split("T")[0];
+        }
 
-    initialEvents = mapToCalendarEvents(events);
-  } catch (error) {
-    console.error('Error fetching events in Calendar:', error);
-    initialEvents = [];
-  }
+        const data = await getEvents({
+          after: after,
+          before: before,
+          program_id: searchParams.get('program_id') || undefined,
+          participant_id: searchParams.get('participant_id') || undefined,
+          location_id: searchParams.get('location_id') || undefined,
+          program_type: searchParams.get('program_type') || undefined,
+          response_type: 'date'
+        })
+        setEvents(mapToCalendarEvents(data))
+      } catch (error) {
+        console.error('Error fetching events:', error)
+        setEvents([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [searchParams]) 
 
   return (
-    <CalendarPage events={initialEvents} />
+    <CalendarPage events={events} />
   );
 }

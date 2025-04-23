@@ -1,7 +1,7 @@
 import getValue from '@/configs/constants';
 import { addAuthHeader } from '@/lib/auth-header';
 import { EventEventRequestDto, EventEventResponseDto, EventRecurrenceResponseDto, EventRecurrenceRequestDto } from '@/app/api/Api';
-import { EventSchedule } from '@/types/events';
+import { Event, EventParticipant, EventSchedule } from '@/types/events';
 
 export async function getEvents(query: {
   after: string;
@@ -17,7 +17,7 @@ export async function getEvents(query: {
 }): Promise<typeof query['response_type'] extends 'date' ? EventEventResponseDto[] : EventRecurrenceResponseDto[]> {
   try {
     const queryParams = new URLSearchParams()
-    
+
     queryParams.append('after', query.after);
     queryParams.append('before', query.before);
     if (query.program_id) queryParams.append('program_id', query.program_id);
@@ -55,8 +55,8 @@ export async function createEvents(eventsData: EventRecurrenceRequestDto, jwt: s
 
     const requestData = {
       ...eventsData,
-      ...(typeof eventsData.capacity !== 'undefined' && { 
-        capacity: Number(eventsData.capacity) 
+      ...(typeof eventsData.capacity !== 'undefined' && {
+        capacity: Number(eventsData.capacity)
       })
     };
 
@@ -216,6 +216,74 @@ export async function getSchedulesOfProgram(programID: string): Promise<EventSch
 
       return sch
     })
+  } catch (error) {
+    console.error('Error getting schedules of program:', error);
+    throw error;
+  }
+
+}
+
+
+export async function getEvent(id: string): Promise<Event> {
+
+  try {
+
+    const response = await fetch(`${getValue('API')}events/${id}`)
+
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get event: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const event = responseJSON as EventEventResponseDto
+
+    const evt: Event = {
+      id: event.id!,
+      start_at: new Date(event.start_at!),
+      end_at: new Date(event.end_at!),
+      location: {
+        id: event.location!.id!,
+        name: event.location!.name!,
+        address: event.location!.address!,
+      },
+      program: {
+        id: event.program!.id!,
+        name: event.program!.name!,
+        type: event.program!.type!,
+      },
+      capacity: event.capacity!,
+      created_by: {
+        id: event.created_by!.id!,
+        first_name: event.created_by!.first_name!,
+        last_name: event.created_by!.last_name!,
+      },
+      updated_by: {
+        id: event.updated_by!.id!,
+        first_name: event.updated_by!.first_name!,
+        last_name: event.updated_by!.last_name!,
+      },
+      team: event.team ? {
+        id: event.team.id!,
+        name: event.team.name!,
+      } : undefined,
+
+      customers: event.customers!.map(customer => ({
+        id: customer.id!,
+        first_name: customer.first_name!,
+        last_name: customer.last_name!,
+        email: customer.email,
+        phone: customer.phone,
+        gender: customer.gender,
+        has_cancelled_enrollment: customer.has_cancelled_enrollment!,
+      }) as EventParticipant)
+    }
+
+    return evt
   } catch (error) {
     console.error('Error getting schedules of program:', error);
     throw error;

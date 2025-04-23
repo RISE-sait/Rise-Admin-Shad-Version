@@ -17,7 +17,6 @@ export default function CalendarPage({ events }: CalendarPageProps) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [filterOpen, setFilterOpen] = useState(true);
   const { drawerOpen, drawerContent, closeDrawer } = useDrawer();
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(events || [])
 
   const [date, setDate] = useState<Date>(new Date())
   const [mode, setMode] = useState<Mode>('month')
@@ -30,7 +29,7 @@ export default function CalendarPage({ events }: CalendarPageProps) {
           <Button variant="outline" onClick={() => setFilterOpen(!filterOpen)}>
             {filterOpen ? "Hide Filters" : "Show Filters"}
           </Button>
-          <span className="text-sm text-muted-foreground">{calendarEvents.length} events</span>
+          <span className="text-sm text-muted-foreground">{events.length} events</span>
         </div>
       </div>
 
@@ -45,8 +44,8 @@ export default function CalendarPage({ events }: CalendarPageProps) {
         {/* Calendar */}
         <div className={`bg-white dark:bg-black shadow rounded-lg p-4 ${filterOpen ? "w-10/12" : "w-full"}`}>
           <Calendar
-            events={calendarEvents}
-            setEvents={setCalendarEvents}
+            events={events}
+            setEvents={() => {}}
             date={date}
             setDate={setDate}
             mode={mode}

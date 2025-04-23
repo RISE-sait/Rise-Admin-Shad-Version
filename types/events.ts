@@ -1,6 +1,6 @@
 export interface Event {
   id: string;
-  program?: {
+  program: {
     id: string;
     name: string;
     type: string;
@@ -17,14 +17,22 @@ export interface Event {
   capacity: number;
   created_by: Person;
   updated_by: Person;
-  start_at: string;
-  end_at: string;
+  start_at: Date;
+  end_at: Date;
+  customers: EventParticipant[];
+}
+
+export interface EventParticipant extends Person {
+  has_cancelled_enrollment: boolean;
 }
 
 export interface Person {
   id: string;
   first_name: string;
   last_name: string;
+  email?: string
+  phone?: string
+  gender?: string
 }
 
 export interface EventSchedule {
