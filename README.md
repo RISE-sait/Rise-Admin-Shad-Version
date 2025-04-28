@@ -30,7 +30,6 @@ This application manages various aspects of the Rise ecosystem — including sta
 | UI Components         | [ShadCN UI](https://ui.shadcn.dev/) |
 | Icons                 | [Lucide Icons](https://lucide.dev/) |
 | Forms                 | [React Hook Form](https://react-hook-form.com/) |
-| State Management      | Context API |
 | Language              | TypeScript |
 | API Documentation     | Swagger |
 
