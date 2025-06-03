@@ -296,55 +296,7 @@ export default function CustomerTable({
           </TableBody>
         </Table>
       </div>
-      <div className="bg-muted/30 px-6 py-4 border-t rounded-b-xl">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-semibold">{table.getRowModel().rows.length}</span> of{" "}
-            <span className="font-semibold">{table.getFilteredRowModel().rows.length}</span>{" "}
-            customers
-          </div>
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
-              <Select
-                value={String(table.getState().pagination.pageSize)}
-                onValueChange={(value) => table.setPageSize(Number(value))}
-              >
-                <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="border">
-                  {[5, 10, 20, 50, 100].map((size) => (
-                    <SelectItem key={size} value={String(size)} className="text-sm">
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 }
