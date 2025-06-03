@@ -26,7 +26,11 @@ import { useRouterQuery } from "@/hooks/router-query";
 interface CustomerPageProps {
   searchTerm: string;
   customers: Customer[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
 }
+
 
 const debounce = (func: Function, delay: number) => {
   let timeoutId: NodeJS.Timeout;
@@ -40,7 +44,7 @@ const debounce = (func: Function, delay: number) => {
   };
 }
 
-export default function CustomersPage({ customers, searchTerm }: CustomerPageProps) {
+export default function CustomersPage({ customers, searchTerm, currentPage, totalPages, totalCount }: CustomerPageProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
@@ -49,9 +53,14 @@ export default function CustomersPage({ customers, searchTerm }: CustomerPagePro
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const { replace, val } = useRouterQuery({
-    search: searchTerm,
-  });
+const { replace, val } = useRouterQuery<{
+  search: string;
+  page: string;
+}>({
+  search: searchTerm,
+  page: String(currentPage), // <- 👈 Keep page synced
+});
+
 
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -154,6 +163,70 @@ export default function CustomersPage({ customers, searchTerm }: CustomerPagePro
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
       />
+      <div className="flex justify-between items-center mt-4">
+  <span>
+    Page {currentPage} of {totalPages} — {totalCount} total
+  </span>
+  <div className="flex gap-1 items-center">
+    {/* First Page + Ellipsis */}
+    {currentPage > 3 && (
+      <>
+        <Button variant="ghost" onClick={() => replace({ search: searchTerm, page: "1" })}>
+          1
+        </Button>
+        {currentPage > 4 && <span className="text-muted-foreground px-1">...</span>}
+      </>
+    )}
+
+    {/* Nearby Page Numbers */}
+    {Array.from({ length: totalPages }, (_, i) => i + 1)
+      .filter(
+        (page) =>
+          page === currentPage ||
+          page === currentPage - 1 ||
+          page === currentPage + 1
+      )
+      .map((page) => (
+        <Button
+          key={page}
+          variant={page === currentPage ? "default" : "outline"}
+          onClick={() => replace({ search: searchTerm, page: String(page) })}
+        >
+          {page}
+        </Button>
+      ))}
+
+    {/* Last Page + Ellipsis */}
+    {currentPage < totalPages - 2 && (
+      <>
+        {currentPage < totalPages - 3 && <span className="text-muted-foreground px-1">...</span>}
+        <Button
+          variant="ghost"
+          onClick={() => replace({ search: searchTerm, page: String(totalPages) })}
+        >
+          {totalPages}
+        </Button>
+      </>
+    )}
+
+    {/* Prev/Next Arrows */}
+    <Button
+      variant="outline"
+      disabled={currentPage === 1}
+      onClick={() => replace({ search: searchTerm, page: String(currentPage - 1) })}
+    >
+      Prev
+    </Button>
+    <Button
+      variant="outline"
+      disabled={currentPage === totalPages}
+      onClick={() => replace({ search: searchTerm, page: String(currentPage + 1) })}
+    >
+      Next
+    </Button>
+  </div>
+</div>
+
 
       <AlertModal
         isOpen={bulkDeleteOpen}

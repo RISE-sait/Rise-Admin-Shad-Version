@@ -66,30 +66,48 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
 }
 
 
-export async function getCustomers(search?: string): Promise<Customer[]> {
-  try {
-    let url = `${getValue('API')}customers`;
+interface CustomersPaginatedResponse {
+  data: CustomerApiResponse[];
+  page: number;
+  pages: number;
+  total: number;
+  limit: number;
+}
 
-    if (search) {
-      url += `?search=${encodeURIComponent(search)}`;
-    }
-    
-    const response = await fetch(url)
-    
+export async function getCustomers(
+  search?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<{ customers: Customer[]; page: number; pages: number; total: number }> {
+  try {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+
+    const url = `${getValue('API')}customers?${params.toString()}`;
+
+    const response = await fetch(url);
+
     if (!response.ok) {
       console.error('Failed to fetch customers:', response.status, response.statusText);
       throw new Error(`Failed to fetch customers: ${response.statusText}`);
     }
-    
-    const customersResponse: CustomerApiResponse[] = await response.json();
-    
-    // Map API response to Customer type
-    return customersResponse.map(mapApiResponseToCustomer);
+
+    const json: CustomersPaginatedResponse = await response.json();
+
+    return {
+      customers: json.data.map(mapApiResponseToCustomer),
+      page: json.page,
+      pages: json.pages,
+      total: json.total,
+    };
   } catch (error) {
     console.error('Error fetching customers:', error);
     throw error;
   }
 }
+
 
 /**
  * Get customer by ID

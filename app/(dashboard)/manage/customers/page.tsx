@@ -7,21 +7,31 @@ import { StaffRoleEnum } from '@/types/user';
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>
+  searchParams: Promise<{ search?: string; page?: string }>;
 }) {
+  const resolved = await searchParams;
+  const search = resolved.search || '';
+  const page = parseInt(resolved.page || '1', 10);
 
-  const search = (await searchParams).search || ''
-
-  const customers = await getCustomers(search);
+  const {
+    customers,
+    page: currentPage,
+    pages,
+    total
+  } = await getCustomers(search, page);
 
   return (
     <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
-      <div className='flex'>
+      <div className="flex">
         <CustomerPage
-        searchTerm={search}
+          searchTerm={search}
           customers={customers}
+          currentPage={currentPage}
+          totalPages={pages}
+          totalCount={total}
         />
       </div>
     </RoleProtected>
   );
 }
+

@@ -82,7 +82,7 @@ export default function AppointmentsPage() {
       try {
         setIsLoadingCustomers(true);
         const customerData = await getCustomers();
-        setCustomers(customerData);
+        setCustomers(customerData.customers);
       } catch (error) {
         console.error("Error fetching customers:", error);
       } finally {

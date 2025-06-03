@@ -64,7 +64,7 @@ export default function AddAppointmentForm({
       try {
         setIsLoadingCustomers(true);
         const customerData = await getCustomers();
-        setCustomers(customerData);
+        setCustomers(customerData.customers);
       } catch (error) {
         console.error("Error fetching customers:", error);
         toast({ status: "error", description: "Failed to load customers" });
