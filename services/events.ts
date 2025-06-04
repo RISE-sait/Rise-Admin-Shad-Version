@@ -1,36 +1,22 @@
-import getValue from '@/configs/constants';
-import { addAuthHeader } from '@/lib/auth-header';
-import { EventEventRequestDto, EventEventResponseDto, EventRecurrenceResponseDto, EventRecurrenceRequestDto } from '@/app/api/Api';
-import { Event, EventParticipant, EventSchedule } from '@/types/events';
+import getValue from "@/configs/constants";
+import { addAuthHeader } from "@/lib/auth-header";
+import {
+  EventEventRequestDto,
+  EventEventResponseDto,
+  EventRecurrenceResponseDto,
+  EventRecurrenceRequestDto,
+} from "@/app/api/Api";
+import { Event, EventParticipant, EventSchedule } from "@/types/events";
 
-export async function getEvents(query: {
-  after: string;
-  before: string;
-  program_id?: string;
-  participant_id?: string;
-  team_id?: string;
-  location_id?: string;
-  program_type?: string;
-  response_type: 'day' | 'date'
-  created_by?: string;
-  updated_by?: string;
-}): Promise<typeof query['response_type'] extends 'date' ? EventEventResponseDto[] : EventRecurrenceResponseDto[]> {
+export async function getEventsByMonth(
+  month: string
+): Promise<EventEventResponseDto[]> {
   try {
-    const queryParams = new URLSearchParams()
+    const response = await fetch(
+      `${getValue("API")}events?month=${month}&response_type=date`
+    );
 
-    queryParams.append('after', query.after);
-    queryParams.append('before', query.before);
-    if (query.program_id) queryParams.append('program_id', query.program_id);
-    if (query.participant_id) queryParams.append('participant_id', query.participant_id);
-    if (query.team_id) queryParams.append('team_id', query.team_id);
-    if (query.location_id) queryParams.append('location_id', query.location_id);
-    if (query.program_type) queryParams.append('program_type', query.program_type);
-    if (query.created_by) queryParams.append('created_by', query.created_by);
-    if (query.updated_by) queryParams.append('updated_by', query.updated_by);
-
-    const response = await fetch(`${getValue('API')}events?${queryParams.toString()}&response_type=${query.response_type}`)
-
-    const responseJSON = await response.json()
+    const responseJSON = await response.json();
 
     if (!response.ok) {
       let errorMessage = `Failed to get events: ${response.statusText}`;
@@ -40,9 +26,63 @@ export async function getEvents(query: {
       throw new Error(errorMessage);
     }
 
-    return responseJSON as typeof query['response_type'] extends 'date' ? EventEventResponseDto[] : EventRecurrenceResponseDto[]
+    return responseJSON as EventEventResponseDto[];
   } catch (error) {
-    console.error('Error fetching events:', error);
+    console.error("Error fetching events by month:", error);
+    throw error;
+  }
+}
+
+export async function getEvents(query: {
+  after: string;
+  before: string;
+  program_id?: string;
+  participant_id?: string;
+  team_id?: string;
+  location_id?: string;
+  program_type?: string;
+  response_type: "day" | "date";
+  created_by?: string;
+  updated_by?: string;
+}): Promise<
+  (typeof query)["response_type"] extends "date"
+    ? EventEventResponseDto[]
+    : EventRecurrenceResponseDto[]
+> {
+  try {
+    const queryParams = new URLSearchParams();
+
+    queryParams.append("after", query.after);
+    queryParams.append("before", query.before);
+    if (query.program_id) queryParams.append("program_id", query.program_id);
+    if (query.participant_id)
+      queryParams.append("participant_id", query.participant_id);
+    if (query.team_id) queryParams.append("team_id", query.team_id);
+    if (query.location_id) queryParams.append("location_id", query.location_id);
+    if (query.program_type)
+      queryParams.append("program_type", query.program_type);
+    if (query.created_by) queryParams.append("created_by", query.created_by);
+    if (query.updated_by) queryParams.append("updated_by", query.updated_by);
+
+    const response = await fetch(
+      `${getValue("API")}events?${queryParams.toString()}&response_type=${query.response_type}`
+    );
+
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get events: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return responseJSON as (typeof query)["response_type"] extends "date"
+      ? EventEventResponseDto[]
+      : EventRecurrenceResponseDto[];
+  } catch (error) {
+    console.error("Error fetching events:", error);
     throw error;
   }
 }
@@ -50,18 +90,20 @@ export async function getEvents(query: {
 /**
  * Create new events
  */
-export async function createEvents(eventsData: EventRecurrenceRequestDto, jwt: string) {
+export async function createEvents(
+  eventsData: EventRecurrenceRequestDto,
+  jwt: string
+) {
   try {
-
     const requestData = {
       ...eventsData,
-      ...(typeof eventsData.capacity !== 'undefined' && {
-        capacity: Number(eventsData.capacity)
-      })
+      ...(typeof eventsData.capacity !== "undefined" && {
+        capacity: Number(eventsData.capacity),
+      }),
     };
 
-    const response = await fetch(`${getValue('API')}events/recurring`, {
-      method: 'POST',
+    const response = await fetch(`${getValue("API")}events/recurring`, {
+      method: "POST",
       ...addAuthHeader(jwt),
       body: JSON.stringify(requestData),
     });
@@ -77,7 +119,7 @@ export async function createEvents(eventsData: EventRecurrenceRequestDto, jwt: s
 
     return null;
   } catch (error) {
-    console.error('Error creating events:', error);
+    console.error("Error creating events:", error);
     throw error;
   }
 }
@@ -85,11 +127,14 @@ export async function createEvents(eventsData: EventRecurrenceRequestDto, jwt: s
 /**
  * Update an existing event
  */
-export async function updateEvent(eventID: string, eventData: EventEventRequestDto, jwt: string): Promise<string | null> {
+export async function updateEvent(
+  eventID: string,
+  eventData: EventEventRequestDto,
+  jwt: string
+): Promise<string | null> {
   try {
-
-    const response = await fetch(`${getValue('API')}events/${eventID}`, {
-      method: 'PUT',
+    const response = await fetch(`${getValue("API")}events/${eventID}`, {
+      method: "PUT",
       ...addAuthHeader(jwt),
       body: JSON.stringify(eventData),
     });
@@ -105,7 +150,7 @@ export async function updateEvent(eventID: string, eventData: EventEventRequestD
 
     return null;
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error("Error updating event:", error);
     throw error;
   }
 }
@@ -113,18 +158,24 @@ export async function updateEvent(eventID: string, eventData: EventEventRequestD
 /**
  * Update existing events
  */
-export async function updateRecurrence(eventData: EventRecurrenceRequestDto, recurringId: string, jwt: string): Promise<string | null> {
+export async function updateRecurrence(
+  eventData: EventRecurrenceRequestDto,
+  recurringId: string,
+  jwt: string
+): Promise<string | null> {
   try {
-
     // convert capacity to number if it exists in the request data
-    const response = await fetch(`${getValue('API')}events/recurring/${recurringId}`, {
-      method: 'PUT',
-      ...addAuthHeader(jwt),
-      body: JSON.stringify({
-        ...eventData,
-        capacity: Number(eventData.capacity),
-      }),
-    });
+    const response = await fetch(
+      `${getValue("API")}events/recurring/${recurringId}`,
+      {
+        method: "PUT",
+        ...addAuthHeader(jwt),
+        body: JSON.stringify({
+          ...eventData,
+          capacity: Number(eventData.capacity),
+        }),
+      }
+    );
 
     if (!response.ok) {
       const responseJSON = await response.json();
@@ -137,17 +188,15 @@ export async function updateRecurrence(eventData: EventRecurrenceRequestDto, rec
 
     return null;
   } catch (error) {
-    console.error('Error updating events:', error);
+    console.error("Error updating events:", error);
     throw error;
   }
 }
 
-
 export async function deleteEventsByRecurrenceID(id: string, jwt: string) {
   try {
-
-    const response = await fetch(`${getValue('API')}events/recurring/${id}`, {
-      method: 'DELETE',
+    const response = await fetch(`${getValue("API")}events/recurring/${id}`, {
+      method: "DELETE",
       ...addAuthHeader(jwt),
     });
 
@@ -160,18 +209,19 @@ export async function deleteEventsByRecurrenceID(id: string, jwt: string) {
 
       throw new Error(errorMessage);
     }
-
   } catch (error) {
-    console.error('Error deleting event:', error);
+    console.error("Error deleting event:", error);
     throw error;
   }
 }
 
-export async function getSchedulesOfProgram(programID: string): Promise<EventSchedule[]> {
-
+export async function getSchedulesOfProgram(
+  programID: string
+): Promise<EventSchedule[]> {
   try {
-
-    const response = await fetch(`${getValue('API')}events?program_id=${programID}&response_type=day`)
+    const response = await fetch(
+      `${getValue("API")}events?program_id=${programID}&response_type=day`
+    );
 
     const responseJSON = await response.json();
 
@@ -184,7 +234,6 @@ export async function getSchedulesOfProgram(programID: string): Promise<EventSch
     }
 
     return (responseJSON as EventRecurrenceResponseDto[]).map((schedule) => {
-
       const sch: EventSchedule = {
         id: schedule.id!,
         day: schedule.day!,
@@ -196,39 +245,35 @@ export async function getSchedulesOfProgram(programID: string): Promise<EventSch
           id: schedule.location?.id!,
           name: schedule.location?.name!,
           address: schedule.location?.address!,
-        }
-      }
+        },
+      };
 
       if (schedule.program) {
         sch.program = {
           id: schedule.program.id!,
           name: schedule.program.name!,
           type: schedule.program.type!,
-        }
+        };
       }
 
       if (schedule.team) {
         sch.team = {
           id: schedule.team.id!,
           name: schedule.team.name!,
-        }
+        };
       }
 
-      return sch
-    })
+      return sch;
+    });
   } catch (error) {
-    console.error('Error getting schedules of program:', error);
+    console.error("Error getting schedules of program:", error);
     throw error;
   }
-
 }
 
-
 export async function getEvent(id: string): Promise<Event> {
-
   try {
-
-    const response = await fetch(`${getValue('API')}events/${id}`)
+    const response = await fetch(`${getValue("API")}events/${id}`);
 
     const responseJSON = await response.json();
 
@@ -240,7 +285,7 @@ export async function getEvent(id: string): Promise<Event> {
       throw new Error(errorMessage);
     }
 
-    const event = responseJSON as EventEventResponseDto
+    const event = responseJSON as EventEventResponseDto;
 
     const evt: Event = {
       id: event.id!,
@@ -267,26 +312,30 @@ export async function getEvent(id: string): Promise<Event> {
         first_name: event.updated_by!.first_name!,
         last_name: event.updated_by!.last_name!,
       },
-      team: event.team ? {
-        id: event.team.id!,
-        name: event.team.name!,
-      } : undefined,
+      team: event.team
+        ? {
+            id: event.team.id!,
+            name: event.team.name!,
+          }
+        : undefined,
 
-      customers: event.customers!.map(customer => ({
-        id: customer.id!,
-        first_name: customer.first_name!,
-        last_name: customer.last_name!,
-        email: customer.email,
-        phone: customer.phone,
-        gender: customer.gender,
-        has_cancelled_enrollment: customer.has_cancelled_enrollment!,
-      }) as EventParticipant)
-    }
+      customers: event.customers!.map(
+        (customer) =>
+          ({
+            id: customer.id!,
+            first_name: customer.first_name!,
+            last_name: customer.last_name!,
+            email: customer.email,
+            phone: customer.phone,
+            gender: customer.gender,
+            has_cancelled_enrollment: customer.has_cancelled_enrollment!,
+          }) as EventParticipant
+      ),
+    };
 
-    return evt
+    return evt;
   } catch (error) {
-    console.error('Error getting schedules of program:', error);
+    console.error("Error getting schedules of program:", error);
     throw error;
   }
-
 }
