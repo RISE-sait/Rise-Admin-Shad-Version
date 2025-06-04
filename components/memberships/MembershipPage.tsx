@@ -25,10 +25,17 @@ import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { AlertModal } from "@/components/ui/AlertModal";
 
-export default function MembershipsPage({ memberships }: { memberships: Membership[] }) {
+export default function MembershipsPage({
+  memberships,
+}: {
+  memberships: Membership[];
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
-  const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
+  const [selectedMembership, setSelectedMembership] =
+    useState<Membership | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -42,7 +49,9 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
         (membership) =>
           membership.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (membership.description &&
-            membership.description.toLowerCase().includes(searchQuery.toLowerCase()))
+            membership.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()))
       )
     : memberships;
 
@@ -65,7 +74,9 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
 
   const handleBulkDelete = async () => {
     try {
-      await Promise.all(selectedIds.map((id) => deleteMembership(id, user?.Jwt!)));
+      await Promise.all(
+        selectedIds.map((id) => deleteMembership(id, user?.Jwt!))
+      );
       await revalidateMemberships();
       setSelectedIds([]);
       setBulkDeleteOpen(false);
@@ -79,7 +90,10 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Memberships" description="Manage your memberships and their details" />
+        <Heading
+          title="Memberships"
+          description="Manage your memberships and their details"
+        />
         <Button
           onClick={() => {
             setDrawerContent("add");
@@ -107,7 +121,7 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
-                Columns
+                Filters
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -170,7 +184,9 @@ export default function MembershipsPage({ memberships }: { memberships: Membersh
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Membership Details" : "Add Membership"}
+            {drawerContent === "details"
+              ? "Membership Details"
+              : "Add Membership"}
           </h2>
           {drawerContent === "details" && selectedMembership && (
             <MembershipInfoPanel membership={selectedMembership} />

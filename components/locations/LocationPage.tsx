@@ -25,10 +25,18 @@ import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { AlertModal } from "@/components/ui/AlertModal";
 
-export default function FacilitiesPage({ facilities }: { facilities: Location[] }) {
+export default function FacilitiesPage({
+  facilities,
+}: {
+  facilities: Location[];
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
-  const [selectedFacility, setSelectedFacility] = useState<Location | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
+  const [selectedFacility, setSelectedFacility] = useState<Location | null>(
+    null
+  );
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -69,7 +77,9 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
 
   const handleBulkDelete = async () => {
     try {
-      await Promise.all(selectedIds.map((id) => deleteLocation(id, user?.Jwt!)));
+      await Promise.all(
+        selectedIds.map((id) => deleteLocation(id, user?.Jwt!))
+      );
       await revalidateLocations();
       setSelectedIds([]);
       setBulkDeleteOpen(false);
@@ -83,7 +93,10 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Locations" description="Manage your organization's locations" />
+        <Heading
+          title="Locations"
+          description="Manage your organization's locations"
+        />
         <Button
           onClick={() => {
             setDrawerContent("add");
@@ -111,7 +124,7 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
-                Columns
+                Filters
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -173,7 +186,9 @@ export default function FacilitiesPage({ facilities }: { facilities: Location[] 
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Facility Details" : "Add New Facility"}
+            {drawerContent === "details"
+              ? "Facility Details"
+              : "Add New Facility"}
           </h2>
           {drawerContent === "details" && selectedFacility && (
             <FacilityInfoPanel facility={selectedFacility} />
