@@ -1,23 +1,39 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
-import { Location } from "@/types/location"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAllPrograms } from "@/services/program"
-import { getAllLocations } from "@/services/location"
-import { getAllStaffs } from "@/services/staff"
-import { User } from "@/types/user"
-import { toast } from "@/hooks/use-toast"
-import { Program } from "@/types/program"
-import { useRouterQuery } from "@/hooks/router-query"
+import { useEffect, useState } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { Location } from "@/types/location";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getAllPrograms } from "@/services/program";
+import { getAllLocations } from "@/services/location";
+import { getAllStaffs } from "@/services/staff";
+import { User } from "@/types/user";
+import { toast } from "@/hooks/use-toast";
+import { Program } from "@/types/program";
+import { useRouterQuery } from "@/hooks/router-query";
+import { SheetClose } from "../ui/sheet";
 
 export default function FilterComponent() {
   // State for dynamic data
@@ -28,42 +44,40 @@ export default function FilterComponent() {
     locations: false,
     trainers: false,
     programs: false,
-  })
+  });
 
-  const { val, replace, reset } = useRouterQuery(
-    {
-      program_id: "",
-      participant_id: "",
-      location_id: "",
-      program_type: "",
-      after: "",
-      before: ""
-    }
-  )
+  const { val, replace, reset } = useRouterQuery({
+    program_id: "",
+    participant_id: "",
+    location_id: "",
+    program_type: "",
+    after: "",
+    before: "",
+  });
 
   const programTypes = programs.reduce((acc: string[], program) => {
-    if (!acc.includes(program.type)) acc.push(program.type)
-    return acc
-  }, [])
+    if (!acc.includes(program.type)) acc.push(program.type);
+    return acc;
+  }, []);
 
   // Parse dates for the calendar components
-  const afterDate = val.after ? new Date(val.after) : undefined;
-  const beforeDate = val.before ? new Date(val.before) : undefined;
+  const afterDate = val.after ? parseISO(val.after) : undefined;
+  const beforeDate = val.before ? parseISO(val.before) : undefined;
 
   useEffect(() => {
     const fetchAllData = async () => {
       setIsLoading({ locations: true, trainers: true, programs: true });
 
       try {
-        const [locations, staffs, programs] = await Promise.all([
-          getAllLocations().catch(handleError('locations')),
-          getAllStaffs().catch(handleError('trainers')),
-          getAllPrograms().catch(handleError('programs'))
+        const [locationsRes, staffsRes, programsRes] = await Promise.all([
+          getAllLocations().catch(handleError("locations")),
+          getAllStaffs().catch(handleError("trainers")),
+          getAllPrograms().catch(handleError("programs")),
         ]);
 
-        setLocations(locations || []);
-        setStaffs(staffs || []);
-        setPrograms(programs || []);
+        setLocations(locationsRes || []);
+        setStaffs(staffsRes || []);
+        setPrograms(programsRes || []);
       } finally {
         setIsLoading({ locations: false, trainers: false, programs: false });
       }
@@ -72,9 +86,8 @@ export default function FilterComponent() {
     const handleError = (type: string) => (error: unknown) => {
       toast({
         status: "error",
-        description: error instanceof Error
-          ? error.message
-          : `Failed to fetch ${type}`,
+        description:
+          error instanceof Error ? error.message : `Failed to fetch ${type}`,
       });
       return undefined;
     };
@@ -84,11 +97,10 @@ export default function FilterComponent() {
 
   return (
     <div className="p-4 bg-white dark:bg-black dark:border-gray-900 rounded-lg shadow space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
-        <Button variant="ghost" size="sm" onClick={reset}>
-          Reset
-        </Button>
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Filters
+        </h2>
       </div>
 
       <Accordion type="multiple" className="space-y-2">
@@ -104,18 +116,24 @@ export default function FilterComponent() {
                 <Label>Start Date (After)</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {afterDate ? format(afterDate, "PPP") : "Select start date"}
+                      {afterDate
+                        ? format(afterDate, "PPP")
+                        : "Select start date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
                       selected={afterDate}
-                      onSelect={(date) => replace({
-                        after: date ? format(date, "yyyy-MM-dd") : "",
-                      })
+                      onSelect={(date) =>
+                        replace({
+                          after: date ? format(date, "yyyy-MM-dd") : "",
+                        })
                       }
                     />
                   </PopoverContent>
@@ -127,18 +145,25 @@ export default function FilterComponent() {
                 <Label>End Date (Before)</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {beforeDate ? format(beforeDate, "PPP") : "Select end date"}
+                      {beforeDate
+                        ? format(beforeDate, "PPP")
+                        : "Select end date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
                       selected={beforeDate}
-                      onSelect={(date) => replace({
-                        before: date ? format(date, "yyyy-MM-dd") : "",
-                      })}
+                      onSelect={(date) =>
+                        replace({
+                          before: date ? format(date, "yyyy-MM-dd") : "",
+                        })
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -147,7 +172,7 @@ export default function FilterComponent() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* Location Filter - Changed from checkboxes to dropdown */}
+        {/* Location Filter */}
         <AccordionItem value="location">
           <AccordionTrigger className="text-large font-medium text-gray-900 dark:text-gray-100">
             Location
@@ -158,9 +183,10 @@ export default function FilterComponent() {
             ) : (
               <Select
                 value={val.location_id || "all"}
-                onValueChange={(value) => replace({
-                  location_id: value === "all" ? "" : value
-                })
+                onValueChange={(value) =>
+                  replace({
+                    location_id: value === "all" ? "" : value,
+                  })
                 }
               >
                 <SelectTrigger>
@@ -168,7 +194,7 @@ export default function FilterComponent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Locations</SelectItem>
-                  {locations.map(location => (
+                  {locations.map((location) => (
                     <SelectItem key={location.id} value={location.id}>
                       {location.name}
                     </SelectItem>
@@ -188,38 +214,44 @@ export default function FilterComponent() {
             <div className="space-y-4">
               <RadioGroup
                 value={val.program_type || ""}
-                onValueChange={(value) => replace({
-                  program_type: value
-                })}
+                onValueChange={(value) =>
+                  replace({
+                    program_type: value,
+                  })
+                }
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="" id="all-types" />
                   <Label htmlFor="all-types">All Types</Label>
                 </div>
-                {programTypes.map(type => (
+                {programTypes.map((type) => (
                   <div key={type} className="flex items-center space-x-2">
                     <RadioGroupItem value={type} id={`type-${type}`} />
-                    <Label htmlFor={`type-${type}`}>{type.charAt(0).toUpperCase() + type.slice(1)}</Label>
+                    <Label htmlFor={`type-${type}`}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </Label>
                   </div>
                 ))}
               </RadioGroup>
 
-              {/* Program Names - Changed from checkboxes to dropdown */}
+              {/* Program Names Dropdown */}
               {val.program_type && programs.length > 0 && (
                 <div className="mt-4">
                   <Label className="text-sm mb-2 block">Select Program</Label>
                   <Select
                     value={val.program_id || "all"}
-                    onValueChange={(value) => replace({
-                      program_id: value === "all" ? "" : value
-                    })}
+                    onValueChange={(value) =>
+                      replace({
+                        program_id: value === "all" ? "" : value,
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select program" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Programs</SelectItem>
-                      {programs.map(program => (
+                      {programs.map((program) => (
                         <SelectItem key={program.id} value={program.id}>
                           {program.name}
                         </SelectItem>
@@ -232,7 +264,7 @@ export default function FilterComponent() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* Trainers - Changed from checkboxes to dropdown */}
+        {/* Trainers Dropdown */}
         <AccordionItem value="trainers">
           <AccordionTrigger className="text-large font-medium text-gray-900 dark:text-gray-100">
             Trainers
@@ -243,9 +275,10 @@ export default function FilterComponent() {
             ) : (
               <Select
                 value={val.participant_id || "all"}
-                onValueChange={(value) => replace({
-                  participant_id: value === "all" ? "" : value
-                })
+                onValueChange={(value) =>
+                  replace({
+                    participant_id: value === "all" ? "" : value,
+                  })
                 }
               >
                 <SelectTrigger>
@@ -253,7 +286,7 @@ export default function FilterComponent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Trainers</SelectItem>
-                  {staffs.map(trainer => (
+                  {staffs.map((trainer) => (
                     <SelectItem key={trainer.Email} value={trainer.Email!}>
                       {trainer.Name}
                     </SelectItem>
@@ -264,6 +297,16 @@ export default function FilterComponent() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {/** Buttons Row at Bottom */}
+      <div className="flex space-x-2 pt-4">
+        <Button variant="ghost" onClick={reset}>
+          Reset
+        </Button>
+        <SheetClose asChild>
+          <Button>Apply Filters</Button>
+        </SheetClose>
+      </div>
     </div>
-  )
+  );
 }
