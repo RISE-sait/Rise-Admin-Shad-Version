@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,6 @@ interface CustomerPageProps {
   totalCount: number;
 }
 
-
 const debounce = (func: Function, delay: number) => {
   let timeoutId: NodeJS.Timeout;
   return (...args: any[]) => {
@@ -42,25 +41,34 @@ const debounce = (func: Function, delay: number) => {
       func(...args);
     }, delay);
   };
-}
+};
 
-export default function CustomersPage({ customers, searchTerm, currentPage, totalPages, totalCount }: CustomerPageProps) {
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+export default function CustomersPage({
+  customers,
+  searchTerm,
+  currentPage,
+  totalPages,
+  totalCount,
+}: CustomerPageProps) {
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-const { replace, val } = useRouterQuery<{
-  search: string;
-  page: string;
-}>({
-  search: searchTerm,
-  page: String(currentPage), // <- 👈 Keep page synced
-});
-
+  const { replace, val } = useRouterQuery<{
+    search: string;
+    page: string;
+  }>({
+    search: searchTerm,
+    page: String(currentPage), // <- 👈 Keep page synced
+  });
 
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -94,7 +102,10 @@ const { replace, val } = useRouterQuery<{
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Customers" description="Manage your customers and their details" />
+        <Heading
+          title="Customers"
+          description="Manage your customers and their details"
+        />
       </div>
       <Separator />
 
@@ -106,8 +117,8 @@ const { replace, val } = useRouterQuery<{
             className="pl-8"
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value)
-              debounce(() => replace({ search: e.target.value }), 30)()
+              setSearchQuery(e.target.value);
+              debounce(() => replace({ search: e.target.value }), 30)();
             }}
           />
         </div>
@@ -115,7 +126,7 @@ const { replace, val } = useRouterQuery<{
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
-                Columns
+                Filters
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -157,76 +168,90 @@ const { replace, val } = useRouterQuery<{
       <CustomerTable
         customers={customers}
         onCustomerSelect={handleCustomerSelect}
-        onDeleteCustomer={() => { }}
+        onDeleteCustomer={() => {}}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
       />
       <div className="flex justify-between items-center mt-4">
-  <span>
-    Page {currentPage} of {totalPages} — {totalCount} total
-  </span>
-  <div className="flex gap-1 items-center">
-    {/* First Page + Ellipsis */}
-    {currentPage > 3 && (
-      <>
-        <Button variant="ghost" onClick={() => replace({ search: searchTerm, page: "1" })}>
-          1
-        </Button>
-        {currentPage > 4 && <span className="text-muted-foreground px-1">...</span>}
-      </>
-    )}
+        <span>
+          Page {currentPage} of {totalPages} — {totalCount} total
+        </span>
+        <div className="flex gap-1 items-center">
+          {/* First Page + Ellipsis */}
+          {currentPage > 3 && (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => replace({ search: searchTerm, page: "1" })}
+              >
+                1
+              </Button>
+              {currentPage > 4 && (
+                <span className="text-muted-foreground px-1">...</span>
+              )}
+            </>
+          )}
 
-    {/* Nearby Page Numbers */}
-    {Array.from({ length: totalPages }, (_, i) => i + 1)
-      .filter(
-        (page) =>
-          page === currentPage ||
-          page === currentPage - 1 ||
-          page === currentPage + 1
-      )
-      .map((page) => (
-        <Button
-          key={page}
-          variant={page === currentPage ? "default" : "outline"}
-          onClick={() => replace({ search: searchTerm, page: String(page) })}
-        >
-          {page}
-        </Button>
-      ))}
+          {/* Nearby Page Numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(
+              (page) =>
+                page === currentPage ||
+                page === currentPage - 1 ||
+                page === currentPage + 1
+            )
+            .map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                onClick={() =>
+                  replace({ search: searchTerm, page: String(page) })
+                }
+              >
+                {page}
+              </Button>
+            ))}
 
-    {/* Last Page + Ellipsis */}
-    {currentPage < totalPages - 2 && (
-      <>
-        {currentPage < totalPages - 3 && <span className="text-muted-foreground px-1">...</span>}
-        <Button
-          variant="ghost"
-          onClick={() => replace({ search: searchTerm, page: String(totalPages) })}
-        >
-          {totalPages}
-        </Button>
-      </>
-    )}
+          {/* Last Page + Ellipsis */}
+          {currentPage < totalPages - 2 && (
+            <>
+              {currentPage < totalPages - 3 && (
+                <span className="text-muted-foreground px-1">...</span>
+              )}
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  replace({ search: searchTerm, page: String(totalPages) })
+                }
+              >
+                {totalPages}
+              </Button>
+            </>
+          )}
 
-    {/* Prev/Next Arrows */}
-    <Button
-      variant="outline"
-      disabled={currentPage === 1}
-      onClick={() => replace({ search: searchTerm, page: String(currentPage - 1) })}
-    >
-      Prev
-    </Button>
-    <Button
-      variant="outline"
-      disabled={currentPage === totalPages}
-      onClick={() => replace({ search: searchTerm, page: String(currentPage + 1) })}
-    >
-      Next
-    </Button>
-  </div>
-</div>
-
+          {/* Prev/Next Arrows */}
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() =>
+              replace({ search: searchTerm, page: String(currentPage - 1) })
+            }
+          >
+            Prev
+          </Button>
+          <Button
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() =>
+              replace({ search: searchTerm, page: String(currentPage + 1) })
+            }
+          >
+            Next
+          </Button>
+        </div>
+      </div>
 
       <AlertModal
         isOpen={bulkDeleteOpen}
@@ -247,13 +272,13 @@ const { replace, val } = useRouterQuery<{
           {drawerContent === "details" && selectedCustomer && (
             <CustomerInfoPanel
               customer={selectedCustomer}
-              onCustomerUpdated={() => { }}
-              onCustomerDeleted={() => { }}
+              onCustomerUpdated={() => {}}
+              onCustomerDeleted={() => {}}
             />
           )}
           {drawerContent === "add" && (
             <AddCustomerForm
-              onCustomerAdded={() => { }}
+              onCustomerAdded={() => {}}
               onCancel={() => setDrawerOpen(false)}
             />
           )}
