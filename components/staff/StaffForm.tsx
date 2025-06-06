@@ -16,9 +16,10 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Trash, Save } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
-import getValue from '@/configs/constants';
-import { useToast } from '@/hooks/use-toast';
+import getValue from "@/configs/constants";
+import { useToast } from "@/hooks/use-toast";
 import { revalidateStaffs } from "@/actions/serverActions";
+import { deleteStaff } from "@/services/staff";
 import { StaffRoleEnum, User } from "@/types/user";
 
 const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
@@ -26,91 +27,87 @@ const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
   value,
 }));
 
-export default function StaffForm({ StaffData }: {StaffData?: User}) {
+export default function StaffForm({ StaffData }: { StaffData?: User }) {
   const [activeTab, setActiveTab] = useState("details");
   const [role, setRole] = useState(StaffData?.StaffInfo?.Role || "");
-  const [isActive, setIsActive] = useState(StaffData?.StaffInfo?.IsActive || false);
+  const [isActive, setIsActive] = useState(
+    StaffData?.StaffInfo?.IsActive || false
+  );
 
-   const { user } = useUser();
-   const jwt = user?.Jwt
-   const { toast } = useToast();
-   const apiUrl = getValue("API");
+  const { user } = useUser();
+  const jwt = user?.Jwt;
+  const { toast } = useToast();
+  const apiUrl = getValue("API");
 
   const RefreshData = () => {
     revalidateStaffs();
-  }
+  };
 
   // updateo staffo
-  const UpdateStaff = async() => {
-
+  const UpdateStaff = async () => {
     if (role === "") {
       toast({
         status: "error",
         description: "Staff Role is null, please specify role",
-        variant: "destructive"
+        variant: "destructive",
       });
-      return
+      return;
     }
 
     try {
+      console.log(role.toLowerCase());
 
-      console.log(role.toLowerCase())
-
-        const response = await fetch(`${apiUrl}staffs/${StaffData?.ID}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${jwt}`
-            },
-            body: JSON.stringify({
-                is_active: isActive,
-                role_name: role.toLowerCase(),
-            })
-        })
-        if (!response.ok) {
-            toast({
-                status: "error",
-                description: "Permission Denied or Request Failed",
-                variant: "destructive"
-            });
-        } else {
-            toast({
-                status: "success",
-                description: "Staff member updated successfully",
-            });
-            RefreshData()
-        }
+      const response = await fetch(`${apiUrl}staffs/${StaffData?.ID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({
+          is_active: isActive,
+          role_name: role.toLowerCase(),
+        }),
+      });
+      if (!response.ok) {
+        toast({
+          status: "error",
+          description: "Permission Denied or Request Failed",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          status: "success",
+          description: "Staff member updated successfully",
+        });
+        RefreshData();
+      }
     } catch (err) {
-        console.error("Failed to save plan", err);
+      console.error("Failed to save plan", err);
     }
-  }
+  };
 
-  // deleto staffo 
-  const DeleteStaff = async() => {
-    try {
-        const response = await fetch(`${apiUrl}/staffs/${StaffData?.ID}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${jwt}`
-            },
-        })
-        if (!response.ok) {
-            toast({
-                status: "error",
-                description: "Permission Denied",
-                variant: "destructive"
-            });
-        } else {
-            toast({
-                status: "success",
-                description: "Staff member updated successfully",
-            });
-            RefreshData()
-        }
-    } catch (err) {
-        console.error("Failed to save plan", err);
+  const DeleteStaff = async () => {
+    if (
+      confirm(
+        "Are you sure you want to delete this staff member? This action cannot be undone."
+      )
+    ) {
+      try {
+        await deleteStaff(StaffData?.ID!, jwt!);
+        toast({
+          status: "success",
+          description: "Staff member deleted successfully",
+        });
+        RefreshData();
+      } catch (err) {
+        toast({
+          status: "error",
+          description: "Error deleting staff",
+          variant: "destructive",
+        });
+      }
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -219,19 +216,19 @@ export default function StaffForm({ StaffData }: {StaffData?: User}) {
         <div className="max-w-full px-4 mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3 ml-auto">
             <Button
-              variant="outline"
-              className="border-destructive text-destructive hover:bg-destructive/10"
-              onClick={(e) => DeleteStaff()}
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-            <Button
               className="bg-green-600 hover:bg-green-700"
               onClick={(e) => UpdateStaff()}
             >
               <Save className="h-4 w-4 mr-2" />
               Save Changes
+            </Button>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+              onClick={(e) => DeleteStaff()}
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              Delete
             </Button>
           </div>
         </div>

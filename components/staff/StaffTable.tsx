@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -18,13 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  Pencil,
-  Trash,
-  UserX,
-  ArrowUpDown,
-} from "lucide-react";
+import { MoreHorizontal, Pencil, UserX, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -43,8 +37,6 @@ interface StaffTableProps {
   data: User[]; // Array of User objects to display
   loading: boolean; // Indicates whether data is still loading
   onStaffSelect: (staff: User) => void; // Callback when a row is clicked
-  selectedIds: string[]; // IDs of currently selected rows
-  onSelectionChange: (selectedIds: string[]) => void; // Callback when selection changes
 
   columnVisibility: VisibilityState; // Parent‐controlled visibility map
   onColumnVisibilityChange: (
@@ -56,8 +48,7 @@ export default function StaffTable({
   data,
   loading,
   onStaffSelect,
-  selectedIds,
-  onSelectionChange,
+
   columnVisibility,
   onColumnVisibilityChange,
 }: StaffTableProps) {
@@ -241,9 +232,7 @@ export default function StaffTable({
               paginatedData.map((staff) => (
                 <TableRow
                   key={staff.ID}
-                  className={`border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer ${
-                    selectedIds.includes(staff.ID) ? "bg-muted" : ""
-                  }`}
+                  className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer"
                   onClick={() => onStaffSelect(staff)}
                 >
                   {columnVisibility["Name"] !== false && (
@@ -312,10 +301,6 @@ export default function StaffTable({
                             {/* “Edit” option */}
                             <Pencil className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive">
-                            {/* “Delete” option */}
-                            <Trash className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -337,9 +322,6 @@ export default function StaffTable({
             </span>{" "}
             of <span className="font-semibold">{sortedData.length}</span> staff
             members
-            {selectedIds.length > 0 && (
-              <span> ({selectedIds.length} selected)</span>
-            )}
           </div>
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">

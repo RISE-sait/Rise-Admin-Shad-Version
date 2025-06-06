@@ -27,8 +27,6 @@ export default function StaffPage({ staffs }: { staffs: User[] }) {
   const [isNewStaff, setIsNewStaff] = useState(false);
   // Tracks the text in the search input
   const [searchQuery, setSearchQuery] = useState("");
-  // Array of IDs for rows that are selected (for bulk actions)
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Map of column ID → boolean indicating if that column is visible
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -128,8 +126,6 @@ export default function StaffPage({ staffs }: { staffs: User[] }) {
         data={filteredStaff}
         loading={false}
         onStaffSelect={handleStaffSelect}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={setColumnVisibility}
       />
