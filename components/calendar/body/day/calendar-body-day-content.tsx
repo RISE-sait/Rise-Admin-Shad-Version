@@ -1,5 +1,5 @@
 import { useCalendarContext } from "../../calendar-context";
-import { isWithinInterval } from "date-fns";
+import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { hours } from "./calendar-body-margin-day-margin";
 import CalendarBodyHeader from "../calendar-body-header";
 import CalendarEvent from "../../event/calendar-event";
@@ -8,7 +8,10 @@ export default function CalendarBodyDayContent({ date }: { date: Date }) {
   const { events } = useCalendarContext();
 
   const dayEvents = events.filter((event) =>
-    isWithinInterval(date, { start: event.start_at, end: event.end_at })
+    isWithinInterval(date, {
+      start: startOfDay(event.start_at),
+      end: endOfDay(event.end_at),
+    })
   );
 
   return (

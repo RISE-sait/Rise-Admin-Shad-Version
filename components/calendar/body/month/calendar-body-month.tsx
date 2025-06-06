@@ -9,6 +9,8 @@ import {
   isSameDay,
   format,
   isWithinInterval,
+  startOfDay,
+  endOfDay,
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import CalendarEvent from "../../event/calendar-event";
@@ -73,8 +75,8 @@ export default function CalendarBodyMonth() {
           {calendarDays.map((day) => {
             const dayEvents = visibleEvents.filter((event) =>
               isWithinInterval(day, {
-                start: event.start_at,
-                end: event.end_at,
+                start: startOfDay(event.start_at),
+                end: endOfDay(event.end_at),
               })
             );
             const isToday = isSameDay(day, today);

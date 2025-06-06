@@ -1,11 +1,14 @@
 import { useCalendarContext } from "../../calendar-context";
-import { isWithinInterval } from "date-fns";
+import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 export default function CalendarBodyDayEvents() {
   const { events, date, setManageEventDialogOpen, setSelectedEvent } =
     useCalendarContext();
   const dayEvents = events.filter((event) =>
-    isWithinInterval(date, { start: event.start_at, end: event.end_at })
+    isWithinInterval(date, {
+      start: startOfDay(event.start_at),
+      end: endOfDay(event.end_at),
+    })
   );
 
   return !!dayEvents.length ? (
