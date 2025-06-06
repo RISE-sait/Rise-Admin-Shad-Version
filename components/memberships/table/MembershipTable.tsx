@@ -35,27 +35,23 @@ import columns from "./columns";
 interface DataTableProps {
   memberships: Membership[];
   onMembershipSelect: (membership: Membership) => void;
-  onDeleteMembership?: (membershipId: string) => Promise<void> | void;
   columnVisibility: VisibilityState;
   onColumnVisibilityChange: (
     updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
   ) => void;
-  selectedIds: string[];
-  onSelectionChange: (selectedIds: string[]) => void;
 }
 
 export default function MembershipTable({
   memberships,
   onMembershipSelect,
-  onDeleteMembership,
+
   columnVisibility,
   onColumnVisibilityChange,
-  selectedIds,
-  onSelectionChange,
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
 
   const table = useReactTable({
     data: memberships,
@@ -64,7 +60,6 @@ export default function MembershipTable({
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -75,19 +70,12 @@ export default function MembershipTable({
         onColumnVisibilityChange(newVisibility);
       }
     },
-    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    meta: { onMembershipSelect, onDeleteMembership },
+    meta: { onMembershipSelect },
   });
-
-  React.useEffect(() => {
-    const selectedRows = table.getSelectedRowModel().rows;
-    const newSelectedIds = selectedRows.map((row) => row.original.id);
-    onSelectionChange(newSelectedIds);
-  }, [rowSelection, table, onSelectionChange]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -95,7 +83,10 @@ export default function MembershipTable({
         <Table className="border-collapse">
           <TableHeader className="bg-muted/100 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b"
+              >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -106,7 +97,10 @@ export default function MembershipTable({
                     }}
                   >
                     <div className="flex items-center space-x-2">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                     </div>
                   </TableHead>
                 ))}
@@ -118,7 +112,6 @@ export default function MembershipTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
                   onClick={() => onMembershipSelect(row.original)}
                   className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer"
                 >
@@ -131,7 +124,10 @@ export default function MembershipTable({
                         width: cell.column.getSize(),
                       }}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -155,13 +151,21 @@ export default function MembershipTable({
       <div className="bg-muted/30 px-6 py-4 border-t rounded-b-xl">
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing <span className="font-semibold">{table.getRowModel().rows.length}</span> of{" "}
-            <span className="font-semibold">{table.getFilteredRowModel().rows.length}</span>{" "}
+            Showing{" "}
+            <span className="font-semibold">
+              {table.getRowModel().rows.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold">
+              {table.getFilteredRowModel().rows.length}
+            </span>{" "}
             memberships
           </div>
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <span className="text-sm text-muted-foreground">
+                Rows per page:
+              </span>
               <Select
                 value={String(table.getState().pagination.pageSize)}
                 onValueChange={(value) => table.setPageSize(Number(value))}
@@ -171,7 +175,11 @@ export default function MembershipTable({
                 </SelectTrigger>
                 <SelectContent className="border">
                   {[5, 10, 20, 50, 100].map((size) => (
-                    <SelectItem key={size} value={String(size)} className="text-sm">
+                    <SelectItem
+                      key={size}
+                      value={String(size)}
+                      className="text-sm"
+                    >
                       {size}
                     </SelectItem>
                   ))}
