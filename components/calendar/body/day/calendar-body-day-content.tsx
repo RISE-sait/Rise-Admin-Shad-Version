@@ -1,13 +1,18 @@
-import { useCalendarContext } from '../../calendar-context'
-import { isSameDay } from 'date-fns'
-import { hours } from './calendar-body-margin-day-margin'
-import CalendarBodyHeader from '../calendar-body-header'
-import CalendarEvent from '../../event/calendar-event'
+import { useCalendarContext } from "../../calendar-context";
+import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { hours } from "./calendar-body-margin-day-margin";
+import CalendarBodyHeader from "../calendar-body-header";
+import CalendarEvent from "../../event/calendar-event";
 
 export default function CalendarBodyDayContent({ date }: { date: Date }) {
-  const { events } = useCalendarContext()
+  const { events } = useCalendarContext();
 
-  const dayEvents = events.filter((event) => isSameDay(event.start_at, date))
+  const dayEvents = events.filter((event) =>
+    isWithinInterval(date, {
+      start: startOfDay(event.start_at),
+      end: endOfDay(event.end_at),
+    })
+  );
 
   return (
     <div className="flex flex-col flex-grow">
@@ -19,9 +24,9 @@ export default function CalendarBodyDayContent({ date }: { date: Date }) {
         ))}
 
         {dayEvents.map((event) => (
-          <CalendarEvent key={event.id} event={event} />
+          <CalendarEvent key={event.id} event={event} currentDate={date} />
         ))}
       </div>
     </div>
-  )
+  );
 }
