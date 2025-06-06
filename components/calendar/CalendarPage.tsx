@@ -8,6 +8,8 @@ import { CalendarEvent, Mode } from "@/types/calendar";
 import Calendar from "./calendar";
 import RightDrawer from "../reusable/RightDrawer";
 import { getEventsByMonth } from "@/services/events";
+import { getAllGames } from "@/services/games";
+import { Game } from "@/types/games";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
 
 interface CalendarPageProps {
@@ -30,7 +32,10 @@ export default function CalendarPage({ events }: CalendarPageProps) {
       const month = format(date, "yyyy-MM");
 
       try {
-        const events = await getEventsByMonth(month);
+        const [events, games] = await Promise.all([
+          getEventsByMonth(month),
+          getAllGames(),
+        ]);
         const mappedEvents: CalendarEvent[] = events.map((event: any) => ({
           ...event,
           start_at: new Date(event.start_at),
@@ -40,7 +45,30 @@ export default function CalendarPage({ events }: CalendarPageProps) {
           color: getColorFromProgramType(event.program?.type),
         }));
 
-        setCalendarEvents(mappedEvents);
+        const monthGames: Game[] = games.filter(
+          (g: Game) => format(new Date(g.start_time), "yyyy-MM") === month
+        );
+
+        const mappedGames: CalendarEvent[] = monthGames.map((g: Game) => ({
+          id: g.id,
+          start_at: new Date(g.start_time),
+          end_at: new Date(g.end_time),
+          capacity: 0,
+          color: getColorFromProgramType("game"),
+          createdBy: { firstName: "", id: "", lastName: "" },
+          customers: [],
+          location: { address: "", id: g.location_id, name: g.location_name },
+          program: {
+            id: g.id,
+            name: `${g.home_team_name} vs ${g.away_team_name}`,
+            type: "game",
+          },
+          staff: [],
+          team: { id: "", name: "" },
+          updatedBy: { firstName: "", id: "", lastName: "" },
+        }));
+
+        setCalendarEvents([...mappedEvents, ...mappedGames]);
       } catch (error) {
         console.error("Error fetching events:", error);
         setCalendarEvents([]);
