@@ -1,16 +1,26 @@
 import { Program } from "@/types/program";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@radix-ui/react-dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 
 const getProgramTypeColor = (type: string) => {
   switch (type?.toLowerCase()) {
-    case 'practice': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-    case 'course': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-    case 'game': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
-    default: return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+    case "practice":
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+    case "course":
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+    case "game":
+      return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300";
+    default:
+      return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
   }
 };
 
@@ -45,7 +55,7 @@ const columns: ColumnDef<Program>[] = [
       </Button>
     ),
     cell: ({ row }) => {
-      const type = row.getValue("type") as string || "other";
+      const type = (row.getValue("type") as string) || "other";
       return (
         <Badge variant="outline" className={`${getProgramTypeColor(type)}`}>
           {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
@@ -76,39 +86,27 @@ const columns: ColumnDef<Program>[] = [
         <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="h-8 w-8 p-0 hover:bg-accent"
-              >
+              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-accent">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
+            <DropdownMenuContent
               align="end"
               className="border bg-popover text-popover-foreground"
             >
+              <DropdownMenuLabel className="px-3 py-2">
+                Program Actions
+              </DropdownMenuLabel>
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-accent cursor-pointer"
                 onClick={() => {
-                  const onSelect = (table.options.meta as any)?.onPracticeSelect;
+                  const onSelect = (table.options.meta as any)
+                    ?.onPracticeSelect;
                   onSelect?.(program);
                 }}
               >
                 <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                onClick={(event) => {
-                  if (confirm("Are you sure you want to delete this program?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteProgram;
-                    onDelete?.(program.id);
-                    event.stopPropagation();
-                  }
-                }}
-              >
-                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

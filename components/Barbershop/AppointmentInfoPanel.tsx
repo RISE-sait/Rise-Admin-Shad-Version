@@ -35,14 +35,19 @@ export default function AppointmentInfoPanel({
     if (!appointment.start_at || !appointment.end_at) return "Unknown";
     const start = new Date(appointment.start_at);
     const end = new Date(appointment.end_at);
-    const diffMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+    const diffMinutes = Math.round(
+      (end.getTime() - start.getTime()) / (1000 * 60)
+    );
     return `${diffMinutes} minutes`;
   };
 
   // Handle delete appointment
   const handleDeleteAppointment = async () => {
     if (!appointment.id || !user?.Jwt) {
-      toast({ status: "error", description: "Unable to delete appointment: Missing information" });
+      toast({
+        status: "error",
+        description: "Unable to delete appointment: Missing information",
+      });
       return;
     }
 
@@ -53,7 +58,10 @@ export default function AppointmentInfoPanel({
     try {
       setIsDeleting(true);
       await deleteHaircutEvent(appointment.id, user.Jwt);
-      toast({ status: "success", description: "Appointment deleted successfully" });
+      toast({
+        status: "success",
+        description: "Appointment deleted successfully",
+      });
       if (onAppointmentUpdated) {
         onAppointmentUpdated();
       }
@@ -91,7 +99,9 @@ export default function AppointmentInfoPanel({
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               <div className="bg-secondary/10 p-4 rounded-lg">
-                <h3 className="font-medium text-muted-foreground mb-2">Appointment Time</h3>
+                <h3 className="font-medium text-muted-foreground mb-2">
+                  Appointment Time
+                </h3>
                 <div className="flex items-center mb-2">
                   <Calendar className="h-4 w-4 mr-2 text-primary" />
                   <span>{getFormattedDate(appointment.start_at)}</span>
@@ -104,14 +114,25 @@ export default function AppointmentInfoPanel({
 
               <div className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2">Barber Information</h3>
-                <p><strong>Name:</strong> {appointment.barber_name || "Not assigned"}</p>
-                <p><strong>ID:</strong> {appointment.barber_id || "N/A"}</p>
+                <p>
+                  <strong>Name:</strong>{" "}
+                  {appointment.barber_name || "Not assigned"}
+                </p>
+                <p>
+                  <strong>ID:</strong> {appointment.barber_id || "N/A"}
+                </p>
               </div>
 
               <div className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2">Date Information</h3>
-                <p><strong>Created:</strong> {getFormattedDate(appointment.created_at)}</p>
-                <p><strong>Last Updated:</strong> {getFormattedDate(appointment.updated_at)}</p>
+                <p>
+                  <strong>Created:</strong>{" "}
+                  {getFormattedDate(appointment.created_at)}
+                </p>
+                <p>
+                  <strong>Last Updated:</strong>{" "}
+                  {getFormattedDate(appointment.updated_at)}
+                </p>
               </div>
             </div>
           </div>
@@ -121,8 +142,13 @@ export default function AppointmentInfoPanel({
           <div className="space-y-4">
             <div className="border rounded-lg p-4">
               <h3 className="font-medium mb-2">Customer Information</h3>
-              <p><strong>Name:</strong> {appointment.customer_name || "Not specified"}</p>
-              <p><strong>ID:</strong> {appointment.customer_id || "N/A"}</p>
+              <p>
+                <strong>Name:</strong>{" "}
+                {appointment.customer_name || "Not specified"}
+              </p>
+              <p>
+                <strong>ID:</strong> {appointment.customer_id || "N/A"}
+              </p>
             </div>
           </div>
         </TabsContent>
@@ -136,10 +162,10 @@ export default function AppointmentInfoPanel({
 
           <div className="flex items-center gap-3">
             <Button
-              variant="outline"
+              variant="destructive"
               onClick={handleDeleteAppointment}
               disabled={isDeleting}
-              className="border-destructive text-destructive hover:bg-destructive/10"
+              className="bg-red-600 hover:bg-red-700"
             >
               {isDeleting ? "Deleting..." : "Delete Appointment"}
             </Button>

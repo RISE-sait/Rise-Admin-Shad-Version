@@ -1,40 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { User } from "@/types/user";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 
 // Define the columns for the staff table. Each ColumnDef<User> represents
 // one column: its id, how to render header and cell, and optional settings.
 export const columnsStaff: ColumnDef<User>[] = [
-  {
-    // "select" column allows selecting all or individual rows via checkboxes.
-    id: "select",
-    // Render a checkbox in the header that toggles all page-row selections.
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-        aria-label="Select all"
-        // Stop click propagation so row-click handlers are not triggered.
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    // Render a checkbox in each row to toggle selection for that row.
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(v) => row.toggleSelected(!!v)}
-        aria-label="Select row"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    // Do not allow hiding or sorting this "select" column.
-    enableHiding: false,
-    enableSorting: false,
-    // Fixed width for the checkbox column.
-    size: 40,
-  },
   {
     // "Name" column shows the staff member's name.
     id: "Name",

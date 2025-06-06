@@ -6,11 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import FacilityInfoPanel from "./LocationInfoPanel";
 import AddFacilityForm from "./AddLocationForm";
-import { toast } from "sonner";
+
 import RightDrawer from "@/components/reusable/RightDrawer";
-import { deleteLocation } from "@/services/location";
-import { useUser } from "@/contexts/UserContext";
-import { revalidateLocations } from "@/actions/serverActions";
+
 import FacilityTable from "./table/LocationTable";
 import {
   DropdownMenu,
@@ -23,7 +21,6 @@ import columns from "./table/columns";
 import { VisibilityState } from "@tanstack/react-table";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
-import { AlertModal } from "@/components/ui/AlertModal";
 
 export default function FacilitiesPage({
   facilities,
@@ -39,10 +36,6 @@ export default function FacilitiesPage({
   );
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-
-  const { user } = useUser();
 
   // Filter facilities based on search query
   const filteredFacilities = searchQuery
@@ -58,36 +51,6 @@ export default function FacilitiesPage({
     setSelectedFacility(facility);
     setDrawerContent("details");
     setDrawerOpen(true);
-  };
-
-  const handleDeleteFacility = async (facilityId: string) => {
-    try {
-      const error = await deleteLocation(facilityId, user?.Jwt!);
-      if (error === null) {
-        await revalidateLocations();
-        toast.success("Location deleted successfully");
-      } else {
-        toast.error(`Error deleting location: ${error}`);
-      }
-    } catch (error) {
-      console.error("Error deleting facility:", error);
-      toast.error("Failed to delete location");
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    try {
-      await Promise.all(
-        selectedIds.map((id) => deleteLocation(id, user?.Jwt!))
-      );
-      await revalidateLocations();
-      setSelectedIds([]);
-      setBulkDeleteOpen(false);
-      toast.success("Selected locations deleted successfully");
-    } catch (error) {
-      console.error("Error deleting locations:", error);
-      toast.error("Failed to delete locations");
-    }
   };
 
   return (
@@ -151,33 +114,14 @@ export default function FacilitiesPage({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={() => setBulkDeleteOpen(true)}
-              className="ml-4"
-            >
-              Delete Selected ({selectedIds.length})
-            </Button>
-          )}
         </div>
       </div>
 
       <FacilityTable
         facilities={filteredFacilities}
         onFacilitySelect={handleFacilitySelect}
-        onDeleteFacility={handleDeleteFacility}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={setColumnVisibility}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-      />
-
-      <AlertModal
-        isOpen={bulkDeleteOpen}
-        onClose={() => setBulkDeleteOpen(false)}
-        onConfirm={handleBulkDelete}
-        loading={false} // Update with actual loading state if needed
       />
       <RightDrawer
         drawerOpen={drawerOpen}

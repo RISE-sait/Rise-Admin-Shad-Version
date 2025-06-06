@@ -1,33 +1,16 @@
 import { Membership } from "@/types/membership";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+} from "@radix-ui/react-dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export const columns: ColumnDef<Membership>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  },
   {
     id: "name",
     accessorKey: "name",
@@ -112,24 +95,12 @@ export const columns: ColumnDef<Membership>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-accent cursor-pointer"
                 onClick={() => {
-                  const onSelect = (table.options.meta as any)?.onMembershipSelect;
+                  const onSelect = (table.options.meta as any)
+                    ?.onMembershipSelect;
                   onSelect?.(membership);
                 }}
               >
                 <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm("Are you sure you want to delete this membership?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteMembership;
-                    onDelete?.(membership.id);
-                  }
-                }}
-              >
-                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

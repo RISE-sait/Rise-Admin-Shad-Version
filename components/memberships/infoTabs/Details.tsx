@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { revalidateMemberships } from "@/actions/serverActions";
 import { MembershipRequestDto } from "@/app/api/Api";
@@ -12,20 +12,15 @@ import { Membership } from "@/types/membership";
 import { PencilIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-export default function DetailsTab({
-  details,
-}: {
-  details: Membership;
-}) {
-
+export default function DetailsTab({ details }: { details: Membership }) {
   const { user } = useUser();
 
   const { register, getValues } = useForm({
     defaultValues: {
       name: details.name,
       description: details.description || "",
-    }
-  })
+    },
+  });
 
   const handleSaveInfo = async () => {
     try {
@@ -36,7 +31,10 @@ export default function DetailsTab({
 
       await updateMembership(details.id, membershipData, user?.Jwt!);
 
-      toast({ status: "success", description: "Membership updated successfully" });
+      toast({
+        status: "success",
+        description: "Membership updated successfully",
+      });
       await revalidateMemberships();
     } catch (error) {
       toast({
@@ -48,23 +46,26 @@ export default function DetailsTab({
   };
 
   const handleDeleteMembership = async () => {
-    try {
-      await deleteMembership(details.id, user?.Jwt!);
-
-      toast({ status: "success", description: "Membership deleted successfully" });
-      await revalidateMemberships();
-    } catch (error) {
-      toast({
-        status: "error",
-        description: "Error deleting membership",
-        variant: "destructive",
-      });
+    if (
+      confirm(
+        "Are you sure you want to delete this membership? This action cannot be undone."
+      )
+    ) {
+      try {
+        await deleteMembership(details.id, user?.Jwt!);
+        toast({
+          status: "success",
+          description: "Membership deleted successfully",
+        });
+        await revalidateMemberships();
+      } catch (error) {
+        toast({ status: "error", description: "Error deleting membership" });
+      }
     }
   };
 
   return (
     <div className="space-y-8">
-
       <div className="space-y-6">
         <div className="space-y-3">
           <label className="text-base font-medium flex items-center gap-2">
@@ -91,14 +92,14 @@ export default function DetailsTab({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3 mt-4">
         <Button
-          variant="outline"
+          variant="destructive"
           onClick={handleDeleteMembership}
-          className="border-destructive text-destructive hover:bg-destructive/10"
+          className="bg-red-600 hover:bg-red-700"
         >
           <TrashIcon className="h-4 w-4 mr-2" />
-          Delete
+          Delete Membership
         </Button>
 
         <Button

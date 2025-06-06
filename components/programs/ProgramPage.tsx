@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect, Dispatch, SetStateAction, JSX } from "react";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,6 @@ import ProgramTable from "./table/ProgramTable";
 import ProgramInfoPanel from "./ProgramInfoPanel";
 import AddProgramForm from "./AddProgramForm";
 import { Program } from "@/types/program";
-import { deleteProgram } from "@/services/program";
-import { useUser } from "@/contexts/UserContext";
-import { useToast } from "@/hooks/use-toast";
-import { revalidatePrograms } from "@/actions/serverActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, GraduationCap, Gamepad2 } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
@@ -29,14 +25,13 @@ export default function ProgramPage({
 }: ProgramPageProps) {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [activeFilter, setActiveFilter] = useState<ProgramType>("all");
   const [programs, setPrograms] = useState<Program[]>(initialPrograms);
-
-  const { user } = useUser();
-  const { toast } = useToast();
 
   // Fetch programs when filter changes
   useEffect(() => {
@@ -44,32 +39,16 @@ export default function ProgramPage({
       setPrograms(initialPrograms);
       return;
     }
-    const filteredPrograms = initialPrograms.filter(program => program.type === activeFilter);
-    setPrograms(filteredPrograms)
-  }, [activeFilter, initialPrograms, toast]);
+    const filteredPrograms = initialPrograms.filter(
+      (program) => program.type === activeFilter
+    );
+    setPrograms(filteredPrograms);
+  }, [activeFilter, initialPrograms]);
 
   const handleProgramSelect = (program: Program) => {
     setSelectedProgram(program);
     setDrawerContent("details");
     setDrawerOpen(true);
-  };
-
-  const handleDeleteProgram = async (programId: string) => {
-    try {
-      const error = await deleteProgram(programId, user?.Jwt!);
-
-      if (error === null) {
-        toast({ title: "Success", description: "Program deleted successfully", status: "success" });
-        await revalidatePrograms();
-      }
-      else {
-        toast({ title: "Error", description: `Error deleting program: ${error}`, variant: "destructive", status: "error" });
-      }
-
-    } catch (error) {
-      console.error("Error deleting program:", error);
-      toast({ title: "Error", description: "Failed to delete program", variant: "destructive", status: "error" });
-    }
   };
 
   const filteredPractices = programs.filter(
@@ -80,11 +59,14 @@ export default function ProgramPage({
   );
 
   // Counts for each program type
-  const practiceCount = initialPrograms.filter(p => p.type === "practice").length;
-  const courseCount = initialPrograms.filter(p => p.type === "course").length;
-  const gameCount = initialPrograms.filter(p => p.type === "game").length;
-  const otherCount = initialPrograms.filter(p =>
-    !["practice", "course", "game"].includes(p.type || "")).length;
+  const practiceCount = initialPrograms.filter(
+    (p) => p.type === "practice"
+  ).length;
+  const courseCount = initialPrograms.filter((p) => p.type === "course").length;
+  const gameCount = initialPrograms.filter((p) => p.type === "game").length;
+  const otherCount = initialPrograms.filter(
+    (p) => !["practice", "course", "game"].includes(p.type || "")
+  ).length;
 
   return (
     <div className="w-full">
@@ -109,20 +91,19 @@ export default function ProgramPage({
 
       {/* Program type filter cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-
         <ProgramTypeCard
           currfilter={activeFilter}
           targetFilter="all"
-          setFilter={()=> setActiveFilter('all')}
+          setFilter={() => setActiveFilter("all")}
           programCount={initialPrograms.length}
           title="All Programs"
           icon={<></>}
         />
-        
+
         <ProgramTypeCard
           currfilter={activeFilter}
           targetFilter="practice"
-          setFilter={()=> setActiveFilter('practice')}
+          setFilter={() => setActiveFilter("practice")}
           programCount={practiceCount}
           title="Practices"
           icon={<GraduationCap className="h-3.5 w-3.5 text-blue-500" />}
@@ -131,7 +112,7 @@ export default function ProgramPage({
         <ProgramTypeCard
           currfilter={activeFilter}
           targetFilter="course"
-          setFilter={()=> setActiveFilter('course')}
+          setFilter={() => setActiveFilter("course")}
           programCount={courseCount}
           title="Courses"
           icon={<BookOpen className="h-3.5 w-3.5 text-green-500" />}
@@ -140,7 +121,7 @@ export default function ProgramPage({
         <ProgramTypeCard
           currfilter={activeFilter}
           targetFilter="game"
-          setFilter={()=> setActiveFilter('game')}
+          setFilter={() => setActiveFilter("game")}
           programCount={gameCount}
           title="Games"
           icon={<Gamepad2 className="h-3.5 w-3.5 text-amber-500" />}
@@ -165,7 +146,6 @@ export default function ProgramPage({
         onProgramSelect={handleProgramSelect}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={setColumnVisibility}
-        onDeleteProgram={handleDeleteProgram}
       />
 
       <RightDrawer
@@ -178,9 +158,13 @@ export default function ProgramPage({
             {drawerContent === "details" ? "Program Details" : "Add Program"}
           </h2>
           {drawerContent === "details" && selectedProgram && (
-            <ProgramInfoPanel program={selectedProgram} levels={programLevels} />
+            <ProgramInfoPanel
+              program={selectedProgram}
+              levels={programLevels}
+              onClose={() => setDrawerOpen(false)}
+            />
           )}
-          {drawerContent === "add" && <AddProgramForm levels={programLevels}/>}
+          {drawerContent === "add" && <AddProgramForm levels={programLevels} />}
         </div>
       </RightDrawer>
     </div>
@@ -193,17 +177,15 @@ function ProgramTypeCard({
   setFilter,
   programCount,
   title,
-  icon
+  icon,
 }: {
-  currfilter: ProgramType
-  targetFilter: ProgramType
-  setFilter: Dispatch<SetStateAction<ProgramType>>
-  programCount: number
-  title: string
-  icon: JSX.Element
-}
-) {
-
+  currfilter: ProgramType;
+  targetFilter: ProgramType;
+  setFilter: Dispatch<SetStateAction<ProgramType>>;
+  programCount: number;
+  title: string;
+  icon: JSX.Element;
+}) {
   return (
     <Card
       className={`bg-muted/20 ${currfilter === targetFilter ? "ring-1 ring-primary/30" : ""} cursor-pointer hover:bg-muted/30 transition-colors`}
@@ -221,5 +203,5 @@ function ProgramTypeCard({
         <p className="text-xl font-bold">{programCount}</p>
       </CardContent>
     </Card>
-  )
+  );
 }

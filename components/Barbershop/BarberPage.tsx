@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,14 +21,20 @@ import Link from "next/link";
 import { StaffRoleEnum, User } from "@/types/user";
 
 export default function BarbershopPage({ staffs }: { staffs: User[] }) {
-
   // Regular state
-  const [appointments, setAppointments] = useState<HaircutEventEventResponseDto[]>([]);
-  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventEventResponseDto[]>([]);
+  const [appointments, setAppointments] = useState<
+    HaircutEventEventResponseDto[]
+  >([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<
+    HaircutEventEventResponseDto[]
+  >([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventEventResponseDto | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<HaircutEventEventResponseDto | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [services, setServices] = useState<any[]>([]);
   // Add barbers state
@@ -39,7 +45,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
     appointmentsThisWeek: 0,
     totalAppointments: 0,
     activeBarbers: 0,
-    timeOffRequests: 0
+    timeOffRequests: 0,
   });
 
   // Hooks
@@ -50,8 +56,8 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   const isFirstRender = useRef(true);
 
   // Pre-compute permission checks once on render
-  const isBarber = user?.Role === StaffRoleEnum.BARBER
-  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
+  const isBarber = user?.Role === StaffRoleEnum.BARBER;
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN;
 
   useEffect(() => {
     // Skip the effect on first render with a ref check
@@ -69,7 +75,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
           // Build query params
           const params: any = {
             after: format(today, "yyyy-MM-dd"),
-            before: format(thirtyDaysLater, "yyyy-MM-dd")
+            before: format(thirtyDaysLater, "yyyy-MM-dd"),
           };
 
           // If user is a barber and not admin, filter by their ID
@@ -92,13 +98,15 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
             setServices(barberServices);
 
             // Get unique barber IDs
-            const uniqueBarberIds = new Set(barberServices.map(service => service.barber_id));
+            const uniqueBarberIds = new Set(
+              barberServices.map((service) => service.barber_id)
+            );
 
             setStats({
               appointmentsThisWeek: appointmentsData.length,
               totalAppointments: appointmentsData.length,
               activeBarbers: uniqueBarberIds.size,
-              timeOffRequests: 0
+              timeOffRequests: 0,
             });
           } catch (serviceError) {
             console.error("Error fetching barber services:", serviceError);
@@ -108,7 +116,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
           console.error("Error fetching barbershop data:", error);
           toast({
             status: "error",
-            description: "Failed to load barbershop data"
+            description: "Failed to load barbershop data",
           });
         } finally {
           setIsLoading(false);
@@ -122,12 +130,14 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   // Filter appointments when search query changes - this is safe
   useEffect(() => {
     if (searchQuery) {
-
       // filter and make sure appointment is upcoming only
 
-      const filtered = appointments.filter(apt =>
-        apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      const filtered = appointments.filter(
+        (apt) =>
+          apt.customer_name
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredAppointments(filtered);
     } else {
@@ -136,11 +146,14 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   }, [searchQuery, appointments]);
 
   // Functions that change state
-  const handleAppointmentSelect = useCallback((appointment: HaircutEventEventResponseDto) => {
-    setSelectedAppointment(appointment);
-    setDrawerContent("details");
-    setDrawerOpen(true);
-  }, []);
+  const handleAppointmentSelect = useCallback(
+    (appointment: HaircutEventEventResponseDto) => {
+      setSelectedAppointment(appointment);
+      setDrawerContent("details");
+      setDrawerOpen(true);
+    },
+    []
+  );
 
   const handleAppointmentAdded = useCallback(async () => {
     try {
@@ -153,7 +166,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
       // Build query params
       const params: any = {
         after: format(today, "yyyy-MM-dd"),
-        before: format(thirtyDaysLater, "yyyy-MM-dd")
+        before: format(thirtyDaysLater, "yyyy-MM-dd"),
       };
 
       // If user is a barber and not admin, filter by their ID
@@ -166,9 +179,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
       setAppointments(refreshedAppointments);
       setFilteredAppointments(refreshedAppointments);
 
-      toast({ status: "success", description: "Appointment added successfully" });
       setDrawerOpen(false);
-
     } catch (error) {
       console.error("Error refreshing appointments:", error);
       toast({ status: "error", description: "Failed to refresh appointments" });
@@ -180,7 +191,10 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Barbershop" description="Manage appointments and barbers" />
+        <Heading
+          title="Barbershop"
+          description="Manage appointments and barbers"
+        />
         <Button
           onClick={() => {
             setDrawerContent("add");
@@ -203,31 +217,39 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
           <Link href="/manage/barbershop/portfolio">Manage Portfolio</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/manage/barbershop/barber-services">Manage Barber Services</Link>
+          <Link href="/manage/barbershop/barber-services">
+            Manage Barber Services
+          </Link>
         </Button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Appointments This Week</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Appointments This Week
+          </div>
           <div className="text-2xl font-bold">{stats.appointmentsThisWeek}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Total Appointments</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Total Appointments
+          </div>
           <div className="text-2xl font-bold">{stats.totalAppointments}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Active Barbers</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Active Barbers
+          </div>
           <div className="text-2xl font-bold">{stats.activeBarbers}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Time Off Requests</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Time Off Requests
+          </div>
           <div className="text-2xl font-bold">{stats.timeOffRequests}</div>
         </div>
       </div>
-
-
 
       {/* Search and Table */}
       <div>
@@ -259,7 +281,9 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
         >
           <div className="p-4">
             <h2 className="text-2xl font-bold tracking-tight mb-4">
-              {drawerContent === "details" ? "Appointment Details" : "Add Appointment"}
+              {drawerContent === "details"
+                ? "Appointment Details"
+                : "Add Appointment"}
             </h2>
             {drawerContent === "details" && selectedAppointment && (
               <AppointmentInfoPanel
