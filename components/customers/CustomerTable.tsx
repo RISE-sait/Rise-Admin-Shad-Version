@@ -55,28 +55,6 @@ interface DataTableProps {
 
 export const columns: ColumnDef<Customer>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  },
-  {
     id: "avatar",
     accessorKey: "name",
     header: "Avatar",
@@ -160,7 +138,8 @@ export const columns: ColumnDef<Customer>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-accent cursor-pointer"
                 onClick={() => {
-                  const onSelect = (table.options.meta as any)?.onCustomerSelect;
+                  const onSelect = (table.options.meta as any)
+                    ?.onCustomerSelect;
                   onSelect?.(customer);
                 }}
               >
@@ -170,8 +149,11 @@ export const columns: ColumnDef<Customer>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
                 onClick={() => {
-                  if (confirm("Are you sure you want to delete this customer?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteCustomer;
+                  if (
+                    confirm("Are you sure you want to delete this customer?")
+                  ) {
+                    const onDelete = (table.options.meta as any)
+                      ?.onDeleteCustomer;
                     onDelete?.(customer.id);
                   }
                 }}
@@ -198,7 +180,9 @@ export default function CustomerTable({
   onSelectionChange,
 }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
@@ -239,7 +223,10 @@ export default function CustomerTable({
         <Table className="border-collapse">
           <TableHeader className="bg-muted/100 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b"
+              >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -250,7 +237,10 @@ export default function CustomerTable({
                     }}
                   >
                     <div className="flex items-center space-x-2">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                     </div>
                   </TableHead>
                 ))}
@@ -275,7 +265,10 @@ export default function CustomerTable({
                         width: cell.column.getSize(),
                       }}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -296,7 +289,6 @@ export default function CustomerTable({
           </TableBody>
         </Table>
       </div>
-
     </div>
   );
 }

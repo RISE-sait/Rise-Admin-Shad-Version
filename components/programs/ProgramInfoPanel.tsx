@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -19,56 +19,79 @@ interface ProgramInfoPanelProps {
   onClose?: () => void;
 }
 
-export default function ProgramInfoPanel({ program, levels, onClose }: ProgramInfoPanelProps) {
+export default function ProgramInfoPanel({
+  program,
+  levels,
+  onClose,
+}: ProgramInfoPanelProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
 
   const { user } = useUser();
 
-
   const handleDeleteProgram = async () => {
+    if (!confirm("Are you sure you want to delete this program?")) {
+      return;
+    }
     try {
-      const error = await deleteProgram(program.id, user?.Jwt!)
+      const error = await deleteProgram(program.id, user?.Jwt!);
 
       if (error === null) {
-        toast({ status: "success", description: "Practice updated successfully" });
-        await revalidatePrograms()
+        toast({
+          status: "success",
+          description: "Practice updated successfully",
+        });
+        await revalidatePrograms();
         if (onClose) onClose();
-      }
-      else {
-        toast({ status: "error", description: `Error saving changes ${error}`, variant: "destructive" });
+      } else {
+        toast({
+          status: "error",
+          description: `Error saving changes ${error}`,
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      toast({ status: "error", description: "Error deleting practice", variant: "destructive" });
+      toast({
+        status: "error",
+        description: "Error deleting practice",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-
-  async function handleSaveAll(name: string, description: string, level: string, type: string, capacity: number) {
-
+  async function handleSaveAll(
+    name: string,
+    description: string,
+    level: string,
+    type: string,
+    capacity: number
+  ) {
     try {
-
       const programData: ProgramRequestDto = {
         name,
         description,
         level,
         type,
         capacity: capacity || 0,
-      }
+      };
 
       const error = await updateProgram(program.id, programData, user?.Jwt!);
 
       if (error === null) {
-        toast({ status: "success", description: "Program updated successfully" })
+        toast({
+          status: "success",
+          description: "Program updated successfully",
+        });
         await revalidatePrograms();
-      }
-      else {
-        toast({ status: "error", description: `Error saving changes: ${error}` });
+      } else {
+        toast({
+          status: "error",
+          description: `Error saving changes: ${error}`,
+        });
       }
     } catch (error) {
       toast({ status: "error", description: `Error saving changes: ${error}` });
     }
-
   }
 
   return (
@@ -112,12 +135,9 @@ export default function ProgramInfoPanel({ program, levels, onClose }: ProgramIn
         </TabsContent>
 
         <TabsContent value="schedule" className="pt-4">
-          <ScheduleTab
-            programID={program.id}
-          />
+          <ScheduleTab programID={program.id} />
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-
