@@ -240,6 +240,19 @@ export interface GameRequestDto {
 }
 
 export interface GameResponseDto {
+  home_team_id: any;
+  home_team_name: any;
+  home_team_logo_url: string;
+  away_team_id: any;
+  away_team_name: any;
+  away_team_logo_url: string;
+  home_score: any;
+  away_score: any;
+  start_time: any;
+  end_time: any;
+  location_id: any;
+  location_name: any;
+  status: any;
   created_at?: string;
   description?: string;
   id?: string;
@@ -505,16 +518,22 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   cancelToken?: CancelToken;
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
+export type RequestParams = Omit<
+  FullRequestParams,
+  "body" | "method" | "query" | "path"
+>;
 
 export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
+  securityWorker?: (
+    securityData: SecurityDataType | null
+  ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
   data: D;
   error: E;
 }
@@ -533,7 +552,8 @@ export class HttpClient<SecurityDataType = unknown> {
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams);
 
   private baseApiParams: RequestParams = {
     credentials: "same-origin",
@@ -566,9 +586,15 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
+    const keys = Object.keys(query).filter(
+      (key) => "undefined" !== typeof query[key]
+    );
     return keys
-      .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key)
+      )
       .join("&");
   }
 
@@ -579,8 +605,13 @@ export class HttpClient<SecurityDataType = unknown> {
 
   private contentFormatters: Record<ContentType, (input: any) => any> = {
     [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
-    [ContentType.Text]: (input: any) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.Text]: (input: any) =>
+      input !== null && typeof input !== "string"
+        ? JSON.stringify(input)
+        : input,
     [ContentType.FormData]: (input: any) =>
       Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
@@ -590,14 +621,17 @@ export class HttpClient<SecurityDataType = unknown> {
             ? property
             : typeof property === "object" && property !== null
               ? JSON.stringify(property)
-              : `${property}`,
+              : `${property}`
         );
         return formData;
       }, new FormData()),
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
 
-  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  protected mergeRequestParams(
+    params1: RequestParams,
+    params2?: RequestParams
+  ): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -610,7 +644,9 @@ export class HttpClient<SecurityDataType = unknown> {
     };
   }
 
-  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+  protected createAbortSignal = (
+    cancelToken: CancelToken
+  ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
       if (abortController) {
@@ -654,15 +690,26 @@ export class HttpClient<SecurityDataType = unknown> {
     const payloadFormatter = this.contentFormatters[type || ContentType.Json];
     const responseFormat = format || requestParams.format;
 
-    return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
-      },
-      signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
-      body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      {
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type && type !== ContentType.FormData
+            ? { "Content-Type": type }
+            : {}),
+        },
+        signal:
+          (cancelToken
+            ? this.createAbortSignal(cancelToken)
+            : requestParams.signal) || null,
+        body:
+          typeof body === "undefined" || body === null
+            ? null
+            : payloadFormatter(body),
+      }
+    ).then(async (response) => {
       const r = response.clone() as HttpResponse<T, E>;
       r.data = null as unknown as T;
       r.error = null as unknown as E;
@@ -698,7 +745,9 @@ export class HttpClient<SecurityDataType = unknown> {
  * @version 1.0
  * @contact <klintlee1@gmail.com>
  */
-export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+export class Api<
+  SecurityDataType extends unknown,
+> extends HttpClient<SecurityDataType> {
   athletes = {
     /**
      * No description
@@ -708,7 +757,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/athletes/{athlete_id}/team/{team_id}
      * @secure
      */
-    teamUpdate: (athleteId: string, teamId: string, params: RequestParams = {}) =>
+    teamUpdate: (
+      athleteId: string,
+      teamId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/athletes/${athleteId}/team/${teamId}`,
         method: "PUT",
@@ -725,7 +778,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PATCH:/athletes/{id}/stats
      * @secure
      */
-    statsPartialUpdate: (id: string, update_body: CustomerStatsUpdateRequestDto, params: RequestParams = {}) =>
+    statsPartialUpdate: (
+      id: string,
+      update_body: CustomerStatsUpdateRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/athletes/${id}/stats`,
         method: "PATCH",
@@ -847,7 +904,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** Parent ID to filter customers (example: 123e4567-e89b-12d3-a456-426614174000) */
         parent_id?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<CustomerResponse[], void>({
         path: `/customers`,
@@ -960,7 +1017,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         updated_by?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<EventRecurrenceResponseDto[], Record<string, any>>({
         path: `/events`,
@@ -1017,7 +1074,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/events/recurring
      * @secure
      */
-    recurringCreate: (event: EventRecurrenceRequestDto, params: RequestParams = {}) =>
+    recurringCreate: (
+      event: EventRecurrenceRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/recurring`,
         method: "POST",
@@ -1036,7 +1096,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/events/recurring/{id}
      * @secure
      */
-    recurringUpdate: (id: string, event: EventRecurrenceRequestDto, params: RequestParams = {}) =>
+    recurringUpdate: (
+      id: string,
+      event: EventRecurrenceRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/recurring/${id}`,
         method: "PUT",
@@ -1055,7 +1119,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Assign a staff member to an event
      * @request POST:/events/{event_id}/staffs/{staff_id}
      */
-    staffsCreate: (eventId: string, staffId: string, params: RequestParams = {}) =>
+    staffsCreate: (
+      eventId: string,
+      staffId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${eventId}/staffs/${staffId}`,
         method: "POST",
@@ -1072,7 +1140,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Unassign a staff member from an event
      * @request DELETE:/events/{event_id}/staffs/{staff_id}
      */
-    staffsDelete: (eventId: string, staffId: string, params: RequestParams = {}) =>
+    staffsDelete: (
+      eventId: string,
+      staffId: string,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${eventId}/staffs/${staffId}`,
         method: "DELETE",
@@ -1105,7 +1177,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/events/{id}
      * @secure
      */
-    eventsUpdate: (id: string, event: EventEventRequestDto, params: RequestParams = {}) =>
+    eventsUpdate: (
+      id: string,
+      event: EventEventRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/events/${id}`,
         method: "PUT",
@@ -1175,7 +1251,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/games/{id}
      * @secure
      */
-    gamesUpdate: (id: string, game: GameRequestDto, params: RequestParams = {}) =>
+    gamesUpdate: (
+      id: string,
+      game: GameRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/games/${id}`,
         method: "PUT",
@@ -1215,7 +1295,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** Barber ID to filter images */
         barber_id?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<string[], Record<string, string>>({
         path: `/haircuts`,
@@ -1242,7 +1322,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         file: File;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, string>, Record<string, string>>({
         path: `/haircuts`,
@@ -1279,7 +1359,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** Filter by customer ID */
         customer_id?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<HaircutEventEventResponseDto[], Record<string, any>>({
         path: `/haircuts/events`,
@@ -1348,7 +1428,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/haircuts/services
      */
     servicesList: (params: RequestParams = {}) =>
-      this.request<HaircutServiceBarberServiceResponseDto[], Record<string, any>>({
+      this.request<
+        HaircutServiceBarberServiceResponseDto[],
+        Record<string, any>
+      >({
         path: `/haircuts/services`,
         method: "GET",
         format: "json",
@@ -1362,7 +1445,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name ServicesCreate
      * @request POST:/haircuts/services
      */
-    servicesCreate: (request: HaircutServiceCreateBarberServiceRequestDto, params: RequestParams = {}) =>
+    servicesCreate: (
+      request: HaircutServiceCreateBarberServiceRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/haircuts/services`,
         method: "POST",
@@ -1442,7 +1528,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name LocationsUpdate
      * @request PUT:/locations/{id}
      */
-    locationsUpdate: (id: string, body: LocationRequestDto, params: RequestParams = {}) =>
+    locationsUpdate: (
+      id: string,
+      body: LocationRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/locations/${id}`,
         method: "PUT",
@@ -1491,7 +1581,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/memberships
      * @secure
      */
-    membershipsCreate: (membership: MembershipRequestDto, params: RequestParams = {}) =>
+    membershipsCreate: (
+      membership: MembershipRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/memberships`,
         method: "POST",
@@ -1509,7 +1602,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/memberships/plans
      * @secure
      */
-    plansCreate: (plan: MembershipPlanPlanRequestDto, params: RequestParams = {}) =>
+    plansCreate: (
+      plan: MembershipPlanPlanRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/memberships/plans`,
         method: "POST",
@@ -1527,7 +1623,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/memberships/plans/{id}
      * @secure
      */
-    plansUpdate: (id: string, plan: MembershipPlanPlanRequestDto, params: RequestParams = {}) =>
+    plansUpdate: (
+      id: string,
+      plan: MembershipPlanPlanRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/memberships/plans/${id}`,
         method: "PUT",
@@ -1578,7 +1678,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/memberships/{id}
      * @secure
      */
-    membershipsUpdate: (id: string, membership: MembershipRequestDto, params: RequestParams = {}) =>
+    membershipsUpdate: (
+      id: string,
+      membership: MembershipRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/memberships/${id}`,
         method: "PUT",
@@ -1634,7 +1738,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** Program Type (game, practice, course, others) */
         type?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ProgramResponse[], Record<string, any>>({
         path: `/programs`,
@@ -1703,7 +1807,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name ProgramsUpdate
      * @request PUT:/programs/{id}
      */
-    programsUpdate: (id: string, program: ProgramRequestDto, params: RequestParams = {}) =>
+    programsUpdate: (
+      id: string,
+      program: ProgramRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/programs/${id}`,
         method: "PUT",
@@ -1738,7 +1846,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Register a new athlete
      * @request POST:/register/athlete
      */
-    athleteCreate: (athlete: CustomerAthleteRegistrationRequestDto, params: RequestParams = {}) =>
+    athleteCreate: (
+      athlete: CustomerAthleteRegistrationRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/register/athlete`,
         method: "POST",
@@ -1756,7 +1867,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Register a new child account and associate it with the parent
      * @request POST:/register/child
      */
-    childCreate: (customer: CustomerChildRegistrationRequestDto, params: RequestParams = {}) =>
+    childCreate: (
+      customer: CustomerChildRegistrationRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/register/child`,
         method: "POST",
@@ -1774,7 +1888,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Register a new parent
      * @request POST:/register/parent
      */
-    parentCreate: (parent: CustomerParentRegistrationRequestDto, params: RequestParams = {}) =>
+    parentCreate: (
+      parent: CustomerParentRegistrationRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/register/parent`,
         method: "POST",
@@ -1792,7 +1909,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Register a new staff member
      * @request POST:/register/staff
      */
-    staffCreate: (staff: StaffRegistrationRequestDto, params: RequestParams = {}) =>
+    staffCreate: (
+      staff: StaffRegistrationRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/register/staff`,
         method: "POST",
@@ -1811,7 +1931,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/register/staff/approve/{id}
      * @secure
      */
-    staffApproveCreate: (staffId: string, id: string, params: RequestParams = {}) =>
+    staffApproveCreate: (
+      staffId: string,
+      id: string,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/register/staff/approve/${id}`,
         method: "POST",
@@ -1837,7 +1961,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         role?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<StaffResponseDto[], Record<string, any>>({
         path: `/staffs`,
@@ -1876,9 +2000,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         offset?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
-      this.request<StaffActivityLogsStaffActivityLogResponse[], Record<string, any>>({
+      this.request<
+        StaffActivityLogsStaffActivityLogResponse[],
+        Record<string, any>
+      >({
         path: `/staffs/logs`,
         method: "GET",
         query: query,
@@ -1894,7 +2021,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/staffs/{id}
      * @secure
      */
-    staffsUpdate: (id: string, staff: StaffRequestDto, params: RequestParams = {}) =>
+    staffsUpdate: (
+      id: string,
+      staff: StaffRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/staffs/${id}`,
         method: "PUT",
@@ -1981,7 +2112,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/teams/{id}
      * @secure
      */
-    teamsUpdate: (id: string, team: TeamRequestDto, params: RequestParams = {}) =>
+    teamsUpdate: (
+      id: string,
+      team: TeamRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<void, Record<string, any>>({
         path: `/teams/${id}`,
         method: "PUT",
@@ -2017,7 +2152,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/users/{id}
      * @secure
      */
-    usersUpdate: (id: string, user: UserUpdateRequestDto, params: RequestParams = {}) =>
+    usersUpdate: (
+      id: string,
+      user: UserUpdateRequestDto,
+      params: RequestParams = {}
+    ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/users/${id}`,
         method: "PUT",
