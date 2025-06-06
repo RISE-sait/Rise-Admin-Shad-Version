@@ -8,34 +8,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export const columns: ColumnDef<Location>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  },
   {
     id: "name",
     accessorKey: "name",
@@ -93,23 +69,12 @@ export const columns: ColumnDef<Location>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-accent cursor-pointer"
                 onClick={() => {
-                  const onSelect = (table.options.meta as any)?.onFacilitySelect;
+                  const onSelect = (table.options.meta as any)
+                    ?.onFacilitySelect;
                   onSelect?.(facility);
                 }}
               >
                 <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                onClick={() => {
-                  if (confirm("Are you sure you want to delete this facility?")) {
-                    const onDelete = (table.options.meta as any)?.onDeleteFacility;
-                    onDelete?.(facility.id);
-                  }
-                }}
-              >
-                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

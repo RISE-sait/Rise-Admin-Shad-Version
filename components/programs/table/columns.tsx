@@ -9,6 +9,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 
 const getProgramTypeColor = (type: string) => {
   switch (type?.toLowerCase()) {
@@ -94,6 +95,9 @@ const columns: ColumnDef<Program>[] = [
               align="end"
               className="border bg-popover text-popover-foreground"
             >
+              <DropdownMenuLabel className="px-3 py-2">
+                Program Actions
+              </DropdownMenuLabel>
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-accent cursor-pointer"
                 onClick={() => {

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { revalidateLocations } from "@/actions/serverActions";
 import { LocationRequestDto } from "@/app/api/Api";
@@ -11,56 +11,63 @@ import { Location } from "@/types/location";
 import { PencilIcon, MapPinIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-export default function DetailsTab({
-  details,
-}: {
-  details: Location
-}) {
-
+export default function DetailsTab({ details }: { details: Location }) {
   const { register, getValues } = useForm({
     defaultValues: {
       name: details.name,
-      address: details.address
-    }
-  })
+      address: details.address,
+    },
+  });
 
   const { user } = useUser();
   const { toast } = useToast();
 
   const handleSaveAll = async () => {
     try {
-
       const locationData: LocationRequestDto = {
-        ...getValues()
-      }
+        ...getValues(),
+      };
 
       const error = await updateLocation(details.id, locationData, user?.Jwt!);
 
       if (error === null) {
-        toast({ status: "success", description: "Location updated successfully" })
+        toast({
+          status: "success",
+          description: "Location updated successfully",
+        });
         await revalidateLocations();
-      }
-      else {
-        toast({ status: "error", description: `Error saving changes: ${error}` });
+      } else {
+        toast({
+          status: "error",
+          description: `Error saving changes: ${error}`,
+        });
       }
     } catch (error) {
       toast({ status: "error", description: `Error saving changes: ${error}` });
     }
-
-  }
+  };
 
   const handleDeleteFacility = async () => {
-    if (confirm("Are you sure you want to delete this facility? This action cannot be undone.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this facility? This action cannot be undone."
+      )
+    ) {
       try {
-        const error = await deleteLocation(details.id, user?.Jwt!)
+        const error = await deleteLocation(details.id, user?.Jwt!);
 
         if (error === null) {
           await revalidateLocations();
 
-          toast({ status: "success", description: "Facility deleted successfully" });
-        }
-        else {
-          toast({ status: "error", description: `Error deleting facility: ${error}` });
+          toast({
+            status: "success",
+            description: "Facility deleted successfully",
+          });
+        } else {
+          toast({
+            status: "error",
+            description: `Error deleting facility: ${error}`,
+          });
         }
       } catch (error) {
         console.error("Error during API request:", error);
@@ -71,7 +78,6 @@ export default function DetailsTab({
 
   return (
     <div className="space-y-8">
-
       <div className="space-y-6">
         <div className="space-y-3">
           <label className="text-base font-medium flex items-center gap-2">
@@ -98,9 +104,7 @@ export default function DetailsTab({
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 flex justify-end items-center">
-
-
+      <div className="flex items-center justify-end gap-3 mt-4">
         <Button
           onClick={handleSaveAll}
           className="bg-green-600 hover:bg-green-700"
@@ -110,12 +114,12 @@ export default function DetailsTab({
         </Button>
 
         <Button
-          variant="outline"
+          variant="destructive"
           onClick={handleDeleteFacility}
-          className="border-destructive text-destructive hover:bg-destructive/10"
+          className="bg-red-600 hover:bg-red-700"
         >
           <TrashIcon className="h-4 w-4 mr-2" />
-          Delete
+          Delete Location
         </Button>
       </div>
     </div>
