@@ -5,7 +5,14 @@ import { Game } from "@/types/games";
 export async function getAllGames(): Promise<Game[]> {
   try {
     // Build the endpoint URL using base API constant and 'games' path
-    const response = await fetch(`${getValue("API")}games`);
+    const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("No auth token found");
+
+    const response = await fetch(`${getValue("API")}secure/games`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     // If the response status is not in the 200–299 range, throw an error
     if (!response.ok) {

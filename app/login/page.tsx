@@ -1,11 +1,14 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth'
-import { auth } from "@/configs/firebase"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  useSignInWithEmailAndPassword,
+  useSignInWithGoogle,
+} from "react-firebase-hooks/auth";
+import { auth } from "@/configs/firebase";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,36 +16,40 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2 } from "lucide-react"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import { loginWithFirebaseToken } from "@/services/auth";
 import { useUser } from "@/contexts/UserContext";
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isEmailPwdLoading, setIsEmailPwdLoading] = useState(false)
-  const { toast } = useToast()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isEmailPwdLoading, setIsEmailPwdLoading] = useState(false);
+  const { toast } = useToast();
 
-  const router = useRouter()
+  const router = useRouter();
 
-  const [signInWithEmailPassword, , emailLoading, emailError] = useSignInWithEmailAndPassword(auth)
-  const [signInWithGoogle, , googleLoading, googleError] = useSignInWithGoogle(auth)
+  const [signInWithEmailPassword, , emailLoading, emailError] =
+    useSignInWithEmailAndPassword(auth);
+  const [signInWithGoogle, , googleLoading, googleError] =
+    useSignInWithGoogle(auth);
 
   const { setUser } = useUser();
 
-  const handleEmailPasswordLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleEmailPasswordLogin = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
     if (!email || !password) {
       toast({ status: "error", description: "Please fill in all fields." });
-      return
+      return;
     }
 
-    setIsEmailPwdLoading(true)
+    setIsEmailPwdLoading(true);
 
     try {
       const result = await signInWithEmailPassword(email, password);
@@ -57,16 +64,24 @@ export default function Login() {
           throw new Error("Backend authentication failed");
         }
 
+        localStorage.setItem("jwt", user.Jwt); // Store JWT in localStorage
+
         // Update user context
         setUser(user);
 
         toast({ status: "success", description: "Successfully logged in!" });
         router.push("/");
       } else {
-        toast({ status: "error", description: "Invalid email or password. Please try again." });
+        toast({
+          status: "error",
+          description: "Invalid email or password. Please try again.",
+        });
       }
     } catch (err) {
-      toast({ status: "error", description: "An error occurred during login. Please try again." });
+      toast({
+        status: "error",
+        description: "An error occurred during login. Please try again.",
+      });
       console.error(err);
     } finally {
       setIsEmailPwdLoading(false);
@@ -74,49 +89,64 @@ export default function Login() {
   };
 
   const handleGoogleSignIn = async () => {
-
     try {
-
       const result = await signInWithGoogle();
 
       if (result?.user) {
         // Get Firebase token
         const idToken = await result.user.getIdToken();
 
-        const user = await loginWithFirebaseToken(idToken)
+        const user = await loginWithFirebaseToken(idToken);
 
         if (user === null) {
           throw new Error("Backend authentication failed");
         }
 
+        localStorage.setItem("jwt", user.Jwt); // Store JWT in localStorage
+
         // Update user context
         setUser(user);
 
-        toast({ status: "success", description: "Successfully logged in with Google!" });
+        toast({
+          status: "success",
+          description: "Successfully logged in with Google!",
+        });
         router.push("/");
       } else {
-        toast({ status: "error", description: "Invalid email or password. Please try again." });
+        toast({
+          status: "error",
+          description: "Invalid email or password. Please try again.",
+        });
       }
     } catch (err) {
-      toast({ status: "error", description: "An error occurred during Google sign-in. Please try again." });
+      toast({
+        status: "error",
+        description:
+          "An error occurred during Google sign-in. Please try again.",
+      });
       console.error(err);
-    } 
+    }
   };
 
   // Display error messages from Firebase
   const getErrorMessage = () => {
-    if (emailError) return emailError.message
-    if (googleError) return googleError.message
-    return null
-  }
+    if (emailError) return emailError.message;
+    if (googleError) return googleError.message;
+    return null;
+  };
 
-  const isSubmitButtonDisabled = isEmailPwdLoading || emailLoading || googleLoading
+  const isSubmitButtonDisabled =
+    isEmailPwdLoading || emailLoading || googleLoading;
 
   return (
-    <div className={cn("min-h-svh max-w-sm flex items-center mx-auto p-6 md:p-10")}>
+    <div
+      className={cn("min-h-svh max-w-sm flex items-center mx-auto p-6 md:p-10")}
+    >
       <Card className="w-full">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Login
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access your account
           </CardDescription>
@@ -194,7 +224,7 @@ export default function Login() {
             onClick={handleGoogleSignIn}
             disabled={isSubmitButtonDisabled}
           >
-            {(googleLoading) ? (
+            {googleLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in with Google...
@@ -214,5 +244,5 @@ export default function Login() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
