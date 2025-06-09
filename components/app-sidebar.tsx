@@ -17,7 +17,7 @@ import { StaffRoleEnum } from "@/types/user";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser();
 
-  const role = user?.Role
+  const role = user?.Role;
 
   // Build nav items based on role
   const navMain = [
@@ -37,7 +37,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: <Wrench width={15} height={15} />,
       isActive: true,
       items: [
-
         // Only Admin/SuperAdmin can see Customers, Programs, Locations, Memberships, Staff
         ...(role == StaffRoleEnum.ADMIN || role == StaffRoleEnum.SUPERADMIN
           ? [
@@ -46,14 +45,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               { title: "Locations", url: "/manage/locations" },
               { title: "Memberships", url: "/manage/memberships" },
               { title: "Staff", url: "/manage/staff" },
+              { title: "Playground", url: "/manage/playground" },
             ]
           : []),
 
         // Barbers and SuperAdmin can see Barbershop
-        ...(role == StaffRoleEnum.BARBER || role == StaffRoleEnum.SUPERADMIN || role == StaffRoleEnum.ADMIN
+        ...(role == StaffRoleEnum.BARBER ||
+        role == StaffRoleEnum.SUPERADMIN ||
+        role == StaffRoleEnum.ADMIN
           ? [{ title: "Barbershop", url: "/manage/barbershop" }]
           : []),
-          
       ],
     },
   ];
