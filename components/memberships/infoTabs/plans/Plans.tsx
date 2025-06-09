@@ -367,7 +367,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
       })}
 
       {newplantoggle ? (
-        <div className="w-full bg-[#121112] p-3 mb-3 rounded-lg border-orange-500 border">
+        <div className="w-full p-3 mb-3 rounded-lg border-orange-500 border">
           <div className="p-2">
             <div className="cursor-pointer" onClick={togglenewplan}>
               <h1> Add a new plan </h1>
