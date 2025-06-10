@@ -8,10 +8,20 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import { useUser } from "@/contexts/UserContext";
-import { HomeIcon, Wrench } from "lucide-react";
+import {
+  HomeIcon,
+  Wrench,
+  Calendar,
+  Users,
+  List,
+  MapPin,
+  Ticket,
+  UserCog,
+  Scissors,
+  Gamepad2,
+} from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -28,24 +38,51 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: true,
       items: [
         // Everyone with access can see Calendar
-        { title: "Calendar", url: "/" },
+        {
+          title: "Calendar",
+          url: "/",
+          icon: <Calendar width={15} height={15} />,
+        },
       ],
     },
     {
       title: "Manage",
-      url: "/manage/clients",
       icon: <Wrench width={15} height={15} />,
       isActive: true,
       items: [
         // Only Admin/SuperAdmin can see Customers, Programs, Locations, Memberships, Staff
         ...(role == StaffRoleEnum.ADMIN || role == StaffRoleEnum.SUPERADMIN
           ? [
-              { title: "Customers", url: "/manage/customers" },
-              { title: "Programs", url: "/manage/programs" },
-              { title: "Locations", url: "/manage/locations" },
-              { title: "Memberships", url: "/manage/memberships" },
-              { title: "Staff", url: "/manage/staff" },
-              { title: "Playground", url: "/manage/playground" },
+              {
+                title: "Customers",
+                url: "/manage/customers",
+                icon: <Users width={15} height={15} />,
+              },
+              {
+                title: "Programs",
+                url: "/manage/programs",
+                icon: <List width={15} height={15} />,
+              },
+              {
+                title: "Locations",
+                url: "/manage/locations",
+                icon: <MapPin width={15} height={15} />,
+              },
+              {
+                title: "Memberships",
+                url: "/manage/memberships",
+                icon: <Ticket width={15} height={15} />,
+              },
+              {
+                title: "Staff",
+                url: "/manage/staff",
+                icon: <UserCog width={15} height={15} />,
+              },
+              {
+                title: "Playground",
+                url: "/manage/playground",
+                icon: <Gamepad2 width={15} height={15} />,
+              },
             ]
           : []),
 
@@ -53,7 +90,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ...(role == StaffRoleEnum.BARBER ||
         role == StaffRoleEnum.SUPERADMIN ||
         role == StaffRoleEnum.ADMIN
-          ? [{ title: "Barbershop", url: "/manage/barbershop" }]
+          ? [
+              {
+                title: "Barbershop",
+                url: "/manage/barbershop",
+                icon: <Scissors width={15} height={15} />,
+              },
+            ]
           : []),
       ],
     },
@@ -82,7 +125,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={navMain} />
       </SidebarContent>
-      <SidebarRail />
     </Sidebar>
   );
 }
