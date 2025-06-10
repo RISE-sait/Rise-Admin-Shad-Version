@@ -12,8 +12,14 @@ export async function getEventsByMonth(
   month: string
 ): Promise<EventEventResponseDto[]> {
   try {
+    const token = localStorage.getItem("jwt");
     const response = await fetch(
-      `${getValue("API")}events?month=${month}&response_type=date`
+      `${getValue("API")}secure/events?month=${month}&response_type=date`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     const responseJSON = await response.json();
@@ -64,8 +70,14 @@ export async function getEvents(query: {
     if (query.created_by) queryParams.append("created_by", query.created_by);
     if (query.updated_by) queryParams.append("updated_by", query.updated_by);
 
+    const token = localStorage.getItem("jwt");
     const response = await fetch(
-      `${getValue("API")}events?${queryParams.toString()}&response_type=${query.response_type}`
+      `${getValue("API")}secure/events?${queryParams.toString()}&response_type=${query.response_type}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     const responseJSON = await response.json();
@@ -219,8 +231,14 @@ export async function getSchedulesOfProgram(
   programID: string
 ): Promise<EventSchedule[]> {
   try {
+    const token = localStorage.getItem("jwt");
     const response = await fetch(
-      `${getValue("API")}events?program_id=${programID}&response_type=day`
+      `${getValue("API")}secure/events?program_id=${programID}&response_type=day`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     const responseJSON = await response.json();
@@ -273,7 +291,12 @@ export async function getSchedulesOfProgram(
 
 export async function getEvent(id: string): Promise<Event> {
   try {
-    const response = await fetch(`${getValue("API")}events/${id}`);
+    const token = localStorage.getItem("jwt");
+    const response = await fetch(`${getValue("API")}secure/events/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     const responseJSON = await response.json();
 
