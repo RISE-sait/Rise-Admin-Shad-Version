@@ -39,6 +39,8 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   const [services, setServices] = useState<any[]>([]);
   // Add barbers state
   const [barbers, setBarbers] = useState<any[]>([]);
+  const [activeBarbers, setActiveBarbers] = useState<User[]>([]);
+  const [barberDrawerOpen, setBarberDrawerOpen] = useState(false);
 
   // Stats for cards with default values
   const [stats, setStats] = useState({
@@ -188,6 +190,18 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
     }
   }, [isBarber, isSuperAdmin, user?.ID, toast]);
 
+  const handleActiveBarbersClick = async () => {
+    try {
+      const staffData = await getAllStaffs(StaffRoleEnum.BARBER);
+      const active = staffData.filter((s) => s.StaffInfo?.IsActive);
+      setActiveBarbers(active);
+      setBarberDrawerOpen(true);
+    } catch (error) {
+      console.error("Error fetching active barbers:", error);
+      toast({ status: "error", description: "Failed to load active barbers" });
+    }
+  };
+
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
@@ -237,7 +251,11 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
           </div>
           <div className="text-2xl font-bold">{stats.totalAppointments}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div
+          className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow cursor-pointer"
+          onClick={handleActiveBarbersClick}
+          role="button"
+        >
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Active Barbers
           </div>
@@ -299,6 +317,29 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
                 barbers={barbers} // Pass the fetched barbers to the form
               />
             )}
+          </div>
+        </RightDrawer>
+      )}
+      {barberDrawerOpen && (
+        <RightDrawer
+          drawerOpen={barberDrawerOpen}
+          handleDrawerClose={() => setBarberDrawerOpen(false)}
+          drawerWidth="w-[400px]"
+        >
+          <div className="p-4 space-y-4">
+            <h2 className="text-xl font-bold text-center border-b pb-2">
+              Active Barbers
+            </h2>
+            <ul className="space-y-2">
+              {activeBarbers.map((barber) => (
+                <li
+                  key={barber.ID}
+                  className="bg-muted rounded-md px-3 py-1 text-md"
+                >
+                  {barber.Name}
+                </li>
+              ))}
+            </ul>
           </div>
         </RightDrawer>
       )}
