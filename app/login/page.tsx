@@ -172,7 +172,7 @@ export default function Login() {
                   href="#"
                   className="text-sm text-muted-foreground hover:underline"
                 >
-                  Forgot password?
+                  Forgot Password?
                 </a>
               </div>
               <Input
