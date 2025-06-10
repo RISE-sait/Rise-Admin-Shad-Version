@@ -33,14 +33,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navMain = [
     {
       title: "Home",
-      url: "#",
+      url: "/",
       icon: <HomeIcon width={20} height={15} />,
       isActive: true,
       items: [
+        {
+          title: "Dashboard",
+          url: "/",
+          icon: <HomeIcon width={15} height={15} />,
+        },
         // Everyone with access can see Calendar
         {
           title: "Calendar",
-          url: "/",
+          url: "/calendar",
           icon: <Calendar width={15} height={15} />,
         },
       ],
