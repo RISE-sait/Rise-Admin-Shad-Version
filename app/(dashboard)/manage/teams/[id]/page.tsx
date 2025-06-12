@@ -3,7 +3,13 @@ import RoleProtected from "@/components/RoleProtected";
 import { getTeamById } from "@/services/teams";
 import { StaffRoleEnum } from "@/types/user";
 
-export default async function Page({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function Page({ params }: PageProps) {
   const team = await getTeamById(params.id);
 
   return (

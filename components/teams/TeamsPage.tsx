@@ -4,10 +4,12 @@ import { useState } from "react";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Plus } from "lucide-react";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import TeamTable from "./table/TeamTable";
 import TeamInfoPanel from "./TeamInfoPanel";
+import AddTeamForm from "./AddTeamForm";
 import { Team } from "@/types/team";
 import { VisibilityState } from "@tanstack/react-table";
 import {
@@ -21,6 +23,9 @@ import { ChevronDown } from "lucide-react";
 export default function TeamsPage({ teams }: { teams: Team[] }) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -32,6 +37,7 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
 
   const handleTeamSelect = (team: Team) => {
     setSelectedTeam(team);
+    setDrawerContent("details");
     setDrawerOpen(true);
   };
 
@@ -39,6 +45,14 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
         <Heading title="Teams" description="Manage your teams" />
+        <Button
+          onClick={() => {
+            setDrawerContent("add");
+            setDrawerOpen(true);
+          }}
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add Team
+        </Button>
       </div>
       <Separator />
 
@@ -99,7 +113,18 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
         drawerWidth="w-[75%]"
       >
         <div className="p-4">
-          {selectedTeam && <TeamInfoPanel team={selectedTeam} />}
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
+            {drawerContent === "details" ? "Team Details" : "Add Team"}
+          </h2>
+          {drawerContent === "details" && selectedTeam && (
+            <TeamInfoPanel
+              team={selectedTeam}
+              onClose={() => setDrawerOpen(false)}
+            />
+          )}
+          {drawerContent === "add" && (
+            <AddTeamForm onClose={() => setDrawerOpen(false)} />
+          )}
         </div>
       </RightDrawer>
     </div>
