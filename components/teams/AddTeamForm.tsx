@@ -1,5 +1,8 @@
 "use client";
 
+// Simple form used to create a new team and persist it via the API.
+// Provides optional onClose callback for parent components.
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
@@ -10,6 +13,8 @@ import { TeamRequestDto } from "@/app/api/Api";
 import { revalidateTeams } from "@/actions/serverActions";
 
 export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
+  // useFormData provides a simple object based form state manager
+  // with helpers for updating and resetting the data fields.
   const { data, updateField, resetData } = useFormData({
     name: "",
     capacity: 0,
@@ -18,6 +23,8 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
   const { user } = useUser();
   const { toast } = useToast();
 
+  // Submit handler that validates input and calls the createTeam API.
+  // If successful it resets the form and optionally closes the drawer.
   const handleAddTeam = async () => {
     if (!data.name.trim()) {
       toast({
@@ -57,6 +64,7 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
     }
   };
 
+  // Render the minimal form layout using shadcn/ui components
   return (
     <div className="space-y-6 pt-3">
       <div className="space-y-4">

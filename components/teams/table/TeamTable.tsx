@@ -1,5 +1,8 @@
 "use client";
 
+// Data table component for displaying the list of teams with sorting,
+// filtering and pagination provided by TanStack Table.
+
 import * as React from "react";
 import {
   ColumnFiltersState,
@@ -52,6 +55,8 @@ export default function TeamTable({
     []
   );
 
+  // Configure the TanStack table instance with sorting, filtering
+  // and column visibility state.
   const table = useReactTable({
     data: teams,
     columns,
@@ -75,7 +80,7 @@ export default function TeamTable({
     getSortedRowModel: getSortedRowModel(),
     meta: { onTeamSelect },
   });
-
+  // Render the data table with pagination controls
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl overflow-hidden border">

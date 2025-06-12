@@ -1,4 +1,6 @@
 import { Team } from "@/types/team";
+
+// Column definitions used by the teams data table
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,7 @@ const columns: ColumnDef<Team>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    // Format the date value for display in the table
     cell: ({ row }) => {
       const updatedAt = row.getValue("updated_at") as Date;
       return updatedAt.toLocaleDateString();

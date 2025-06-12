@@ -1,5 +1,7 @@
 "use client";
 
+// Drawer panel that shows team details and allows basic editing and deletion.
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,7 @@ export default function TeamInfoPanel({
   const { user } = useUser();
   const { toast } = useToast();
 
+  // Save any edits made to the team and refresh the table
   const handleSave = async () => {
     const teamData: TeamRequestDto = {
       name,
@@ -52,6 +55,7 @@ export default function TeamInfoPanel({
     }
   };
 
+  // Prompt for confirmation and delete the team via API
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this team?")) return;
     try {
@@ -76,6 +80,7 @@ export default function TeamInfoPanel({
     }
   };
 
+  // Render form fields along with roster info and action buttons
   return (
     <div className="space-y-6">
       <div className="space-y-4">

@@ -1,5 +1,8 @@
 "use client";
 
+// High level page component that ties together team search,
+// table display and the drawer for viewing or adding a team.
+
 import { useState } from "react";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
@@ -35,12 +38,14 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
       )
     : teams;
 
+  // Open the drawer with the selected team details
   const handleTeamSelect = (team: Team) => {
     setSelectedTeam(team);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
 
+  // Render page content including search bar, table and drawer
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
