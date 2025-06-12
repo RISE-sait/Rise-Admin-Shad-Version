@@ -28,10 +28,10 @@ const columns: ColumnDef<Team>[] = [
     size: 100,
   },
   {
-    id: "coach_id",
-    accessorKey: "coach_id",
+    id: "coach_name",
+    accessorKey: "coach_name",
     header: "Coach",
-    cell: ({ row }) => row.getValue("coach_id") || "-",
+    cell: ({ row }) => row.getValue("coach_name") || "-",
     minSize: 180,
     size: 200,
   },

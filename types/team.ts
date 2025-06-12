@@ -5,6 +5,7 @@ export type Team = {
   name: string;
   capacity: number;
   coach_id?: string;
+  coach_name?: string;
   created_at: Date;
   updated_at: Date;
   roster?: ApiInternalDomainsTeamDtoRosterMemberInfo[];

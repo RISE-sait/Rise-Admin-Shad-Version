@@ -21,7 +21,7 @@ export default function TeamInfoPanel({
 }) {
   const [name, setName] = useState(team.name);
   const [capacity, setCapacity] = useState<number>(team.capacity);
-  const [coachId, setCoachId] = useState(team.coach_id || "");
+  const [coachId] = useState(team.coach_id || "");
   const { user } = useUser();
   const { toast } = useToast();
 
@@ -93,8 +93,10 @@ export default function TeamInfoPanel({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Coach ID</label>
-          <Input value={coachId} onChange={(e) => setCoachId(e.target.value)} />
+          <label className="text-sm font-medium">Coach</label>
+          <p className="border rounded-md px-3 py-2">
+            {team.coach_name || "-"}
+          </p>
         </div>
       </div>
       {team.roster && (

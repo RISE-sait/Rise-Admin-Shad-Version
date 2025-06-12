@@ -24,6 +24,7 @@ export async function getAllTeams(): Promise<Team[]> {
       updated_at: new Date(team.updated_at!), // Convert string to Date
       capacity: team.capacity!,
       coach_id: team.coach?.id!,
+      coach_name: team.coach?.name || "",
     }));
   } catch (error) {
     console.error("Error fetching teams:", error);
@@ -49,6 +50,7 @@ export async function getTeamById(id: string): Promise<Team> {
       name: data.name!,
       capacity: data.capacity!,
       coach_id: data.coach?.id!,
+      coach_name: data.coach?.name,
       created_at: new Date(data.created_at!),
       updated_at: new Date(data.updated_at!),
       roster: data.roster,
