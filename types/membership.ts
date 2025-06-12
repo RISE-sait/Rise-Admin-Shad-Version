@@ -13,6 +13,8 @@ export interface MembershipPlan {
   stripe_price_id: string;
   stripe_joining_fees_id?: string;
   amt_periods: number;
+  price?: number;
+  joining_fee?: number;
 }
 
 export interface MembershipPlanRequestDto {
