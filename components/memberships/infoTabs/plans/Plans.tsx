@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import getValue from "@/configs/constants";
 import { MembershipPlan } from "@/types/membership";
+import { getPlansForMembership } from "@/services/membershipPlan";
 
 export default function PlansTab({ membershipId }: { membershipId: string }) {
   const { user } = useUser();
@@ -17,20 +18,21 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   const [editablePlans, setEditablePlans] = useState<any>({});
   const [newperiod, setnewperiod] = useState<any>();
   const [newname, setnewname] = useState<string>("");
-  const [newstripeid, setnewstripeid] = useState<string>("");
-  const [newstripejoinfee, setnewstripejoinfee] = useState<any>();
+  const [newprice, setnewprice] = useState<string>("");
+  const [newjoiningfee, setnewjoiningfee] = useState<string>("");
   const [newplantoggle, setnewplantoggle] = useState(false);
 
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
 
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price);
+
   const fetchPlans = async () => {
     try {
-      const response = await fetch(
-        `${apiUrl}memberships/${membershipId}/plans`
-      );
-      if (!response.ok) throw new Error("Failed to fetch membership plans");
-
-      const plansData = await response.json();
+      const plansData = await getPlansForMembership(membershipId);
       setPlans(plansData);
     } catch (error) {
       console.error("Error fetching plans:", error);
@@ -84,7 +86,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   // add new plan
   const addnewplan = async () => {
     // verify no null enters
-    if (!newname || !newstripeid || !newperiod) {
+    if (!newname || !newprice || !newperiod) {
       toast({
         status: "error",
         description:
@@ -116,8 +118,8 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         body: JSON.stringify({
           membership_id: membershipId,
           name: newname,
-          stripe_price_id: newstripeid,
-          stripe_joining_fees_id: newstripejoinfee,
+          price: parseFloat(newprice),
+          joining_fee: newjoiningfee ? parseFloat(newjoiningfee) : undefined,
           amt_periods: parsedPeriod,
         }),
       });
@@ -134,8 +136,8 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         });
         refreshPlans();
         setnewname("");
-        setnewstripeid("");
-        setnewstripejoinfee("");
+        setnewprice("");
+        setnewjoiningfee("");
         setnewperiod("");
         setnewplantoggle(false);
       }
@@ -171,8 +173,10 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
           body: JSON.stringify({
             membership_id: membershipId,
             name: updatedPlan.name,
-            stripe_price_id: updatedPlan.stripe_price_id,
-            stripe_joining_fees_id: updatedPlan.stripe_joining_fees_id,
+            price: parseFloat(updatedPlan.price),
+            joining_fee: updatedPlan.joining_fee
+              ? parseFloat(updatedPlan.joining_fee)
+              : undefined,
             amt_periods: parsedPeriod,
           }),
         }
@@ -239,10 +243,10 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                   <h1>{plan.name}</h1>
                   <div className="flex">
                     <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
-                      Stripe ID
+                      Price
                     </h1>
                     <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                      {plan.stripe_price_id}
+                      {formatPrice(plan.price ?? 0)}
                     </h1>
                     <h1 className="text-stone-500 font-semibold text-sm pt-1">
                       • Every {plan.amt_periods} Months
@@ -263,38 +267,28 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     />
                   </div>
                   <div className="w-full pl-1 ">
-                    <Label className="w-full"> Stripe Price ID </Label>
+                    <Label className="w-full"> Price </Label>
                     <Input
                       className="w-full mt-1"
                       onChange={(e) =>
-                        handleInputChange(
-                          plan.id,
-                          "stripe_price_id",
-                          e.target.value
-                        )
+                        handleInputChange(plan.id, "price", e.target.value)
                       }
-                      value={editablePlans[plan.id]?.stripe_price_id || ""}
-                      placeholder={plan.stripe_price_id}
+                      value={editablePlans[plan.id]?.price || ""}
+                      placeholder={plan.price?.toString()}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
                 </div>
                 <div className="pt-3 flex">
                   <div className="w-full pr-5">
-                    <Label className="w-full"> Stripe Joining Fee ID </Label>
+                    <Label className="w-full"> Joining Fee </Label>
                     <Input
                       className="w-full mt-1"
                       onChange={(e) =>
-                        handleInputChange(
-                          plan.id,
-                          "stripe_joining_fees_id",
-                          e.target.value
-                        )
+                        handleInputChange(plan.id, "joining_fee", e.target.value)
                       }
-                      value={
-                        editablePlans[plan.id]?.stripe_joining_fees_id || ""
-                      }
-                      placeholder={plan.stripe_joining_fees_id}
+                      value={editablePlans[plan.id]?.joining_fee || ""}
+                      placeholder={plan.joining_fee?.toString()}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
@@ -351,10 +345,10 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                 <h1>{plan.name}</h1>
                 <div className="flex">
                   <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
-                    Stripe ID
+                    Price
                   </h1>
                   <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                    {plan.stripe_price_id}
+                    {formatPrice(plan.price ?? 0)}
                   </h1>
                   <h1 className="text-stone-500 font-semibold text-sm pt-1">
                     • Every {plan.amt_periods} Months
@@ -384,24 +378,24 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                 />
               </div>
               <div className="w-full pl-1 ">
-                <Label className="w-full"> Stripe Price ID </Label>
+                <Label className="w-full"> Price </Label>
                 <Input
                   className="w-full mt-1"
-                  value={newstripeid ?? ""}
-                  onChange={(e) => setnewstripeid(e.target.value)}
-                  placeholder="stripe subscription payment id"
+                  value={newprice ?? ""}
+                  onChange={(e) => setnewprice(e.target.value)}
+                  placeholder="0"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </div>
             <div className="pt-3 flex">
               <div className="w-full pr-5">
-                <Label className="w-full"> Stripe Joining Fee ID </Label>
+                <Label className="w-full"> Joining Fee </Label>
                 <Input
                   className="w-full mt-1"
-                  value={newstripejoinfee ?? ""}
-                  onChange={(e) => setnewstripejoinfee(e.target.value)}
-                  placeholder="stripe fee id"
+                  value={newjoiningfee ?? ""}
+                  onChange={(e) => setnewjoiningfee(e.target.value)}
+                  placeholder="0"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>
