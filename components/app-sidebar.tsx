@@ -84,6 +84,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 icon: <UserCog width={15} height={15} />,
               },
               {
+                title: "Teams",
+                url: "/manage/teams",
+                icon: <Users width={15} height={15} />,
+              },
+              {
                 title: "Playground",
                 url: "/manage/playground",
                 icon: <Gamepad2 width={15} height={15} />,
