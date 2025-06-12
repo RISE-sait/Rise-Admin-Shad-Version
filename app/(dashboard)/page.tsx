@@ -1,61 +1,259 @@
+"use client"
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Button } from "@/components/ui/button"
+import { TodoList } from "@/components/todo-list"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Heading } from "@/components/ui/Heading";
+  Users,
+  Calendar,
+  DollarSign,
+  Activity,
+  Clock,
+  MapPin,
+  TrendingUp,
+  UserPlus,
+  BarChart3,
+  LogIn,
+} from "lucide-react"
+
+// Mock data for demonstration
+const stats = {
+  todayCheckIns: 47,
+  upcomingEvents: 8,
+  monthlyRevenue: 12450,
+  activeMembers: 234,
+  courtUtilization: 78,
+  weeklyGrowth: 12,
+}
+
+const upcomingEvents = [
+  {
+    id: 1,
+    title: "Youth Basketball League",
+    time: "6:00 PM - 8:00 PM",
+    court: "Court A",
+    participants: 16,
+    type: "League",
+  },
+  {
+    id: 2,
+    title: "Adult Training Session",
+    time: "7:30 PM - 9:00 PM",
+    court: "Court B",
+    participants: 12,
+    type: "Training",
+  },
+  {
+    id: 3,
+    title: "Private Coaching",
+    time: "4:00 PM - 5:00 PM",
+    court: "Court C",
+    participants: 2,
+    type: "Private",
+  },
+]
+
+const recentActivity = [
+  { id: 1, action: "New member registration", user: "Sarah Johnson", time: "2 minutes ago" },
+  { id: 2, action: "Court A booking confirmed", user: "Lakers Team", time: "15 minutes ago" },
+  { id: 3, action: "Equipment maintenance completed", user: "System", time: "1 hour ago" },
+  { id: 4, action: "Monthly membership renewed", user: "Mike Chen", time: "2 hours ago" },
+]
 
 export default function DashboardPage() {
   return (
-    <div className="flex-1 space-y-4 p-6 pt-6">
-      <Heading title="Dashboard" description="Overview of recent activity" />
+    <div className="flex-1 space-y-6 p-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <p className="text-muted-foreground">Welcome back! Here's what's happening at your facility today.</p>
+      </div>
+
       <Separator />
 
+      {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Total Check Ins</CardTitle>
-            <CardDescription>People checked in today</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Check-ins</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.todayCheckIns}</div>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-600">+{stats.weeklyGrowth}%</span> from last week
+            </p>
+          </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Events</CardTitle>
-            <CardDescription>Next 7 days</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-600">+8.2%</span> from last month
+            </p>
+          </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle>New Registrations</CardTitle>
-            <CardDescription>This month</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeMembers}</div>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-600">+5</span> new this week
+            </p>
+          </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle>Active Programs</CardTitle>
-            <CardDescription>Currently running</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Court Utilization</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-bold">0</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.courtUtilization}%</div>
+            <Progress value={stats.courtUtilization} className="mt-2" />
+          </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Events</CardTitle>
-          <CardDescription>Events happening soon</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            No events scheduled.
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Content Grid */}
+      <div className="grid gap-4 lg:grid-cols-7">
+        {/* Upcoming Events */}
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Today's Schedule
+            </CardTitle>
+            <CardDescription>Upcoming events and bookings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {upcomingEvents.map((event) => (
+              <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium">{event.title}</h4>
+                    <Badge
+                      variant={
+                        event.type === "League" ? "default" : event.type === "Training" ? "secondary" : "outline"
+                      }
+                    >
+                      {event.type}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {event.time}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {event.court}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {event.participants} participants
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>Latest updates and notifications</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                <div className="space-y-1 flex-1">
+                  <p className="text-sm font-medium">{activity.action}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">{activity.user}</p>
+                    <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Action Items Row */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {/* Today's To-Do - Now using the separate component */}
+        <TodoList />
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" className="w-full justify-start" size="sm">
+              <LogIn className="h-4 w-4 mr-2" />
+              Check someone in
+            </Button>
+            <Button variant="outline" className="w-full justify-start" size="sm">
+              <Calendar className="h-4 w-4 mr-2" />
+              Book a court
+            </Button>
+            <Button variant="outline" className="w-full justify-start" size="sm">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add new member
+            </Button>
+            <Button variant="outline" className="w-full justify-start" size="sm">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              View reports
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Staff on Duty */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Staff on Duty
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Mike Johnson</span>
+              <Badge variant="default">Manager</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Sarah Davis</span>
+              <Badge variant="secondary">Front Desk</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Alex Chen</span>
+              <Badge variant="outline">Maintenance</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  )
 }
