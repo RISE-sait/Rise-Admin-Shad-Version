@@ -19,51 +19,55 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
 
   // Manage
   "/manage/customers": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Customers", link: "/manage/customers" },
   ],
   "/manage/courses": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Courses", link: "/manage/courses" },
   ],
   "/manage/store": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Store", link: "/manage/store" },
   ],
   "/manage/facilities": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Facilities", link: "/manage/facilities" },
   ],
   "/manage/instructors": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Instructors", link: "/manage/instructors" },
   ],
   "/manage/trainer": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Trainer", link: "/manage/trainer" },
   ],
   "/manage/membership": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Membership", link: "/manage/membership" },
   ],
   "/manage/teams": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Teams", link: "/manage/teams" },
+  ],
+  "/manage/playgorund": [
+    { title: "Dashboard", link: "/" },
+    { title: "Playground", link: "/manage/playground" },
   ],
 
   // Automation
   "/automation/messages": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Messages", link: "/automation/messages" },
   ],
 
   // Reports
   "/reports/transactions": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Transactions", link: "/reports/transactions" },
   ],
   "/reports/financials": [
-    { title: "Home", link: "/" },
+    { title: "Dashboard", link: "/" },
     { title: "Financials", link: "/reports/financials" },
   ],
 };
@@ -77,13 +81,17 @@ export function useBreadcrumbs() {
     }
     // Fall back to auto-generating if not in routeMapping
     const segments = pathname.split("/").filter(Boolean);
-    return segments.map((segment, index) => {
-      const path = `/${segments.slice(0, index + 1).join("/")}`;
-      return {
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
-        link: path,
-      };
-    });
+    const page = segments.pop();
+    const title = page
+      ? page.charAt(0).toUpperCase() + page.slice(1)
+      : "Dashboard";
+    if (!page) {
+      return [{ title: "Dashboard", link: "/" }];
+    }
+    return [
+      { title: "Dashboard", link: "/" },
+      { title, link: pathname },
+    ];
   }, [pathname]);
 
   return breadcrumbs;

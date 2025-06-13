@@ -32,16 +32,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Build nav items based on role
   const navMain = [
     {
-      title: "Home",
+      title: "Dashboard",
       url: "/",
       icon: <HomeIcon width={20} height={15} />,
       isActive: true,
       items: [
-        {
-          title: "Dashboard",
-          url: "/",
-          icon: <HomeIcon width={15} height={15} />,
-        },
         // Everyone with access can see Calendar
         {
           title: "Calendar",
