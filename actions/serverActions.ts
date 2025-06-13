@@ -3,17 +3,21 @@
 import { revalidatePath } from "next/cache";
 
 export async function revalidateLocations() {
-    revalidatePath("/manage/locations");
+  revalidatePath("/manage/locations");
 }
 
 export async function revalidatePrograms() {
-    revalidatePath("/manage/programs");
+  revalidatePath("/manage/programs");
 }
 
 export async function revalidateMemberships() {
-    revalidatePath("/manage/memberships");
+  revalidatePath("/manage/memberships");
 }
 
 export async function revalidateStaffs() {
-    revalidatePath("/manage/staffs");
+  revalidatePath("/manage/staffs");
+}
+
+export async function revalidateTeams() {
+  revalidatePath("/manage/teams");
 }

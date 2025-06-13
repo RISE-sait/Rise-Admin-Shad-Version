@@ -46,6 +46,10 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
     { title: "Home", link: "/" },
     { title: "Membership", link: "/manage/membership" },
   ],
+  "/manage/teams": [
+    { title: "Home", link: "/" },
+    { title: "Teams", link: "/manage/teams" },
+  ],
 
   // Automation
   "/automation/messages": [
