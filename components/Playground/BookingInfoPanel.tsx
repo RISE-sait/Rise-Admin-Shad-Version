@@ -1,3 +1,4 @@
+// BookingInfoPanel.tsx
 "use client";
 
 import { useState } from "react";
@@ -19,9 +20,9 @@ export default function BookingInfoPanel({
   onEdit,
   onDelete,
 }: BookingInfoPanelProps) {
-  const [tabValue, setTabValue] = useState("details");
+  const [tabValue, setTabValue] = useState("details"); // Current tab
 
-  // Confirm before deleting a booking
+  // Confirm deletion before calling onDelete
   const handleDelete = () => {
     if (confirm("Delete this booking?")) {
       onDelete(booking.id);
@@ -45,11 +46,11 @@ export default function BookingInfoPanel({
           </TabsList>
         </div>
 
-        {/* Room and start time */}
+        {/* Details tab content */}
         <TabsContent value="details" className="space-y-4">
           <div className="border rounded-lg p-4">
-            <h3 className="font-medium mb-2">Room</h3>
-            <p>{booking.room_number}</p>
+            <h3 className="font-medium mb-2">System</h3>
+            <p>{booking.system_name}</p>
           </div>
           <div className="border rounded-lg p-4">
             <h3 className="font-medium mb-2">Start Time</h3>
@@ -64,7 +65,7 @@ export default function BookingInfoPanel({
           </div>
         </TabsContent>
 
-        {/* Customer name */}
+        {/* Customer tab content */}
         <TabsContent value="customer" className="space-y-4">
           <div className="border rounded-lg p-4">
             <h3 className="font-medium mb-2">Customer Name</h3>
@@ -73,7 +74,7 @@ export default function BookingInfoPanel({
         </TabsContent>
       </Tabs>
 
-      {/* Sticky footer with actions */}
+      {/* Sticky footer with Edit/Delete */}
       <div className="sticky bottom-0 bg-background/95 py-4 border-t z-10 mt-8">
         <div className="flex justify-between items-center px-2">
           <p className="text-sm text-muted-foreground">ID: {booking.id}</p>
