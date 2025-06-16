@@ -1,3 +1,4 @@
+// PlaygroundPage.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,11 +11,23 @@ import PlaygroundTable, { RoomBooking } from "./PlaygroundTable";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import AddBookingForm from "./AddBookingForm";
 import BookingInfoPanel from "./BookingInfoPanel";
+import AddSystemForm from "./AddSystemForm";
+import { PlaygroundSession, PlaygroundSystem } from "@/types/playground";
+
+interface PlaygroundPageProps {
+  sessions: PlaygroundSession[];
+  systems: PlaygroundSystem[];
+}
 
 // Main page for managing room bookings
-export default function PlaygroundPage() {
-  // State for all bookings and UI interactions
+export default function PlaygroundPage({
+  sessions,
+  systems,
+}: PlaygroundPageProps) {
+  // State variables for UI and data
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
+  const [availableSystems, setAvailableSystems] =
+    useState<PlaygroundSystem[]>(systems);
   const [filteredBookings, setFilteredBookings] = useState<RoomBooking[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBooking, setSelectedBooking] = useState<RoomBooking | null>(
@@ -22,30 +35,22 @@ export default function PlaygroundPage() {
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<
-    "details" | "add" | "edit" | null
+    "details" | "add" | "edit" | "addSystem" | null
   >(null);
 
-  // Load sample bookings on mount
+  // Map server sessions into table bookings on mount or sessions change
   useEffect(() => {
-    const sample = [
-      {
-        id: "1",
-        customer_name: "John Doe",
-        room_number: "1",
-        start_at: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        customer_name: "Jane Smith",
-        room_number: "2",
-        start_at: new Date().toISOString(),
-      },
-    ];
-    setBookings(sample);
-    setFilteredBookings(sample);
-  }, []);
+    const mapped = sessions.map((s) => ({
+      id: s.id,
+      customer_name: `${s.customer_first_name} ${s.customer_last_name}`,
+      system_name: s.system_name,
+      start_at: s.start_time.toISOString(),
+    }));
+    setBookings(mapped);
+    setFilteredBookings(mapped);
+  }, [sessions]);
 
-  // Filter bookings when search input changes
+  // Filter bookings list when searchQuery changes
   useEffect(() => {
     if (searchQuery) {
       const filtered = bookings.filter((b) =>
@@ -57,54 +62,57 @@ export default function PlaygroundPage() {
     }
   }, [searchQuery, bookings]);
 
-  // Booking statistics
+  // Simple stats (could be expanded)
   const stats = {
     bookingsThisWeek: bookings.length,
     totalBookings: bookings.length,
     openRooms: Math.max(0, 4 - bookings.length),
   };
 
-  // Event handlers for booking interactions
+  // Open details drawer on row click
   const handleBookingSelect = (booking: RoomBooking) => {
     setSelectedBooking(booking);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
 
-  const handleAddBooking = (booking: RoomBooking) => {
-    setBookings((prev) => [...prev, booking]);
-    setDrawerOpen(false);
-  };
-
-  const handleUpdateBooking = (booking: RoomBooking) => {
-    setBookings((prev) => prev.map((b) => (b.id === booking.id ? booking : b)));
-    setDrawerOpen(false);
-  };
-
-  const handleDeleteBooking = (id: string) => {
-    setBookings((prev) => prev.filter((b) => b.id !== id));
-    setDrawerOpen(false);
-  };
+  // Drawer close handlers
+  const handleAddBooking = () => setDrawerOpen(false);
+  const handleUpdateBooking = () => setDrawerOpen(false);
+  const handleDeleteBooking = () => setDrawerOpen(false);
 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
-      {/* Page header */}
+      {/* Header with Add Session / Add System buttons */}
       <div className="flex items-center justify-between">
         <Heading title="Playground" description="Manage game room bookings" />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add Booking
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Session
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDrawerContent("addSystem");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add System
+          </Button>
+        </div>
       </div>
       <Separator />
 
-      {/* Booking stats */}
+      {/* Stats grid (placeholders) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="..."> {/* Bookings This Week */} </div>
         <div className="..."> {/* Total Bookings */} </div>
@@ -130,7 +138,7 @@ export default function PlaygroundPage() {
         onBookingSelect={handleBookingSelect}
       />
 
-      {/* Right drawer for details, add, or edit forms */}
+      {/* Right drawer for details or forms */}
       {drawerOpen && (
         <RightDrawer
           drawerOpen={drawerOpen}
@@ -141,10 +149,14 @@ export default function PlaygroundPage() {
             <h2 className="text-2xl font-bold mb-4">
               {drawerContent === "details"
                 ? "Booking Details"
-                : drawerContent === "add"
-                  ? "Add Booking"
-                  : "Edit Booking"}
+                : drawerContent === "addSystem"
+                  ? "Add System"
+                  : drawerContent === "add"
+                    ? "Add Session"
+                    : "Edit Session"}
             </h2>
+
+            {/* Conditionally render panel or forms */}
             {drawerContent === "details" && selectedBooking && (
               <BookingInfoPanel
                 booking={selectedBooking}
@@ -158,17 +170,16 @@ export default function PlaygroundPage() {
             {(drawerContent === "add" || drawerContent === "edit") && (
               <AddBookingForm
                 initialData={
-                  drawerContent === "edit"
-                    ? (selectedBooking ?? undefined)
+                  drawerContent === "edit" && selectedBooking
+                    ? sessions.find((s) => s.id === selectedBooking.id)
                     : undefined
                 }
-                onSave={
-                  drawerContent === "add"
-                    ? handleAddBooking
-                    : handleUpdateBooking
-                }
-                onCancel={() => setDrawerOpen(false)}
+                systems={availableSystems}
+                onClose={() => setDrawerOpen(false)}
               />
+            )}
+            {drawerContent === "addSystem" && (
+              <AddSystemForm onClose={() => setDrawerOpen(false)} />
             )}
           </div>
         </RightDrawer>

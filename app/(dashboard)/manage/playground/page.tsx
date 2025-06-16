@@ -3,15 +3,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PlaygroundPage from "@/components/Playground/PlaygroundPage";
 import RoleProtected from "@/components/RoleProtected";
 import { StaffRoleEnum } from "@/types/user";
+import {
+  getPlaygroundSessions,
+  getPlaygroundSystems,
+} from "@/services/playground";
 
 // Component that wraps the Playground page in role protection
-export default function PlaygroundPageContainer() {
+export default async function PlaygroundPageContainer() {
+  const sessions = await getPlaygroundSessions();
+  const systems = await getPlaygroundSystems();
   return (
     <RoleProtected
-      allowedRoles={[StaffRoleEnum.ADMIN]} // Only admins can access
-      fallback={<PageSkeleton />} // Show skeleton while loading or unauthorized
+      allowedRoles={[StaffRoleEnum.ADMIN]}
+      fallback={<PageSkeleton />}
     >
-      <PlaygroundPage />
+      <PlaygroundPage sessions={sessions} systems={systems} />
     </RoleProtected>
   );
 }

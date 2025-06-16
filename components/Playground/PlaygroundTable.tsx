@@ -1,3 +1,4 @@
+// PlaygroundTable.tsx
 "use client";
 
 import * as React from "react";
@@ -24,7 +25,7 @@ import { format } from "date-fns";
 export interface RoomBooking {
   id: string;
   customer_name: string;
-  room_number: string;
+  system_name: string;
   start_at?: string;
 }
 
@@ -39,12 +40,13 @@ export default function PlaygroundTable({
   onBookingSelect,
   isLoading = false,
 }: PlaygroundTableProps) {
+  // State for which column is sorted and direction
   const [sortColumn, setSortColumn] = React.useState<string | null>(null);
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">(
     "asc"
   );
 
-  // Handles sorting logic when column header is clicked
+  // Toggle sort or set new sort column
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -54,21 +56,20 @@ export default function PlaygroundTable({
     }
   };
 
-  // Memoized sorted version of bookings based on selected column and direction
+  // Memoized sorted bookings based on sort state
   const sortedBookings = React.useMemo(() => {
     if (!sortColumn) return bookings;
 
     return [...bookings].sort((a, b) => {
       let valueA: any, valueB: any;
-
       switch (sortColumn) {
         case "customer":
           valueA = a.customer_name || "";
           valueB = b.customer_name || "";
           break;
         case "room":
-          valueA = a.room_number || "";
-          valueB = b.room_number || "";
+          valueA = a.system_name || "";
+          valueB = b.system_name || "";
           break;
         case "date":
           valueA = a.start_at ? new Date(a.start_at).getTime() : 0;
@@ -77,7 +78,6 @@ export default function PlaygroundTable({
         default:
           return 0;
       }
-
       if (typeof valueA === "string" && typeof valueB === "string") {
         return sortDirection === "asc"
           ? valueA.localeCompare(valueB)
@@ -90,13 +90,11 @@ export default function PlaygroundTable({
     });
   }, [bookings, sortColumn, sortDirection]);
 
-  // Returns a readable status based on current date and booking time
+  // Determine status label based on current time vs booking time
   const getBookingStatus = (booking: RoomBooking): string => {
     if (!booking.start_at) return "Unknown";
-
     const now = new Date();
     const bookingDate = new Date(booking.start_at);
-
     if (bookingDate < now) {
       return "Completed";
     } else if (bookingDate > now) {
@@ -106,7 +104,7 @@ export default function PlaygroundTable({
     }
   };
 
-  // Returns style classes based on status
+  // Map status to CSS classes
   const getStatusStyle = (status: string) => {
     switch (status) {
       case "Upcoming":
@@ -142,7 +140,7 @@ export default function PlaygroundTable({
               onClick={() => handleSort("room")}
             >
               <div className="flex items-center space-x-2">
-                Room
+                System
                 <ArrowUpDown className="ml-2 h-4 w-4" />
               </div>
             </TableHead>
@@ -172,7 +170,7 @@ export default function PlaygroundTable({
 
         <TableBody>
           {isLoading ? (
-            // Show loading state
+            // Loading state
             <TableRow>
               <TableCell
                 colSpan={5}
@@ -182,7 +180,7 @@ export default function PlaygroundTable({
               </TableCell>
             </TableRow>
           ) : sortedBookings.length > 0 ? (
-            // Render sorted bookings
+            // Render each booking row
             sortedBookings.map((booking) => {
               const status = getBookingStatus(booking);
               return (
@@ -195,7 +193,7 @@ export default function PlaygroundTable({
                     {booking.customer_name || "No customer name"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium">
-                    {booking.room_number || "No room"}
+                    {booking.system_name || "No system"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium">
                     {booking.start_at
@@ -207,7 +205,9 @@ export default function PlaygroundTable({
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium">
                     <span
-                      className={`text-xs px-3 py-1 rounded-md ${getStatusStyle(status)}`}
+                      className={`text-xs px-3 py-1 rounded-md ${getStatusStyle(
+                        status
+                      )}`}
                     >
                       {status}
                     </span>
@@ -217,6 +217,7 @@ export default function PlaygroundTable({
                       className="flex justify-end"
                       onClick={(e) => e.stopPropagation()}
                     >
+                      {/* Dropdown actions */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -248,7 +249,7 @@ export default function PlaygroundTable({
               );
             })
           ) : (
-            // Empty state if no bookings
+            // Empty state when no bookings
             <TableRow>
               <TableCell
                 colSpan={5}
