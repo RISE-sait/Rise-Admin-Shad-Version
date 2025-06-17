@@ -42,15 +42,16 @@ interface StaffTableProps {
   onColumnVisibilityChange: (
     updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
   ) => void; // Setter for visibility map
+  statusRenderer?: (staff: User) => React.ReactNode;
 }
 
 export default function StaffTable({
   data,
   loading,
   onStaffSelect,
-
   columnVisibility,
   onColumnVisibilityChange,
+  statusRenderer,
 }: StaffTableProps) {
   // ─── Pagination / Sorting State ─────────────────────────────────────────────
   const [pageSize, setPageSize] = useState(10); // Number of rows per page
@@ -257,14 +258,20 @@ export default function StaffTable({
                   )}
                   {columnVisibility["Status"] !== false && (
                     <TableCell className="px-6 py-4 text-sm">
-                      <Badge
-                        variant={
-                          staff.StaffInfo?.IsActive ? "default" : "destructive"
-                        }
-                        className="font-normal"
-                      >
-                        {staff.StaffInfo?.IsActive ? "Active" : "Inactive"}
-                      </Badge>
+                      {statusRenderer ? (
+                        statusRenderer(staff)
+                      ) : (
+                        <Badge
+                          variant={
+                            staff.StaffInfo?.IsActive
+                              ? "default"
+                              : "destructive"
+                          }
+                          className="font-normal"
+                        >
+                          {staff.StaffInfo?.IsActive ? "Active" : "Inactive"}
+                        </Badge>
+                      )}
                     </TableCell>
                   )}
                   {columnVisibility["Actions"] !== false && (

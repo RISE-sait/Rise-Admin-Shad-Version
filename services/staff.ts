@@ -97,3 +97,56 @@ export async function deleteStaff(staffId: string, jwt: string): Promise<any> {
     throw error;
   }
 }
+
+export async function getPendingStaffs(jwt: string): Promise<User[]> {
+  try {
+    const url = `${getValue("API")}register/staff/pending`;
+
+    const response = await fetch(url, {
+      ...addAuthHeader(jwt),
+    });
+    const responseJson = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to fetch pending staffs: ${response.statusText}`;
+
+      if (responseJson.error) {
+        errorMessage = responseJson.error.message;
+      }
+
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    const staffsResponse = responseJson as StaffResponseDto[];
+
+    const staffs: User[] = staffsResponse.map((responseStaff) => {
+      const roleKey = responseStaff.role_name?.toUpperCase() as StaffRole;
+      const role = StaffRoleEnum[roleKey];
+
+      if (role === undefined) {
+        console.error(`Invalid role: ${roleKey}`);
+        throw new Error("Invalid role type");
+      }
+
+      const staff: User = {
+        ID: responseStaff.id!,
+        Email: responseStaff.email!,
+        Name: responseStaff.first_name! + " " + responseStaff.last_name!,
+        Phone: responseStaff.phone!,
+        StaffInfo: {
+          IsActive: false,
+          Role: role,
+        },
+        CreatedAt: new Date(responseStaff.created_at!),
+        UpdatedAt: new Date(responseStaff.updated_at!),
+      };
+
+      return staff;
+    });
+
+    return staffs;
+  } catch (error) {
+    throw new Error(`Failed to fetch pending staffs: ${error}`);
+  }
+}

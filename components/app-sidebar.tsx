@@ -19,6 +19,7 @@ import {
   MapPin,
   Ticket,
   UserCog,
+  Clock,
   Scissors,
   Gamepad2,
 } from "lucide-react";
@@ -77,6 +78,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 title: "Staff",
                 url: "/manage/staff",
                 icon: <UserCog width={15} height={15} />,
+              },
+              {
+                title: "Pending Staff",
+                url: "/manage/staff/pending",
+                icon: <Clock width={15} height={15} />,
               },
               {
                 title: "Teams",
