@@ -97,3 +97,63 @@ export async function deleteStaff(staffId: string, jwt: string): Promise<any> {
     throw error;
   }
 }
+
+export async function getPendingStaffs(jwt: string): Promise<User[]> {
+  try {
+    const response = await fetch(`${getValue("API")}register/staff/pending`, {
+      ...addAuthHeader(jwt),
+    });
+
+    const responseJson = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get pending staff: ${response.statusText}`;
+
+      if (responseJson.error) {
+        errorMessage = responseJson.error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    return (responseJson as any[]).map(
+      (staff) =>
+        ({
+          ID: staff.id as string,
+          Email: staff.email as string,
+          Name: `${staff.first_name} ${staff.last_name}`,
+          Phone: staff.phone as string,
+          StaffInfo: { IsActive: false, Role: StaffRoleEnum.INSTRUCTOR },
+          CreatedAt: new Date(staff.created_at as string),
+          UpdatedAt: new Date(staff.updated_at as string),
+        }) as User
+    );
+  } catch (error) {
+    console.error("Error fetching pending staffs:", error);
+    throw error;
+  }
+}
+
+export async function approveStaff(id: string, jwt: string): Promise<void> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}register/staff/approve/${id}`,
+      {
+        method: "POST",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      let errorMessage = `Failed to approve staff: ${response.statusText}`;
+      if (data.error?.message) {
+        errorMessage = data.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error approving staff:", error);
+    throw error;
+  }
+}
