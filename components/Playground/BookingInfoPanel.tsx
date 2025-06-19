@@ -7,6 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Gamepad2, User, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { RoomBooking } from "./PlaygroundTable";
+import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
+import { deletePlaygroundSession } from "@/services/playground";
+import { revalidatePlayground } from "@/actions/serverActions";
 
 interface BookingInfoPanelProps {
   booking: RoomBooking;
@@ -23,10 +27,31 @@ export default function BookingInfoPanel({
   const [tabValue, setTabValue] = useState("details"); // Current tab
 
   // Confirm deletion before calling onDelete
-  const handleDelete = () => {
-    if (confirm("Delete this booking?")) {
-      onDelete(booking.id);
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this booking?")) return;
+
+    const error = await deletePlaygroundSession(booking.id, user?.Jwt!);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive",
+        status: "error",
+      });
+      return;
     }
+
+    toast({
+      title: "Success",
+      description: "Booking deleted",
+      status: "success",
+    });
+    await revalidatePlayground();
+    onDelete(booking.id);
   };
 
   return (
