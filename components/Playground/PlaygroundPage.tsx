@@ -79,7 +79,9 @@ export default function PlaygroundPage({
   // Drawer close handlers
   const handleAddBooking = () => setDrawerOpen(false);
   const handleUpdateBooking = () => setDrawerOpen(false);
-  const handleDeleteBooking = () => setDrawerOpen(false);
+  const handleDeleteBooking = (id: string) => {
+    setDrawerOpen(false);
+  };
 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
