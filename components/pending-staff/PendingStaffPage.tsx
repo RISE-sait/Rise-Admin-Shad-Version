@@ -18,32 +18,32 @@ import columnsPendingStaff from "./columnsPendingStaff";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { VisibilityState } from "@tanstack/react-table";
 
+// Props for paginated staff page
 interface PendingPageProps {
-  staffs: User[];
-  onApproved?: () => void;
+  staffs: User[]; // List of pending staff
+  onApproved?: () => void; // Callback after any approval
 }
 
 export default function PendingStaffPage({
   staffs,
   onApproved,
 }: PendingPageProps) {
-  // Holds the staff member currently selected for editing
+  // Selected staff for the side drawer
   const [selectedStaff, setSelectedStaff] = useState<User | null>(null);
-  // Controls whether the drawer (right‐side sheet) is open
+  // Control drawer open/close
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Tracks the text in the search input
+  // Search query text state
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Map of column ID → boolean indicating if that column is visible
+  // Column visibility map
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  // Called when a row is clicked: opens the drawer for editing
+  // Open drawer with selected staff item
   const handleStaffSelect = (staffMember: User) => {
     setSelectedStaff(staffMember);
     setDrawerOpen(true);
   };
 
-  // Called when the drawer is closed: resets selection and “new” flag after delay
+  // Close drawer and reset selection after animation
   const handleDrawerClose = () => {
     setDrawerOpen(false);
     setTimeout(() => {
@@ -51,7 +51,7 @@ export default function PendingStaffPage({
     }, 300);
   };
 
-  // Filter the staff list based on searchQuery matching Name, Email, Role, or Phone
+  // Filter logic for search across multiple fields
   const filteredStaff = staffs.filter(
     (member) =>
       member.Name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -65,26 +65,23 @@ export default function PendingStaffPage({
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        {/* Heading for the page */}
         <Heading title="Pending Staff" description="Staff awaiting approval" />
-        {/* Add Staff button was removed per request */}
       </div>
 
-      {/* Horizontal separator */}
       <Separator />
 
-      {/* Search input with an icon */}
+      {/* Search input */}
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search pending staff"
           className="pl-8"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)} // Update query
         />
       </div>
 
-      {/* Filters dropdown to toggle column visibility */}
+      {/* Column visibility filters */}
       <div className="flex justify-end">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -95,18 +92,15 @@ export default function PendingStaffPage({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {columnsPendingStaff
-              // Only include columns where enableHiding is not explicitly false
-              .filter((col) => col.enableHiding !== false)
+              .filter((col) => col.enableHiding !== false) // Only hideable cols
               .map((col) => {
                 const colId = col.id as string;
-                // If columnVisibility[colId] is false, hide; otherwise show
                 const isChecked = columnVisibility[colId] !== false;
                 return (
                   <DropdownMenuCheckboxItem
                     key={colId}
                     className="capitalize"
                     checked={isChecked}
-                    // Toggling a column sets its visibility flag in state
                     onCheckedChange={(visible) =>
                       setColumnVisibility((prev) => ({
                         ...prev,
@@ -122,7 +116,7 @@ export default function PendingStaffPage({
         </DropdownMenu>
       </div>
 
-      {/* The table component receives filteredStaff and visibility controls */}
+      {/* Table component */}
       <PendingStaffTable
         data={filteredStaff}
         loading={false}
@@ -131,7 +125,7 @@ export default function PendingStaffPage({
         onColumnVisibilityChange={setColumnVisibility}
       />
 
-      {/* Drawer (sheet) for editing or adding staff */}
+      {/* Side drawer for info/approval */}
       <Sheet
         open={drawerOpen}
         onOpenChange={(open) => {

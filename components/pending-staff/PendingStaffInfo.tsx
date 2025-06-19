@@ -9,28 +9,31 @@ import { User } from "@/types/user";
 import { approveStaff } from "@/services/staff";
 import { revalidatePendingStaffs } from "@/actions/serverActions";
 
+// Props for individual pending staff info component
 interface PendingStaffInfoProps {
-  staff: User;
-  onApproved?: () => void;
+  staff: User; // Staff member to display
+  onApproved?: () => void; // Callback after approval
 }
 
+// Component showing details and approve button
 export default function PendingStaffInfo({
   staff,
   onApproved,
 }: PendingStaffInfoProps) {
-  const { user } = useUser();
-  const jwt = user?.Jwt;
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { user } = useUser(); // Current user context
+  const jwt = user?.Jwt; // JWT for auth
+  const { toast } = useToast(); // Toast notifications
+  const [loading, setLoading] = useState(false); // Button loading flag
 
+  // Handler for approve action
   const handleApprove = async () => {
     if (!jwt) return;
-    setLoading(true);
+    setLoading(true); // Show spinner text
     try {
-      await approveStaff(staff.ID, jwt);
+      await approveStaff(staff.ID, jwt); // API call
       toast({ status: "success", description: "Staff approved" });
-      await revalidatePendingStaffs();
-      if (onApproved) onApproved();
+      await revalidatePendingStaffs(); // Refresh on server
+      if (onApproved) onApproved(); // Notify parent
     } catch (err) {
       console.error("Approve failed", err);
       toast({
@@ -39,7 +42,7 @@ export default function PendingStaffInfo({
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset button
     }
   };
 
@@ -55,12 +58,12 @@ export default function PendingStaffInfo({
         <div>
           <span className="font-medium">Name:</span> {staff.Name}
         </div>
-        {staff.Email && (
+        {staff.Email && ( // Conditionally render email row
           <div>
             <span className="font-medium">Email:</span> {staff.Email}
           </div>
         )}
-        {staff.Phone && (
+        {staff.Phone && ( // Conditionally render phone row
           <div>
             <span className="font-medium">Phone:</span> {staff.Phone}
           </div>
@@ -69,11 +72,11 @@ export default function PendingStaffInfo({
       <Separator />
       <div className="flex justify-end">
         <Button
-          onClick={handleApprove}
-          disabled={loading}
+          onClick={handleApprove} // Approve click
+          disabled={loading} // Disable when loading
           className="bg-green-600 hover:bg-green-700"
         >
-          {loading ? "Approving..." : "Approve"}
+          {loading ? "Approving..." : "Approve"} {/* Button text */}
         </Button>
       </div>
     </div>
