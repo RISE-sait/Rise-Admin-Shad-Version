@@ -1,6 +1,7 @@
 import getValue from "@/configs/constants";
 import { GameResponseDto } from "@/app/api/Api";
 import { Game } from "@/types/games";
+import { addAuthHeader } from "@/lib/auth-header";
 
 export async function getAllGames(): Promise<Game[]> {
   try {
@@ -47,5 +48,86 @@ export async function getAllGames(): Promise<Game[]> {
     console.error("Error fetching games:", error);
     // Re-throw so calling code can handle it
     throw error;
+  }
+}
+
+export async function createGame(
+  gameData: Record<string, any>,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}games`, {
+      method: "POST",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify(gameData),
+    });
+
+    if (!response.ok) {
+      const resJson = await response.json();
+      let errorMessage = `Failed to create game: ${response.statusText}`;
+      if (resJson.error) {
+        errorMessage = resJson.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error creating game:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
+export async function updateGame(
+  id: string,
+  gameData: Record<string, any>,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}games/${id}`, {
+      method: "PUT",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify(gameData),
+    });
+
+    if (!response.ok) {
+      const resJson = await response.json();
+      let errorMessage = `Failed to update game: ${response.statusText}`;
+      if (resJson.error) {
+        errorMessage = resJson.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error updating game:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
+export async function deleteGame(
+  id: string,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}games/${id}`, {
+      method: "DELETE",
+      ...addAuthHeader(jwt),
+    });
+
+    if (!response.ok) {
+      const resJson = await response.json();
+      let errorMessage = `Failed to delete game: ${response.statusText}`;
+      if (resJson.error) {
+        errorMessage = resJson.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error deleting game:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
   }
 }

@@ -21,6 +21,7 @@ import {
   UserCog,
   Scissors,
   Gamepad2,
+  Trophy,
 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -87,6 +88,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 title: "Teams",
                 url: "/manage/teams",
                 icon: <Users width={15} height={15} />,
+              },
+              {
+                title: "Games",
+                url: "/manage/games",
+                icon: <Trophy width={15} height={15} />,
               },
               {
                 title: "Playground",
