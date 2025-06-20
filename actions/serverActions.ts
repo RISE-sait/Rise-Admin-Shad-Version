@@ -29,3 +29,7 @@ export async function revalidatePlayground() {
 export async function revalidatePendingStaffs() {
   revalidatePath("/manage/pending-staff");
 }
+
+export async function revalidateGames() {
+  revalidatePath("/manage/games");
+}
