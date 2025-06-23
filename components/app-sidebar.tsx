@@ -22,6 +22,7 @@ import {
   Scissors,
   Gamepad2,
   Trophy,
+  Dribbble,
 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -93,6 +94,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 title: "Games",
                 url: "/manage/games",
                 icon: <Trophy width={15} height={15} />,
+              },
+              {
+                title: "Practices",
+                url: "/manage/practices",
+                icon: <Dribbble width={15} height={15} />,
               },
               {
                 title: "Playground",
