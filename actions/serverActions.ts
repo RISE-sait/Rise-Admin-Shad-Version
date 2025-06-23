@@ -33,3 +33,7 @@ export async function revalidatePendingStaffs() {
 export async function revalidateGames() {
   revalidatePath("/manage/games");
 }
+
+export async function revalidatePractices() {
+  revalidatePath("/manage/practices");
+}
