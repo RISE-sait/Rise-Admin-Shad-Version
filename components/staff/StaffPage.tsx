@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import columnsStaff from "@/components/staff/columnsStaff";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import RightDrawer from "../reusable/RightDrawer";
 import { VisibilityState } from "@tanstack/react-table";
 
 export default function StaffPage({ staffs }: { staffs: User[] }) {
@@ -130,22 +131,22 @@ export default function StaffPage({ staffs }: { staffs: User[] }) {
         onColumnVisibilityChange={setColumnVisibility}
       />
 
-      {/* Drawer (sheet) for editing or adding staff */}
-      <Sheet
-        open={drawerOpen}
-        onOpenChange={(open) => {
-          if (!open) handleDrawerClose();
-        }}
-      >
-        <SheetContent className="w-full sm:max-w-md md:max-w-xl overflow-y-auto pb-0">
-          {isNewStaff ? (
-            <StaffForm />
-          ) : selectedStaff ? (
-            // Render form for editing the selected staff
-            <StaffForm StaffData={selectedStaff} />
-          ) : null}
-        </SheetContent>
-      </Sheet>
+      {/* Drawer for editing or adding staff */}
+      {drawerOpen && (
+        <RightDrawer
+          drawerOpen={drawerOpen}
+          handleDrawerClose={handleDrawerClose}
+          drawerWidth="w-[700px]"
+        >
+          <div className="p-4">
+            {isNewStaff ? (
+              <StaffForm />
+            ) : selectedStaff ? (
+              <StaffForm StaffData={selectedStaff} />
+            ) : null}
+          </div>
+        </RightDrawer>
+      )}
     </div>
   );
 }

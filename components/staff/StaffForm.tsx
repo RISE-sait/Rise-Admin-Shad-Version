@@ -4,6 +4,7 @@ import { useState } from "react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,14 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Trash, Save } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import getValue from "@/configs/constants";
 import { useToast } from "@/hooks/use-toast";
 import { revalidateStaffs } from "@/actions/serverActions";
-import { deleteStaff } from "@/services/staff";
+import { deleteStaff, updateStaff } from "@/services/staff";
+import { updateUser } from "@/services/user";
 import { StaffRoleEnum, User } from "@/types/user";
 
 const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
@@ -33,6 +34,14 @@ export default function StaffForm({ StaffData }: { StaffData?: User }) {
   const [isActive, setIsActive] = useState(
     StaffData?.StaffInfo?.IsActive || false
   );
+  const [firstName, setFirstName] = useState(
+    StaffData?.Name.split(" ")[0] || ""
+  );
+  const [lastName, setLastName] = useState(
+    StaffData?.Name.split(" ").slice(1).join(" ") || ""
+  );
+  const [email, setEmail] = useState(StaffData?.Email || "");
+  const [phone, setPhone] = useState(StaffData?.Phone || "");
 
   const { user } = useUser();
   const jwt = user?.Jwt;
@@ -55,34 +64,45 @@ export default function StaffForm({ StaffData }: { StaffData?: User }) {
     }
 
     try {
-      console.log(role.toLowerCase());
+      const staffData = {
+        is_active: isActive,
+        role_name: (role as string).toLowerCase(),
+      };
 
-      const response = await fetch(`${apiUrl}staffs/${StaffData?.ID}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({
-          is_active: isActive,
-          role_name: role.toLowerCase(),
-        }),
-      });
-      if (!response.ok) {
-        toast({
-          status: "error",
-          description: "Permission Denied or Request Failed",
-          variant: "destructive",
-        });
-      } else {
+      const userData = {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        country_alpha2_code: "US",
+        dob: "2000-01-01",
+        has_marketing_email_consent: false,
+        has_sms_consent: false,
+      };
+
+      const staffError = await updateStaff(StaffData?.ID!, staffData, jwt!);
+      const userError = await updateUser(StaffData?.ID!, userData, jwt!);
+
+      if (staffError === null && userError === null) {
         toast({
           status: "success",
           description: "Staff member updated successfully",
         });
         RefreshData();
+      } else {
+        toast({
+          status: "error",
+          description: staffError || userError || "Unknown error",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      console.error("Failed to save plan", err);
+      console.error("Failed to save staff", err);
+      toast({
+        status: "error",
+        description: "Request Failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -127,50 +147,48 @@ export default function StaffForm({ StaffData }: { StaffData?: User }) {
 
         {/* Details Tab */}
         <TabsContent value="details" className="pt-4">
-          {/* Staff Information Display */}
+          {/* Staff Information Form */}
           <div className="space-y-4">
             <div>
               <h3 className="font-medium text-base">Staff Information</h3>
-              <p className="text-sm text-muted-foreground">
-                View basic information about this staff member
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="text-sm font-medium">Name</div>
-                <div className="mt-1">{StaffData?.Name}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium">Email</div>
-                <div className="mt-1">{StaffData?.Email}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium">Phone</div>
-                <div className="mt-1">{StaffData?.Phone}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium">Created</div>
-                <div className="mt-1">
-                  {StaffData?.CreatedAt
-                    ? new Date(StaffData.CreatedAt).toLocaleString()
-                    : ""}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="mt-5" />
-
-          {/* Edit Staff Details */}
-          <div className="space-y-4 pt-5">
-            <div>
-              <h3 className="font-medium text-base">Edit Details</h3>
               <p className="text-sm text-muted-foreground">
                 Update the staff member information
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Role Select */}
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  First Name
+                </label>
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Last Name
+                </label>
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone</label>
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Role</label>
                 <Select value={role} onValueChange={setRole}>
@@ -187,7 +205,6 @@ export default function StaffForm({ StaffData }: { StaffData?: User }) {
                 </Select>
               </div>
 
-              {/* Active Switch */}
               <div className="flex flex-row items-center justify-between p-4 border rounded-md">
                 <div className="space-y-0.5">
                   <div className="text-sm font-medium">Active Status</div>
