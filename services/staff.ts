@@ -157,3 +157,32 @@ export async function approveStaff(id: string, jwt: string): Promise<void> {
     throw error;
   }
 }
+
+export async function updateStaff(
+  id: string,
+  staffData: StaffRequestDto,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}staffs/${id}`, {
+      method: "PUT",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify(staffData),
+    });
+
+    const responseJSON = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      let errorMessage = `Failed to update staff: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error updating staff:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
