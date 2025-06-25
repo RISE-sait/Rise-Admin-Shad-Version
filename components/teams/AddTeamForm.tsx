@@ -5,12 +5,22 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
 import { createTeam } from "@/services/teams";
+import { getAllStaffs } from "@/services/staff";
 import { TeamRequestDto } from "@/app/api/Api";
 import { revalidateTeams } from "@/actions/serverActions";
+import { User } from "@/types/user";
+import { useEffect, useState } from "react";
 
 export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
   // useFormData provides a simple object based form state manager
@@ -22,6 +32,25 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
   });
   const { user } = useUser();
   const { toast } = useToast();
+  const [coaches, setCoaches] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      try {
+        const coachData = await getAllStaffs("COACH");
+        setCoaches(coachData);
+      } catch (error) {
+        toast({
+          status: "error",
+          description:
+            error instanceof Error ? error.message : "Failed to load coaches",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchCoaches();
+  }, [toast]);
 
   // Submit handler that validates input and calls the createTeam API.
   // If successful it resets the form and optionally closes the drawer.
@@ -92,13 +121,22 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Coach ID</label>
-          <Input
+          <label className="text-sm font-medium">Coach</label>
+          <Select
             value={data.coach_id}
-            onChange={(e) => updateField("coach_id", e.target.value)}
-            type="text"
-            placeholder="Coach ID (optional)"
-          />
+            onValueChange={(id) => updateField("coach_id", id)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Coach" />
+            </SelectTrigger>
+            <SelectContent>
+              {coaches.map((c) => (
+                <SelectItem key={c.ID} value={c.ID}>
+                  {c.Name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
