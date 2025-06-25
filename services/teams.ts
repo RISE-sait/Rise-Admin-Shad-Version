@@ -72,9 +72,8 @@ export async function createTeam(
       body: JSON.stringify(teamData),
     });
 
-    const responseJSON = await response.json();
-
     if (!response.ok) {
+      const responseJSON = await response.json().catch(() => ({}));
       let errorMessage = `Failed to create team: ${response.statusText}`;
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
