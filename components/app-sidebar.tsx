@@ -136,10 +136,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
           <Link href={"/"}>
             <Image
-              src={"/RiseLogo.svg"}
+              src={"/RiseLogo1.png"}
               alt={"Rise Logo"}
               width={120}
               height={120}
+              className="invert dark:invert-0"
             />
           </Link>
         </div>
