@@ -118,8 +118,8 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         body: JSON.stringify({
           membership_id: membershipId,
           name: newname,
-          price: parseFloat(newprice),
-          joining_fee: newjoiningfee ? parseFloat(newjoiningfee) : undefined,
+          stripe_price_id: newprice,
+          stripe_joining_fees_id: newjoiningfee ? newjoiningfee : undefined,
           amt_periods: parsedPeriod,
         }),
       });
@@ -173,9 +173,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
           body: JSON.stringify({
             membership_id: membershipId,
             name: updatedPlan.name,
-            price: parseFloat(updatedPlan.price),
-            joining_fee: updatedPlan.joining_fee
-              ? parseFloat(updatedPlan.joining_fee)
+            stripe_price_id: updatedPlan.price,
+            stripe_joining_fees_id: updatedPlan.joining_fee
+              ? updatedPlan.joining_fee
               : undefined,
             amt_periods: parsedPeriod,
           }),
