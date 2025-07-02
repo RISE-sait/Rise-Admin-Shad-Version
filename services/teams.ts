@@ -100,7 +100,7 @@ export async function updateTeam(
       body: JSON.stringify(teamData),
     });
 
-    const responseJSON = await response.json();
+    const responseJSON = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       let errorMessage = `Failed to update team: ${response.statusText}`;
