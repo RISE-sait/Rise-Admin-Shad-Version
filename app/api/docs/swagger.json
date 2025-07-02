@@ -501,6 +501,44 @@
         }
       }
     },
+    "/customers/archived": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Number of customers to retrieve (default: 20, max: 20)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Number of customers to skip (default: 0)",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of archived customers",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/customer.Response"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/customers/checkin/{id}": {
       "get": {
         "consumes": ["application/json"],
@@ -607,6 +645,48 @@
         }
       }
     },
+    "/customers/{id}/archive": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content: Customer archived"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/customers/{id}/memberships": {
       "get": {
         "consumes": ["application/json"],
@@ -633,6 +713,48 @@
           },
           "400": {
             "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/unarchive": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content: Customer unarchived"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -2662,6 +2784,286 @@
         }
       }
     },
+    "/practices": {
+      "get": {
+        "description": "Retrieves a list of practices, optionally filtered by team.",
+        "produces": ["application/json"],
+        "tags": ["practices"],
+        "summary": "List practices",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Team UUID",
+            "name": "team_id",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Page number",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Items per page (max 100)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of practices",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/practice.ResponseDto"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Creates a new practice session.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["practices"],
+        "summary": "Create a practice",
+        "parameters": [
+          {
+            "description": "Practice details",
+            "name": "practice",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/practice.RequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Practice created successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/practices/recurring": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Creates multiple recurring practices using recurrence rules.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["practices"],
+        "summary": "Create recurring practices",
+        "parameters": [
+          {
+            "description": "Recurring practice details",
+            "name": "recurrence",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/practice.RecurrenceRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Recurring practices created"
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/practices/{id}": {
+      "get": {
+        "description": "Fetches a single practice session using its UUID.",
+        "produces": ["application/json"],
+        "tags": ["practices"],
+        "summary": "Get a practice by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Practice ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Practice retrieved",
+            "schema": {
+              "$ref": "#/definitions/practice.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Practice not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates the details of a specific practice.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["practices"],
+        "summary": "Update a practice",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Practice ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated practice details",
+            "name": "practice",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/practice.RequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Practice updated successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Practice not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Deletes a specific practice session.",
+        "produces": ["application/json"],
+        "tags": ["practices"],
+        "summary": "Delete a practice",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Practice ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Practice deleted successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Practice not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/programs": {
       "get": {
         "consumes": ["application/json"],
@@ -4107,6 +4509,9 @@
         "hubspot_id": {
           "type": "string"
         },
+        "is_archived": {
+          "type": "boolean"
+        },
         "last_name": {
           "type": "string"
         },
@@ -4232,6 +4637,10 @@
       "type": "object",
       "required": ["end_at", "start_at"],
       "properties": {
+        "court_id": {
+          "type": "string",
+          "example": "0bab3927-50eb-42b3-9d6b-2350dd00a111"
+        },
         "end_at": {
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
@@ -4352,6 +4761,10 @@
         "recurrence_start_at"
       ],
       "properties": {
+        "court_id": {
+          "type": "string",
+          "example": "0bab3927-50eb-42b3-9d6b-2350dd00a100"
+        },
         "day": {
           "type": "string",
           "example": "THURSDAY"
@@ -4433,6 +4846,10 @@
         },
         "away_team_id": {
           "description": "ID of the away team",
+          "type": "string"
+        },
+        "court_id": {
+          "description": "ID of the court where the game is played",
           "type": "string"
         },
         "end_time": {
@@ -4824,6 +5241,117 @@
       "type": "object",
       "properties": {
         "payment_url": {
+          "type": "string"
+        }
+      }
+    },
+    "practice.RecurrenceRequestDto": {
+      "type": "object",
+      "required": [
+        "court_id",
+        "location_id",
+        "practice_end_at",
+        "practice_start_at",
+        "recurrence_end_at",
+        "recurrence_start_at",
+        "team_id"
+      ],
+      "properties": {
+        "court_id": {
+          "type": "string"
+        },
+        "day": {
+          "type": "string"
+        },
+        "location_id": {
+          "type": "string"
+        },
+        "practice_end_at": {
+          "type": "string"
+        },
+        "practice_start_at": {
+          "type": "string"
+        },
+        "recurrence_end_at": {
+          "type": "string"
+        },
+        "recurrence_start_at": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["scheduled", "completed", "canceled"]
+        },
+        "team_id": {
+          "type": "string"
+        }
+      }
+    },
+    "practice.RequestDto": {
+      "type": "object",
+      "required": ["court_id", "location_id", "start_time", "team_id"],
+      "properties": {
+        "court_id": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "location_id": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["scheduled", "completed", "canceled"]
+        },
+        "team_id": {
+          "type": "string"
+        }
+      }
+    },
+    "practice.ResponseDto": {
+      "type": "object",
+      "properties": {
+        "court_id": {
+          "type": "string"
+        },
+        "court_name": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "location_id": {
+          "type": "string"
+        },
+        "location_name": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "team_logo_url": {
+          "type": "string"
+        },
+        "team_name": {
+          "type": "string"
+        },
+        "updated_at": {
           "type": "string"
         }
       }
