@@ -194,7 +194,13 @@ export async function deleteTeam(
       ...addAuthHeader(jwt),
     });
 
-    const responseJSON = await response.json();
+    const text = await response.text();
+    let responseJSON: any = {};
+    if (text) {
+      try {
+        responseJSON = JSON.parse(text);
+      } catch {}
+    }
 
     if (!response.ok) {
       let errorMessage = `Failed to delete team: ${response.statusText}`;
