@@ -9,34 +9,38 @@ import {
   UserUpdateRequestDto,
 } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast";
-import { getCustomerById, updateCustomer } from "@/services/customer";
+import { updateCustomer } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { SaveIcon } from "lucide-react";
 
+// DetailsTab component displays and updates customer personal info and stats
 export default function DetailsTab({
   customer,
   onCustomerUpdated,
 }: {
-  customer: Customer;
-  onCustomerUpdated?: () => void;
+  customer: Customer; // Customer data passed in
+  onCustomerUpdated?: (updated: Partial<Customer>) => void; // Callback after update
 }) {
-  const { toast } = useToast();
-  const { user } = useUser();
+  const { toast } = useToast(); // Toast utility
+  const { user } = useUser(); // Current user (for JWT)
 
+  // Loading states for general update and stats initialization
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+  // Form state initialized with customer personal info
   const [formData, setFormData] = useState({
     first_name: customer.first_name || "",
     last_name: customer.last_name || "",
     email: customer.email || "",
     phone: (() => {
       const phone = customer.phone || "";
-      if (!phone) return "+1";
+      if (!phone) return "+1"; // Default to US country code
       return phone.startsWith("+") ? phone : `+1${phone.replace(/\D/g, "")}`;
     })(),
   });
 
-  // Initialize with default values
+  // State for athlete statistics, using DTO shape
   const [athleteStats, setAthleteStats] =
     useState<CustomerStatsUpdateRequestDto>({
       wins: 0,
@@ -47,37 +51,21 @@ export default function DetailsTab({
       steals: 0,
     });
 
-  // Fetch athlete stats when component mounts
+  // Populate athleteStats when customer prop changes
   useEffect(() => {
-    // Only fetch if we have a customer ID
-    if (customer.id) {
-      const fetchAthleteStats = async () => {
-        setIsLoadingStats(true);
-        try {
-          const statsData = await getCustomerById(customer.id!);
-          setAthleteStats({
-            wins: statsData.wins || 0,
-            losses: statsData.losses || 0,
-            points: statsData.points || 0,
-            rebounds: statsData.rebounds || 0,
-            assists: statsData.assists || 0,
-            steals: statsData.steals || 0,
-          });
-        } catch (error) {
-          console.error("Error fetching athlete stats:", error);
-          toast({
-            status: "error",
-            description: "Could not load athlete statistics",
-          });
-        } finally {
-          setIsLoadingStats(false);
-        }
-      };
+    setIsLoadingStats(true);
+    setAthleteStats({
+      wins: customer.wins || 0,
+      losses: customer.losses || 0,
+      points: customer.points || 0,
+      rebounds: customer.rebounds || 0,
+      assists: customer.assists || 0,
+      steals: customer.steals || 0,
+    });
+    setIsLoadingStats(false);
+  }, [customer]);
 
-      fetchAthleteStats();
-    }
-  }, [customer.id]);
-
+  // Handler for updating form fields
   const handleChange = (field: string, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
@@ -85,6 +73,7 @@ export default function DetailsTab({
     }));
   };
 
+  // Handler for updating stats fields (unused since inputs are disabled)
   const handleStatsChange = (field: string, value: number) => {
     setAthleteStats((prev) => ({
       ...prev,
@@ -92,7 +81,9 @@ export default function DetailsTab({
     }));
   };
 
+  // Main update function invoked on Save button click
   const handleUpdateCustomer = async () => {
+    // Validate required fields
     if (
       !formData.first_name.trim() ||
       !formData.last_name.trim() ||
@@ -105,11 +96,13 @@ export default function DetailsTab({
       return;
     }
 
+    // Ensure JWT is available
     if (!user?.Jwt) {
       toast({ status: "error", description: "User JWT is missing" });
       return;
     }
 
+    // Ensure customer ID is present
     if (!customer.id) {
       toast({ status: "error", description: "Customer ID is missing" });
       return;
@@ -118,30 +111,42 @@ export default function DetailsTab({
     setIsLoading(true);
 
     try {
+      // Format phone number with country code
       const digits = formData.phone.replace(/\D/g, "");
       const formattedPhone = digits.startsWith("1")
         ? `+${digits}`
         : `+1${digits}`;
+
+      // Prepare payload for user update
       const updateData: UserUpdateRequestDto = {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
         phone: formattedPhone,
         country_alpha2_code: "US",
-        dob: "2000-01-01",
+        dob: "2000-01-01", // Default DOB placeholder
         has_marketing_email_consent: false,
         has_sms_consent: false,
       };
 
+      // Call service to update customer
       const error = await updateCustomer(customer.id, updateData, user.Jwt);
 
       if (error === null) {
+        // Success toast and callback
         toast({
           status: "success",
           description: "Customer updated successfully",
         });
-        if (onCustomerUpdated) onCustomerUpdated();
+        if (onCustomerUpdated)
+          onCustomerUpdated({
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            email: formData.email,
+            phone: formattedPhone,
+          });
       } else {
+        // Show API error
         toast({ status: "error", description: error });
       }
     } catch (error) {
@@ -155,12 +160,15 @@ export default function DetailsTab({
     }
   };
 
+  // Render form UI
   return (
     <div className="space-y-6">
+      {/* Personal Information Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Personal Information</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* First Name Input */}
           <div>
             <label
               htmlFor="first_name"
@@ -175,6 +183,7 @@ export default function DetailsTab({
             />
           </div>
 
+          {/* Last Name Input */}
           <div>
             <label
               htmlFor="last_name"
@@ -190,6 +199,7 @@ export default function DetailsTab({
           </div>
         </div>
 
+        {/* Email Input */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-1">
             Email <span className="text-red-500"></span>
@@ -202,6 +212,7 @@ export default function DetailsTab({
           />
         </div>
 
+        {/* Phone Input */}
         <div>
           <label htmlFor="phone" className="block text-sm font-medium mb-1">
             Phone
@@ -216,6 +227,7 @@ export default function DetailsTab({
         </div>
       </div>
 
+      {/* Athlete Statistics Section (only if customer ID exists) */}
       {customer.id && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">
@@ -228,6 +240,7 @@ export default function DetailsTab({
           </h3>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Wins */}
             <div>
               <label htmlFor="wins" className="block text-sm font-medium mb-1">
                 Wins
@@ -249,6 +262,7 @@ export default function DetailsTab({
               />
             </div>
 
+            {/* Losses */}
             <div>
               <label
                 htmlFor="losses"
@@ -273,6 +287,7 @@ export default function DetailsTab({
               />
             </div>
 
+            {/* Points */}
             <div>
               <label
                 htmlFor="points"
@@ -297,6 +312,7 @@ export default function DetailsTab({
               />
             </div>
 
+            {/* Rebounds */}
             <div>
               <label
                 htmlFor="rebounds"
@@ -321,6 +337,7 @@ export default function DetailsTab({
               />
             </div>
 
+            {/* Assists */}
             <div>
               <label
                 htmlFor="assists"
@@ -345,6 +362,7 @@ export default function DetailsTab({
               />
             </div>
 
+            {/* Steals */}
             <div>
               <label
                 htmlFor="steals"
@@ -372,6 +390,7 @@ export default function DetailsTab({
         </div>
       )}
 
+      {/* Save Button */}
       <div className="flex items-center justify-end gap-3 mt-4">
         <Button
           onClick={handleUpdateCustomer}

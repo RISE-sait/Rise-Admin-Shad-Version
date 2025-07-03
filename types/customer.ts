@@ -4,9 +4,9 @@ export interface Customer {
   last_name: string;
   email: string; // email (e.g., alice@example.com)
   phone: string;
-  
+
   profilePicture: string;
-  membership_name: string; 
+  membership_name: string;
   membership_start_date: Date | null;
   membership_plan_id: string;
   membership_plan_name: string;
@@ -14,6 +14,7 @@ export interface Customer {
   updated_at: Date;
   create_at: Date;
   hubspot_id?: string;
+  is_archived?: boolean;
 
   assists: number;
   losses: number;
@@ -21,6 +22,4 @@ export interface Customer {
   rebounds: number;
   steals: number;
   wins: number;
-  
-  
 }

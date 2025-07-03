@@ -61,6 +61,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 icon: <Users width={15} height={15} />,
               },
               {
+                title: "Archived Customers",
+                url: "/manage/archived-customers",
+                icon: <Users width={15} height={15} />,
+              },
+              {
                 title: "Programs",
                 url: "/manage/programs",
                 icon: <List width={15} height={15} />,

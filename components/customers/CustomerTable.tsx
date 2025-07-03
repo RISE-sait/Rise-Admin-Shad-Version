@@ -1,4 +1,6 @@
 "use client";
+
+// React and table utilities
 import * as React from "react";
 import {
   ColumnDef,
@@ -12,7 +14,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
+// Customer type definition
 import { Customer } from "@/types/customer";
+
+// UI components for table layout
 import {
   Table,
   TableBody,
@@ -24,6 +30,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpDown, MoreHorizontal, FolderSearch } from "lucide-react";
+
+// Dropdown menu components
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +40,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// Select components for pagination or filters
 import {
   Select,
   SelectTrigger,
@@ -39,26 +49,32 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+
+// Avatar component for user images
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
+// Props for the CustomerTable component
 interface DataTableProps {
-  customers: Customer[];
-  onCustomerSelect: (customer: Customer) => void;
-  onDeleteCustomer?: (customerId: string) => Promise<void> | void;
-  columnVisibility: VisibilityState;
+  customers: Customer[]; // list of customers to display
+  onCustomerSelect: (customer: Customer) => void; // callback when a row is clicked
+  onArchiveCustomer?: (customerId: string) => Promise<void> | void; // optional archive/unarchive handler
+  isArchivedList?: boolean; // whether this table shows archived customers
+  columnVisibility: VisibilityState; // visibility state for each column
   onColumnVisibilityChange: (
     updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
-  ) => void;
-  selectedIds: string[];
-  onSelectionChange: (selectedIds: string[]) => void;
+  ) => void; // callback to toggle column visibility
+  selectedIds: string[]; // currently selected row IDs
+  onSelectionChange: (selectedIds: string[]) => void; // callback when row selection changes
 }
 
+// Column definitions for the table
 export const columns: ColumnDef<Customer>[] = [
   {
     id: "avatar",
     accessorKey: "name",
-    header: "Avatar",
+    header: "Avatar", // column header label
     cell: ({ row }) => (
+      // render avatar or fallback initial
       <Avatar className="h-8 w-8">
         <AvatarImage
           src={row.original.profilePicture || ""}
@@ -69,12 +85,13 @@ export const columns: ColumnDef<Customer>[] = [
         </AvatarFallback>
       </Avatar>
     ),
-    size: 40,
+    size: 40, // fixed width for avatar column
   },
   {
     id: "name",
-    accessorFn: (row) => `${row.first_name} ${row.last_name}`,
+    accessorFn: (row) => `${row.first_name} ${row.last_name}`, // compute full name
     header: ({ column }) => (
+      // clickable header to sort by name
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -89,22 +106,22 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     id: "email",
-    accessorKey: "email",
+    accessorKey: "email", // direct accessor for email
     header: "Email",
     minSize: 200,
     size: 250,
   },
   {
     id: "membership",
-    accessorKey: "membership",
+    accessorKey: "membership", // key for membership status
     header: "Membership",
-    cell: ({ row }) => row.original.membership_name || "None",
+    cell: ({ row }) => row.original.membership_name || "None", // display membership name
     minSize: 120,
     size: 150,
   },
   {
     id: "start_date",
-    accessorKey: "membership_start_date",
+    accessorKey: "membership_start_date", // key for membership start date
     header: "Start Date",
     cell: ({ row }) => {
       const date = row.original.membership_start_date;
@@ -115,11 +132,12 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     id: "actions",
-    enableHiding: false,
+    enableHiding: false, // always show actions column
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row, table }) => {
       const customer = row.original;
       return (
+        // actions dropdown (Edit / Archive)
         <div className="flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -149,16 +167,16 @@ export const columns: ColumnDef<Customer>[] = [
               <DropdownMenuItem
                 className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
                 onClick={() => {
-                  if (
-                    confirm("Are you sure you want to delete this customer?")
-                  ) {
-                    const onDelete = (table.options.meta as any)
-                      ?.onDeleteCustomer;
-                    onDelete?.(customer.id);
-                  }
+                  const handler = (table.options.meta as any)
+                    ?.onArchiveCustomer;
+                  handler?.(customer.id);
                 }}
               >
-                <span>Delete</span>
+                <span>
+                  {(table.options.meta as any)?.isArchivedList
+                    ? "Unarchive"
+                    : "Archive"}
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -170,21 +188,27 @@ export const columns: ColumnDef<Customer>[] = [
   },
 ];
 
+// Main CustomerTable component
 export default function CustomerTable({
   customers,
   onCustomerSelect,
-  onDeleteCustomer,
+  onArchiveCustomer,
+  isArchivedList,
   columnVisibility,
   onColumnVisibilityChange,
   selectedIds,
   onSelectionChange,
 }: DataTableProps) {
+  // state for table sorting
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  // state for column filters
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  // state for row selection checkboxes
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // initialize react-table instance
   const table = useReactTable({
     data: customers,
     columns,
@@ -194,23 +218,25 @@ export default function CustomerTable({
       columnVisibility,
       rowSelection,
     },
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting, // update sorting state
+    onColumnFiltersChange: setColumnFilters, // update filters
     onColumnVisibilityChange: (newVisibility) => {
+      // propagate visibility change up
       if (typeof newVisibility === "function") {
         onColumnVisibilityChange(newVisibility(columnVisibility));
       } else {
         onColumnVisibilityChange(newVisibility);
       }
     },
-    onRowSelectionChange: setRowSelection,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    meta: { onCustomerSelect, onDeleteCustomer },
+    onRowSelectionChange: setRowSelection, // update selected rows
+    getCoreRowModel: getCoreRowModel(), // basic row model
+    getFilteredRowModel: getFilteredRowModel(), // filtered rows
+    getPaginationRowModel: getPaginationRowModel(), // pagination
+    getSortedRowModel: getSortedRowModel(), // sorted rows
+    meta: { onCustomerSelect, onArchiveCustomer, isArchivedList }, // pass handlers via meta
   });
 
+  // effect to sync selected row IDs with parent component
   React.useEffect(() => {
     const selectedRows = table.getSelectedRowModel().rows;
     const newSelectedIds = selectedRows.map((row) => row.original.id);
@@ -222,6 +248,7 @@ export default function CustomerTable({
       <div className="rounded-xl overflow-hidden border">
         <Table className="border-collapse">
           <TableHeader className="bg-muted/100 sticky top-0 z-10">
+            {/* Render table headers */}
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -249,6 +276,7 @@ export default function CustomerTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
+              // Render each data row
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -274,6 +302,7 @@ export default function CustomerTable({
                 </TableRow>
               ))
             ) : (
+              // No data fallback
               <TableRow>
                 <TableCell
                   colSpan={columns.length}

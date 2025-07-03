@@ -1,5 +1,6 @@
 "use client";
 
+// React and utility imports
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
@@ -22,15 +23,23 @@ import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { useRouterQuery } from "@/hooks/router-query";
+import { archiveCustomer, unarchiveCustomer } from "@/services/customer";
+import { useUser } from "@/contexts/UserContext";
 
+// Define props for the CustomersPage component
 interface CustomerPageProps {
   searchTerm: string;
   customers: Customer[];
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  title?: string;
+  isArchivedList?: boolean;
+  onArchiveCustomer?: (id: string) => Promise<void>;
+  onUnarchiveCustomer?: (id: string) => Promise<void>;
 }
 
+// Utility debounce function to limit how often a function can fire
 const debounce = (func: Function, delay: number) => {
   let timeoutId: NodeJS.Timeout;
   return (...args: any[]) => {
@@ -43,13 +52,19 @@ const debounce = (func: Function, delay: number) => {
   };
 };
 
+// Main component for displaying and managing customers
 export default function CustomersPage({
   customers,
   searchTerm,
   currentPage,
   totalPages,
   totalCount,
+  title,
+  isArchivedList,
+  onArchiveCustomer,
+  onUnarchiveCustomer,
 }: CustomerPageProps) {
+  // State hooks for selected customer details drawer
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
@@ -57,11 +72,13 @@ export default function CustomersPage({
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
     null
   );
+  // State for search input and column visibility toggles
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
+  // Custom hook to sync URL query parameters for search & pagination
   const { replace, val } = useRouterQuery<{
     search: string;
     page: string;
@@ -70,12 +87,14 @@ export default function CustomersPage({
     page: String(currentPage), // <- 👈 Keep page synced
   });
 
+  // Handler to open drawer with customer details
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
     setDrawerContent("details");
     setDrawerOpen(true);
   };
 
+  // Handler to update column visibility state
   const handleColumnVisibilityChange = (
     updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)
   ) => {
@@ -85,32 +104,53 @@ export default function CustomersPage({
     });
   };
 
+  // Placeholder for bulk delete action
   const handleBulkDelete = async () => {
     try {
-      // Placeholder for bulk delete logic (e.g., API call)
+      // Log IDs being deleted
       console.log("Deleting customers with IDs:", selectedIds);
-      // await Promise.all(selectedIds.map(id => ApiService.customers.delete(id)));
+      // Reset selection and close modal
       setSelectedIds([]);
       setBulkDeleteOpen(false);
-      // Add toast notification here if available (e.g., toast.success)
+      // Ideally, show a success toast here
     } catch (error) {
       console.error("Error deleting customers:", error);
-      // Add error toast notification here if available
+      // Ideally, show an error toast here
     }
+  };
+
+  // Get current user context for auth-protected actions
+  const { user } = useUser();
+
+  // Archive a customer: calls service and reloads page on success
+  const handleArchive = async (id: string) => {
+    if (!user) return;
+    await archiveCustomer(id, user.Jwt);
+    location.reload();
+  };
+
+  // Unarchive a customer: calls service and reloads page on success
+  const handleUnarchive = async (id: string) => {
+    if (!user) return;
+    await unarchiveCustomer(id, user.Jwt);
+    location.reload();
   };
 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
+      {/* Header section with title & description */}
       <div className="flex items-center justify-between">
         <Heading
-          title="Customers"
+          title={title || "Customers"}
           description="Manage your customers and their details"
         />
       </div>
       <Separator />
 
+      {/* Search and filter controls */}
       <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
+          {/* Search icon inside input */}
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search customers..."
@@ -118,11 +158,13 @@ export default function CustomersPage({
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
+              // Debounce URL update for smoother UX
               debounce(() => replace({ search: e.target.value }), 30)();
             }}
           />
         </div>
         <div className="flex items-center gap-4">
+          {/* Column visibility dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
@@ -153,6 +195,7 @@ export default function CustomersPage({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* Bulk delete button appears when selections exist */}
           {selectedIds.length > 0 && (
             <Button
               variant="destructive"
@@ -165,10 +208,16 @@ export default function CustomersPage({
         </div>
       </div>
 
+      {/* Customer table with pagination controls below */}
       <CustomerTable
         customers={customers}
         onCustomerSelect={handleCustomerSelect}
-        onDeleteCustomer={() => {}}
+        onArchiveCustomer={
+          isArchivedList
+            ? onUnarchiveCustomer || handleUnarchive
+            : onArchiveCustomer || handleArchive
+        }
+        isArchivedList={isArchivedList}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         selectedIds={selectedIds}
@@ -179,7 +228,7 @@ export default function CustomersPage({
           Page {currentPage} of {totalPages} — {totalCount} total
         </span>
         <div className="flex gap-1 items-center">
-          {/* First Page + Ellipsis */}
+          {/* Pagination: first page shortcut */}
           {currentPage > 3 && (
             <>
               <Button
@@ -194,7 +243,7 @@ export default function CustomersPage({
             </>
           )}
 
-          {/* Nearby Page Numbers */}
+          {/* Display current, previous, and next page numbers */}
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter(
               (page) =>
@@ -214,7 +263,7 @@ export default function CustomersPage({
               </Button>
             ))}
 
-          {/* Last Page + Ellipsis */}
+          {/* Shortcut to last page */}
           {currentPage < totalPages - 2 && (
             <>
               {currentPage < totalPages - 3 && (
@@ -231,7 +280,7 @@ export default function CustomersPage({
             </>
           )}
 
-          {/* Prev/Next Arrows */}
+          {/* Prev/Next controls */}
           <Button
             variant="outline"
             disabled={currentPage === 1}
@@ -253,6 +302,7 @@ export default function CustomersPage({
         </div>
       </div>
 
+      {/* Confirmation modal for bulk delete */}
       <AlertModal
         isOpen={bulkDeleteOpen}
         onClose={() => setBulkDeleteOpen(false)}
@@ -260,20 +310,27 @@ export default function CustomersPage({
         loading={false} // Update with actual loading state if needed
       />
 
+      {/* Drawer for customer details or add form */}
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
         drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"}
       >
         <div className="p-4">
+          {/* Drawer header based on mode */}
           <h2 className="text-2xl font-bold tracking-tight mb-4">
             {drawerContent === "details" ? "Customer Details" : "Add Customer"}
           </h2>
+          {/* Conditional content: details view or add form */}
           {drawerContent === "details" && selectedCustomer && (
             <CustomerInfoPanel
               customer={selectedCustomer}
               onCustomerUpdated={() => {}}
-              onCustomerDeleted={() => {}}
+              onCustomerArchived={
+                isArchivedList
+                  ? onUnarchiveCustomer || handleUnarchive
+                  : onArchiveCustomer || handleArchive
+              }
             />
           )}
           {drawerContent === "add" && (
