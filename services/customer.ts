@@ -18,6 +18,7 @@ interface CustomerApiResponse {
   email: string;
   first_name: string;
   hubspot_id?: string;
+  is_archived?: boolean;
   last_name: string;
   membership_info?: {
     membership_name: string;
@@ -60,6 +61,7 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
 
     // Additional fields not provided by API
     hubspot_id: response.hubspot_id || "",
+    is_archived: response.is_archived || false,
     updated_at: new Date(), // Default to current date
     create_at: new Date(), // Default to current date
   };
@@ -121,28 +123,27 @@ export async function getCustomers(
 /**
  * Get customer by ID
  */
-export async function getCustomerById(customerId: string): Promise<Customer> {
+export async function getCustomerById(
+  customerId: string
+): Promise<Customer | null> {
   try {
     const url = `${getValue("API")}customers/id/${customerId}`;
-    console.log("Fetching customer by ID from URL:", url);
 
     const response = await fetch(url, {
       method: "GET",
     });
 
+    if (response.status === 404) {
+      // Customer not found - return null without logging an error
+      return null;
+    }
+
     if (!response.ok) {
-      console.error(
-        "Failed to fetch customer:",
-        response.status,
-        response.statusText
-      );
       throw new Error(`Failed to fetch customer: ${response.statusText}`);
     }
 
     const customerResponse: CustomerApiResponse = await response.json();
-    console.log("Retrieved customer by ID:", customerResponse.user_id);
 
-    // Map API response to Customer type
     return mapApiResponseToCustomer(customerResponse);
   } catch (error) {
     console.error(`Error fetching customer with ID ${customerId}:`, error);
@@ -186,5 +187,78 @@ export async function updateCustomer(
   } catch (error) {
     console.error("Error updating customer:", error);
     return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
+export async function getArchivedCustomers(
+  search?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<{
+  customers: Customer[];
+  page: number;
+  pages: number;
+  total: number;
+}> {
+  try {
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    params.append("page", String(page));
+    params.append("limit", String(limit));
+
+    const url = `${getValue("API")}customers/archived?${params.toString()}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch archived customers: ${response.statusText}`
+      );
+    }
+
+    const json = await response.json();
+
+    // Support both paginated and plain array formats
+    if (Array.isArray(json)) {
+      return {
+        customers: json.map(mapApiResponseToCustomer),
+        page: 1,
+        pages: 1,
+        total: json.length,
+      };
+    }
+
+    return {
+      customers: (json.data || []).map(mapApiResponseToCustomer),
+      page: json.page || 1,
+      pages: json.pages || 1,
+      total: json.total ?? (json.data ? json.data.length : 0),
+    };
+  } catch (error) {
+    console.error("Error fetching archived customers:", error);
+    throw error;
+  }
+}
+
+export async function archiveCustomer(id: string, jwt: string): Promise<void> {
+  const response = await fetch(`${getValue("API")}customers/${id}/archive`, {
+    method: "POST",
+    ...addAuthHeader(jwt),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to archive customer: ${response.statusText}`);
+  }
+}
+
+export async function unarchiveCustomer(
+  id: string,
+  jwt: string
+): Promise<void> {
+  const response = await fetch(`${getValue("API")}customers/${id}/unarchive`, {
+    method: "POST",
+    ...addAuthHeader(jwt),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to unarchive customer: ${response.statusText}`);
   }
 }

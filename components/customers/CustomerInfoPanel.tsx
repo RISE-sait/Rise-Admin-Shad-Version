@@ -1,13 +1,25 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
-import { TrashIcon, UserCircle, CreditCard, Clock, RefreshCw, Award } from "lucide-react";
+import {
+  TrashIcon,
+  UserCircle,
+  CreditCard,
+  Clock,
+  RefreshCw,
+  Award,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getCustomerById } from "@/services/customer";
+import {
+  getCustomerById,
+  archiveCustomer,
+  unarchiveCustomer,
+} from "@/services/customer";
+import { useUser } from "@/contexts/UserContext";
 
 interface MembershipPlan {
   id: string;
@@ -20,13 +32,13 @@ interface MembershipPlan {
 interface CustomerInfoPanelProps {
   customer: Customer;
   onCustomerUpdated?: () => void;
-  onCustomerDeleted?: () => void;
+  onCustomerArchived?: (id: string) => Promise<void> | void;
 }
 
 export default function CustomerInfoPanel({
   customer,
   onCustomerUpdated,
-  onCustomerDeleted,
+  onCustomerArchived,
 }: CustomerInfoPanelProps) {
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,38 +46,51 @@ export default function CustomerInfoPanel({
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
 
   const { toast } = useToast();
+  const { user } = useUser();
 
   useEffect(() => {
     // Update currentCustomer when the customer prop changes
     setCurrentCustomer(customer);
-    
-    // Load the latest customer data if we have an ID
-    if (customer.id) {
-      refreshCustomerData();
+
+    // Initialize membership plans from the provided customer data
+    if (customer.membership_plan_id) {
+      const plan: MembershipPlan = {
+        id: customer.membership_plan_id,
+        membership_name: customer.membership_name || "Membership Plan",
+        status: "Active",
+        start_date: customer.membership_start_date,
+        renewal_date: customer.membership_renewal_date,
+      };
+      setMembershipPlans([plan]);
+    } else {
+      setMembershipPlans([]);
     }
-  }, [customer.id]);
+  }, [customer]);
 
   const refreshCustomerData = async () => {
     if (!customer.id) return;
-  
+
     setIsLoading(true);
     try {
       // Use the unified getCustomerById function to get all data
       const refreshedCustomer = await getCustomerById(customer.id);
-      setCurrentCustomer(refreshedCustomer);
-      
-      // Create a membership plan object from the customer data if available
-      if (refreshedCustomer.membership_plan_id) {
-        const membershipPlan: MembershipPlan = {
-          id: refreshedCustomer.membership_plan_id,
-          membership_name: refreshedCustomer.membership_name || "Membership Plan",
-          status: "Active", // Assuming active if it exists
-          start_date: refreshedCustomer.membership_start_date,
-          renewal_date: refreshedCustomer.membership_renewal_date
-        };
-        setMembershipPlans([membershipPlan]);
-      } else {
-        setMembershipPlans([]);
+      if (refreshedCustomer) {
+        setCurrentCustomer(refreshedCustomer);
+
+        // Create a membership plan object from the customer data if available
+        if (refreshedCustomer.membership_plan_id) {
+          const membershipPlan: MembershipPlan = {
+            id: refreshedCustomer.membership_plan_id,
+            membership_name:
+              refreshedCustomer.membership_name || "Membership Plan",
+            status: "Active", // Assuming active if it exists
+            start_date: refreshedCustomer.membership_start_date,
+            renewal_date: refreshedCustomer.membership_renewal_date,
+          };
+          setMembershipPlans([membershipPlan]);
+        } else {
+          setMembershipPlans([]);
+        }
       }
     } catch (error) {
       console.error("Error refreshing customer data:", error);
@@ -75,14 +100,17 @@ export default function CustomerInfoPanel({
     }
   };
 
-  const handleDeleteCustomer = async () => {
+  const handleArchiveToggle = async () => {
     try {
-      // Your delete logic here
-      if (onCustomerDeleted) {
-        onCustomerDeleted();
+      if (!user) return;
+      if (currentCustomer.is_archived) {
+        await unarchiveCustomer(currentCustomer.id, user.Jwt);
+      } else {
+        await archiveCustomer(currentCustomer.id, user.Jwt);
       }
+      onCustomerArchived?.(currentCustomer.id);
     } catch (error) {
-      console.error("Error deleting customer:", error);
+      console.error("Error archiving customer:", error);
     }
   };
 
@@ -95,7 +123,9 @@ export default function CustomerInfoPanel({
           onClick={refreshCustomerData}
           disabled={isLoading}
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+          />
           {isLoading ? "Refreshing..." : "Refresh"}
         </Button>
       </div>
@@ -137,10 +167,13 @@ export default function CustomerInfoPanel({
         <TabsContent value="details">
           <DetailsTab
             customer={currentCustomer}
-            onCustomerUpdated={() => {
-              if (onCustomerUpdated) onCustomerUpdated();
-              refreshCustomerData(); // Reload data after update
-              toast({ status: "success", description: "Customer information updated" });
+            onCustomerUpdated={(updated) => {
+              setCurrentCustomer((prev) => ({ ...prev, ...updated }));
+              onCustomerUpdated?.();
+              toast({
+                status: "success",
+                description: "Customer information updated",
+              });
             }}
           />
         </TabsContent>
@@ -150,7 +183,9 @@ export default function CustomerInfoPanel({
             <div className="space-y-4">
               {membershipPlans.map((plan) => (
                 <div key={plan.id} className="border rounded-lg p-4">
-                  <h3 className="text-lg font-medium">{plan.membership_name}</h3>
+                  <h3 className="text-lg font-medium">
+                    {plan.membership_name}
+                  </h3>
                   <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Status:</span>
@@ -159,13 +194,17 @@ export default function CustomerInfoPanel({
                     <div>
                       <span className="text-muted-foreground">Started:</span>
                       <span className="ml-2 font-medium">
-                        {plan.start_date ? new Date(plan.start_date).toLocaleDateString() : "N/A"}
+                        {plan.start_date
+                          ? new Date(plan.start_date).toLocaleDateString()
+                          : "N/A"}
                       </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Renewal:</span>
                       <span className="ml-2 font-medium">
-                        {plan.renewal_date ? new Date(plan.renewal_date).toLocaleDateString() : "N/A"}
+                        {plan.renewal_date
+                          ? new Date(plan.renewal_date).toLocaleDateString()
+                          : "N/A"}
                       </span>
                     </div>
                   </div>
@@ -177,9 +216,12 @@ export default function CustomerInfoPanel({
               <div className="mb-4">
                 <CreditCard className="h-12 w-12 mx-auto text-muted-foreground/40" />
               </div>
-              <h3 className="text-lg font-medium mb-2">No Membership Information</h3>
+              <h3 className="text-lg font-medium mb-2">
+                No Membership Information
+              </h3>
               <p className="text-muted-foreground">
-                This customer doesn't have any membership plans associated with their account.
+                This customer doesn't have any membership plans associated with
+                their account.
               </p>
             </div>
           )}
@@ -234,17 +276,20 @@ export default function CustomerInfoPanel({
       <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
         <div className="max-w-full mx-auto px-2 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            Last updated: {currentCustomer.updated_at ? new Date(currentCustomer.updated_at).toLocaleString() : 'Never'}
+            Last updated:{" "}
+            {currentCustomer.updated_at
+              ? new Date(currentCustomer.updated_at).toLocaleString()
+              : "Never"}
           </p>
 
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              onClick={handleDeleteCustomer}
+              onClick={handleArchiveToggle}
               className="border-destructive text-destructive hover:bg-destructive/10"
             >
               <TrashIcon className="h-4 w-4 mr-2" />
-              Delete
+              {currentCustomer.is_archived ? "Unarchive" : "Archive"}
             </Button>
           </div>
         </div>
