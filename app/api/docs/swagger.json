@@ -49,6 +49,53 @@
         }
       }
     },
+    "/athletes/{athlete_id}/team": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["athletes"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Athlete ID",
+            "name": "athlete_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content: Athlete removed from team"
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Athlete not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/athletes/{athlete_id}/team/{team_id}": {
       "put": {
         "security": [

@@ -774,6 +774,23 @@ export class Api<
      * No description
      *
      * @tags athletes
+     * @name TeamDelete
+     * @request DELETE:/athletes/{athlete_id}/team
+     * @secure
+     */
+    teamDelete: (athleteId: string, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/athletes/${athleteId}/team`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags athletes
      * @name StatsPartialUpdate
      * @request PATCH:/athletes/{id}/stats
      * @secure

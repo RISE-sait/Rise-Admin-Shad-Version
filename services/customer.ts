@@ -90,7 +90,8 @@ export async function getCustomers(
   try {
     const params = new URLSearchParams();
     if (search) params.append("search", search);
-    params.append("page", String(page));
+    const offset = (page - 1) * limit;
+    params.append("offset", String(offset));
     params.append("limit", String(limit));
 
     const url = `${getValue("API")}customers?${params.toString()}`;
@@ -203,7 +204,8 @@ export async function getArchivedCustomers(
   try {
     const params = new URLSearchParams();
     if (search) params.append("search", search);
-    params.append("page", String(page));
+    const offset = (page - 1) * limit;
+    params.append("offset", String(offset));
     params.append("limit", String(limit));
 
     const url = `${getValue("API")}customers/archived?${params.toString()}`;
