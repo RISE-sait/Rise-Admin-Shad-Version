@@ -14,6 +14,7 @@ import TeamTable from "./table/TeamTable";
 import TeamInfoPanel from "./TeamInfoPanel";
 import AddTeamForm from "./AddTeamForm";
 import { Team } from "@/types/team";
+import { getTeamById } from "@/services/teams";
 import { VisibilityState } from "@tanstack/react-table";
 import {
   DropdownMenu,
@@ -38,11 +39,20 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
       )
     : teams;
 
-  // Open the drawer with the selected team details
+  // Open the drawer and load the selected team's full details, including roster
   const handleTeamSelect = (team: Team) => {
-    setSelectedTeam(team);
-    setDrawerContent("details");
-    setDrawerOpen(true);
+    getTeamById(team.id)
+      .then((fullTeam) => {
+        setSelectedTeam(fullTeam);
+      })
+      .catch(() => {
+        // Fallback to the basic team info if the request fails
+        setSelectedTeam(team);
+      })
+      .finally(() => {
+        setDrawerContent("details");
+        setDrawerOpen(true);
+      });
   };
 
   // Render page content including search bar, table and drawer
