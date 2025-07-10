@@ -1,48 +1,50 @@
 import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
 import {
-  EventEventResponseDto,
-  EventEventRequestDto,
-  EventDeleteRequestDto,
-  EventRecurrenceRequestDto,
-} from "@/app/api/Api";
-import { Practice } from "@/types/practice";
-import { getEvents } from "./events";
+  PracticeRequestDto,
+  PracticeRecurrenceRequestDto,
+  Practice,
+} from "@/types/practice";
 
 // API helpers for fetching and mutating practice events
 
 // Retrieve all practice events between very wide date ranges
 export async function getAllPractices(): Promise<Practice[]> {
-  const after = "1970-01-01";
-  const before = "2100-01-01";
-  const events = (await getEvents({
-    after,
-    before,
-    program_type: "practice",
-    response_type: "date",
-  })) as EventEventResponseDto[];
+  const response = await fetch(`${getValue("API")}practices`);
+  const resJson = await response.json();
 
-  return events.map((e) => ({
-    id: e.id!,
-    program_id: e.program?.id,
-    program_name: e.program?.name || "",
-    location_id: e.location?.id,
-    location_name: e.location?.name || "",
-    team_id: e.team?.id,
-    team_name: e.team?.name,
-    start_at: e.start_at!,
-    end_at: e.end_at!,
-    capacity: e.capacity || 0,
+  if (!response.ok) {
+    let errorMessage = `Failed to fetch practices: ${response.statusText}`;
+    if (resJson.error) {
+      errorMessage = resJson.error.message;
+    }
+    throw new Error(errorMessage);
+  }
+
+  return (resJson as any[]).map((p) => ({
+    id: p.id,
+    program_id: undefined,
+    program_name: "",
+    court_id: p.court_id,
+    court_name: p.court_name ?? "",
+    location_id: p.location_id,
+    location_name: p.location_name ?? "",
+    team_id: p.team_id,
+    team_name: p.team_name,
+    start_at: p.start_time,
+    end_at: p.end_time,
+    capacity: 0,
+    status: p.status,
   }));
 }
 
 // Create a single practice instance
 export async function createPractice(
-  practiceData: EventEventRequestDto,
+  practiceData: PracticeRequestDto,
   jwt: string
 ): Promise<string | null> {
   try {
-    const response = await fetch(`${getValue("API")}events/one-time`, {
+    const response = await fetch(`${getValue("API")}practices`, {
       method: "POST",
       ...addAuthHeader(jwt),
       body: JSON.stringify(practiceData),
@@ -66,11 +68,11 @@ export async function createPractice(
 
 // Create a recurring series of practices
 export async function createRecurringPractice(
-  practiceData: EventRecurrenceRequestDto,
+  practiceData: PracticeRecurrenceRequestDto,
   jwt: string
 ): Promise<string | null> {
   try {
-    const response = await fetch(`${getValue("API")}events/recurring`, {
+    const response = await fetch(`${getValue("API")}practices/recurring`, {
       method: "POST",
       ...addAuthHeader(jwt),
       body: JSON.stringify(practiceData),
@@ -95,11 +97,11 @@ export async function createRecurringPractice(
 // Update a previously created practice
 export async function updatePractice(
   id: string,
-  practiceData: EventEventRequestDto,
+  practiceData: PracticeRequestDto,
   jwt: string
 ): Promise<string | null> {
   try {
-    const response = await fetch(`${getValue("API")}events/${id}`, {
+    const response = await fetch(`${getValue("API")}practices/${id}`, {
       method: "PUT",
       ...addAuthHeader(jwt),
       body: JSON.stringify(practiceData),
@@ -127,10 +129,9 @@ export async function deletePractice(
   jwt: string
 ): Promise<string | null> {
   try {
-    const response = await fetch(`${getValue("API")}events`, {
+    const response = await fetch(`${getValue("API")}practices/${id}`, {
       method: "DELETE",
       ...addAuthHeader(jwt),
-      body: JSON.stringify({ ids: [id] } as EventDeleteRequestDto),
     });
 
     if (!response.ok) {

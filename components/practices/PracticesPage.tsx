@@ -40,7 +40,7 @@ export default function PracticesPage({
   // Filter practices client-side based on the search query
   const filteredPractices = searchQuery
     ? practices.filter((p) =>
-        `${p.program_name} ${p.location_name} ${p.team_name || ""}`
+        `${p.location_name} ${p.team_name || ""} ${p.court_name || ""}`
           .toLowerCase()
           .includes(searchQuery.toLowerCase())
       )
