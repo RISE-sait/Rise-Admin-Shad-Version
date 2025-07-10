@@ -10,7 +10,10 @@ import {
 
 // Retrieve all practice events between very wide date ranges
 export async function getAllPractices(): Promise<Practice[]> {
-  const response = await fetch(`${getValue("API")}practices`);
+  const token = localStorage.getItem("jwt");
+  const response = await fetch(`${getValue("API")}practices`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
   const resJson = await response.json();
 
   if (!response.ok) {
@@ -31,6 +34,9 @@ export async function getAllPractices(): Promise<Practice[]> {
     location_name: p.location_name ?? "",
     team_id: p.team_id,
     team_name: p.team_name,
+    booked_by: p.created_by
+      ? `${p.created_by.first_name} ${p.created_by.last_name}`
+      : (p.booked_by ?? ""),
     start_at: p.start_time,
     end_at: p.end_time,
     capacity: 0,

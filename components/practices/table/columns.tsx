@@ -45,6 +45,14 @@ const columns: ColumnDef<Practice>[] = [
     minSize: 180,
     size: 220,
   },
+  {
+    id: "booked_by",
+    accessorKey: "booked_by",
+    header: "Booked By",
+    cell: ({ row }) => row.getValue("booked_by") || "-",
+    minSize: 150,
+    size: 200,
+  },
 ];
 
 export default columns;
