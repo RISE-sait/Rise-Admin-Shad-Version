@@ -10,14 +10,15 @@ import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
 import { updatePractice, deletePractice } from "@/services/practices";
+import { PracticeRequestDto } from "@/types/practice";
 import { getAllLocations } from "@/services/location";
 import { getAllTeams } from "@/services/teams";
-import { getAllPrograms } from "@/services/program";
+import { getAllCourts } from "@/services/court";
 import { revalidatePractices } from "@/actions/serverActions";
 import { Practice } from "@/types/practice";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
-import { Program } from "@/types/program";
+import { Court } from "@/types/court";
 
 export default function PracticeInfoPanel({
   practice,
@@ -27,31 +28,36 @@ export default function PracticeInfoPanel({
   onClose?: () => void;
 }) {
   const { data, updateField } = useFormData({
-    program_id: practice.program_id || "",
     team_id: practice.team_id || "",
     location_id: practice.location_id || "",
+    court_id: practice.court_id || "",
     start_at: new Date(practice.start_at).toISOString().slice(0, 16),
     end_at: new Date(practice.end_at).toISOString().slice(0, 16),
     capacity: practice.capacity,
+    status: practice.status as "scheduled" | "completed" | "canceled",
   });
   const { user } = useUser();
   const { toast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [programs, setPrograms] = useState<Program[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
+
+  const filteredCourts = courts.filter(
+    (c) => c.location_id === data.location_id
+  );
 
   useEffect(() => {
     // Load dropdown options for editing the practice
     const fetchLists = async () => {
       try {
-        const [locs, tms, progs] = await Promise.all([
+        const [locs, tms, crts] = await Promise.all([
           getAllLocations(),
           getAllTeams(),
-          getAllPrograms("practice"),
+          getAllCourts(),
         ]);
         setLocations(locs);
         setTeams(tms);
-        setPrograms(progs);
+        setCourts(crts);
       } catch (err) {
         console.error("Failed to fetch dropdown data", err);
       }
@@ -62,10 +68,10 @@ export default function PracticeInfoPanel({
 
   // Persist any changes made to the practice
   const handleSave = async () => {
-    if (!data.program_id || !data.location_id) {
+    if (!data.team_id || !data.location_id || !data.court_id) {
       toast({
         status: "error",
-        description: "Program and location are required",
+        description: "Team, location and court are required",
         variant: "destructive",
       });
       return;
@@ -80,14 +86,14 @@ export default function PracticeInfoPanel({
       return;
     }
 
-    const practiceData = {
-      program_id: data.program_id,
+    const practiceData: PracticeRequestDto = {
+      court_id: data.court_id,
       location_id: data.location_id,
-      team_id: data.team_id || undefined,
-      start_at: new Date(data.start_at).toISOString(),
-      end_at: new Date(data.end_at).toISOString(),
-      capacity: data.capacity || undefined,
-    } as any;
+      team_id: data.team_id,
+      start_time: new Date(data.start_at).toISOString(),
+      end_time: new Date(data.end_at).toISOString(),
+      status: data.status,
+    };
 
     const error = await updatePractice(practice.id, practiceData, user?.Jwt!);
     if (error === null) {
@@ -129,27 +135,15 @@ export default function PracticeInfoPanel({
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Program</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.program_id}
-            onChange={(e) => updateField("program_id", e.target.value)}
-          >
-            {programs.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
           <label className="text-sm font-medium">Team</label>
           <select
             className="w-full border rounded-md p-2"
             value={data.team_id}
             onChange={(e) => updateField("team_id", e.target.value)}
           >
-            <option value="">None</option>
+            <option value="" disabled>
+              Select team
+            </option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
@@ -162,11 +156,31 @@ export default function PracticeInfoPanel({
           <select
             className="w-full border rounded-md p-2"
             value={data.location_id}
-            onChange={(e) => updateField("location_id", e.target.value)}
+            onChange={(e) => {
+              updateField("location_id", e.target.value);
+              updateField("court_id", "");
+            }}
           >
             {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>
                 {loc.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Court</label>
+          <select
+            className="w-full border rounded-md p-2"
+            value={data.court_id}
+            onChange={(e) => updateField("court_id", e.target.value)}
+          >
+            <option value="" disabled>
+              Select court
+            </option>
+            {filteredCourts.map((court) => (
+              <option key={court.id} value={court.id}>
+                {court.name}
               </option>
             ))}
           </select>
@@ -186,6 +200,23 @@ export default function PracticeInfoPanel({
             onChange={(e) => updateField("end_at", e.target.value)}
             type="datetime-local"
           />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Status</label>
+          <select
+            className="w-full border rounded-md p-2"
+            value={data.status}
+            onChange={(e) =>
+              updateField(
+                "status",
+                e.target.value as "scheduled" | "completed" | "canceled"
+              )
+            }
+          >
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="canceled">Canceled</option>
+          </select>
         </div>
       </div>
       <div className="flex items-center justify-end gap-3">
