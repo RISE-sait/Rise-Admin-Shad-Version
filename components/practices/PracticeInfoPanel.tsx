@@ -133,6 +133,11 @@ export default function PracticeInfoPanel({
 
   return (
     <div className="space-y-6">
+      {practice.booked_by && (
+        <p className="text-sm text-muted-foreground">
+          Booked By: {practice.booked_by}
+        </p>
+      )}
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Team</label>

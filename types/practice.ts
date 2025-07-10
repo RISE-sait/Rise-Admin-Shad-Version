@@ -8,6 +8,7 @@ export interface Practice {
   location_name: string;
   team_id?: string;
   team_name?: string;
+  booked_by?: string;
   start_at: string;
   end_at: string;
   capacity: number;
