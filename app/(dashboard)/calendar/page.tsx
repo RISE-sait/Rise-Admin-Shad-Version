@@ -3,13 +3,14 @@
 import CalendarPage from "@/components/calendar/CalendarPage";
 import { getEvents } from "@/services/events";
 import { getAllGames } from "@/services/games";
+import { getAllPractices } from "@/services/practices";
 import { CalendarEvent } from "@/types/calendar";
 import { Game } from "@/types/games";
+import { Practice } from "@/types/practice";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
 import { EventEventResponseDto } from "@/app/api/Api";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
 function mapToCalendarEvents(events: EventEventResponseDto[]): CalendarEvent[] {
   return (
     events.map((event) => ({
@@ -87,6 +88,31 @@ function mapGamesToCalendarEvents(games: Game[]): CalendarEvent[] {
   }));
 }
 
+function mapPracticesToCalendarEvents(practices: Practice[]): CalendarEvent[] {
+  return practices.map((p) => ({
+    id: p.id,
+    color: getEventColor("practice"),
+    start_at: new Date(p.start_at),
+    end_at: new Date(p.end_at),
+    capacity: p.capacity,
+    createdBy: { firstName: "", id: "", lastName: "" },
+    customers: [],
+    location: {
+      address: "",
+      id: p.location_id ?? "",
+      name: p.location_name ?? "",
+    },
+    program: {
+      id: p.program_id ?? p.id,
+      name: p.program_name || "Practice",
+      type: "practice",
+    },
+    staff: [],
+    team: { id: p.team_id ?? "", name: p.team_name ?? "" },
+    updatedBy: { firstName: "", id: "", lastName: "" },
+  }));
+}
+
 function getEventColor(programType?: string): string {
   switch (programType) {
     case "practice":
@@ -126,7 +152,7 @@ export default function Calendar() {
           after = afterDate.toISOString().split("T")[0];
         }
 
-        const [eventData, gamesData] = await Promise.all([
+        const [eventData, gamesData, practicesData] = await Promise.all([
           getEvents({
             after: after,
             before: before,
@@ -137,9 +163,25 @@ export default function Calendar() {
             response_type: "date",
           }),
           getAllGames(),
+          getAllPractices(),
         ]);
 
         let calendarEvents = mapToCalendarEvents(eventData);
+
+        if (!programType || programType === "practice") {
+          const filteredPractices = practicesData.filter((p: Practice) => {
+            const practiceDate = new Date(p.start_at);
+            return (
+              practiceDate >= new Date(after) &&
+              practiceDate <= new Date(before) &&
+              (!locationId || p.location_id === locationId)
+            );
+          });
+          calendarEvents = [
+            ...calendarEvents,
+            ...mapPracticesToCalendarEvents(filteredPractices),
+          ];
+        }
 
         if (!programType || programType === "game") {
           const filteredGames = gamesData.filter((g: Game) => {
