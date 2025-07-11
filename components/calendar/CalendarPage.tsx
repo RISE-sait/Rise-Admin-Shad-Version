@@ -9,7 +9,9 @@ import Calendar from "./calendar";
 import RightDrawer from "../reusable/RightDrawer";
 import { getEventsByMonth } from "@/services/events";
 import { getAllGames } from "@/services/games";
+import { getAllPractices } from "@/services/practices";
 import { Game } from "@/types/games";
+import { Practice } from "@/types/practice";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
 
 interface CalendarPageProps {
@@ -32,9 +34,10 @@ export default function CalendarPage({ events }: CalendarPageProps) {
       const month = format(date, "yyyy-MM");
 
       try {
-        const [events, games] = await Promise.all([
+        const [events, games, practices] = await Promise.all([
           getEventsByMonth(month),
           getAllGames(),
+          getAllPractices(),
         ]);
         const mappedEvents: CalendarEvent[] = events.map((event: any) => ({
           ...event,
@@ -68,7 +71,40 @@ export default function CalendarPage({ events }: CalendarPageProps) {
           updatedBy: { firstName: "", id: "", lastName: "" },
         }));
 
-        setCalendarEvents([...mappedEvents, ...mappedGames]);
+        const monthPractices: Practice[] = practices.filter(
+          (p: Practice) => format(new Date(p.start_at), "yyyy-MM") === month
+        );
+
+        const mappedPractices: CalendarEvent[] = monthPractices.map(
+          (p: Practice) => ({
+            id: p.id,
+            start_at: new Date(p.start_at),
+            end_at: new Date(p.end_at),
+            capacity: p.capacity,
+            color: getColorFromProgramType("practice"),
+            createdBy: { firstName: "", id: "", lastName: "" },
+            customers: [],
+            location: {
+              address: "",
+              id: p.location_id ?? "",
+              name: p.location_name ?? "",
+            },
+            program: {
+              id: p.program_id ?? p.id,
+              name: p.program_name || "Practice",
+              type: "practice",
+            },
+            staff: [],
+            team: { id: p.team_id ?? "", name: p.team_name ?? "" },
+            updatedBy: { firstName: "", id: "", lastName: "" },
+          })
+        );
+
+        setCalendarEvents([
+          ...mappedEvents,
+          ...mappedGames,
+          ...mappedPractices,
+        ]);
       } catch (error) {
         console.error("Error fetching events:", error);
         setCalendarEvents([]);
