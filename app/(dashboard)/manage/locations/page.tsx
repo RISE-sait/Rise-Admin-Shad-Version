@@ -4,8 +4,7 @@ import { getAllLocations } from "@/services/location";
 import { StaffRoleEnum } from "@/types/user";
 
 export default async function Page() {
-
-  const locations = await getAllLocations()
+  const locations = await getAllLocations();
 
   return (
     <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
