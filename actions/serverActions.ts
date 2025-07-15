@@ -37,3 +37,7 @@ export async function revalidateGames() {
 export async function revalidatePractices() {
   revalidatePath("/manage/practices");
 }
+
+export async function revalidateCourts() {
+  revalidatePath("/manage/courts");
+}

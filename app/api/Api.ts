@@ -348,6 +348,18 @@ export interface LocationResponseDto {
   name?: string;
 }
 
+export interface CourtRequestDto {
+  name: string;
+  location_id: string;
+}
+
+export interface CourtResponseDto {
+  id?: string;
+  name?: string;
+  location_id?: string;
+  location_name?: string;
+}
+
 export interface MembershipRequestDto {
   /** @example "Access to all premium features" */
   description?: string;
@@ -1573,6 +1585,77 @@ export class Api<
         ...params,
       }),
   };
+
+  courts = {
+    /**
+     * No description
+     *
+     * @tags courts
+     * @name CourtsList
+     * @request GET:/courts
+     */
+    courtsList: (params: RequestParams = {}) =>
+      this.request<CourtResponseDto[], Record<string, any>>({
+        path: `/courts`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags courts
+     * @name CourtsCreate
+     * @request POST:/courts
+     */
+    courtsCreate: (court: CourtRequestDto, params: RequestParams = {}) =>
+      this.request<CourtResponseDto, Record<string, any>>({
+        path: `/courts`,
+        method: "POST",
+        body: court,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags courts
+     * @name CourtsUpdate
+     * @request PUT:/courts/{id}
+     */
+    courtsUpdate: (
+      id: string,
+      court: CourtRequestDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, Record<string, any>>({
+        path: `/courts/${id}`,
+        method: "PUT",
+        body: court,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags courts
+     * @name CourtsDelete
+     * @request DELETE:/courts/{id}
+     */
+    courtsDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, Record<string, any>>({
+        path: `/courts/${id}`,
+        method: "DELETE",
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+
   memberships = {
     /**
      * No description

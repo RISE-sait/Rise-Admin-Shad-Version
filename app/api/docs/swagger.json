@@ -496,6 +496,225 @@
         }
       }
     },
+    "/courts": {
+      "get": {
+        "description": "Retrieves all courts",
+        "produces": ["application/json"],
+        "tags": ["courts"],
+        "summary": "List courts",
+        "responses": {
+          "200": {
+            "description": "List of courts retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/court.ResponseDto"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Creates a new court for a location",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["courts"],
+        "summary": "Create a court",
+        "parameters": [
+          {
+            "description": "Court details",
+            "name": "court",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/court.RequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Court created successfully",
+            "schema": {
+              "$ref": "#/definitions/court.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/courts/{id}": {
+      "get": {
+        "description": "Retrieves a single court using its UUID",
+        "produces": ["application/json"],
+        "tags": ["courts"],
+        "summary": "Get a court by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Court ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Court retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/court.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Court not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates a court's details",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["courts"],
+        "summary": "Update a court",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Court ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated court details",
+            "name": "court",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/court.RequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Court updated successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Court not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Deletes a court by its ID",
+        "produces": ["application/json"],
+        "tags": ["courts"],
+        "summary": "Delete a court",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Court ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Court deleted successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Court not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/customers": {
       "get": {
         "description": "Retrieves a list of customers, optionally filtered by fields like parent ID, name, email, phone, and ID, with pagination support.",
@@ -4385,6 +4604,32 @@
         },
         "wins": {
           "type": "integer"
+        }
+      }
+    },
+    "court.RequestDto": {
+      "type": "object",
+      "required": ["location_id", "name"],
+      "properties": {
+        "location_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "court.ResponseDto": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "location_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
