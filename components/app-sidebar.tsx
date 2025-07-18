@@ -71,8 +71,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 icon: <List width={15} height={15} />,
               },
               {
-                title: "Locations",
-                url: "/manage/locations",
+                title: "Facilities",
+                url: "/manage/facilities",
                 icon: <MapPin width={15} height={15} />,
               },
               {
