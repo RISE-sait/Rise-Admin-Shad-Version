@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 export async function revalidateLocations() {
   revalidatePath("/manage/locations");
+  revalidatePath("/manage/facilities");
 }
 
 export async function revalidatePrograms() {
@@ -40,4 +41,5 @@ export async function revalidatePractices() {
 
 export async function revalidateCourts() {
   revalidatePath("/manage/courts");
+  revalidatePath("/manage/facilities");
 }
