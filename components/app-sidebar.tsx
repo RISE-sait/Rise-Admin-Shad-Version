@@ -101,22 +101,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 icon: <Dribbble width={15} height={15} />,
               },
               {
-                title: "Playground",
-                url: "/manage/playground",
+                title: "Amenities",
+                url: "/manage/amenities",
                 icon: <Gamepad2 width={15} height={15} />,
-              },
-            ]
-          : []),
-
-        // Barbers and SuperAdmin can see Barbershop
-        ...(role == StaffRoleEnum.BARBER ||
-        role == StaffRoleEnum.SUPERADMIN ||
-        role == StaffRoleEnum.ADMIN
-          ? [
-              {
-                title: "Barbershop",
-                url: "/manage/barbershop",
-                icon: <Scissors width={15} height={15} />,
               },
             ]
           : []),
