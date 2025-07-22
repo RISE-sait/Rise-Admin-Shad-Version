@@ -1,11 +1,22 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
-import { TodoList } from "@/components/todo-list"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { TodoList } from "@/components/todo-list";
+import { useEffect, useState } from "react";
+import { format, isSameDay } from "date-fns";
+import { getEvents } from "@/services/events";
+import { getAllGames } from "@/services/games";
+import { getAllPractices } from "@/services/practices";
 import {
   Users,
   Calendar,
@@ -17,7 +28,7 @@ import {
   UserPlus,
   BarChart3,
   LogIn,
-} from "lucide-react"
+} from "lucide-react";
 
 // Mock data for demonstration
 const stats = {
@@ -27,48 +38,129 @@ const stats = {
   activeMembers: 234,
   courtUtilization: 78,
   weeklyGrowth: 12,
+};
+
+interface ScheduleItem {
+  id: string;
+  title: string;
+  start_at: Date;
+  end_at: Date;
+  location: string;
+  court?: string;
+  type: string;
 }
 
-const upcomingEvents = [
+const recentActivity = [
   {
     id: 1,
-    title: "Youth Basketball League",
-    time: "6:00 PM - 8:00 PM",
-    court: "Court A",
-    participants: 16,
-    type: "League",
+    action: "New member registration",
+    user: "Sarah Johnson",
+    time: "2 minutes ago",
   },
   {
     id: 2,
-    title: "Adult Training Session",
-    time: "7:30 PM - 9:00 PM",
-    court: "Court B",
-    participants: 12,
-    type: "Training",
+    action: "Court A booking confirmed",
+    user: "Lakers Team",
+    time: "15 minutes ago",
   },
   {
     id: 3,
-    title: "Private Coaching",
-    time: "4:00 PM - 5:00 PM",
-    court: "Court C",
-    participants: 2,
-    type: "Private",
+    action: "Equipment maintenance completed",
+    user: "System",
+    time: "1 hour ago",
   },
-]
-
-const recentActivity = [
-  { id: 1, action: "New member registration", user: "Sarah Johnson", time: "2 minutes ago" },
-  { id: 2, action: "Court A booking confirmed", user: "Lakers Team", time: "15 minutes ago" },
-  { id: 3, action: "Equipment maintenance completed", user: "System", time: "1 hour ago" },
-  { id: 4, action: "Monthly membership renewed", user: "Mike Chen", time: "2 hours ago" },
-]
+  {
+    id: 4,
+    action: "Monthly membership renewed",
+    user: "Mike Chen",
+    time: "2 hours ago",
+  },
+];
 
 export default function DashboardPage() {
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+
+  useEffect(() => {
+    const loadSchedule = async () => {
+      const today = new Date();
+      const dateString = format(today, "yyyy-MM-dd");
+      try {
+        const [eventsData, gamesData, practicesData] = await Promise.all([
+          getEvents({
+            after: dateString,
+            before: dateString,
+            location_id: "e2d1cd76-592f-4c06-89ee-9027cfbbe9de",
+            response_type: "date",
+          }),
+          getAllGames(),
+          getAllPractices(),
+        ]);
+
+        const events = (eventsData as any[])
+          .filter(
+            (e) => e.location?.id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de"
+          )
+          .map((e) => ({
+            id: e.id as string,
+            title: e.program?.name ?? "Event",
+            start_at: new Date(e.start_at as string),
+            end_at: new Date(e.end_at as string),
+            location: e.location?.name ?? "",
+            court: e.location?.name ?? "",
+            type: e.program?.type ?? "event",
+          }));
+
+        const games = gamesData
+          .filter(
+            (g) =>
+              g.location_id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
+              isSameDay(new Date(g.start_time), today)
+          )
+          .map((g) => ({
+            id: g.id,
+            title: `${g.home_team_name} vs ${g.away_team_name}`,
+            start_at: new Date(g.start_time),
+            end_at: new Date(g.end_time),
+            location: g.location_name,
+            court: g.location_name,
+            type: "game",
+          }));
+
+        const practices = practicesData
+          .filter(
+            (p) =>
+              p.location_id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
+              isSameDay(new Date(p.start_at), today)
+          )
+          .map((p) => ({
+            id: p.id,
+            title: p.program_name || "Practice",
+            start_at: new Date(p.start_at),
+            end_at: new Date(p.end_at),
+            location: p.location_name,
+            court: p.court_name,
+            type: "practice",
+          }));
+
+        const all = [...events, ...games, ...practices];
+        all.sort((a, b) => a.start_at.getTime() - b.start_at.getTime());
+        setSchedule(all);
+      } catch (err) {
+        console.error("Error loading schedule", err);
+        setSchedule([]);
+      }
+    };
+
+    loadSchedule();
+  }, []);
+
   return (
     <div className="flex-1 space-y-6 p-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Welcome back! Here's what's happening at your facility today.</p>
+        <p className="text-muted-foreground">
+          Welcome back! Here's what's happening at your facility today.
+        </p>
       </div>
 
       <Separator />
@@ -77,24 +169,31 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Check-ins</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Today's Check-ins
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.todayCheckIns}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+{stats.weeklyGrowth}%</span> from last week
+              <span className="text-green-600">+{stats.weeklyGrowth}%</span>{" "}
+              from last week
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Monthly Revenue
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              ${stats.monthlyRevenue.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600">+8.2%</span> from last month
             </p>
@@ -103,7 +202,9 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Members
+            </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -116,7 +217,9 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Court Utilization</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Court Utilization
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -138,32 +241,46 @@ export default function DashboardPage() {
             <CardDescription>Upcoming events and bookings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {upcomingEvents.map((event) => (
-              <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+            {schedule.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No events scheduled for today.
+              </p>
+            )}
+            {schedule.map((event) => (
+              <div
+                key={event.id}
+                className="flex items-center justify-between p-3 border rounded-lg"
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{event.title}</h4>
                     <Badge
                       variant={
-                        event.type === "League" ? "default" : event.type === "Training" ? "secondary" : "outline"
+                        event.type === "game"
+                          ? "default"
+                          : event.type === "practice"
+                            ? "secondary"
+                            : "outline"
                       }
                     >
                       {event.type}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {event.time}
+                      {`${format(event.start_at, "p")} - ${format(event.end_at, "p")}`}
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      {event.court}
+                      {event.location}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {event.participants} participants
-                    </span>
+                    {event.court && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {event.court}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -187,8 +304,12 @@ export default function DashboardPage() {
                 <div className="space-y-1 flex-1">
                   <p className="text-sm font-medium">{activity.action}</p>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">{activity.user}</p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.user}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.time}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -211,19 +332,35 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              size="sm"
+            >
               <LogIn className="h-4 w-4 mr-2" />
               Check someone in
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              size="sm"
+            >
               <Calendar className="h-4 w-4 mr-2" />
               Book a court
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              size="sm"
+            >
               <UserPlus className="h-4 w-4 mr-2" />
               Add new member
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              size="sm"
+            >
               <BarChart3 className="h-4 w-4 mr-2" />
               View reports
             </Button>
@@ -255,5 +392,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
