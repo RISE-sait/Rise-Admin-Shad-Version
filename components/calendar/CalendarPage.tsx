@@ -164,12 +164,18 @@ export default function CalendarPage({ events }: CalendarPageProps) {
 
 function getColorFromProgramType(programType?: string): string {
   switch (programType) {
+    case "course":
+      return colorOptions[2].value;
+    case "tournament":
+      return colorOptions[0].value;
+    case "tryouts":
+      return colorOptions[1].value;
+    case "event":
+      return colorOptions[3].value;
     case "game":
       return colorOptions[0].value;
     case "practice":
       return colorOptions[1].value;
-    case "course":
-      return colorOptions[2].value;
     default:
       return "gray";
   }

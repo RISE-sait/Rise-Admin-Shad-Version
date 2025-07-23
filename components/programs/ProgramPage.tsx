@@ -9,10 +9,22 @@ import ProgramInfoPanel from "./ProgramInfoPanel";
 import AddProgramForm from "./AddProgramForm";
 import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, GraduationCap, Gamepad2 } from "lucide-react";
+import {
+  BookOpen,
+  GraduationCap,
+  Gamepad2,
+  Trophy,
+  CalendarDays,
+} from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
 
-type ProgramType = "practice" | "course" | "game" | "all";
+type ProgramType =
+  | "course"
+  | "tournament"
+  | "tryouts"
+  | "event"
+  | "other"
+  | "all";
 
 interface ProgramPageProps {
   programs: Program[];
@@ -59,14 +71,15 @@ export default function ProgramPage({
   );
 
   // Counts for each program type
-  const practiceCount = initialPrograms.filter(
-    (p) => p.type === "practice"
-  ).length;
   const courseCount = initialPrograms.filter((p) => p.type === "course").length;
-  const gameCount = initialPrograms.filter((p) => p.type === "game").length;
-  const otherCount = initialPrograms.filter(
-    (p) => !["practice", "course", "game"].includes(p.type || "")
+  const tournamentCount = initialPrograms.filter(
+    (p) => p.type === "tournament"
   ).length;
+  const tryoutsCount = initialPrograms.filter(
+    (p) => p.type === "tryouts"
+  ).length;
+  const eventCount = initialPrograms.filter((p) => p.type === "event").length;
+  const otherCount = initialPrograms.filter((p) => p.type === "other").length;
 
   return (
     <div className="w-full">
@@ -102,15 +115,6 @@ export default function ProgramPage({
 
         <ProgramTypeCard
           currfilter={activeFilter}
-          targetFilter="practice"
-          setFilter={() => setActiveFilter("practice")}
-          programCount={practiceCount}
-          title="Practices"
-          icon={<GraduationCap className="h-3.5 w-3.5 text-blue-500" />}
-        />
-
-        <ProgramTypeCard
-          currfilter={activeFilter}
           targetFilter="course"
           setFilter={() => setActiveFilter("course")}
           programCount={courseCount}
@@ -120,11 +124,38 @@ export default function ProgramPage({
 
         <ProgramTypeCard
           currfilter={activeFilter}
-          targetFilter="game"
-          setFilter={() => setActiveFilter("game")}
-          programCount={gameCount}
-          title="Games"
-          icon={<Gamepad2 className="h-3.5 w-3.5 text-amber-500" />}
+          targetFilter="tournament"
+          setFilter={() => setActiveFilter("tournament")}
+          programCount={tournamentCount}
+          title="Tournaments"
+          icon={<Trophy className="h-3.5 w-3.5 text-blue-500" />}
+        />
+
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="tryouts"
+          setFilter={() => setActiveFilter("tryouts")}
+          programCount={tryoutsCount}
+          title="Tryouts"
+          icon={<GraduationCap className="h-3.5 w-3.5 text-amber-500" />}
+        />
+
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="event"
+          setFilter={() => setActiveFilter("event")}
+          programCount={eventCount}
+          title="Events"
+          icon={<CalendarDays className="h-3.5 w-3.5 text-indigo-500" />}
+        />
+
+        <ProgramTypeCard
+          currfilter={activeFilter}
+          targetFilter="other"
+          setFilter={() => setActiveFilter("other")}
+          programCount={otherCount}
+          title="Other"
+          icon={<Gamepad2 className="h-3.5 w-3.5 text-purple-500" />}
         />
       </div>
 
