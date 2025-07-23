@@ -12,6 +12,51 @@
   "host": "",
   "basePath": "",
   "paths": {
+    "/ai/chat": {
+      "post": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["ai"],
+        "summary": "Proxy chat message to AI model",
+        "parameters": [
+          {
+            "description": "Chat message",
+            "name": "payload",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.ChatRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/dto.ChatResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/athletes": {
       "get": {
         "description": "Retrieves a paginated list of athletes with profile details and stats.",
@@ -271,6 +316,39 @@
           },
           "400": {
             "description": "Bad Request: Invalid Firebase token",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/bookings/upcoming": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "produces": ["application/json"],
+        "tags": ["bookings"],
+        "responses": {
+          "200": {
+            "description": "Upcoming bookings",
+            "schema": {
+              "$ref": "#/definitions/booking.UpcomingBookingsResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -1103,7 +1181,16 @@
             "in": "query"
           },
           {
-            "enum": ["game", "practice", "course", "others"],
+            "enum": [
+              "practice",
+              "course",
+              "game",
+              "other",
+              "others",
+              "tournament",
+              "event",
+              "tryouts"
+            ],
             "type": "string",
             "example": "practice",
             "description": "Filter by program type",
@@ -3338,7 +3425,7 @@
         "parameters": [
           {
             "type": "string",
-            "description": "Program Type (game, practice, course, others)",
+            "description": "Program Type (practice, course, game, other, others, tournament, event, tryouts)",
             "name": "type",
             "in": "query"
           }
@@ -4508,6 +4595,41 @@
     }
   },
   "definitions": {
+    "api_internal_domains_playground_dto_session.ResponseDto": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "customer_first_name": {
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "customer_last_name": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
     "api_internal_domains_playground_dto_system.RequestDto": {
       "type": "object",
       "required": ["name"],
@@ -4604,6 +4726,23 @@
         },
         "wins": {
           "type": "integer"
+        }
+      }
+    },
+    "booking.UpcomingBookingsResponse": {
+      "type": "object",
+      "properties": {
+        "haircuts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/haircut_event.EventResponseDto"
+          }
+        },
+        "playground": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/api_internal_domains_playground_dto_session.ResponseDto"
+          }
         }
       }
     },
@@ -4849,6 +4988,34 @@
           "type": "boolean"
         },
         "waiver_url": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.ChatRequest": {
+      "type": "object",
+      "properties": {
+        "chat_history": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "context": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.ChatResponse": {
+      "type": "object",
+      "properties": {
+        "reply": {
           "type": "string"
         }
       }
