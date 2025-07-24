@@ -35,6 +35,10 @@ export async function revalidateGames() {
   revalidatePath("/manage/games");
 }
 
+export async function revalidateEvents() {
+  revalidatePath("/calendar");
+}
+
 export async function revalidatePractices() {
   revalidatePath("/manage/practices");
 }
