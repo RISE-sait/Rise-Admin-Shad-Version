@@ -279,6 +279,33 @@ export async function deleteEventsByRecurrenceID(id: string, jwt: string) {
   }
 }
 
+export async function deleteEvent(
+  id: string,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}events`, {
+      method: "DELETE",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify({ ids: [id] }),
+    });
+
+    if (!response.ok) {
+      const resJson = await response.json();
+      let errorMessage = `Failed to delete event: ${response.statusText}`;
+      if (resJson.error) {
+        errorMessage = resJson.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
 export async function getSchedulesOfProgram(
   programID: string
 ): Promise<EventSchedule[]> {
