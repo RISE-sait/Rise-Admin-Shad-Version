@@ -131,6 +131,8 @@ export interface EventEventRequestDto {
   start_at: string;
   /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
   team_id?: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  court_id?: string;
 }
 
 export interface EventEventResponseDto {
@@ -196,6 +198,8 @@ export interface EventRecurrenceRequestDto {
   recurrence_start_at: string;
   /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
   team_id?: string;
+  /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
+  court_id?: string;
 }
 
 export interface EventRecurrenceResponseDto {

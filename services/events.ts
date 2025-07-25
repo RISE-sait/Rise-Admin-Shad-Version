@@ -1,12 +1,16 @@
 import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
 import {
-  EventEventRequestDto,
   EventEventResponseDto,
   EventRecurrenceResponseDto,
-  EventRecurrenceRequestDto,
 } from "@/app/api/Api";
-import { Event, EventParticipant, EventSchedule } from "@/types/events";
+import {
+  Event,
+  EventParticipant,
+  EventSchedule,
+  EventCreateRequest,
+  EventRecurrenceCreateRequest,
+} from "@/types/events";
 
 export async function getEventsByMonth(
   month: string
@@ -100,18 +104,56 @@ export async function getEvents(query: {
 }
 
 /**
+ * Create a one-time event
+ */
+export async function createEvent(
+  eventData: EventCreateRequest,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const { court_id, ...rest } = eventData;
+    const requestData: Record<string, unknown> = {
+      ...rest,
+      court_id: court_id || null,
+    };
+
+    const response = await fetch(`${getValue("API")}events/one-time`, {
+      method: "POST",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      const responseJSON = await response.json();
+      let errorMessage = `Failed to create event: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error creating event:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
+/**
  * Create new events
  */
 export async function createEvents(
-  eventsData: EventRecurrenceRequestDto,
+  eventsData: EventRecurrenceCreateRequest,
   jwt: string
 ) {
   try {
-    const requestData = {
-      ...eventsData,
+    const { court_id, ...rest } = eventsData;
+    const requestData: Record<string, unknown> = {
+      ...rest,
       ...(typeof eventsData.capacity !== "undefined" && {
         capacity: Number(eventsData.capacity),
       }),
+      court_id: court_id || null,
     };
 
     const response = await fetch(`${getValue("API")}events/recurring`, {
@@ -141,14 +183,20 @@ export async function createEvents(
  */
 export async function updateEvent(
   eventID: string,
-  eventData: EventEventRequestDto,
+  eventData: EventCreateRequest,
   jwt: string
 ): Promise<string | null> {
   try {
+    const { court_id, ...rest } = eventData;
+    const requestData: Record<string, unknown> = {
+      ...rest,
+      court_id: court_id || null,
+    };
+
     const response = await fetch(`${getValue("API")}events/${eventID}`, {
       method: "PUT",
       ...addAuthHeader(jwt),
-      body: JSON.stringify(eventData),
+      body: JSON.stringify(requestData),
     });
 
     if (!response.ok) {
@@ -171,21 +219,25 @@ export async function updateEvent(
  * Update existing events
  */
 export async function updateRecurrence(
-  eventData: EventRecurrenceRequestDto,
+  eventData: EventRecurrenceCreateRequest,
   recurringId: string,
   jwt: string
 ): Promise<string | null> {
   try {
     // convert capacity to number if it exists in the request data
+    const { court_id, ...rest } = eventData;
+    const requestData: Record<string, unknown> = {
+      ...rest,
+      capacity: Number(eventData.capacity),
+      court_id: court_id || null,
+    };
+
     const response = await fetch(
       `${getValue("API")}events/recurring/${recurringId}`,
       {
         method: "PUT",
         ...addAuthHeader(jwt),
-        body: JSON.stringify({
-          ...eventData,
-          capacity: Number(eventData.capacity),
-        }),
+        body: JSON.stringify(requestData),
       }
     );
 

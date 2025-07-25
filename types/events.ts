@@ -30,13 +30,13 @@ export interface Person {
   id: string;
   first_name: string;
   last_name: string;
-  email?: string
-  phone?: string
-  gender?: string
+  email?: string;
+  phone?: string;
+  gender?: string;
 }
 
 export interface EventSchedule {
-  id: string
+  id: string;
   day: string;
   location: EventLocation;
   program?: EventProgram;
@@ -62,4 +62,27 @@ export interface EventProgram {
 export interface EventTeam {
   id: string;
   name: string;
+}
+
+export interface EventCreateRequest {
+  program_id?: string;
+  team_id?: string;
+  location_id?: string;
+  court_id?: string | null;
+  start_at: string;
+  end_at: string;
+  capacity?: number;
+}
+
+export interface EventRecurrenceCreateRequest {
+  program_id?: string;
+  team_id?: string;
+  location_id?: string;
+  court_id?: string | null;
+  recurrence_start_at: string;
+  recurrence_end_at: string;
+  event_start_at: string;
+  event_end_at: string;
+  day?: string;
+  capacity?: number;
 }
