@@ -124,13 +124,17 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         return `${h}:${m}:00+00:00`;
       };
 
+      const startDate = new Date(data.recurrence_start_at);
+      const endDate = new Date(data.recurrence_end_at);
+      endDate.setHours(23, 59, 59, 999);
+
       const eventData: EventRecurrenceCreateRequest = {
         program_id: data.program_id,
         team_id: data.team_id || undefined,
         location_id: data.location_id,
         court_id: data.court_id ? data.court_id : null,
-        recurrence_start_at: new Date(data.recurrence_start_at).toISOString(),
-        recurrence_end_at: new Date(data.recurrence_end_at).toISOString(),
+        recurrence_start_at: startDate.toISOString(),
+        recurrence_end_at: endDate.toISOString(),
         event_start_at: formatTime(data.event_start_at),
         event_end_at: formatTime(data.event_end_at),
         day: data.day,
@@ -218,7 +222,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             value={data.court_id}
             onChange={(e) => updateField("court_id", e.target.value)}
           >
-            <option value="">No court</option>
+            <option value="">Select Court</option>
             {filteredCourts.map((court) => (
               <option key={court.id} value={court.id}>
                 {court.name}
@@ -262,7 +266,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                 onChange={(e) =>
                   updateField("recurrence_start_at", e.target.value)
                 }
-                type="datetime-local"
+                type="date"
               />
             </div>
             <div className="space-y-2">
@@ -272,7 +276,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                 onChange={(e) =>
                   updateField("recurrence_end_at", e.target.value)
                 }
-                type="datetime-local"
+                type="date"
               />
             </div>
             <div className="space-y-2">
