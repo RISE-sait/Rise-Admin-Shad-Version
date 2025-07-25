@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,10 @@ import { Separator } from "@/components/ui/separator";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
 import EditEventForm from "../event/EditEventForm";
+import { deleteEvent } from "@/services/events";
+import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
+import { revalidateEvents } from "@/actions/serverActions";
 
 export default function CalendarManageEventDrawer() {
   const {
@@ -29,13 +33,34 @@ export default function CalendarManageEventDrawer() {
     events,
     setEvents,
   } = useCalendarContext();
+  const { user } = useUser();
+  const { toast } = useToast();
 
   const [showEditForm, setShowEditForm] = useState(false);
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!selectedEvent) return;
-    setEvents(events.filter((event) => event.id !== selectedEvent.id));
-    handleClose();
+    try {
+      const error = await deleteEvent(selectedEvent.id, user?.Jwt!);
+      if (error === null) {
+        toast({ status: "success", description: "Event deleted successfully" });
+        setEvents(events.filter((event) => event.id !== selectedEvent.id));
+        await revalidateEvents();
+        handleClose();
+      } else {
+        toast({
+          status: "error",
+          description: `Failed to delete event: ${error}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        status: "error",
+        description: "Failed to delete event",
+        variant: "destructive",
+      });
+    }
   }
 
   function handleClose() {
