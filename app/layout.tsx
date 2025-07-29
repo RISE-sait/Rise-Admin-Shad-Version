@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner"; // Import Toaster
 import { UserProvider } from "@/contexts/UserContext";
+import TokenRefresher from "@/components/TokenRefresher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UserProvider>
+          <TokenRefresher />
           <ThemeProvider>
             <>
               {children}
