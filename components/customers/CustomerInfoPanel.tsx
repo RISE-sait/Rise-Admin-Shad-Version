@@ -31,7 +31,7 @@ interface MembershipPlan {
 
 interface CustomerInfoPanelProps {
   customer: Customer;
-  onCustomerUpdated?: () => void;
+  onCustomerUpdated?: (updated: Partial<Customer>) => void;
   onCustomerArchived?: (id: string) => Promise<void> | void;
 }
 
@@ -105,12 +105,27 @@ export default function CustomerInfoPanel({
       if (!user) return;
       if (currentCustomer.is_archived) {
         await unarchiveCustomer(currentCustomer.id, user.Jwt);
+        setCurrentCustomer((prev) => ({ ...prev, is_archived: false }));
+        toast({
+          status: "success",
+          description: "Customer successfully unarchived",
+        });
       } else {
         await archiveCustomer(currentCustomer.id, user.Jwt);
+        setCurrentCustomer((prev) => ({ ...prev, is_archived: true }));
+        toast({
+          status: "success",
+          description: "Customer successfully archived",
+        });
       }
       onCustomerArchived?.(currentCustomer.id);
     } catch (error) {
       console.error("Error archiving customer:", error);
+      toast({
+        status: "error",
+        description: "Error archiving customer",
+        variant: "destructive",
+      });
     }
   };
 
@@ -169,7 +184,7 @@ export default function CustomerInfoPanel({
             customer={currentCustomer}
             onCustomerUpdated={(updated) => {
               setCurrentCustomer((prev) => ({ ...prev, ...updated }));
-              onCustomerUpdated?.();
+              onCustomerUpdated?.(updated);
               toast({
                 status: "success",
                 description: "Customer information updated",
