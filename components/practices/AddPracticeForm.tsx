@@ -23,7 +23,13 @@ import { Team } from "@/types/team";
 import { Court } from "@/types/court";
 import { revalidatePractices } from "@/actions/serverActions";
 
-export default function AddPracticeForm({ onClose }: { onClose?: () => void }) {
+export default function AddPracticeForm({
+  onClose,
+  onAdded,
+}: {
+  onClose?: () => void;
+  onAdded?: () => void;
+}) {
   const { data, updateField, resetData } = useFormData({
     team_id: "",
     location_id: "",
@@ -145,6 +151,7 @@ export default function AddPracticeForm({ onClose }: { onClose?: () => void }) {
       });
       resetData();
       await revalidatePractices();
+      if (onAdded) onAdded();
       if (onClose) onClose();
     } else {
       toast({

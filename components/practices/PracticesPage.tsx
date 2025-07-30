@@ -24,8 +24,10 @@ import {
 
 export default function PracticesPage({
   practices,
+  onRefresh,
 }: {
   practices: Practice[];
+  onRefresh: () => void;
 }) {
   const [selectedPractice, setSelectedPractice] = useState<Practice | null>(
     null
@@ -129,11 +131,16 @@ export default function PracticesPage({
           {drawerContent === "details" && selectedPractice && (
             <PracticeInfoPanel
               practice={selectedPractice}
+              onUpdated={onRefresh}
+              onDeleted={onRefresh}
               onClose={() => setDrawerOpen(false)}
             />
           )}
           {drawerContent === "add" && (
-            <AddPracticeForm onClose={() => setDrawerOpen(false)} />
+            <AddPracticeForm
+              onClose={() => setDrawerOpen(false)}
+              onAdded={onRefresh}
+            />
           )}
         </div>
       </RightDrawer>
