@@ -23,9 +23,13 @@ import { Court } from "@/types/court";
 export default function PracticeInfoPanel({
   practice,
   onClose,
+  onUpdated,
+  onDeleted,
 }: {
   practice: Practice;
   onClose?: () => void;
+  onUpdated?: () => void;
+  onDeleted?: () => void;
 }) {
   const { data, updateField } = useFormData({
     team_id: practice.team_id || "",
@@ -102,6 +106,7 @@ export default function PracticeInfoPanel({
         description: "Practice updated successfully",
       });
       await revalidatePractices();
+      if (onUpdated) onUpdated();
     } else {
       toast({
         status: "error",
@@ -121,6 +126,7 @@ export default function PracticeInfoPanel({
         description: "Practice deleted successfully",
       });
       await revalidatePractices();
+      if (onDeleted) onDeleted();
       if (onClose) onClose();
     } else {
       toast({

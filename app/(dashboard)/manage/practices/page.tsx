@@ -3,7 +3,7 @@
 // Admin-only page that lists all practices and provides
 // a drawer interface for creating, editing and deleting practices.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import PracticesPage from "@/components/practices/PracticesPage";
 import RoleProtected from "@/components/RoleProtected";
 import { getAllPractices } from "@/services/practices";
@@ -15,25 +15,26 @@ export default function PracticesPageContainer() {
   const [practices, setPractices] = useState<Practice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getAllPractices();
-        setPractices(res);
-      } catch (err) {
-        console.error("Failed to fetch practices", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+  const refreshPractices = useCallback(async () => {
+    try {
+      const res = await getAllPractices();
+      setPractices(res);
+    } catch (err) {
+      console.error("Failed to fetch practices", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    refreshPractices();
+  }, [refreshPractices]);
 
   const content = loading ? (
     <PageSkeleton />
   ) : (
-    <PracticesPage practices={practices} />
+    <PracticesPage practices={practices} onRefresh={refreshPractices} />
   );
 
   return (
