@@ -11,7 +11,6 @@ import PlaygroundTable, { RoomBooking } from "./PlaygroundTable";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import AddBookingForm from "./AddBookingForm";
 import BookingInfoPanel from "./BookingInfoPanel";
-import AddSystemForm from "./AddSystemForm";
 import { PlaygroundSession, PlaygroundSystem } from "@/types/playground";
 
 interface PlaygroundPageProps {
@@ -35,7 +34,7 @@ export default function PlaygroundPage({
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<
-    "details" | "add" | "edit" | "addSystem" | null
+    "details" | "add" | "edit" | null
   >(null);
 
   // Map server sessions into table bookings on mount or sessions change
@@ -49,6 +48,11 @@ export default function PlaygroundPage({
     setBookings(mapped);
     setFilteredBookings(mapped);
   }, [sessions]);
+
+  // Update available systems when the prop changes
+  useEffect(() => {
+    setAvailableSystems(systems);
+  }, [systems]);
 
   // Filter bookings list when searchQuery changes
   useEffect(() => {
@@ -99,17 +103,6 @@ export default function PlaygroundPage({
             <PlusIcon className="h-4 w-4" />
             Add Session
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setDrawerContent("addSystem");
-              setDrawerOpen(true);
-            }}
-            className="flex items-center gap-2"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add System
-          </Button>
         </div>
       </div>
       <Separator />
@@ -151,11 +144,9 @@ export default function PlaygroundPage({
             <h2 className="text-2xl font-bold mb-4">
               {drawerContent === "details"
                 ? "Booking Details"
-                : drawerContent === "addSystem"
-                  ? "Add System"
-                  : drawerContent === "add"
-                    ? "Add Session"
-                    : "Edit Session"}
+                : drawerContent === "add"
+                  ? "Add Session"
+                  : "Edit Session"}
             </h2>
 
             {/* Conditionally render panel or forms */}
@@ -179,9 +170,6 @@ export default function PlaygroundPage({
                 systems={availableSystems}
                 onClose={() => setDrawerOpen(false)}
               />
-            )}
-            {drawerContent === "addSystem" && (
-              <AddSystemForm onClose={() => setDrawerOpen(false)} />
             )}
           </div>
         </RightDrawer>

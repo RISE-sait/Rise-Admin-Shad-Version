@@ -25,6 +25,7 @@ export async function revalidateTeams() {
 
 export async function revalidatePlayground() {
   revalidatePath("/manage/playground");
+  revalidatePath("/manage/amenities");
 }
 
 export async function revalidatePendingStaffs() {

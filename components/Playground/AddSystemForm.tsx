@@ -10,7 +10,13 @@ import { createPlaygroundSystem } from "@/services/playground";
 import { PlaygroundSystemRequestDto } from "@/types/playground";
 import { revalidatePlayground } from "@/actions/serverActions";
 
-export default function AddSystemForm({ onClose }: { onClose?: () => void }) {
+export default function AddSystemForm({
+  onClose,
+  onAdded,
+}: {
+  onClose?: () => void;
+  onAdded?: () => void;
+}) {
   const [name, setName] = useState(""); // Controlled input for new system name
   const { user } = useUser(); // User context for JWT
   const { toast } = useToast(); // Toast for notifications
@@ -34,6 +40,7 @@ export default function AddSystemForm({ onClose }: { onClose?: () => void }) {
       status: "success",
     });
     await revalidatePlayground();
+    if (onAdded) onAdded();
     if (onClose) onClose();
   };
 

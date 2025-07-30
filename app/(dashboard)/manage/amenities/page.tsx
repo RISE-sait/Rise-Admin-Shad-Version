@@ -1,30 +1,71 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import BarbershopPage from "@/components/Barbershop/BarberPage";
 import PlaygroundPage from "@/components/Playground/PlaygroundPage";
+import SystemsPage from "@/components/Playground/SystemsPage";
 import RoleProtected from "@/components/RoleProtected";
-import { StaffRoleEnum } from "@/types/user";
+import { StaffRoleEnum, User } from "@/types/user";
+import { PlaygroundSession, PlaygroundSystem } from "@/types/playground";
 import { getAllStaffs } from "@/services/staff";
 import {
   getPlaygroundSessions,
   getPlaygroundSystems,
 } from "@/services/playground";
 
-export default async function AmenitiesPageContainer() {
-  const [staffs, sessions, systems] = await Promise.all([
-    getAllStaffs(StaffRoleEnum.BARBER.toUpperCase()),
-    getPlaygroundSessions(),
-    getPlaygroundSystems(),
-  ]);
+export default function AmenitiesPageContainer() {
+  const [staffs, setStaffs] = useState<User[]>([]);
+  const [sessions, setSessions] = useState<PlaygroundSession[]>([]);
+  const [systems, setSystems] = useState<PlaygroundSystem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSystems = useCallback(async () => {
+    try {
+      const res = await getPlaygroundSystems();
+      setSystems(res);
+    } catch (err) {
+      console.error("Failed to fetch systems", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [staffRes, sessionRes, systemRes] = await Promise.all([
+          getAllStaffs(StaffRoleEnum.BARBER.toUpperCase()),
+          getPlaygroundSessions(),
+          getPlaygroundSystems(),
+        ]);
+        setStaffs(staffRes);
+        setSessions(sessionRes);
+        setSystems(systemRes);
+      } catch (err) {
+        console.error("Failed to fetch amenities data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const content = loading ? (
+    <PageSkeleton />
+  ) : (
+    <div className="flex flex-col">
+      <BarbershopPage staffs={staffs} />
+      <PlaygroundPage sessions={sessions} systems={systems} />
+      <SystemsPage systems={systems} onRefresh={fetchSystems} />
+    </div>
+  );
 
   return (
     <RoleProtected
       allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}
       fallback={<PageSkeleton />}
     >
-      <div className="flex flex-col">
-        <BarbershopPage staffs={staffs} />
-        <PlaygroundPage sessions={sessions} systems={systems} />
-      </div>
+      {content}
     </RoleProtected>
   );
 }
