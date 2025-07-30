@@ -1,7 +1,7 @@
 "use client";
 
 // React and utility imports
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
@@ -65,6 +65,11 @@ export default function CustomersPage({
   onUnarchiveCustomer,
 }: CustomerPageProps) {
   // State hooks for selected customer details drawer
+  const [customerList, setCustomerList] = useState<Customer[]>(customers);
+
+  useEffect(() => {
+    setCustomerList(customers);
+  }, [customers]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
@@ -119,6 +124,15 @@ export default function CustomersPage({
     }
   };
 
+  const handleCustomerUpdate = (id: string, updated: Partial<Customer>) => {
+    setCustomerList((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updated } : c))
+    );
+    setSelectedCustomer((prev) =>
+      prev && prev.id === id ? { ...prev, ...updated } : prev
+    );
+  };
+
   // Get current user context for auth-protected actions
   const { user } = useUser();
 
@@ -126,14 +140,22 @@ export default function CustomersPage({
   const handleArchive = async (id: string) => {
     if (!user) return;
     await archiveCustomer(id, user.Jwt);
-    location.reload();
+    setCustomerList((prev) => prev.filter((c) => c.id !== id));
+    if (selectedCustomer?.id === id) {
+      setDrawerOpen(false);
+      setSelectedCustomer(null);
+    }
   };
 
   // Unarchive a customer: calls service and reloads page on success
   const handleUnarchive = async (id: string) => {
     if (!user) return;
     await unarchiveCustomer(id, user.Jwt);
-    location.reload();
+    setCustomerList((prev) => prev.filter((c) => c.id !== id));
+    if (selectedCustomer?.id === id) {
+      setDrawerOpen(false);
+      setSelectedCustomer(null);
+    }
   };
 
   return (
@@ -210,7 +232,7 @@ export default function CustomersPage({
 
       {/* Customer table with pagination controls below */}
       <CustomerTable
-        customers={customers}
+        customers={customerList}
         onCustomerSelect={handleCustomerSelect}
         onArchiveCustomer={
           isArchivedList
@@ -325,7 +347,9 @@ export default function CustomersPage({
           {drawerContent === "details" && selectedCustomer && (
             <CustomerInfoPanel
               customer={selectedCustomer}
-              onCustomerUpdated={() => {}}
+              onCustomerUpdated={(updated) =>
+                handleCustomerUpdate(selectedCustomer.id, updated)
+              }
               onCustomerArchived={
                 isArchivedList
                   ? onUnarchiveCustomer || handleUnarchive
