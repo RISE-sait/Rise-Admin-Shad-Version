@@ -12,6 +12,17 @@ import { Program } from "@/types/program";
 import { revalidatePrograms } from "@/actions/serverActions";
 import { ProgramRequestDto } from "@/app/api/Api";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ProgramInfoPanelProps {
   program: Program;
@@ -30,30 +41,27 @@ export default function ProgramInfoPanel({
   const { user } = useUser();
 
   const handleDeleteProgram = async () => {
-    if (!confirm("Are you sure you want to delete this program?")) {
-      return;
-    }
     try {
       const error = await deleteProgram(program.id, user?.Jwt!);
 
       if (error === null) {
         toast({
           status: "success",
-          description: "Practice updated successfully",
+          description: "Program deleted successfully",
         });
         await revalidatePrograms();
         if (onClose) onClose();
       } else {
         toast({
           status: "error",
-          description: `Error saving changes ${error}`,
+          description: `Error deleting program: ${error}`,
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         status: "error",
-        description: "Error deleting practice",
+        description: "Error deleting program",
         variant: "destructive",
       });
     }
@@ -122,14 +130,32 @@ export default function ProgramInfoPanel({
             program={program}
             levels={levels}
             DeleteButton={
-              <Button
-                variant="destructive"
-                onClick={handleDeleteProgram}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <TrashIcon className="h-4 w-4 mr-2" />
-                Delete Program
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    Delete Program
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this program? This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteProgram}>
+                      Confirm Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             }
           />
         </TabsContent>
