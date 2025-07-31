@@ -6,6 +6,17 @@ import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   TrashIcon,
   UserCircle,
   CreditCard,
@@ -44,6 +55,7 @@ export default function CustomerInfoPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const { user } = useUser();
@@ -298,14 +310,39 @@ export default function CustomerInfoPanel({
           </p>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleArchiveToggle}
-              className="border-destructive text-destructive hover:bg-destructive/10"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              {currentCustomer.is_archived ? "Unarchive" : "Archive"}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-destructive text-destructive hover:bg-destructive/10"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  {currentCustomer.is_archived ? "Unarchive" : "Archive"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {currentCustomer.is_archived
+                      ? "Confirm Unarchive"
+                      : "Confirm Archive"}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {currentCustomer.is_archived
+                      ? "Are you sure you want to unarchive this customer?"
+                      : "Are you sure you want to archive this customer?"}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleArchiveToggle}>
+                    {currentCustomer.is_archived
+                      ? "Confirm Unarchive"
+                      : "Confirm Archive"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>

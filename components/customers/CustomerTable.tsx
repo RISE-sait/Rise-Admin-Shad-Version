@@ -31,6 +31,18 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpDown, MoreHorizontal, FolderSearch } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 // Dropdown menu components
 import {
   DropdownMenu,
@@ -164,20 +176,45 @@ export const columns: ColumnDef<Customer>[] = [
                 <span>Edit</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                onClick={() => {
-                  const handler = (table.options.meta as any)
-                    ?.onArchiveCustomer;
-                  handler?.(customer.id);
-                }}
-              >
-                <span>
-                  {(table.options.meta as any)?.isArchivedList
-                    ? "Unarchive"
-                    : "Archive"}
-                </span>
-              </DropdownMenuItem>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive">
+                    <span>
+                      {(table.options.meta as any)?.isArchivedList
+                        ? "Unarchive"
+                        : "Archive"}
+                    </span>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {(table.options.meta as any)?.isArchivedList
+                        ? "Confirm Unarchive"
+                        : "Confirm Archive"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {(table.options.meta as any)?.isArchivedList
+                        ? "Are you sure you want to unarchive this customer?"
+                        : "Are you sure you want to archive this customer?"}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        const handler = (table.options.meta as any)
+                          ?.onArchiveCustomer;
+                        handler?.(customer.id);
+                      }}
+                    >
+                      {(table.options.meta as any)?.isArchivedList
+                        ? "Confirm Unarchive"
+                        : "Confirm Archive"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
