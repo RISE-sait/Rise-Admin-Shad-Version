@@ -53,6 +53,11 @@ export default function FacilitiesPage({
     setDrawerOpen(true);
   };
 
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setSelectedFacility(null);
+  };
+
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
@@ -125,7 +130,7 @@ export default function FacilitiesPage({
       />
       <RightDrawer
         drawerOpen={drawerOpen}
-        handleDrawerClose={() => setDrawerOpen(false)}
+        handleDrawerClose={handleDrawerClose}
         drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"}
       >
         <div className="p-4">
@@ -135,7 +140,10 @@ export default function FacilitiesPage({
               : "Add New Facility"}
           </h2>
           {drawerContent === "details" && selectedFacility && (
-            <FacilityInfoPanel facility={selectedFacility} />
+            <FacilityInfoPanel
+              facility={selectedFacility}
+              onDelete={handleDrawerClose}
+            />
           )}
           {drawerContent === "add" && <AddFacilityForm />}
         </div>
