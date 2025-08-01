@@ -55,6 +55,12 @@ export default function CourtPage({ courts }: { courts: Court[] }) {
     setDrawerOpen(true); // Open the drawer
   };
 
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+    setSelectedCourt(null);
+    setDrawerContent(null);
+  };
+
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       {/* Header with title and Add Court button */}
@@ -127,7 +133,7 @@ export default function CourtPage({ courts }: { courts: Court[] }) {
       {/* Right-side drawer for details or add form */}
       <RightDrawer
         drawerOpen={drawerOpen} // Control open state
-        handleDrawerClose={() => setDrawerOpen(false)} // Close handler
+        handleDrawerClose={handleCloseDrawer} // Close handler
         drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"} // Width based on content
       >
         <div className="p-4">
@@ -136,7 +142,7 @@ export default function CourtPage({ courts }: { courts: Court[] }) {
           </h2>
           {/* Conditionally render details panel or add form */}
           {drawerContent === "details" && selectedCourt && (
-            <CourtInfoPanel court={selectedCourt} />
+            <CourtInfoPanel court={selectedCourt} onClose={handleCloseDrawer} />
           )}
           {drawerContent === "add" && <AddCourtForm />}
         </div>
