@@ -12,6 +12,17 @@ import {
 } from "@/components/ui/select"; // Select/dropdown components
 import { Button } from "@/components/ui/button"; // Button component
 import { useToast } from "@/hooks/use-toast"; // Hook for showing toast notifications
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/contexts/UserContext"; // Hook to access current user/auth context
 import { Court } from "@/types/court"; // Type for court object
 import { Location } from "@/types/location"; // Type for location object
@@ -22,7 +33,15 @@ import { revalidateCourts } from "@/actions/serverActions"; // Trigger ISR reval
 import { PencilIcon, MapPinIcon, SaveIcon, TrashIcon } from "lucide-react"; // Icon components
 
 // Component for viewing and editing court details
-export default function CourtInfoPanel({ court }: { court: Court }) {
+interface CourtInfoPanelProps {
+  court: Court;
+  onClose?: () => void;
+}
+
+export default function CourtInfoPanel({
+  court,
+  onClose,
+}: CourtInfoPanelProps) {
   const { toast } = useToast(); // Toast handler for feedback messages
   const { user } = useUser(); // Authenticated user (for JWT token)
   const [name, setName] = useState(court.name); // Local state for court name input
@@ -56,12 +75,12 @@ export default function CourtInfoPanel({ court }: { court: Court }) {
 
   // Delete handler: remove the court after confirmation
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this court?")) return; // Confirm before deleting
     const error = await deleteCourt(court.id, user?.Jwt!); // Call delete API
     if (error === null) {
       // On success, notify and revalidate ISR
       toast({ status: "success", description: "Court deleted successfully" });
       await revalidateCourts();
+      if (onClose) onClose(); // Close panel if callback provided
     } else {
       // On failure, show error message
       toast({ status: "error", description: `Error deleting court: ${error}` });
@@ -139,14 +158,32 @@ export default function CourtInfoPanel({ court }: { court: Court }) {
                 <SaveIcon className="h-4 w-4 mr-2" /> {/* Save icon */}
                 Save Changes {/* Button label */}
               </Button>
-              <Button
-                variant="destructive" // Destructive style
-                onClick={handleDelete} // Trigger delete handler
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <TrashIcon className="h-4 w-4 mr-2" /> {/* Delete icon */}
-                Delete Court {/* Button label */}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    Delete Court
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this court? This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>
+                      Confirm Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </TabsContent>
