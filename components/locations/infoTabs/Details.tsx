@@ -4,6 +4,17 @@ import { revalidateLocations } from "@/actions/serverActions";
 import { LocationRequestDto } from "@/app/api/Api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { deleteLocation, updateLocation } from "@/services/location";
@@ -11,7 +22,13 @@ import { Location } from "@/types/location";
 import { PencilIcon, MapPinIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-export default function DetailsTab({ details }: { details: Location }) {
+export default function DetailsTab({
+  details,
+  onDelete,
+}: {
+  details: Location;
+  onDelete?: () => void;
+}) {
   const { register, getValues } = useForm({
     defaultValues: {
       name: details.name,
@@ -48,31 +65,27 @@ export default function DetailsTab({ details }: { details: Location }) {
   };
 
   const handleDeleteFacility = async () => {
-    if (
-      confirm(
-        "Are you sure you want to delete this facility? This action cannot be undone."
-      )
-    ) {
-      try {
-        const error = await deleteLocation(details.id, user?.Jwt!);
+    try {
+      const error = await deleteLocation(details.id, user?.Jwt!);
 
-        if (error === null) {
-          await revalidateLocations();
+      if (error === null) {
+        await revalidateLocations();
 
-          toast({
-            status: "success",
-            description: "Facility deleted successfully",
-          });
-        } else {
-          toast({
-            status: "error",
-            description: `Error deleting facility: ${error}`,
-          });
-        }
-      } catch (error) {
-        console.error("Error during API request:", error);
-        toast({ status: "error", description: "Error deleting facility" });
+        toast({
+          status: "success",
+          description: "Facility deleted successfully",
+        });
+
+        if (onDelete) onDelete();
+      } else {
+        toast({
+          status: "error",
+          description: `Error deleting facility: ${error}`,
+        });
       }
+    } catch (error) {
+      console.error("Error during API request:", error);
+      toast({ status: "error", description: "Error deleting facility" });
     }
   };
 
@@ -113,14 +126,32 @@ export default function DetailsTab({ details }: { details: Location }) {
           Save Changes
         </Button>
 
-        <Button
-          variant="destructive"
-          onClick={handleDeleteFacility}
-          className="bg-red-600 hover:bg-red-700"
-        >
-          <TrashIcon className="h-4 w-4 mr-2" />
-          Delete Location
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" />
+              Delete Location
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this facility? This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteFacility}>
+                Confirm Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -7,9 +7,14 @@ import DetailsTab from "./infoTabs/Details";
 import { BuildingIcon } from "lucide-react";
 import SchedulesTab from "./infoTabs/Schedule";
 
-export default function FacilityInfoPanel({ facility }: { facility: Location }) {
-
-  const [activeTab, setActiveTab] = useState("details")
+export default function FacilityInfoPanel({
+  facility,
+  onDelete,
+}: {
+  facility: Location;
+  onDelete?: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState("details");
 
   return (
     <div className="space-y-6">
@@ -34,9 +39,7 @@ export default function FacilityInfoPanel({ facility }: { facility: Location }) 
         </div>
 
         <TabsContent value="details" className="pt-4">
-          <DetailsTab
-            details={facility}
-          />
+          <DetailsTab details={facility} onDelete={onDelete} />
         </TabsContent>
 
         <TabsContent value="schedule" className="pt-4">
