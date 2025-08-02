@@ -5,6 +5,17 @@ import { MembershipRequestDto } from "@/app/api/Api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "@/hooks/use-toast";
 import { deleteMembership, updateMembership } from "@/services/membership";
@@ -12,7 +23,13 @@ import { Membership } from "@/types/membership";
 import { PencilIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-export default function DetailsTab({ details }: { details: Membership }) {
+export default function DetailsTab({
+  details,
+  onClose,
+}: {
+  details: Membership;
+  onClose: () => void;
+}) {
   const { user } = useUser();
 
   const { register, getValues } = useForm({
@@ -46,21 +63,16 @@ export default function DetailsTab({ details }: { details: Membership }) {
   };
 
   const handleDeleteMembership = async () => {
-    if (
-      confirm(
-        "Are you sure you want to delete this membership? This action cannot be undone."
-      )
-    ) {
-      try {
-        await deleteMembership(details.id, user?.Jwt!);
-        toast({
-          status: "success",
-          description: "Membership deleted successfully",
-        });
-        await revalidateMemberships();
-      } catch (error) {
-        toast({ status: "error", description: "Error deleting membership" });
-      }
+    try {
+      await deleteMembership(details.id, user?.Jwt!);
+      toast({
+        status: "success",
+        description: "Membership deleted successfully",
+      });
+      await revalidateMemberships();
+      onClose();
+    } catch (error) {
+      toast({ status: "error", description: "Error deleting membership" });
     }
   };
 
@@ -94,21 +106,39 @@ export default function DetailsTab({ details }: { details: Membership }) {
 
       <div className="flex items-center justify-end gap-3 mt-4">
         <Button
-          variant="destructive"
-          onClick={handleDeleteMembership}
-          className="bg-red-600 hover:bg-red-700"
-        >
-          <TrashIcon className="h-4 w-4 mr-2" />
-          Delete Membership
-        </Button>
-
-        <Button
           onClick={handleSaveInfo}
           className="bg-green-600 hover:bg-green-700"
         >
           <SaveIcon className="h-4 w-4 mr-2" />
           Save Changes
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" />
+              Delete Membership
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this membership? This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteMembership}>
+                Confirm Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
