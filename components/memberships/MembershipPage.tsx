@@ -140,7 +140,10 @@ export default function MembershipsPage({
               : "Add Membership"}
           </h2>
           {drawerContent === "details" && selectedMembership && (
-            <MembershipInfoPanel membership={selectedMembership} />
+            <MembershipInfoPanel
+              membership={selectedMembership}
+              onClose={() => setDrawerOpen(false)}
+            />
           )}
           {drawerContent === "add" && <AddMembershipForm />}
         </div>

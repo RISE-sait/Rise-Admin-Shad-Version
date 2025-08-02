@@ -5,13 +5,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Membership } from "@/types/membership";
 import DetailsTab from "./infoTabs/Details";
 import PlansTab from "./infoTabs/plans/Plans";
-import {
-  CreditCard,
-  ShoppingBag,
-} from "lucide-react";
+import { CreditCard, ShoppingBag } from "lucide-react";
 
-export default function MembershipInfoPanel({ membership }: { membership: Membership }) {
-
+export default function MembershipInfoPanel({
+  membership,
+  onClose,
+}: {
+  membership: Membership;
+  onClose: () => void;
+}) {
   const [activeTab, setActiveTab] = useState("details");
 
   return (
@@ -37,25 +39,21 @@ export default function MembershipInfoPanel({ membership }: { membership: Member
         </div>
 
         <TabsContent value="details" className="pt-4">
-          <DetailsTab
-            details={membership}
-          />
+          <DetailsTab details={membership} onClose={onClose} />
           <div className="max-w-5xl mx-auto px-4 flex justify-between items-center pt-5">
             <p className="text-sm text-muted-foreground">
-              Last updated: {membership.updated_at ? new Date(membership.updated_at).toLocaleString() : "Never"}
+              Last updated:{" "}
+              {membership.updated_at
+                ? new Date(membership.updated_at).toLocaleString()
+                : "Never"}
             </p>
-
-           
           </div>
         </TabsContent>
 
         <TabsContent value="plans" className="pt-4">
-          <PlansTab
-            membershipId={membership.id}
-          />
+          <PlansTab membershipId={membership.id} />
         </TabsContent>
       </Tabs>
-
     </div>
   );
 }
