@@ -16,6 +16,17 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Trash, Save } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import getValue from "@/configs/constants";
 import { useToast } from "@/hooks/use-toast";
 import { revalidateStaffs } from "@/actions/serverActions";
@@ -28,7 +39,13 @@ const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
   value,
 }));
 
-export default function StaffForm({ StaffData }: { StaffData?: User }) {
+export default function StaffForm({
+  StaffData,
+  onClose,
+}: {
+  StaffData?: User;
+  onClose?: () => void;
+}) {
   const [activeTab, setActiveTab] = useState("details");
   const [role, setRole] = useState(StaffData?.StaffInfo?.Role || "");
   const [isActive, setIsActive] = useState(
@@ -107,25 +124,20 @@ export default function StaffForm({ StaffData }: { StaffData?: User }) {
   };
 
   const DeleteStaff = async () => {
-    if (
-      confirm(
-        "Are you sure you want to delete this staff member? This action cannot be undone."
-      )
-    ) {
-      try {
-        await deleteStaff(StaffData?.ID!, jwt!);
-        toast({
-          status: "success",
-          description: "Staff member deleted successfully",
-        });
-        RefreshData();
-      } catch (err) {
-        toast({
-          status: "error",
-          description: "Error deleting staff",
-          variant: "destructive",
-        });
-      }
+    try {
+      await deleteStaff(StaffData?.ID!, jwt!);
+      toast({
+        status: "success",
+        description: "Staff member deleted successfully",
+      });
+      RefreshData();
+      onClose?.();
+    } catch (err) {
+      toast({
+        status: "error",
+        description: "Error deleting staff",
+        variant: "destructive",
+      });
     }
   };
 
@@ -239,14 +251,32 @@ export default function StaffForm({ StaffData }: { StaffData?: User }) {
               <Save className="h-4 w-4 mr-2" />
               Save Changes
             </Button>
-            <Button
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={(e) => DeleteStaff()}
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this staff member? This
+                    action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={DeleteStaff}>
+                    Confirm Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>

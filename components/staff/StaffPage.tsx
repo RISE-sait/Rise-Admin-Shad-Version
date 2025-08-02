@@ -140,9 +140,12 @@ export default function StaffPage({ staffs }: { staffs: User[] }) {
         >
           <div className="p-4">
             {isNewStaff ? (
-              <StaffForm />
+              <StaffForm onClose={handleDrawerClose} />
             ) : selectedStaff ? (
-              <StaffForm StaffData={selectedStaff} />
+              <StaffForm
+                StaffData={selectedStaff}
+                onClose={handleDrawerClose}
+              />
             ) : null}
           </div>
         </RightDrawer>
