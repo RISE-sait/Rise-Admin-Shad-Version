@@ -6,6 +6,17 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SaveIcon, TrashIcon } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -118,7 +129,6 @@ export default function PracticeInfoPanel({
 
   // Remove the practice entirely from the system
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this practice?")) return;
     const error = await deletePractice(practice.id, user?.Jwt!);
     if (error === null) {
       toast({
@@ -237,13 +247,31 @@ export default function PracticeInfoPanel({
         >
           <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
         </Button>
-        <Button
-          variant="destructive"
-          className="bg-red-600 hover:bg-red-700"
-          onClick={handleDelete}
-        >
-          <TrashIcon className="h-4 w-4 mr-2" /> Delete
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" /> Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this practice? This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>
+                Confirm Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
