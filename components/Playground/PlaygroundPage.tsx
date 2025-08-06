@@ -12,6 +12,7 @@ import RightDrawer from "@/components/reusable/RightDrawer";
 import AddBookingForm from "./AddBookingForm";
 import BookingInfoPanel from "./BookingInfoPanel";
 import { PlaygroundSession, PlaygroundSystem } from "@/types/playground";
+import { toZonedISOString } from "@/lib/utils";
 
 interface PlaygroundPageProps {
   sessions: PlaygroundSession[];
@@ -43,7 +44,7 @@ export default function PlaygroundPage({
       id: s.id,
       customer_name: `${s.customer_first_name} ${s.customer_last_name}`,
       system_name: s.system_name,
-      start_at: s.start_time.toISOString(),
+      start_at: toZonedISOString(s.start_time),
     }));
     setBookings(mapped);
     setFilteredBookings(mapped);

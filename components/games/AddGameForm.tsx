@@ -12,6 +12,7 @@ import { getAllTeams } from "@/services/teams";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
 import { revalidateGames } from "@/actions/serverActions";
+import { toZonedISOString } from "@/lib/utils";
 
 export default function AddGameForm({ onClose }: { onClose?: () => void }) {
   const { data, updateField, resetData } = useFormData({
@@ -67,8 +68,8 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
       home_team_id: data.home_team_id,
       away_team_id: data.away_team_id,
       location_id: data.location_id,
-      start_time: new Date(data.start_time).toISOString(),
-      end_time: new Date(data.end_time).toISOString(),
+      start_time: toZonedISOString(new Date(data.start_time)),
+      end_time: toZonedISOString(new Date(data.end_time)),
       status: data.status,
     };
 

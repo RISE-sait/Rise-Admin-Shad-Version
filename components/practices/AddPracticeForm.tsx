@@ -22,6 +22,7 @@ import { Location } from "@/types/location";
 import { Team } from "@/types/team";
 import { Court } from "@/types/court";
 import { revalidatePractices } from "@/actions/serverActions";
+import { toZonedISOString } from "@/lib/utils";
 
 export default function AddPracticeForm({
   onClose,
@@ -102,8 +103,8 @@ export default function AddPracticeForm({
         court_id: data.court_id,
         location_id: data.location_id,
         team_id: data.team_id,
-        start_time: new Date(data.start_at).toISOString(),
-        end_time: new Date(data.end_at).toISOString(),
+        start_time: toZonedISOString(new Date(data.start_at)),
+        end_time: toZonedISOString(new Date(data.end_at)),
         status: data.status,
       };
 
@@ -134,8 +135,10 @@ export default function AddPracticeForm({
         court_id: data.court_id,
         location_id: data.location_id,
         team_id: data.team_id,
-        recurrence_start_at: new Date(data.recurrence_start_at).toISOString(),
-        recurrence_end_at: new Date(data.recurrence_end_at).toISOString(),
+        recurrence_start_at: toZonedISOString(
+          new Date(data.recurrence_start_at)
+        ),
+        recurrence_end_at: toZonedISOString(new Date(data.recurrence_end_at)),
         practice_start_at: formatTime(data.event_start_at),
         practice_end_at: formatTime(data.event_end_at),
         day: data.day,

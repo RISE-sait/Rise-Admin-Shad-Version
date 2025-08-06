@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { format } from "date-fns";
+import { fromZonedISOString } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import { deleteHaircutEvent } from "@/services/haircuts";
@@ -27,14 +28,14 @@ export default function AppointmentInfoPanel({
   // Format appointment date
   const getFormattedDate = (dateString?: string) => {
     if (!dateString) return "Not specified";
-    return format(new Date(dateString), "MMMM d, yyyy h:mm a");
+    return format(fromZonedISOString(dateString), "MMMM d, yyyy h:mm a");
   };
 
   // Calculate appointment duration in minutes
   const getAppointmentDuration = () => {
     if (!appointment.start_at || !appointment.end_at) return "Unknown";
-    const start = new Date(appointment.start_at);
-    const end = new Date(appointment.end_at);
+    const start = fromZonedISOString(appointment.start_at);
+    const end = fromZonedISOString(appointment.end_at);
     const diffMinutes = Math.round(
       (end.getTime() - start.getTime()) / (1000 * 60)
     );

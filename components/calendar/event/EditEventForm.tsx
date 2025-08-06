@@ -20,6 +20,7 @@ import { revalidateEvents } from "@/actions/serverActions";
 import { useCalendarContext } from "../calendar-context";
 import { CalendarEvent } from "@/types/calendar";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
+import { toZonedISOString } from "@/lib/utils";
 
 function getColorFromProgramType(programType?: string): string {
   switch (programType) {
@@ -94,8 +95,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           (selectedEvent as any).court?.id ||
           (selectedEvent as any).court_id ||
           "",
-        start_at: new Date(selectedEvent.start_at).toISOString().slice(0, 16),
-        end_at: new Date(selectedEvent.end_at).toISOString().slice(0, 16),
+        start_at: toZonedISOString(selectedEvent.start_at).slice(0, 16),
+        end_at: toZonedISOString(selectedEvent.end_at).slice(0, 16),
       });
     }
   }, [selectedEvent]);
@@ -124,8 +125,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       team_id: data.team_id || undefined,
       location_id: data.location_id,
       court_id: data.court_id ? data.court_id : null,
-      start_at: new Date(data.start_at).toISOString(),
-      end_at: new Date(data.end_at).toISOString(),
+      start_at: toZonedISOString(new Date(data.start_at)),
+      end_at: toZonedISOString(new Date(data.end_at)),
     };
 
     const error = await updateEvent(selectedEvent.id, eventData, user?.Jwt!);

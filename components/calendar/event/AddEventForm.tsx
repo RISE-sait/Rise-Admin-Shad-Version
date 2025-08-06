@@ -24,6 +24,7 @@ import { revalidateEvents } from "@/actions/serverActions";
 import { useCalendarContext } from "../calendar-context";
 import { CalendarEvent } from "@/types/calendar";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
+import { toZonedISOString } from "@/lib/utils";
 
 function getColorFromProgramType(programType?: string): string {
   switch (programType) {
@@ -120,8 +121,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         team_id: data.team_id || undefined,
         location_id: data.location_id,
         court_id: data.court_id ? data.court_id : null,
-        start_at: new Date(data.start_at).toISOString(),
-        end_at: new Date(data.end_at).toISOString(),
+        start_at: toZonedISOString(new Date(data.start_at)),
+        end_at: toZonedISOString(new Date(data.end_at)),
         capacity: data.capacity ? Number(data.capacity) : undefined,
       };
 
@@ -156,8 +157,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         team_id: data.team_id || undefined,
         location_id: data.location_id,
         court_id: data.court_id ? data.court_id : null,
-        recurrence_start_at: startDate.toISOString(),
-        recurrence_end_at: endDate.toISOString(),
+        recurrence_start_at: toZonedISOString(startDate),
+        recurrence_end_at: toZonedISOString(endDate),
         event_start_at: formatTime(data.event_start_at),
         event_end_at: formatTime(data.event_end_at),
         day: data.day,

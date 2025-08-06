@@ -14,6 +14,7 @@ import { revalidateGames } from "@/actions/serverActions";
 import { Game } from "@/types/games";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
+import { toZonedISOString, fromZonedISOString } from "@/lib/utils";
 
 export default function GameInfoPanel({
   game,
@@ -26,8 +27,8 @@ export default function GameInfoPanel({
     home_team_id: game.home_team_id,
     away_team_id: game.away_team_id,
     location_id: game.location_id,
-    start_time: new Date(game.start_time).toISOString().slice(0, 16),
-    end_time: new Date(game.end_time).toISOString().slice(0, 16),
+    start_time: fromZonedISOString(game.start_time).toISOString().slice(0, 16),
+    end_time: fromZonedISOString(game.end_time).toISOString().slice(0, 16),
     status: game.status as "scheduled" | "completed" | "canceled",
   });
   const { user } = useUser();
@@ -75,8 +76,8 @@ export default function GameInfoPanel({
       home_team_id: data.home_team_id,
       away_team_id: data.away_team_id,
       location_id: data.location_id,
-      start_time: new Date(data.start_time).toISOString(),
-      end_time: new Date(data.end_time).toISOString(),
+      start_time: toZonedISOString(new Date(data.start_time)),
+      end_time: toZonedISOString(new Date(data.end_time)),
       status: data.status,
     };
 

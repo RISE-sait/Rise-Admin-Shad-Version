@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Practice } from "@/types/practice";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { fromZonedISOString } from "@/lib/utils";
 
 // Column definitions for the PracticeTable component
 
@@ -41,7 +42,8 @@ const columns: ColumnDef<Practice>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => new Date(row.getValue("start_at")).toLocaleString(),
+    cell: ({ row }) =>
+      fromZonedISOString(row.getValue("start_at")).toLocaleString(),
     minSize: 180,
     size: 220,
   },
