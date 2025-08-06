@@ -146,7 +146,9 @@ export default function CalendarEvent({
               ease: "easeOut",
             },
           }}
-          layoutId={`event-${animationKey}-${month ? "month" : "day"}`}
+          layoutId={`event-${animationKey}-${
+            month ? format(currentDate ?? event.start_at, "yyyy-MM-dd") : "day"
+          }`}
         >
           <motion.div
             className={cn(
