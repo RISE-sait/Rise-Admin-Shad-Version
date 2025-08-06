@@ -226,14 +226,14 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   };
 
   return (
-    <div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {plans.map((plan) => {
         const isActive = toggledPlanId === plan.id;
         if (isActive) {
           return (
             <div
               key={plan.id}
-              className="w-full p-3 mb-3 rounded-lg border-orange-500 border"
+              className="w-full p-3 rounded-lg border-orange-500 border"
             >
               <div className="p-2">
                 <div
@@ -342,7 +342,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
           return (
             <div
               key={plan.id}
-              className="w-full dark:hover:bg-gray-900 hover:bg-muted/100 cursor-pointer  p-3 mb-3 rounded-lg border-grey-500 border"
+              className="w-full dark:hover:bg-gray-900 hover:bg-muted/100 cursor-pointer  p-3 rounded-lg border-grey-500 border"
               onClick={() => handleTogglePlan(plan.id)}
             >
               <div className="p-2">
@@ -365,7 +365,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
       })}
 
       {newplantoggle ? (
-        <div className="w-full p-3 mb-3 rounded-lg border-orange-500 border">
+        <div className="w-full p-3 rounded-lg border-orange-500 border">
           <div className="p-2">
             <div className="cursor-pointer" onClick={togglenewplan}>
               <h1> Add a new plan </h1>
