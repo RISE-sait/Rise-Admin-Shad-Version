@@ -121,21 +121,30 @@ export default function TeamInfoPanel({
         {team.roster && (
           <div>
             <Separator className="my-2" />
-            <h3 className="text-xl font-semibold mt-4 mb-2">Roster</h3>
-            <ul className="border rounded-md divide-y">
-              {team.roster.map((member) => (
-                <li key={member.id} className="p-2">
-                  {member.name}
-                </li>
-              ))}
-            </ul>
-            <Button
-              variant="outline"
-              className="mt-2"
-              onClick={() => setRosterOpen(true)}
-            >
-              Manage Roster
-            </Button>
+            <div className="mt-4 rounded-md border border-yellow-500 p-4 shadow">
+              <h3 className="mb-2 text-xl font-semibold">
+                Current Roster ({team.roster.length})
+              </h3>
+              {team.roster.length > 0 ? (
+                <ul className="divide-y rounded-md border">
+                  {team.roster.map((member, index) => (
+                    <li key={member.id} className="p-2 even:bg-gray-50">
+                      {index + 1}. {member.name}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="rounded-md border p-2 text-sm text-gray-500">
+                  No players on roster, click manage roster to add players
+                </p>
+              )}
+              <Button
+                className="mt-4 bg-yellow-500 text-black hover:bg-yellow-600"
+                onClick={() => setRosterOpen(true)}
+              >
+                Manage Roster
+              </Button>
+            </div>
           </div>
         )}
         <div className="flex items-center justify-end gap-3">
@@ -175,7 +184,7 @@ export default function TeamInfoPanel({
       <RightDrawer
         drawerOpen={rosterOpen}
         handleDrawerClose={() => setRosterOpen(false)}
-        drawerWidth="w-[75%]"
+        drawerWidth="w-[50%]"
       >
         <RosterEditor team={team} onClose={() => setRosterOpen(false)} />
       </RightDrawer>
