@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { format } from "date-fns";
+import { fromZonedISOString } from "@/lib/utils";
 
 interface BarberTableProps {
   appointments: HaircutEventEventResponseDto[];
@@ -33,49 +34,51 @@ export default function BarberTable({
   appointments,
   onAppointmentSelect,
   onDeleteAppointment,
-  isLoading = false
+  isLoading = false,
 }: BarberTableProps) {
   const [sortColumn, setSortColumn] = React.useState<string | null>(null);
-  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">(
+    "asc"
+  );
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortColumn(column);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   const sortedAppointments = React.useMemo(() => {
     if (!sortColumn) return appointments;
-    
+
     return [...appointments].sort((a, b) => {
       let valueA, valueB;
-      
+
       switch (sortColumn) {
-        case 'customer':
-          valueA = a.customer_name || '';
-          valueB = b.customer_name || '';
+        case "customer":
+          valueA = a.customer_name || "";
+          valueB = b.customer_name || "";
           break;
-        case 'barber':
-          valueA = a.barber_name || '';
-          valueB = b.barber_name || '';
+        case "barber":
+          valueA = a.barber_name || "";
+          valueB = b.barber_name || "";
           break;
-        case 'date':
-          valueA = a.start_at ? new Date(a.start_at).getTime() : 0;
-          valueB = b.start_at ? new Date(b.start_at).getTime() : 0;
+        case "date":
+          valueA = a.start_at ? fromZonedISOString(a.start_at).getTime() : 0;
+          valueB = b.start_at ? fromZonedISOString(b.start_at).getTime() : 0;
           break;
         default:
           return 0;
       }
-      
-      if (typeof valueA === 'string' && typeof valueB === 'string') {
-        return sortDirection === 'asc' 
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return sortDirection === "asc"
           ? valueA.localeCompare(valueB)
           : valueB.localeCompare(valueA);
       } else {
-        return sortDirection === 'asc'
+        return sortDirection === "asc"
           ? Number(valueA) - Number(valueB)
           : Number(valueB) - Number(valueA);
       }
@@ -83,12 +86,14 @@ export default function BarberTable({
   }, [appointments, sortColumn, sortDirection]);
 
   // Function to determine appointment status
-  const getAppointmentStatus = (appointment: HaircutEventEventResponseDto): string => {
+  const getAppointmentStatus = (
+    appointment: HaircutEventEventResponseDto
+  ): string => {
     if (!appointment.start_at) return "Unknown";
-    
+
     const now = new Date();
-    const appointmentDate = new Date(appointment.start_at);
-    
+    const appointmentDate = fromZonedISOString(appointment.start_at);
+
     if (appointmentDate < now) {
       return "Completed";
     } else if (appointmentDate > now) {
@@ -117,27 +122,27 @@ export default function BarberTable({
       <Table className="border-collapse">
         <TableHeader className="bg-muted/100 sticky top-0 z-10">
           <TableRow className="hover:bg-transparent border-b">
-            <TableHead 
+            <TableHead
               className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
-              onClick={() => handleSort('customer')}
+              onClick={() => handleSort("customer")}
             >
               <div className="flex items-center space-x-2">
                 Customer
                 <ArrowUpDown className="ml-2 h-4 w-4" />
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
-              onClick={() => handleSort('barber')}
+              onClick={() => handleSort("barber")}
             >
               <div className="flex items-center space-x-2">
                 Barber
                 <ArrowUpDown className="ml-2 h-4 w-4" />
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
-              onClick={() => handleSort('date')}
+              onClick={() => handleSort("date")}
             >
               <div className="flex items-center space-x-2">
                 Date
@@ -155,7 +160,10 @@ export default function BarberTable({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center py-8 text-muted-foreground">
+              <TableCell
+                colSpan={5}
+                className="h-24 text-center py-8 text-muted-foreground"
+              >
                 Loading appointments...
               </TableCell>
             </TableRow>
@@ -175,25 +183,39 @@ export default function BarberTable({
                     {appointment.barber_name || "No barber assigned"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium">
-                    {appointment.start_at 
-                      ? format(new Date(appointment.start_at), "MMM dd, yyyy h:mm a") 
+                    {appointment.start_at
+                      ? format(
+                          fromZonedISOString(appointment.start_at),
+                          "MMM dd, yyyy h:mm a"
+                        )
                       : "No date"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium">
-                    <span className={`text-xs px-3 py-1 rounded-md ${getStatusStyle(status)}`}>
+                    <span
+                      className={`text-xs px-3 py-1 rounded-md ${getStatusStyle(status)}`}
+                    >
                       {status}
                     </span>
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium text-right">
-                    <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex justify-end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-accent">
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 hover:bg-accent"
+                          >
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="border bg-popover text-popover-foreground">
+                        <DropdownMenuContent
+                          align="end"
+                          className="border bg-popover text-popover-foreground"
+                        >
                           <DropdownMenuLabel className="px-3 py-2">
                             Appointment Actions
                           </DropdownMenuLabel>
@@ -208,7 +230,12 @@ export default function BarberTable({
                             <DropdownMenuItem
                               className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
                               onClick={() => {
-                                if (confirm("Are you sure you want to delete this appointment?") && appointment.id) {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to delete this appointment?"
+                                  ) &&
+                                  appointment.id
+                                ) {
                                   onDeleteAppointment(appointment.id);
                                 }
                               }}
@@ -225,7 +252,10 @@ export default function BarberTable({
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center py-8 text-muted-foreground">
+              <TableCell
+                colSpan={5}
+                className="h-24 text-center py-8 text-muted-foreground"
+              >
                 <div className="flex flex-col items-center space-y-2">
                   <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
                   <span>No appointments found</span>

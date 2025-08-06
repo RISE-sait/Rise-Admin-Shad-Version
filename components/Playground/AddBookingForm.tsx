@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { toZonedISOString } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -57,8 +58,8 @@ export default function AddBookingForm({
     // Build DTO for API
     const dto = {
       system_id: formData.system_id,
-      start_time: formData.start_time.toISOString(),
-      end_time: formData.end_time.toISOString(),
+      start_time: toZonedISOString(formData.start_time),
+      end_time: toZonedISOString(formData.end_time),
     };
 
     // Call update if editing, otherwise create new session

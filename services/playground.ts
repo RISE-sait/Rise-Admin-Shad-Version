@@ -1,6 +1,7 @@
 // services/playground.ts
 import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
+import { fromZonedISOString } from "@/lib/utils";
 import {
   PlaygroundSession,
   PlaygroundSystem,
@@ -17,10 +18,10 @@ function mapSession(data: any): PlaygroundSession {
     customer_id: data.customer_id,
     customer_first_name: data.customer_first_name,
     customer_last_name: data.customer_last_name,
-    start_time: new Date(data.start_time),
-    end_time: new Date(data.end_time),
-    created_at: new Date(data.created_at),
-    updated_at: new Date(data.updated_at),
+    start_time: fromZonedISOString(data.start_time),
+    end_time: fromZonedISOString(data.end_time),
+    created_at: fromZonedISOString(data.created_at),
+    updated_at: fromZonedISOString(data.updated_at),
   };
 }
 

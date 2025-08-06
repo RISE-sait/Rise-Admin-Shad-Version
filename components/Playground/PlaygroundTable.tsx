@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { fromZonedISOString } from "@/lib/utils";
 
 // Defines the shape of a booking object
 export interface RoomBooking {
@@ -72,8 +73,8 @@ export default function PlaygroundTable({
           valueB = b.system_name || "";
           break;
         case "date":
-          valueA = a.start_at ? new Date(a.start_at).getTime() : 0;
-          valueB = b.start_at ? new Date(b.start_at).getTime() : 0;
+          valueA = a.start_at ? fromZonedISOString(a.start_at).getTime() : 0;
+          valueB = b.start_at ? fromZonedISOString(b.start_at).getTime() : 0;
           break;
         default:
           return 0;
@@ -94,7 +95,7 @@ export default function PlaygroundTable({
   const getBookingStatus = (booking: RoomBooking): string => {
     if (!booking.start_at) return "Unknown";
     const now = new Date();
-    const bookingDate = new Date(booking.start_at);
+    const bookingDate = fromZonedISOString(booking.start_at);
     if (bookingDate < now) {
       return "Completed";
     } else if (bookingDate > now) {
@@ -198,7 +199,7 @@ export default function PlaygroundTable({
                   <TableCell className="px-6 py-4 text-sm font-medium">
                     {booking.start_at
                       ? format(
-                          new Date(booking.start_at),
+                          fromZonedISOString(booking.start_at),
                           "MMM dd, yyyy h:mm a"
                         )
                       : "No date"}

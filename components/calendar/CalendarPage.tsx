@@ -13,6 +13,7 @@ import { getAllPractices } from "@/services/practices";
 import { Game } from "@/types/games";
 import { Practice } from "@/types/practice";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
+import { fromZonedISOString } from "@/lib/utils";
 
 interface CalendarPageProps {
   events: CalendarEvent[];
@@ -41,21 +42,22 @@ export default function CalendarPage({ events }: CalendarPageProps) {
         ]);
         const mappedEvents: CalendarEvent[] = events.map((event: any) => ({
           ...event,
-          start_at: new Date(event.start_at),
-          end_at: new Date(event.end_at),
+          start_at: fromZonedISOString(event.start_at),
+          end_at: fromZonedISOString(event.end_at),
           createdBy: event.createdBy ?? "",
           updatedBy: event.updatedBy ?? "",
           color: getColorFromProgramType(event.program?.type),
         }));
 
         const monthGames: Game[] = games.filter(
-          (g: Game) => format(new Date(g.start_time), "yyyy-MM") === month
+          (g: Game) =>
+            format(fromZonedISOString(g.start_time), "yyyy-MM") === month
         );
 
         const mappedGames: CalendarEvent[] = monthGames.map((g: Game) => ({
           id: g.id,
-          start_at: new Date(g.start_time),
-          end_at: new Date(g.end_time),
+          start_at: fromZonedISOString(g.start_time),
+          end_at: fromZonedISOString(g.end_time),
           capacity: 0,
           color: getColorFromProgramType("game"),
           createdBy: { firstName: "", id: "", lastName: "" },
@@ -72,14 +74,15 @@ export default function CalendarPage({ events }: CalendarPageProps) {
         }));
 
         const monthPractices: Practice[] = practices.filter(
-          (p: Practice) => format(new Date(p.start_at), "yyyy-MM") === month
+          (p: Practice) =>
+            format(fromZonedISOString(p.start_at), "yyyy-MM") === month
         );
 
         const mappedPractices: CalendarEvent[] = monthPractices.map(
           (p: Practice) => ({
             id: p.id,
-            start_at: new Date(p.start_at),
-            end_at: new Date(p.end_at),
+            start_at: fromZonedISOString(p.start_at),
+            end_at: fromZonedISOString(p.end_at),
             capacity: p.capacity,
             color: getColorFromProgramType("practice"),
             createdBy: { firstName: "", id: "", lastName: "" },

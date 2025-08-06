@@ -30,6 +30,7 @@ import { Practice } from "@/types/practice";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
 import { Court } from "@/types/court";
+import { toZonedISOString, fromZonedISOString } from "@/lib/utils";
 
 export default function PracticeInfoPanel({
   practice,
@@ -46,8 +47,8 @@ export default function PracticeInfoPanel({
     team_id: practice.team_id || "",
     location_id: practice.location_id || "",
     court_id: practice.court_id || "",
-    start_at: new Date(practice.start_at).toISOString().slice(0, 16),
-    end_at: new Date(practice.end_at).toISOString().slice(0, 16),
+    start_at: fromZonedISOString(practice.start_at).toISOString().slice(0, 16),
+    end_at: fromZonedISOString(practice.end_at).toISOString().slice(0, 16),
     capacity: practice.capacity,
     status: practice.status as "scheduled" | "completed" | "canceled",
   });
@@ -105,8 +106,8 @@ export default function PracticeInfoPanel({
       court_id: data.court_id,
       location_id: data.location_id,
       team_id: data.team_id,
-      start_time: new Date(data.start_at).toISOString(),
-      end_time: new Date(data.end_at).toISOString(),
+      start_time: toZonedISOString(new Date(data.start_at)),
+      end_time: toZonedISOString(new Date(data.end_at)),
       status: data.status,
     };
 

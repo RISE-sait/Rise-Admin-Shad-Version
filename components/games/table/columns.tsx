@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Game } from "@/types/games";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { fromZonedISOString } from "@/lib/utils";
 
 const columns: ColumnDef<Game>[] = [
   {
@@ -40,7 +41,8 @@ const columns: ColumnDef<Game>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => new Date(row.getValue("start_time")).toLocaleString(),
+    cell: ({ row }) =>
+      fromZonedISOString(row.getValue("start_time")).toLocaleString(),
     minSize: 180,
     size: 220,
   },

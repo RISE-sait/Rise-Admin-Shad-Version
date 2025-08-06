@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Gamepad2, User, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { fromZonedISOString } from "@/lib/utils";
 import { RoomBooking } from "./PlaygroundTable";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -83,7 +84,10 @@ export default function BookingInfoPanel({
               <Calendar className="h-4 w-4 mr-2 text-primary" />
               <span>
                 {booking.start_at
-                  ? format(new Date(booking.start_at), "MMM dd, yyyy h:mm a")
+                  ? format(
+                      fromZonedISOString(booking.start_at),
+                      "MMM dd, yyyy h:mm a"
+                    )
                   : "N/A"}
               </span>
             </div>

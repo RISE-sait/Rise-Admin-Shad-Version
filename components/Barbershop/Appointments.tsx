@@ -12,14 +12,15 @@ import {
   Calendar as CalendarIcon,
   Filter,
   X,
-  CalendarDays
+  CalendarDays,
 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import { format, isBefore, isAfter, startOfDay } from "date-fns";
+import { fromZonedISOString } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import { HaircutEventEventResponseDto } from "@/app/api/Api";
@@ -36,7 +37,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -47,16 +48,25 @@ import { StaffRoleEnum } from "@/types/user";
 type AppointmentView = "all" | "upcoming" | "completed";
 
 export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<HaircutEventEventResponseDto[]>([]);
-  const [filteredAppointments, setFilteredAppointments] = useState<HaircutEventEventResponseDto[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [appointments, setAppointments] = useState<
+    HaircutEventEventResponseDto[]
+  >([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<
+    HaircutEventEventResponseDto[]
+  >([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date()
+  );
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<HaircutEventEventResponseDto | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<HaircutEventEventResponseDto | null>(null);
   const [activeView, setActiveView] = useState<AppointmentView>("all");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
@@ -71,8 +81,8 @@ export default function AppointmentsPage() {
   const { toast } = useToast();
   const { user } = useUser();
 
-  const isBarber = user?.Role === StaffRoleEnum.BARBER
-  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
+  const isBarber = user?.Role === StaffRoleEnum.BARBER;
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN;
 
   // Use ref to prevent multiple fetches on first render
   const isFirstFetch = useRef(true);
@@ -111,9 +121,9 @@ export default function AppointmentsPage() {
   useEffect(() => {
     setHasActiveFilters(
       (selectedBarber && selectedBarber !== "all") ||
-      (selectedCustomer && selectedCustomer !== "all") ||
-      !!startDate ||
-      !!endDate
+        (selectedCustomer && selectedCustomer !== "all") ||
+        !!startDate ||
+        !!endDate
     );
   }, [selectedBarber, selectedCustomer, startDate, endDate]);
 
@@ -156,8 +166,8 @@ export default function AppointmentsPage() {
 
           // Sort appointments by date
           appointmentsData.sort((a, b) => {
-            const dateA = new Date(a.start_at || "");
-            const dateB = new Date(b.start_at || "");
+            const dateA = fromZonedISOString(a.start_at || "");
+            const dateB = fromZonedISOString(b.start_at || "");
             return dateA.getTime() - dateB.getTime();
           });
 
@@ -169,12 +179,11 @@ export default function AppointmentsPage() {
           console.error("API error:", apiError);
           toast({
             status: "error",
-            description: `Failed to load appointments: ${apiError.message}`
+            description: `Failed to load appointments: ${apiError.message}`,
           });
           setAppointments([]);
           setFilteredAppointments([]);
         }
-
       } catch (error) {
         console.error("Error fetching appointments:", error);
         toast({ status: "error", description: "Failed to load appointments" });
@@ -205,7 +214,10 @@ export default function AppointmentsPage() {
           setFilteredAppointments(appointmentsData);
         } catch (error) {
           console.error("Initial fetch error:", error);
-          toast({ status: "error", description: "Failed to load appointments" });
+          toast({
+            status: "error",
+            description: "Failed to load appointments",
+          });
           setAppointments([]);
           setFilteredAppointments([]);
         } finally {
@@ -217,41 +229,51 @@ export default function AppointmentsPage() {
     } else {
       fetchAppointments();
     }
-  }, [selectedBarber, selectedCustomer, startDate, endDate, isBarber, isSuperAdmin, user?.ID, toast]);
+  }, [
+    selectedBarber,
+    selectedCustomer,
+    startDate,
+    endDate,
+    isBarber,
+    isSuperAdmin,
+    user?.ID,
+    toast,
+  ]);
 
   const applyViewFilter = (appointmentsToFilter = appointments) => {
     if (activeView === "upcoming") {
-      const upcoming = appointmentsToFilter.filter(apt => {
+      const upcoming = appointmentsToFilter.filter((apt) => {
         if (!apt.start_at) return false;
-        const aptDate = new Date(apt.start_at);
+        const aptDate = fromZonedISOString(apt.start_at);
         const today = new Date();
         return aptDate >= today;
       });
 
       setFilteredAppointments(applySearchFilter(upcoming));
-    }
-    else if (activeView === "completed") {
-      const completed = appointmentsToFilter.filter(apt => {
+    } else if (activeView === "completed") {
+      const completed = appointmentsToFilter.filter((apt) => {
         if (!apt.start_at) return false;
-        const aptDate = new Date(apt.start_at);
+        const aptDate = fromZonedISOString(apt.start_at);
         const today = new Date();
         return aptDate < today;
       });
 
       setFilteredAppointments(applySearchFilter(completed));
-    }
-    else {
+    } else {
       setFilteredAppointments(applySearchFilter(appointmentsToFilter));
     }
   };
 
   // Apply search filter
-  const applySearchFilter = (appointmentsToFilter: HaircutEventEventResponseDto[]) => {
+  const applySearchFilter = (
+    appointmentsToFilter: HaircutEventEventResponseDto[]
+  ) => {
     if (!searchQuery) return appointmentsToFilter;
 
-    return appointmentsToFilter.filter(apt =>
-      apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    return appointmentsToFilter.filter(
+      (apt) =>
+        apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
@@ -266,7 +288,9 @@ export default function AppointmentsPage() {
   }, [searchQuery]);
 
   // Handle appointment selection
-  const handleAppointmentSelect = (appointment: HaircutEventEventResponseDto) => {
+  const handleAppointmentSelect = (
+    appointment: HaircutEventEventResponseDto
+  ) => {
     setSelectedAppointment(appointment);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -275,17 +299,23 @@ export default function AppointmentsPage() {
   // Handle appointment deletion
   const handleDeleteAppointment = async (id: string) => {
     if (!user?.Jwt) {
-      toast({ status: "error", description: "You must be logged in to delete appointments" });
+      toast({
+        status: "error",
+        description: "You must be logged in to delete appointments",
+      });
       return;
     }
 
     try {
       await deleteHaircutEvent(id, user.Jwt);
-      toast({ status: "success", description: "Appointment deleted successfully" });
+      toast({
+        status: "success",
+        description: "Appointment deleted successfully",
+      });
 
       // Remove from state
-      setAppointments(prev => prev.filter(apt => apt.id !== id));
-      applyViewFilter(appointments.filter(apt => apt.id !== id));
+      setAppointments((prev) => prev.filter((apt) => apt.id !== id));
+      applyViewFilter(appointments.filter((apt) => apt.id !== id));
 
       // If deleted appointment is selected, close drawer
       if (selectedAppointment?.id === id) {
@@ -338,7 +368,8 @@ export default function AppointmentsPage() {
       console.error("Error refreshing appointments:", error);
       toast({
         status: "warning",
-        description: "Could not refresh appointments list. Please try again or refresh the page."
+        description:
+          "Could not refresh appointments list. Please try again or refresh the page.",
       });
       return false;
     } finally {
@@ -360,19 +391,22 @@ export default function AppointmentsPage() {
       const success = await refreshAppointments(false);
 
       if (success) {
-        toast({ status: "success", description: "Appointment created and list refreshed" });
+        toast({
+          status: "success",
+          description: "Appointment created and list refreshed",
+        });
       } else {
         // If refresh failed but appointment was created
         toast({
           status: "warning",
-          description: "Appointment created but couldn't refresh list. Please refresh manually."
+          description:
+            "Appointment created but couldn't refresh list. Please refresh manually.",
         });
       }
     } catch (error) {
       console.error("Error in handleAppointmentAdded:", error);
     }
   };
-
 
   // Reset all filters
   const resetFilters = () => {
@@ -384,22 +418,31 @@ export default function AppointmentsPage() {
   };
 
   // Get counts for different views
-  const upcomingCount = appointments.filter(apt => {
-    const aptDate = new Date(apt.start_at || "");
+  const upcomingCount = appointments.filter((apt) => {
+    const aptDate = fromZonedISOString(apt.start_at || "");
     const now = startOfDay(new Date());
-    return isAfter(aptDate, now) || format(aptDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+    return (
+      isAfter(aptDate, now) ||
+      format(aptDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd")
+    );
   }).length;
 
-  const completedCount = appointments.filter(apt => {
-    const aptDate = new Date(apt.start_at || "");
+  const completedCount = appointments.filter((apt) => {
+    const aptDate = fromZonedISOString(apt.start_at || "");
     const now = startOfDay(new Date());
-    return isBefore(aptDate, now) && format(aptDate, "yyyy-MM-dd") !== format(now, "yyyy-MM-dd");
+    return (
+      isBefore(aptDate, now) &&
+      format(aptDate, "yyyy-MM-dd") !== format(now, "yyyy-MM-dd")
+    );
   }).length;
 
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Appointments" description="Manage barber appointments" />
+        <Heading
+          title="Appointments"
+          description="Manage barber appointments"
+        />
         <Button
           onClick={() => {
             setDrawerContent("add");
@@ -414,7 +457,9 @@ export default function AppointmentsPage() {
       <Separator />
 
       <Link href="/manage/barbershop">
-        <Button variant="outline" className="mb-4">← Back to Barbershop</Button>
+        <Button variant="outline" className="mb-4">
+          ← Back to Barbershop
+        </Button>
       </Link>
 
       {/* View type filter cards */}
@@ -425,7 +470,9 @@ export default function AppointmentsPage() {
           role="button"
         >
           <CardHeader className="pb-1 pt-3 px-4">
-            <CardTitle className="text-base font-medium">All Appointments</CardTitle>
+            <CardTitle className="text-base font-medium">
+              All Appointments
+            </CardTitle>
           </CardHeader>
           <CardContent className="pb-3 px-4">
             <p className="text-xl font-bold">{appointments.length}</p>
@@ -485,8 +532,7 @@ export default function AppointmentsPage() {
                 Filters
                 {hasActiveFilters && (
                   <Badge className="ml-1 bg-primary h-5 w-5 p-0 flex items-center justify-center">
-                    <span className="sr-only">Active filters</span>
-                    ✓
+                    <span className="sr-only">Active filters</span>✓
                   </Badge>
                 )}
               </Button>
@@ -495,7 +541,12 @@ export default function AppointmentsPage() {
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Filters</h3>
-                  <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 text-xs">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetFilters}
+                    className="h-8 text-xs"
+                  >
                     Reset All
                   </Button>
                 </div>
@@ -504,12 +555,19 @@ export default function AppointmentsPage() {
                   <label className="text-sm font-medium">Date Range</label>
                   <div className="flex flex-col gap-2">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Start Date</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Start Date
+                      </p>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start text-left">
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left"
+                          >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP") : "No start date selected"}
+                            {startDate
+                              ? format(startDate, "PPP")
+                              : "No start date selected"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -524,12 +582,19 @@ export default function AppointmentsPage() {
                     </div>
 
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">End Date</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        End Date
+                      </p>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start text-left">
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left"
+                          >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "PPP") : "No end date selected"}
+                            {endDate
+                              ? format(endDate, "PPP")
+                              : "No end date selected"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
@@ -538,7 +603,9 @@ export default function AppointmentsPage() {
                             selected={endDate}
                             onSelect={setEndDate}
                             initialFocus
-                            disabled={(date) => startDate ? date < startDate : false}
+                            disabled={(date) =>
+                              startDate ? date < startDate : false
+                            }
                           />
                         </PopoverContent>
                       </Popover>
@@ -548,13 +615,16 @@ export default function AppointmentsPage() {
 
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Barber</label>
-                  <Select value={selectedBarber} onValueChange={setSelectedBarber}>
+                  <Select
+                    value={selectedBarber}
+                    onValueChange={setSelectedBarber}
+                  >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="All barbers" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All barbers</SelectItem>
-                      {barbers.map(barber => (
+                      {barbers.map((barber) => (
                         <SelectItem key={barber.ID} value={barber.ID}>
                           {barber.Name}
                         </SelectItem>
@@ -562,7 +632,6 @@ export default function AppointmentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
 
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Customer</label>
@@ -572,13 +641,20 @@ export default function AppointmentsPage() {
                     disabled={isLoadingCustomers}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={isLoadingCustomers ? "Loading customers..." : "All customers"} />
+                      <SelectValue
+                        placeholder={
+                          isLoadingCustomers
+                            ? "Loading customers..."
+                            : "All customers"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All customers</SelectItem>
-                      {customers.map(customer => (
+                      {customers.map((customer) => (
                         <SelectItem key={customer.id} value={customer.id}>
-                          {`${customer.first_name} ${customer.last_name}`} ({customer.email})
+                          {`${customer.first_name} ${customer.last_name}`} (
+                          {customer.email})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -625,22 +701,23 @@ export default function AppointmentsPage() {
               To: {format(endDate, "MMM dd, yyyy")}
             </Badge>
           )}
-          {selectedBarber && barbers.find(b => b.ID === selectedBarber) && (
+          {selectedBarber && barbers.find((b) => b.ID === selectedBarber) && (
             <Badge variant="secondary" className="flex gap-1 items-center">
-              Barber: {barbers.find(b => b.ID === selectedBarber)?.Name}
+              Barber: {barbers.find((b) => b.ID === selectedBarber)?.Name}
             </Badge>
           )}
 
           {selectedCustomer && selectedCustomer !== "all" && (
             <Badge variant="secondary" className="flex gap-1 items-center">
-              Customer: {
-                (() => {
-                  const customer = customers.find(c => c.id === selectedCustomer);
-                  return customer
-                    ? `${customer.first_name} ${customer.last_name}`
-                    : selectedCustomer;
-                })()
-              }
+              Customer:{" "}
+              {(() => {
+                const customer = customers.find(
+                  (c) => c.id === selectedCustomer
+                );
+                return customer
+                  ? `${customer.first_name} ${customer.last_name}`
+                  : selectedCustomer;
+              })()}
             </Badge>
           )}
         </div>
@@ -665,7 +742,9 @@ export default function AppointmentsPage() {
         >
           <div className="p-4">
             <h2 className="text-2xl font-bold tracking-tight mb-4">
-              {drawerContent === "details" ? "Appointment Details" : "Add Appointment"}
+              {drawerContent === "details"
+                ? "Appointment Details"
+                : "Add Appointment"}
             </h2>
             {drawerContent === "details" && selectedAppointment && (
               <AppointmentInfoPanel
@@ -678,7 +757,7 @@ export default function AppointmentsPage() {
                 onAppointmentAdded={handleAppointmentAdded}
                 onCancel={() => setDrawerOpen(false)}
                 services={[]}
-                barbers={barbers}  // Pass the barbers that are already fetched
+                barbers={barbers} // Pass the barbers that are already fetched
               />
             )}
           </div>
