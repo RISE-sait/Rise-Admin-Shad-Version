@@ -5,6 +5,13 @@ import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { updateUser } from "@/services/user";
 import type { UserUpdateRequestDto } from "@/app/api/Api";
+import { auth } from "@/configs/firebase";
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from "firebase/auth";
+import { loginWithFirebaseToken } from "@/services/auth";
 import {
   Card,
   CardContent,
@@ -206,9 +213,52 @@ export default function SettingsPage() {
     setAppearanceOpen(false);
   };
 
-  const handleUpdatePassword = () => {
-    // Password update logic goes here
-    setPasswordOpen(false);
+  const handleUpdatePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: "All password fields are required",
+        status: "error",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords do not match", status: "error" });
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) {
+      toast({ title: "No authenticated user", status: "error" });
+      return;
+    }
+
+    try {
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, newPassword);
+
+      const idToken = await currentUser.getIdToken(true);
+      const backendUser = await loginWithFirebaseToken(idToken);
+      localStorage.setItem("jwt", backendUser.Jwt);
+      setUser(backendUser);
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordOpen(false);
+      toast({ title: "Password updated", status: "success" });
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        title: "Password update failed",
+        description: error?.message || String(error),
+        status: "error",
+      });
+    }
   };
 
   return (
@@ -417,6 +467,7 @@ export default function SettingsPage() {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
                   />
                 </div>
                 <div className="grid gap-2">
@@ -426,6 +477,7 @@ export default function SettingsPage() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    required
                   />
                 </div>
                 <div className="grid gap-2">
@@ -435,6 +487,7 @@ export default function SettingsPage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
                   />
                 </div>
               </div>
