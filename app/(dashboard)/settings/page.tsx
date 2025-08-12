@@ -46,12 +46,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
-
-function getFlagEmoji(countryCode: string) {
-  return countryCode
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
-}
+import ReactCountryFlag from "react-country-flag";
+type CountryOption = { code: string; name: string };
 
 const countryNames: Record<string, string> = {
   US: "United States",
@@ -78,6 +74,7 @@ export default function SettingsPage() {
     : "";
 
   const [firstName, setFirstName] = useState(initialName[0] ?? "");
+  const [countriesList, setCountriesList] = useState<CountryOption[]>([]);
   const [lastName, setLastName] = useState(
     initialName.slice(1).join(" ") ?? ""
   );
@@ -86,6 +83,20 @@ export default function SettingsPage() {
   const [phoneCode, setPhoneCode] = useState(initialCode);
   const [phoneNumber, setPhoneNumber] = useState(initialNumber);
   const [email, setEmail] = useState(user?.Email ?? "");
+
+  useEffect(() => {
+    fetch("https://restcountries.com/v3.1/all?fields=cca2,name")
+      .then((res) => res.json())
+      .then((data) => {
+        const countries = data
+          .map((c: any) => ({ code: c.cca2, name: c.name.common }))
+          .sort((a: CountryOption, b: CountryOption) =>
+            a.name.localeCompare(b.name)
+          );
+        setCountriesList(countries);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -115,6 +126,9 @@ export default function SettingsPage() {
       setCountry(userCountry);
     }
   }, [user]);
+
+  const getCountryName = (code: string) =>
+    countriesList.find((c) => c.code === code)?.name ?? code;
 
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -161,6 +175,7 @@ export default function SettingsPage() {
       country_alpha2_code: editCountry,
       has_marketing_email_consent: false,
       has_sms_consent: false,
+      email: editEmail,
       ...(phoneDigits ? { phone: rawPhone } : {}),
     };
 
@@ -301,9 +316,13 @@ export default function SettingsPage() {
               Country of birth
             </Label>
             <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium">
-              <span>{countryNames[country] ?? ""}</span>
+              <span>{getCountryName(country)}</span>
               {country && (
-                <span className="text-lg">{getFlagEmoji(country)}</span>
+                <ReactCountryFlag
+                  countryCode={country}
+                  svg
+                  className="text-lg"
+                />
               )}
             </div>
           </div>
@@ -390,14 +409,27 @@ export default function SettingsPage() {
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                    <SelectItem value="GB">United Kingdom</SelectItem>
+                    {countriesList.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        <div className="flex items-center gap-2">
+                          <ReactCountryFlag
+                            countryCode={c.code}
+                            svg
+                            className="text-lg"
+                          />
+                          <span>{c.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <div className="flex h-6 w-10 items-center justify-center rounded border bg-muted">
                   {editCountry && (
-                    <span className="text-lg">{getFlagEmoji(editCountry)}</span>
+                    <ReactCountryFlag
+                      countryCode={editCountry}
+                      svg
+                      className="text-lg"
+                    />
                   )}
                 </div>
               </div>
@@ -445,7 +477,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div className="grid gap-1">
               <Label className="text-sm text-muted-foreground">Password</Label>
-              <div className="rounded-md border px-3 py-2 text-sm font-medium">
+              <div className="rounded-md border px-3 py-2 text-sm font-medium text-gray-600">
                 ********
               </div>
             </div>
