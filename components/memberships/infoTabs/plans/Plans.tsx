@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import getValue from "@/configs/constants";
@@ -324,16 +335,36 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     {" "}
                     Save{" "}
                   </div>
-                  <div
-                    className="p-1 pl-5 pr-5 bg-red-700 hover:bg-red-900 rounded cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation;
-                      DeletePlan(plan.id);
-                    }}
-                  >
-                    {" "}
-                    Delete{" "}
-                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div
+                        className="p-1 pl-5 pr-5 bg-red-700 hover:bg-red-900 rounded cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {" "}
+                        Delete{" "}
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this plan? This action
+                          cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => {
+                            DeletePlan(plan.id);
+                          }}
+                        >
+                          Confirm Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </div>
