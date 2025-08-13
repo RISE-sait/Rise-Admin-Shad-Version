@@ -22,6 +22,8 @@ export interface LoggedInUser {
   Role: StaffRoleEnum;
   IsActive: boolean;
   Jwt: string;
+  Dob: string;
+  CountryAlpha2Code: string;
 }
 
 export enum StaffRoleEnum {

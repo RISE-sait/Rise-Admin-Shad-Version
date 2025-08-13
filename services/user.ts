@@ -1,6 +1,5 @@
-import { UserUpdateRequestDto } from "@/app/api/Api";
+import { Api, UserUpdateRequestDto } from "@/app/api/Api";
 import getValue from "@/configs/constants";
-import { addAuthHeader } from "@/lib/auth-header";
 
 export async function updateUser(
   id: string,
@@ -8,34 +7,27 @@ export async function updateUser(
   jwt: string
 ): Promise<string | null> {
   try {
+    const api = new Api<{ token: string }>({
+      baseUrl: getValue("API").replace(/\/$/, ""),
+      securityWorker: (securityData) =>
+        securityData?.token
+          ? { headers: { Authorization: `Bearer ${securityData.token}` } }
+          : {},
+    });
+
+    api.setSecurityData({ token: jwt });
+
     const payload: UserUpdateRequestDto = { ...userData };
     if (payload.phone) {
       const digits = payload.phone.replace(/\D/g, "");
       payload.phone = digits.startsWith("1") ? `+${digits}` : `+1${digits}`;
     }
 
-    const response = await fetch(`${getValue("API")}users/${id}`, {
-      method: "PUT",
-      ...addAuthHeader(jwt),
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const responseJSON = await response.json().catch(() => ({}));
-      let errorMessage = `Failed to update user: ${response.statusText}`;
-
-      if (responseJSON.error) {
-        errorMessage = responseJSON.error.message;
-      } else if (responseJSON.message) {
-        errorMessage = responseJSON.message;
-      }
-
-      return errorMessage;
-    }
+    await api.users.usersUpdate(id, payload);
 
     return null;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating user:", error);
-    return error instanceof Error ? error.message : "Unknown error occurred";
+    return error?.error?.message || error?.message || "Unknown error occurred";
   }
 }
