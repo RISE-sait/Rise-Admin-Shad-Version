@@ -19,6 +19,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { format } from "date-fns";
 import { fromZonedISOString } from "@/lib/utils";
@@ -227,21 +238,40 @@ export default function BarberTable({
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {onDeleteAppointment && (
-                            <DropdownMenuItem
-                              className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
-                              onClick={() => {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this appointment?"
-                                  ) &&
-                                  appointment.id
-                                ) {
-                                  onDeleteAppointment(appointment.id);
-                                }
-                              }}
-                            >
-                              <span>Delete</span>
-                            </DropdownMenuItem>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
+                                  onSelect={(e) => e.preventDefault()}
+                                >
+                                  <span>Cancel Appointment</span>
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Confirm Cancellation
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel this
+                                    appointment?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    Keep Appointment
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      appointment.id &&
+                                      onDeleteAppointment(appointment.id)
+                                    }
+                                  >
+                                    Confirm Cancel
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>

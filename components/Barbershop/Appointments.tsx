@@ -296,12 +296,12 @@ export default function AppointmentsPage() {
     setDrawerOpen(true);
   };
 
-  // Handle appointment deletion
+  // Handle appointment cancellation
   const handleDeleteAppointment = async (id: string) => {
     if (!user?.Jwt) {
       toast({
         status: "error",
-        description: "You must be logged in to delete appointments",
+        description: "You must be logged in to cancel appointments",
       });
       return;
     }
@@ -310,7 +310,7 @@ export default function AppointmentsPage() {
       await deleteHaircutEvent(id, user.Jwt);
       toast({
         status: "success",
-        description: "Appointment deleted successfully",
+        description: "Appointment canceled successfully",
       });
 
       // Remove from state
@@ -323,7 +323,7 @@ export default function AppointmentsPage() {
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
-      toast({ status: "error", description: "Failed to delete appointment" });
+      toast({ status: "error", description: "Failed to cancel appointment" });
     }
   };
 
