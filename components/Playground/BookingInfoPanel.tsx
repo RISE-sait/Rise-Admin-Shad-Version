@@ -12,6 +12,17 @@ import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { deletePlaygroundSession } from "@/services/playground";
 import { revalidatePlayground } from "@/actions/serverActions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface BookingInfoPanelProps {
   booking: RoomBooking;
@@ -27,13 +38,10 @@ export default function BookingInfoPanel({
 }: BookingInfoPanelProps) {
   const [tabValue, setTabValue] = useState("details"); // Current tab
 
-  // Confirm deletion before calling onDelete
   const { user } = useUser();
   const { toast } = useToast();
 
   const handleDelete = async () => {
-    if (!confirm("Delete this booking?")) return;
-
     const error = await deletePlaygroundSession(booking.id, user?.Jwt!);
 
     if (error) {
@@ -103,7 +111,7 @@ export default function BookingInfoPanel({
         </TabsContent>
       </Tabs>
 
-      {/* Sticky footer with Edit/Delete */}
+      {/* Sticky footer with Edit/Cancel */}
       <div className="sticky bottom-0 bg-background/95 py-4 border-t z-10 mt-8">
         <div className="flex justify-between items-center px-2">
           <p className="text-sm text-muted-foreground">ID: {booking.id}</p>
@@ -111,9 +119,28 @@ export default function BookingInfoPanel({
             <Button variant="secondary" onClick={() => onEdit(booking)}>
               <Pencil className="h-4 w-4 mr-2" /> Edit
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4 mr-2" /> Delete
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" /> Cancel
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to cancel this booking? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Cancel Booking
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
