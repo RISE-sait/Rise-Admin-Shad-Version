@@ -128,7 +128,7 @@ export default function TeamInfoPanel({
               {team.roster.length > 0 ? (
                 <ul className="divide-y rounded-md border">
                   {team.roster.map((member, index) => (
-                    <li key={member.id} className="p-2 even:bg-gray-50">
+                    <li key={member.id} className="p-2 even:bg-secondary">
                       {index + 1}. {member.name}
                     </li>
                   ))}
