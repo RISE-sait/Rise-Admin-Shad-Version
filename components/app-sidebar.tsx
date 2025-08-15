@@ -32,6 +32,75 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const role = user?.Role;
 
   // Build nav items based on role
+  const manageItems =
+    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN
+      ? [
+          {
+            title: "Customers",
+            url: "/manage/customers",
+            icon: <Users width={15} height={15} />,
+          },
+          {
+            title: "Programs",
+            url: "/manage/programs",
+            icon: <List width={15} height={15} />,
+          },
+          {
+            title: "Facilities",
+            url: "/manage/facilities",
+            icon: <MapPin width={15} height={15} />,
+          },
+          {
+            title: "Memberships",
+            url: "/manage/memberships",
+            icon: <Ticket width={15} height={15} />,
+          },
+          {
+            title: "Staff",
+            url: "/manage/staff",
+            icon: <UserCog width={15} height={15} />,
+          },
+          {
+            title: "Teams",
+            url: "/manage/teams",
+            icon: <Users width={15} height={15} />,
+          },
+          {
+            title: "Games",
+            url: "/manage/games",
+            icon: <Trophy width={15} height={15} />,
+          },
+          {
+            title: "Practices",
+            url: "/manage/practices",
+            icon: <Dribbble width={15} height={15} />,
+          },
+          {
+            title: "Amenities",
+            url: "/manage/amenities",
+            icon: <Gamepad2 width={15} height={15} />,
+          },
+        ]
+      : role === StaffRoleEnum.COACH
+        ? [
+            {
+              title: "Teams",
+              url: "/manage/teams",
+              icon: <Users width={15} height={15} />,
+            },
+            {
+              title: "Games",
+              url: "/manage/games",
+              icon: <Trophy width={15} height={15} />,
+            },
+            {
+              title: "Practices",
+              url: "/manage/practices",
+              icon: <Dribbble width={15} height={15} />,
+            },
+          ]
+        : [];
+
   const navMain = [
     {
       title: "Dashboard",
@@ -47,63 +116,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
       ],
     },
-    {
-      title: "Manage",
-      icon: <Wrench width={15} height={15} />,
-      isActive: true,
-      items: [
-        // Only Admin/SuperAdmin can see Customers, Programs, Locations, Memberships, Staff
-        ...(role == StaffRoleEnum.ADMIN || role == StaffRoleEnum.SUPERADMIN
-          ? [
-              {
-                title: "Customers",
-                url: "/manage/customers",
-                icon: <Users width={15} height={15} />,
-              },
-              {
-                title: "Programs",
-                url: "/manage/programs",
-                icon: <List width={15} height={15} />,
-              },
-              {
-                title: "Facilities",
-                url: "/manage/facilities",
-                icon: <MapPin width={15} height={15} />,
-              },
-              {
-                title: "Memberships",
-                url: "/manage/memberships",
-                icon: <Ticket width={15} height={15} />,
-              },
-              {
-                title: "Staff",
-                url: "/manage/staff",
-                icon: <UserCog width={15} height={15} />,
-              },
-              {
-                title: "Teams",
-                url: "/manage/teams",
-                icon: <Users width={15} height={15} />,
-              },
-              {
-                title: "Games",
-                url: "/manage/games",
-                icon: <Trophy width={15} height={15} />,
-              },
-              {
-                title: "Practices",
-                url: "/manage/practices",
-                icon: <Dribbble width={15} height={15} />,
-              },
-              {
-                title: "Amenities",
-                url: "/manage/amenities",
-                icon: <Gamepad2 width={15} height={15} />,
-              },
-            ]
-          : []),
-      ],
-    },
+    // Only include Manage section when there are items to show
+    ...(manageItems.length
+      ? [
+          {
+            title: "Manage",
+            icon: <Wrench width={15} height={15} />,
+            isActive: true,
+            items: manageItems,
+          },
+        ]
+      : []),
   ];
 
   const navUserProps = {
