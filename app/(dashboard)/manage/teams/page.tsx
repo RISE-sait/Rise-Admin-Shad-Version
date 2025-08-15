@@ -7,7 +7,7 @@ export default async function Page() {
   const teams = await getAllTeams();
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.COACH]}>
       <div className="flex">
         <TeamsPage teams={teams} />
       </div>
