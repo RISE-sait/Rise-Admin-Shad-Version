@@ -38,7 +38,7 @@ export default function PracticesPageContainer() {
   );
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.COACH]}>
       <div className="flex">{content}</div>
     </RoleProtected>
   );

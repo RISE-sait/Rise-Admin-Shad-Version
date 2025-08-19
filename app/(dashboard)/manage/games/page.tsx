@@ -30,7 +30,7 @@ export default function GamesPageContainer() {
   const content = loading ? <PageSkeleton /> : <GamesPage games={games} />;
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.COACH]}>
       <div className="flex">{content}</div>
     </RoleProtected>
   );
