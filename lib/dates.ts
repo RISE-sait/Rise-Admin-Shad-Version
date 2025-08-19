@@ -91,4 +91,45 @@ function parseEventDate(dateString: string): Date | null {
   return parsedDate;
 }
 
-export { formatDate, parseEventDate };
+/**
+ * Formats a Date into an ISO string with the America/Edmonton timezone offset.
+ *
+ * The backend expects timestamps like "2025-09-01T15:00:00-06:00" so that the
+ * hour remains the same after storage. This helper converts any Date instance
+ * into that representation, automatically adjusting for daylight saving time.
+ */
+function formatEventDate(date: Date): string {
+  const timeZone = "America/Edmonton";
+
+  // Format the parts in the target timezone
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter
+    .formatToParts(date)
+    .reduce<Record<string, string>>((acc, p) => {
+      if (p.type !== "literal") acc[p.type] = p.value;
+      return acc;
+    }, {});
+
+  const { year, month, day, hour, minute, second } = parts;
+
+  // Determine the numeric offset for America/Edmonton at the given date
+  const zonedDate = new Date(date.toLocaleString("en-US", { timeZone }));
+  const diff = date.getTime() - zonedDate.getTime();
+  const offsetMinutes = diff / 60000;
+  const sign = offsetMinutes > 0 ? "-" : "+";
+  const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, "0");
+  const offset = `${sign}${pad(offsetMinutes / 60)}:${pad(offsetMinutes % 60)}`;
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
+}
+
+export { formatDate, parseEventDate, formatEventDate };
