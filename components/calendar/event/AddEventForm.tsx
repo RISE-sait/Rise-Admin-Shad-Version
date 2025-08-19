@@ -143,9 +143,12 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         return;
       }
 
+      // Format a HH:MM string into HH:MM:SS with the America/Edmonton offset
       const formatTime = (t: string) => {
         const [h, m] = t.split(":");
-        return `${h}:${m}:00+00:00`;
+        const base = new Date();
+        base.setHours(Number(h), Number(m), 0, 0);
+        return formatEventDate(base).split("T")[1];
       };
 
       const startDate = new Date(data.recurrence_start_at);
