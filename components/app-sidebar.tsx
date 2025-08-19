@@ -101,39 +101,53 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ]
         : [];
 
-  const navMain = [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: <HomeIcon width={20} height={15} />,
-      isActive: true,
-      items: [
-        // Everyone with access can see Calendar
-        {
-          title: "Calendar",
-          url: "/calendar",
-          icon: <Calendar width={15} height={15} />,
-        },
-      ],
-    },
-    // Only include Manage section when there are items to show
-    ...(manageItems.length
+  const navMain =
+    role === StaffRoleEnum.COACH
       ? [
           {
-            title: "Manage",
-            icon: <Wrench width={15} height={15} />,
-            isActive: true,
-            items: manageItems,
+            title: "Calendar",
+            url: "/calendar",
+            icon: <Calendar width={15} height={15} />,
           },
+          // Only include Manage section when there are items to show
+          ...(manageItems.length
+            ? [
+                {
+                  title: "Manage",
+                  icon: <Wrench width={15} height={15} />,
+                  isActive: true,
+                  items: manageItems,
+                },
+              ]
+            : []),
         ]
-      : []),
-  ];
-
-  const navUserProps = {
-    email: user?.Email || "",
-    name: user?.Name || "",
-    avatar: "/avatars/shadcn.jpg",
-  };
+      : [
+          {
+            title: "Dashboard",
+            url: "/",
+            icon: <HomeIcon width={20} height={15} />,
+            isActive: true,
+            items: [
+              // Everyone with access can see Calendar
+              {
+                title: "Calendar",
+                url: "/calendar",
+                icon: <Calendar width={15} height={15} />,
+              },
+            ],
+          },
+          // Only include Manage section when there are items to show
+          ...(manageItems.length
+            ? [
+                {
+                  title: "Manage",
+                  icon: <Wrench width={15} height={15} />,
+                  isActive: true,
+                  items: manageItems,
+                },
+              ]
+            : []),
+        ];
 
   return (
     <Sidebar collapsible="icon" {...props}>

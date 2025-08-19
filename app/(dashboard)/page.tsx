@@ -17,6 +17,9 @@ import { format, isSameDay } from "date-fns";
 import { getEvents } from "@/services/events";
 import { getAllGames } from "@/services/games";
 import { getAllPractices } from "@/services/practices";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 import {
   Users,
   Calendar,
@@ -79,6 +82,14 @@ const recentActivity = [
 
 export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.Role === StaffRoleEnum.COACH) {
+      router.replace("/calendar");
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const loadSchedule = async () => {

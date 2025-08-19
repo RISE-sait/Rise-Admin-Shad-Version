@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { loginWithFirebaseToken } from "@/services/auth";
 import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -70,7 +71,7 @@ export default function Login() {
         setUser(user);
 
         toast({ status: "success", description: "Successfully logged in!" });
-        router.push("/");
+        router.push(user.Role === StaffRoleEnum.COACH ? "/calendar" : "/");
       } else {
         toast({
           status: "error",
@@ -111,7 +112,7 @@ export default function Login() {
           status: "success",
           description: "Successfully logged in with Google!",
         });
-        router.push("/");
+        router.push(user.Role === StaffRoleEnum.COACH ? "/calendar" : "/");
       } else {
         toast({
           status: "error",

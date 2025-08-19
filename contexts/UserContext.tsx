@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { LoggedInUser, User } from "@/types/user";
+import { LoggedInUser, StaffRoleEnum } from "@/types/user";
 import { onIdTokenChanged } from "firebase/auth";
 import { auth } from "@/configs/firebase";
 import { loginWithFirebaseToken } from "@/services/auth";
@@ -30,8 +30,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user !== null) {
-      if (pathname === '/login') {
-        router.push('/');
+      if (pathname === "/login") {
+        router.push(user.Role === StaffRoleEnum.COACH ? "/calendar" : "/");
         return;
       }
       setIsLoading(false); // Not loading once we have a user
@@ -59,7 +59,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           // Update user context
           setUser(backendUser);
           if (pathname === "/login") {
-            router.push("/");
+            router.push(
+              backendUser.Role === StaffRoleEnum.COACH ? "/calendar" : "/"
+            );
           }
         } else {
           console.error("Backend authentication failed, user is null");
@@ -78,7 +80,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // Update context state
     setUser(null);
     // Optional: Force a hard refresh for a clean state
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 
   return (
