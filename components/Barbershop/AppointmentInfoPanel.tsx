@@ -10,6 +10,17 @@ import { useUser } from "@/contexts/UserContext";
 import { deleteHaircutEvent } from "@/services/haircuts";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar, ClipboardList, Clock, User } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface AppointmentInfoPanelProps {
   appointment: HaircutEventEventResponseDto;
@@ -21,7 +32,7 @@ export default function AppointmentInfoPanel({
   onAppointmentUpdated,
 }: AppointmentInfoPanelProps) {
   const [tabValue, setTabValue] = useState("details");
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const { toast } = useToast();
   const { user } = useUser();
 
@@ -42,35 +53,31 @@ export default function AppointmentInfoPanel({
     return `${diffMinutes} minutes`;
   };
 
-  // Handle delete appointment
-  const handleDeleteAppointment = async () => {
+  // Handle cancel appointment
+  const handleCancelAppointment = async () => {
     if (!appointment.id || !user?.Jwt) {
       toast({
         status: "error",
-        description: "Unable to delete appointment: Missing information",
+        description: "Unable to cancel appointment: Missing information",
       });
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this appointment?")) {
-      return;
-    }
-
     try {
-      setIsDeleting(true);
+      setIsCancelling(true);
       await deleteHaircutEvent(appointment.id, user.Jwt);
       toast({
         status: "success",
-        description: "Appointment deleted successfully",
+        description: "Appointment canceled successfully",
       });
       if (onAppointmentUpdated) {
         onAppointmentUpdated();
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
-      toast({ status: "error", description: "Failed to delete appointment" });
+      toast({ status: "error", description: "Failed to cancel appointment" });
     } finally {
-      setIsDeleting(false);
+      setIsCancelling(false);
     }
   };
 
@@ -162,14 +169,31 @@ export default function AppointmentInfoPanel({
           </p>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAppointment}
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isDeleting ? "Deleting..." : "Delete Appointment"}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={isCancelling}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {isCancelling ? "Canceling..." : "Cancel Appointment"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to cancel this appointment?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleCancelAppointment}>
+                    Confirm Cancel
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
