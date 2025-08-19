@@ -15,6 +15,17 @@ import { Game } from "@/types/games";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
 import { toZonedISOString, fromZonedISOString } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function GameInfoPanel({
   game,
@@ -95,7 +106,6 @@ export default function GameInfoPanel({
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this game?")) return;
     const error = await deleteGame(game.id, user?.Jwt!);
     if (error === null) {
       toast({ status: "success", description: "Game deleted successfully" });
@@ -205,13 +215,31 @@ export default function GameInfoPanel({
         >
           <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
         </Button>
-        <Button
-          variant="destructive"
-          className="bg-red-600 hover:bg-red-700"
-          onClick={handleDelete}
-        >
-          <TrashIcon className="h-4 w-4 mr-2" /> Delete
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" /> Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this game? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>
+                Confirm Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
