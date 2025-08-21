@@ -24,7 +24,7 @@ import { revalidateEvents } from "@/actions/serverActions";
 import { useCalendarContext } from "../calendar-context";
 import { CalendarEvent } from "@/types/calendar";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
-import { formatEventDate } from "@/lib/dates";
+import { toZonedISOString } from "@/lib/utils";
 
 function getColorFromProgramType(programType?: string): string {
   switch (programType) {
@@ -121,8 +121,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         team_id: data.team_id || undefined,
         location_id: data.location_id,
         court_id: data.court_id ? data.court_id : null,
-        start_at: formatEventDate(new Date(data.start_at)),
-        end_at: formatEventDate(new Date(data.end_at)),
+        start_at: toZonedISOString(new Date(data.start_at)),
+        end_at: toZonedISOString(new Date(data.end_at)),
         capacity: data.capacity ? Number(data.capacity) : undefined,
       };
 
@@ -143,12 +143,9 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         return;
       }
 
-      // Format a HH:MM string into HH:MM:SS with the America/Edmonton offset
       const formatTime = (t: string) => {
         const [h, m] = t.split(":");
-        const base = new Date();
-        base.setHours(Number(h), Number(m), 0, 0);
-        return formatEventDate(base).split("T")[1];
+        return `${h}:${m}:00+00:00`;
       };
 
       const startDate = new Date(data.recurrence_start_at);
@@ -160,8 +157,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         team_id: data.team_id || undefined,
         location_id: data.location_id,
         court_id: data.court_id ? data.court_id : null,
-        recurrence_start_at: formatEventDate(startDate),
-        recurrence_end_at: formatEventDate(endDate),
+        recurrence_start_at: toZonedISOString(startDate),
+        recurrence_end_at: toZonedISOString(endDate),
         event_start_at: formatTime(data.event_start_at),
         event_end_at: formatTime(data.event_end_at),
         day: data.day,

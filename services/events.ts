@@ -11,7 +11,6 @@ import {
   EventCreateRequest,
   EventRecurrenceCreateRequest,
 } from "@/types/events";
-import { parseEventDate } from "@/lib/dates";
 
 export async function getEventsByMonth(
   month: string
@@ -335,8 +334,8 @@ export async function getSchedulesOfProgram(
       const sch: EventSchedule = {
         id: schedule.id!,
         day: schedule.day!,
-        recurrence_start_at: parseEventDate(schedule.recurrence_start_at!)!,
-        recurrence_end_at: parseEventDate(schedule.recurrence_end_at!)!,
+        recurrence_start_at: new Date(schedule.recurrence_start_at!),
+        recurrence_end_at: new Date(schedule.recurrence_end_at!),
         event_start_at: schedule.session_start_at!,
         event_end_at: schedule.session_end_at!,
         location: {
@@ -392,8 +391,8 @@ export async function getEvent(id: string): Promise<Event> {
 
     const evt: Event = {
       id: event.id!,
-      start_at: parseEventDate(event.start_at!)!,
-      end_at: parseEventDate(event.end_at!)!,
+      start_at: new Date(event.start_at!),
+      end_at: new Date(event.end_at!),
       location: {
         id: event.location!.id!,
         name: event.location!.name!,
