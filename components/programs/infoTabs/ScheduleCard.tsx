@@ -32,7 +32,6 @@ import {
 import { TrashIcon, SaveIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { formatEventDate } from "@/lib/dates";
 
 export default function ScheduleCard({
   onDeleteSchedule,
@@ -52,14 +51,12 @@ export default function ScheduleCard({
 
   const form = useForm({
     defaultValues: {
-      recurrence_start_at: formatEventDate(schedule.recurrence_start_at).slice(
-        0,
-        16
-      ) as string,
-      recurrence_end_at: formatEventDate(schedule.recurrence_end_at).slice(
-        0,
-        16
-      ) as string,
+      recurrence_start_at: schedule.recurrence_start_at
+        .toISOString()
+        .slice(0, 16) as string,
+      recurrence_end_at: schedule.recurrence_end_at
+        .toISOString()
+        .slice(0, 16) as string,
       event_start_at: schedule.event_start_at as string,
       event_end_at: schedule.event_end_at as string,
       day: schedule.day.toUpperCase() as string,
@@ -103,11 +100,9 @@ export default function ScheduleCard({
         (team) => team.name === form.getValues("team_name")
       );
 
-      const formatTime = (timeStr: string) => {
+      const formatTimeToISO = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(":");
-        const base = new Date();
-        base.setHours(Number(hours), Number(minutes), 0, 0);
-        return formatEventDate(base).split("T")[1];
+        return `${hours}:${minutes}:00+00:00`;
       };
 
       await createEvents(
@@ -115,14 +110,14 @@ export default function ScheduleCard({
           program_id: schedule.program?.id,
           location_id: location?.id,
           team_id: team?.id,
-          recurrence_start_at: formatEventDate(
-            new Date(form.getValues("recurrence_start_at"))
-          ),
-          recurrence_end_at: formatEventDate(
-            new Date(form.getValues("recurrence_end_at"))
-          ),
-          event_start_at: formatTime(form.getValues("event_start_at")),
-          event_end_at: formatTime(form.getValues("event_end_at")),
+          recurrence_start_at: new Date(
+            form.getValues("recurrence_start_at")
+          ).toISOString(),
+          recurrence_end_at: new Date(
+            form.getValues("recurrence_end_at")
+          ).toISOString(),
+          event_start_at: formatTimeToISO(form.getValues("event_start_at")),
+          event_end_at: formatTimeToISO(form.getValues("event_end_at")),
           day: form.getValues("day"),
         },
         jwt!
@@ -158,11 +153,9 @@ export default function ScheduleCard({
       );
 
       // should be mdt timezone
-      const formatTime = (timeStr: string) => {
+      const formatTimeToISO = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(":");
-        const base = new Date();
-        base.setHours(Number(hours), Number(minutes), 0, 0);
-        return formatEventDate(base).split("T")[1];
+        return `${hours}:${minutes}:00-06:00`;
       };
 
       await updateRecurrence(
@@ -170,14 +163,14 @@ export default function ScheduleCard({
           program_id: schedule.program?.id,
           location_id: location?.id,
           team_id: team?.id,
-          recurrence_start_at: formatEventDate(
-            new Date(form.getValues("recurrence_start_at"))
-          ),
-          recurrence_end_at: formatEventDate(
-            new Date(form.getValues("recurrence_end_at"))
-          ),
-          event_start_at: formatTime(form.getValues("event_start_at")),
-          event_end_at: formatTime(form.getValues("event_end_at")),
+          recurrence_start_at: new Date(
+            form.getValues("recurrence_start_at")
+          ).toISOString(),
+          recurrence_end_at: new Date(
+            form.getValues("recurrence_end_at")
+          ).toISOString(),
+          event_start_at: formatTimeToISO(form.getValues("event_start_at")),
+          event_end_at: formatTimeToISO(form.getValues("event_end_at")),
           day: form.getValues("day"),
         },
         schedule.id,
