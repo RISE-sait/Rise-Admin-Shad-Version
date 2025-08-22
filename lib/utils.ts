@@ -58,6 +58,20 @@ export function fromZonedISOString(isoString: string): Date {
 }
 
 /**
+ * Convert a Date to an ISO string adjusted to the local timezone.
+ *
+ * Useful for pre-filling `datetime-local` input values without shifting
+ * the visible time.
+ *
+ * @param date - The date to convert.
+ * @returns ISO string representing the same wall-clock time.
+ */
+export function toLocalISOString(date: Date): string {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString();
+}
+
+/**
  * Converts a given date to a UTC date string with the time set to 00:00:00.
  *
  * This function ensures that the date remains the same across time zones, but any time component

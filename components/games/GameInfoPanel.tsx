@@ -14,7 +14,11 @@ import { revalidateGames } from "@/actions/serverActions";
 import { Game } from "@/types/games";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
-import { toZonedISOString, fromZonedISOString } from "@/lib/utils";
+import {
+  toZonedISOString,
+  fromZonedISOString,
+  toLocalISOString,
+} from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,8 +42,11 @@ export default function GameInfoPanel({
     home_team_id: game.home_team_id,
     away_team_id: game.away_team_id,
     location_id: game.location_id,
-    start_time: fromZonedISOString(game.start_time).toISOString().slice(0, 16),
-    end_time: fromZonedISOString(game.end_time).toISOString().slice(0, 16),
+    start_time: toLocalISOString(fromZonedISOString(game.start_time)).slice(
+      0,
+      16
+    ),
+    end_time: toLocalISOString(fromZonedISOString(game.end_time)).slice(0, 16),
     status: game.status as "scheduled" | "completed" | "canceled",
   });
   const { user } = useUser();
