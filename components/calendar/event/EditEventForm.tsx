@@ -20,7 +20,7 @@ import { revalidateEvents } from "@/actions/serverActions";
 import { useCalendarContext } from "../calendar-context";
 import { CalendarEvent } from "@/types/calendar";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
-import { toZonedISOString } from "@/lib/utils";
+import { toZonedISOString, toLocalISOString } from "@/lib/utils";
 
 function getColorFromProgramType(programType?: string): string {
   switch (programType) {
@@ -95,8 +95,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           (selectedEvent as any).court?.id ||
           (selectedEvent as any).court_id ||
           "",
-        start_at: toZonedISOString(selectedEvent.start_at).slice(0, 16),
-        end_at: toZonedISOString(selectedEvent.end_at).slice(0, 16),
+        start_at: toLocalISOString(selectedEvent.start_at).slice(0, 16),
+        end_at: toLocalISOString(selectedEvent.end_at).slice(0, 16),
       });
     }
   }, [selectedEvent]);
