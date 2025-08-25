@@ -1785,6 +1785,13 @@
               "additionalProperties": true
             }
           },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
           "500": {
             "description": "Internal Server Error",
             "schema": {
@@ -1881,6 +1888,13 @@
               "additionalProperties": true
             }
           },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
           "404": {
             "description": "Not Found: Game not found",
             "schema": {
@@ -1923,6 +1937,13 @@
           },
           "400": {
             "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -4065,6 +4086,88 @@
         }
       }
     },
+    "/secure/schedule": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieves a consolidated schedule of events, games, and practices based on user role and associations.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["schedule"],
+        "summary": "Get my schedule",
+        "responses": {
+          "200": {
+            "description": "Schedule retrieved successfully with events, games, and practices",
+            "schema": {
+              "$ref": "#/definitions/schedule.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/secure/teams": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieves teams based on user role. Coaches see only teams they coach, admins see all teams.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["teams"],
+        "summary": "Get my teams (role-based)",
+        "responses": {
+          "200": {
+            "description": "Teams retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/team.Response"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Role not supported",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/staffs": {
       "get": {
         "consumes": ["application/json"],
@@ -5108,7 +5211,15 @@
           "type": "string",
           "example": "0bab3927-50eb-42b3-9d6b-2350dd00a100"
         },
+        "price_id": {
+          "type": "string",
+          "example": "price_123"
+        },
         "program_id": {
+          "type": "string",
+          "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
+        },
+        "required_membership_plan_id": {
           "type": "string",
           "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
         },
@@ -5240,6 +5351,10 @@
           "type": "string",
           "example": "0bab3927-50eb-42b3-9d6b-2350dd00a100"
         },
+        "price_id": {
+          "type": "string",
+          "example": "price_123"
+        },
         "program_id": {
           "type": "string",
           "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
@@ -5251,6 +5366,10 @@
         "recurrence_start_at": {
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
+        },
+        "required_membership_plan_id": {
+          "type": "string",
+          "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
         },
         "team_id": {
           "type": "string",
@@ -5750,6 +5869,9 @@
       "type": "object",
       "required": ["court_id", "location_id", "start_time", "team_id"],
       "properties": {
+        "booked_by": {
+          "type": "string"
+        },
         "court_id": {
           "type": "string"
         },
@@ -5774,6 +5896,12 @@
     "practice.ResponseDto": {
       "type": "object",
       "properties": {
+        "booked_by": {
+          "type": "string"
+        },
+        "booked_by_name": {
+          "type": "string"
+        },
         "court_id": {
           "type": "string"
         },
@@ -5873,6 +6001,29 @@
         },
         "updated_at": {
           "type": "string"
+        }
+      }
+    },
+    "schedule.Response": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/event.EventResponseDto"
+          }
+        },
+        "games": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/game.ResponseDto"
+          }
+        },
+        "practices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/practice.ResponseDto"
+          }
         }
       }
     },
