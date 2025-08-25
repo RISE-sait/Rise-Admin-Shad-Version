@@ -48,10 +48,10 @@ const columns: ColumnDef<Practice>[] = [
     size: 220,
   },
   {
-    id: "booked_by",
-    accessorKey: "booked_by",
+    id: "booked_by_name",
+    accessorKey: "booked_by_name",
     header: "Booked By",
-    cell: ({ row }) => row.getValue("booked_by") || "-",
+    cell: ({ row }) => row.getValue("booked_by_name"),
     minSize: 150,
     size: 200,
   },

@@ -157,9 +157,9 @@ export default function PracticeInfoPanel({
 
   return (
     <div className="space-y-6">
-      {practice.booked_by && (
+      {practice.booked_by_name && (
         <p className="text-sm text-muted-foreground">
-          Booked By: {practice.booked_by}
+          Booked By: {practice.booked_by_name}
         </p>
       )}
       <div className="space-y-4">

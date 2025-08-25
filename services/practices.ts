@@ -34,9 +34,9 @@ export async function getAllPractices(): Promise<Practice[]> {
     location_name: p.location_name ?? "",
     team_id: p.team_id,
     team_name: p.team_name,
-    booked_by: p.created_by
+    booked_by_name: p.created_by
       ? `${p.created_by.first_name} ${p.created_by.last_name}`
-      : (p.booked_by ?? ""),
+      : (p.booked_by_name ?? ""),
     start_at: p.start_time,
     end_at: p.end_time,
     capacity: 0,
