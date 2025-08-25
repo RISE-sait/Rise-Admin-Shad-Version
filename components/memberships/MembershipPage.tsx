@@ -6,10 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MembershipInfoPanel from "./MembershipInfoPanel";
 import AddMembershipForm from "./AddForm";
-import { toast } from "sonner";
 import RightDrawer from "@/components/reusable/RightDrawer";
-import { useUser } from "@/contexts/UserContext";
-import { revalidateMemberships } from "@/actions/serverActions";
 import MembershipTable from "./table/MembershipTable";
 import {
   DropdownMenu,
@@ -36,8 +33,6 @@ export default function MembershipsPage({
     useState<Membership | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [searchQuery, setSearchQuery] = useState("");
-
-  const { user } = useUser();
 
   // Filter memberships based on search query
   const filteredMemberships = searchQuery
@@ -145,7 +140,9 @@ export default function MembershipsPage({
               onClose={() => setDrawerOpen(false)}
             />
           )}
-          {drawerContent === "add" && <AddMembershipForm />}
+          {drawerContent === "add" && (
+            <AddMembershipForm onSuccess={() => setDrawerOpen(false)} />
+          )}
         </div>
       </RightDrawer>
     </div>

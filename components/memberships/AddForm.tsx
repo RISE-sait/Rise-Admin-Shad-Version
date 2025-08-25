@@ -5,13 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import getValue from "@/configs/constants";
 import { useUser } from "@/contexts/UserContext";
 import { createMembership } from "@/services/membership";
 import { MembershipRequestDto } from "@/app/api/Api";
 import { revalidateMemberships } from "@/actions/serverActions";
+import { on } from "events";
 
-export default function AddMembershipForm() {
+export default function AddMembershipForm({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+}) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -38,8 +42,7 @@ export default function AddMembershipForm() {
       await revalidateMemberships();
 
       toast.success("Membership created successfully");
-
-
+      onSuccess?.();
     } catch (error) {
       console.error("Error during API request:", error);
       toast.error("Failed to add membership. Please try again.");
@@ -72,7 +75,9 @@ export default function AddMembershipForm() {
         </div>
       </div>
 
-      <Button onClick={handleAddMembership} className="w-full">Add Membership</Button>
+      <Button onClick={handleAddMembership} className="w-full">
+        Add Membership
+      </Button>
     </div>
   );
 }
