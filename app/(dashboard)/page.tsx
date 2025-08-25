@@ -17,6 +17,7 @@ import { format, isSameDay } from "date-fns";
 import { getEvents } from "@/services/events";
 import { getAllGames } from "@/services/games";
 import { getAllPractices } from "@/services/practices";
+import { getCustomers } from "@/services/customer";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { StaffRoleEnum } from "@/types/user";
@@ -38,7 +39,6 @@ const stats = {
   todayCheckIns: 47,
   upcomingEvents: 8,
   monthlyRevenue: 12450,
-  activeMembers: 234,
   courtUtilization: 78,
   weeklyGrowth: 12,
 };
@@ -82,6 +82,7 @@ const recentActivity = [
 
 export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [activeMembers, setActiveMembers] = useState(0);
   const { user } = useUser();
   const router = useRouter();
 
@@ -90,6 +91,20 @@ export default function DashboardPage() {
       router.replace("/calendar");
     }
   }, [user, router]);
+
+  useEffect(() => {
+    const loadActiveMembers = async () => {
+      try {
+        const { total } = await getCustomers(undefined, 1, 1);
+        setActiveMembers(total);
+      } catch (err) {
+        console.error("Error loading active members", err);
+        setActiveMembers(0);
+      }
+    };
+
+    loadActiveMembers();
+  }, []);
 
   useEffect(() => {
     const loadSchedule = async () => {
@@ -219,7 +234,7 @@ export default function DashboardPage() {
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeMembers}</div>
+            <div className="text-2xl font-bold">{activeMembers}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600">+5</span> new this week
             </p>
