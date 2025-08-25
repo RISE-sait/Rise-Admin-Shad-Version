@@ -20,9 +20,10 @@ import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
 import EditEventForm from "../event/EditEventForm";
 import { deleteEvent } from "@/services/events";
+import { deletePractice } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { revalidateEvents } from "@/actions/serverActions";
+import { revalidateEvents, revalidatePractices } from "@/actions/serverActions";
 
 export default function CalendarManageEventDrawer() {
   const {
@@ -41,11 +42,21 @@ export default function CalendarManageEventDrawer() {
   async function handleDelete() {
     if (!selectedEvent) return;
     try {
-      const error = await deleteEvent(selectedEvent.id, user?.Jwt!);
+      const isPractice = selectedEvent.program.type === "practice";
+      const error = isPractice
+        ? await deletePractice(selectedEvent.id, user?.Jwt!)
+        : await deleteEvent(selectedEvent.id, user?.Jwt!);
+
       if (error === null) {
-        toast({ status: "success", description: "Event deleted successfully" });
+        toast({
+          status: "success",
+          description: `${isPractice ? "Practice" : "Event"} deleted successfully`,
+        });
         setEvents(events.filter((event) => event.id !== selectedEvent.id));
         await revalidateEvents();
+        if (isPractice) {
+          await revalidatePractices();
+        }
         handleClose();
       } else {
         toast({
