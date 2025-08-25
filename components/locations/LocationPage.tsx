@@ -145,7 +145,9 @@ export default function FacilitiesPage({
               onDelete={handleDrawerClose}
             />
           )}
-          {drawerContent === "add" && <AddFacilityForm />}
+          {drawerContent === "add" && (
+            <AddFacilityForm onSuccess={handleDrawerClose} />
+          )}
         </div>
       </RightDrawer>
     </div>
