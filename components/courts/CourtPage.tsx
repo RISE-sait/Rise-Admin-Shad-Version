@@ -144,7 +144,9 @@ export default function CourtPage({ courts }: { courts: Court[] }) {
           {drawerContent === "details" && selectedCourt && (
             <CourtInfoPanel court={selectedCourt} onClose={handleCloseDrawer} />
           )}
-          {drawerContent === "add" && <AddCourtForm />}
+          {drawerContent === "add" && (
+            <AddCourtForm onCourtAdded={handleCloseDrawer} />
+          )}
         </div>
       </RightDrawer>
     </div>

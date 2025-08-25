@@ -19,7 +19,11 @@ import { CourtRequestDto } from "@/app/api/Api"; // DTO type for court creation 
 import { revalidateCourts } from "@/actions/serverActions"; // Action to revalidate court data on server
 import { Location } from "@/types/location"; // Type definition for a location
 
-export default function AddCourtForm() {
+export default function AddCourtForm({
+  onCourtAdded,
+}: {
+  onCourtAdded?: () => void;
+}) {
   // Initialize form data state with default values
   const { data, updateField, resetData } = useFormData({
     name: "",
@@ -55,10 +59,11 @@ export default function AddCourtForm() {
     // Call API to create the court
     const error = await createCourt(courtData, user?.Jwt!);
     if (error === null) {
-      // On success, show success toast, reset form, and revalidate cache
+      // On success, show success toast, reset form, and revalidate cache and close panel
       toast({ status: "success", description: "Court created successfully" });
       resetData();
       await revalidateCourts();
+      onCourtAdded?.();
     } else {
       // On failure, show error toast with message
       toast({
