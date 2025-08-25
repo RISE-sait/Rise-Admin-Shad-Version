@@ -195,7 +195,12 @@ export default function ProgramPage({
               onClose={() => setDrawerOpen(false)}
             />
           )}
-          {drawerContent === "add" && <AddProgramForm levels={programLevels} />}
+          {drawerContent === "add" && (
+            <AddProgramForm
+              levels={programLevels}
+              onSuccess={() => setDrawerOpen(false)}
+            />
+          )}
         </div>
       </RightDrawer>
     </div>
