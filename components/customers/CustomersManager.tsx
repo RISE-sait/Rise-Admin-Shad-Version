@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomerPage from "./CustomerPage";
 import { Customer } from "@/types/customer";
 import { archiveCustomer, unarchiveCustomer } from "@/services/customer";
@@ -29,6 +29,14 @@ export default function CustomersManager({
   const [activeList, setActiveList] = useState<Customer[]>(customers);
   const [archivedList, setArchivedList] =
     useState<Customer[]>(archivedCustomers);
+
+  useEffect(() => {
+    setActiveList(customers);
+  }, [customers]);
+
+  useEffect(() => {
+    setArchivedList(archivedCustomers);
+  }, [archivedCustomers]);
 
   const { user } = useUser();
   const { toast } = useToast();

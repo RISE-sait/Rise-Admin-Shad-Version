@@ -78,7 +78,10 @@ export default function CustomersPage({
     null
   );
   // State for search input and column visibility toggles
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchTerm);
+  useEffect(() => {
+    setSearchQuery(searchTerm);
+  }, [searchTerm]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
