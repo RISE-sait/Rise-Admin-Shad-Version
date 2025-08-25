@@ -8,15 +8,19 @@ import { LocationRequestDto } from "@/app/api/Api";
 import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidateLocations } from "@/actions/serverActions";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
 
-export default function AddFacilityForm() {
+interface AddFacilityFormProps {
+  onSuccess?: () => void;
+}
 
-    const { toast } = useToast()
-  
-  const { data, resetData, updateField } = useFormData(
-    { name: "", address: "", },
-  )
+export default function AddFacilityForm({ onSuccess }: AddFacilityFormProps) {
+  const { toast } = useToast();
+
+  const { data, resetData, updateField } = useFormData({
+    name: "",
+    address: "",
+  });
 
   const { user } = useUser();
 
@@ -27,30 +31,37 @@ export default function AddFacilityForm() {
     }
 
     try {
-
       const locationData: LocationRequestDto = {
-        ...data
-      }
+        ...data,
+      };
 
-      const error = await createLocation(locationData, user?.Jwt!)
+      const error = await createLocation(locationData, user?.Jwt!);
 
       if (error === null) {
-
         resetData();
 
-        toast({ status: "success", description: "Location successfully created" });
-        
-        await revalidateLocations()
+        toast({
+          status: "success",
+          description: "Location successfully created",
+        });
+
+        await revalidateLocations();
+        onSuccess?.();
 
         return;
       }
 
-      toast({ status: "error", description: `Failed to create location: ${error}. Please try again.` });
+      toast({
+        status: "error",
+        description: `Failed to create location: ${error}. Please try again.`,
+      });
       return;
-
     } catch (error) {
       console.error("Error during API request:", error);
-      toast({ status: "error", description: `An error occurred: ${error}. Please try again.` });
+      toast({
+        status: "error",
+        description: `An error occurred: ${error}. Please try again.`,
+      });
     }
   };
 
@@ -62,7 +73,7 @@ export default function AddFacilityForm() {
             Name <span className="text-red-500">*</span>
           </label>
           <Input
-            onChange={(e) => updateField('name', e.target.value)}
+            onChange={(e) => updateField("name", e.target.value)}
             type="text"
             value={data.name}
             placeholder="Enter facility name"
@@ -71,10 +82,10 @@ export default function AddFacilityForm() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">
-          Address <span className="text-red-500">*</span>
+            Address <span className="text-red-500">*</span>
           </label>
           <Input
-            onChange={(e) => updateField('address', e.target.value)}
+            onChange={(e) => updateField("address", e.target.value)}
             type="text"
             value={data.address}
             placeholder="Enter facility address"
@@ -82,7 +93,9 @@ export default function AddFacilityForm() {
         </div>
       </div>
 
-      <Button onClick={handleAddFacility} className="w-full">Add Facility</Button>
+      <Button onClick={handleAddFacility} className="w-full">
+        Add Facility
+      </Button>
     </div>
   );
 }
