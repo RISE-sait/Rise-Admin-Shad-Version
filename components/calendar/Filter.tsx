@@ -28,8 +28,7 @@ import {
 } from "@/components/ui/select";
 import { getAllPrograms } from "@/services/program";
 import { getAllLocations } from "@/services/location";
-import { getAllStaffs } from "@/services/staff";
-import { User } from "@/types/user";
+
 import { toast } from "@/hooks/use-toast";
 import { Program } from "@/types/program";
 import { useRouterQuery } from "@/hooks/router-query";
@@ -38,17 +37,17 @@ import { SheetClose } from "../ui/sheet";
 export default function FilterComponent() {
   // State for dynamic data
   const [locations, setLocations] = useState<Location[]>([]);
-  const [staffs, setStaffs] = useState<User[]>([]);
+
   const [programs, setPrograms] = useState<Program[]>([]);
   const [isLoading, setIsLoading] = useState({
     locations: false,
-    trainers: false,
+
     programs: false,
   });
 
   const { val, replace, reset } = useRouterQuery({
     program_id: "",
-    participant_id: "",
+
     location_id: "",
     program_type: "",
     after: "",
@@ -66,20 +65,20 @@ export default function FilterComponent() {
 
   useEffect(() => {
     const fetchAllData = async () => {
-      setIsLoading({ locations: true, trainers: true, programs: true });
+      setIsLoading({ locations: true, programs: true });
 
       try {
-        const [locationsRes, staffsRes, programsRes] = await Promise.all([
+        const [locationsRes, programsRes] = await Promise.all([
           getAllLocations().catch(handleError("locations")),
-          getAllStaffs().catch(handleError("trainers")),
+
           getAllPrograms().catch(handleError("programs")),
         ]);
 
         setLocations(locationsRes || []);
-        setStaffs(staffsRes || []);
+
         setPrograms(programsRes || []);
       } finally {
-        setIsLoading({ locations: false, trainers: false, programs: false });
+        setIsLoading({ locations: false, programs: false });
       }
     };
 
@@ -261,39 +260,6 @@ export default function FilterComponent() {
                 </div>
               )}
             </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Trainers Dropdown */}
-        <AccordionItem value="trainers">
-          <AccordionTrigger className="text-large font-medium text-gray-900 dark:text-gray-100">
-            Trainers
-          </AccordionTrigger>
-          <AccordionContent>
-            {isLoading.trainers ? (
-              <div>Loading trainers...</div>
-            ) : (
-              <Select
-                value={val.participant_id || "all"}
-                onValueChange={(value) =>
-                  replace({
-                    participant_id: value === "all" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select trainer" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Trainers</SelectItem>
-                  {staffs.map((trainer) => (
-                    <SelectItem key={trainer.Email} value={trainer.Email!}>
-                      {trainer.Name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>
