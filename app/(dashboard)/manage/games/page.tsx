@@ -12,22 +12,24 @@ export default function GamesPageContainer() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getAllGames();
-        setGames(res);
-      } catch (err) {
-        console.error("Failed to fetch games", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchGames = async () => {
+    try {
+      const res = await getAllGames();
+      setGames(res);
+    } catch (err) {
+      console.error("Failed to fetch games", err);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchGames().finally(() => setLoading(false));
   }, []);
 
-  const content = loading ? <PageSkeleton /> : <GamesPage games={games} />;
+  const content = loading ? (
+    <PageSkeleton />
+  ) : (
+    <GamesPage games={games} refreshGames={fetchGames} />
+  );
 
   return (
     <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.COACH]}>
@@ -35,7 +37,6 @@ export default function GamesPageContainer() {
     </RoleProtected>
   );
 }
-
 function PageSkeleton() {
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">

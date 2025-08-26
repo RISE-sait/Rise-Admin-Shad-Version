@@ -16,7 +16,13 @@ import { Court } from "@/types/court";
 import { revalidateGames } from "@/actions/serverActions";
 import { toZonedISOString } from "@/lib/utils";
 
-export default function AddGameForm({ onClose }: { onClose?: () => void }) {
+export default function AddGameForm({
+  onClose,
+  refreshGames,
+}: {
+  onClose?: () => void;
+  refreshGames?: () => Promise<void>;
+}) {
   const { data, updateField, resetData } = useFormData({
     home_team_id: "",
     away_team_id: "",
@@ -89,6 +95,7 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
       toast({ status: "success", description: "Game created successfully" });
       resetData();
       await revalidateGames();
+      if (refreshGames) await refreshGames();
       if (onClose) onClose();
     } else {
       toast({

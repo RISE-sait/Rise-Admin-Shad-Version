@@ -36,9 +36,11 @@ import {
 export default function GameInfoPanel({
   game,
   onClose,
+  refreshGames,
 }: {
   game: Game;
   onClose?: () => void;
+  refreshGames?: () => Promise<void>;
 }) {
   const { data, updateField } = useFormData({
     home_team_id: game.home_team_id,
@@ -114,6 +116,7 @@ export default function GameInfoPanel({
     if (error === null) {
       toast({ status: "success", description: "Game updated successfully" });
       await revalidateGames();
+      if (refreshGames) await refreshGames();
     } else {
       toast({
         status: "error",
@@ -128,6 +131,7 @@ export default function GameInfoPanel({
     if (error === null) {
       toast({ status: "success", description: "Game deleted successfully" });
       await revalidateGames();
+      if (refreshGames) await refreshGames();
       if (onClose) onClose();
     } else {
       toast({

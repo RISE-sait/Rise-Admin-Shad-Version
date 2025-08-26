@@ -19,7 +19,13 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 
-export default function GamesPage({ games }: { games: Game[] }) {
+export default function GamesPage({
+  games,
+  refreshGames,
+}: {
+  games: Game[];
+  refreshGames: () => Promise<void>;
+}) {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
@@ -120,10 +126,14 @@ export default function GamesPage({ games }: { games: Game[] }) {
             <GameInfoPanel
               game={selectedGame}
               onClose={() => setDrawerOpen(false)}
+              refreshGames={refreshGames}
             />
           )}
           {drawerContent === "add" && (
-            <AddGameForm onClose={() => setDrawerOpen(false)} />
+            <AddGameForm
+              onClose={() => setDrawerOpen(false)}
+              refreshGames={refreshGames}
+            />
           )}
         </div>
       </RightDrawer>
