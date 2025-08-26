@@ -14,9 +14,7 @@ import { Button } from "@/components/ui/button";
 import { TodoList } from "@/components/todo-list";
 import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
-import { getEvents } from "@/services/events";
-import { getAllGames } from "@/services/games";
-import { getAllPractices } from "@/services/practices";
+import { getSchedule } from "@/services/schedule";
 import { getCustomers } from "@/services/customer";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
@@ -109,22 +107,18 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadSchedule = async () => {
       const today = new Date();
-      const dateString = format(today, "yyyy-MM-dd");
       try {
-        const [eventsData, gamesData, practicesData] = await Promise.all([
-          getEvents({
-            after: dateString,
-            before: dateString,
-            location_id: "e2d1cd76-592f-4c06-89ee-9027cfbbe9de",
-            response_type: "date",
-          }),
-          getAllGames(),
-          getAllPractices(),
-        ]);
+        const {
+          events: eventsData,
+          games: gamesData,
+          practices: practicesData,
+        } = await getSchedule();
 
-        const events = (eventsData as any[])
+        const events = eventsData
           .filter(
-            (e) => e.location?.id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de"
+            (e) =>
+              e.location?.id === "2d1df32a-3b8c-4ede-b51c-65e190e4ada7" &&
+              isSameDay(new Date(e.start_at as string), today)
           )
           .map((e) => ({
             id: e.id as string,
@@ -143,27 +137,27 @@ export default function DashboardPage() {
               isSameDay(new Date(g.start_time), today)
           )
           .map((g) => ({
-            id: g.id,
+            id: g.id!,
             title: `${g.home_team_name} vs ${g.away_team_name}`,
             start_at: new Date(g.start_time),
             end_at: new Date(g.end_time),
-            location: g.location_name,
-            court: g.location_name,
+            location: g.location_name!,
+            court: g.location_name!,
             type: "game",
           }));
 
         const practices = practicesData
           .filter(
             (p) =>
-              p.location_id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
-              isSameDay(new Date(p.start_at), today)
+              p.location_id === "2d1df32a-3b8c-4ede-b51c-65e190e4ada7" &&
+              isSameDay(new Date(p.start_time), today)
           )
           .map((p) => ({
             id: p.id,
-            title: p.program_name || "Practice",
-            start_at: new Date(p.start_at),
-            end_at: new Date(p.end_at),
-            location: p.location_name,
+            title: p.team_name || "Practice",
+            start_at: new Date(p.start_time),
+            end_at: new Date(p.end_time ?? ""),
+            location: p.location_name ?? "",
             court: p.court_name,
             type: "practice",
           }));
