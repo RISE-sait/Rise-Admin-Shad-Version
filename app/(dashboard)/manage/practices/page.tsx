@@ -6,7 +6,7 @@
 import { useEffect, useState, useCallback } from "react";
 import PracticesPage from "@/components/practices/PracticesPage";
 import RoleProtected from "@/components/RoleProtected";
-import { getAllPractices } from "@/services/practices";
+import { getSchedule } from "@/services/schedule";
 import { StaffRoleEnum } from "@/types/user";
 import { Practice } from "@/types/practice";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,8 +17,24 @@ export default function PracticesPageContainer() {
 
   const refreshPractices = useCallback(async () => {
     try {
-      const res = await getAllPractices();
-      setPractices(res);
+      const { practices: schedulePractices } = await getSchedule();
+      const mappedPractices: Practice[] = schedulePractices.map((p) => ({
+        id: p.id,
+        program_id: undefined,
+        program_name: "",
+        court_id: p.court_id,
+        court_name: p.court_name ?? "",
+        location_id: p.location_id,
+        location_name: p.location_name ?? "",
+        team_id: p.team_id,
+        team_name: p.team_name,
+        booked_by_name: p.booked_by_name ?? "",
+        start_at: p.start_time,
+        end_at: p.end_time ?? "",
+        capacity: 0,
+        status: p.status,
+      }));
+      setPractices(mappedPractices);
     } catch (err) {
       console.error("Failed to fetch practices", err);
     } finally {
