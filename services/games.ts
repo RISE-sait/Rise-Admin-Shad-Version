@@ -24,6 +24,8 @@ export async function getAllGames(): Promise<Game[]> {
       end_time: g.end_time, // Event end timestamp
       location_id: g.location_id!, // Required location ID
       location_name: g.location_name!, // Required location name
+      court_id: g.court_id || undefined,
+      court_name: g.court_name || "",
       status: g.status!, // Event status (e.g., scheduled/ended)
     }));
 

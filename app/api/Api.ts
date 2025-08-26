@@ -257,6 +257,8 @@ export interface GameResponseDto {
   location_id: any;
   location_name: any;
   status: any;
+  court_id?: string;
+  court_name?: string;
   created_at?: string;
   description?: string;
   id?: string;
