@@ -12,5 +12,7 @@ export interface Game {
   end_time: string;
   location_id: string;
   location_name: string;
+  court_id?: string;
+  court_name?: string;
   status: string;
 }

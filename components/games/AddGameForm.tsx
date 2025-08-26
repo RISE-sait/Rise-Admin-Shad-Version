@@ -9,16 +9,25 @@ import { useFormData } from "@/hooks/form-data";
 import { createGame } from "@/services/games";
 import { getAllLocations } from "@/services/location";
 import { getAllTeams } from "@/services/teams";
+import { getAllCourts } from "@/services/court";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
+import { Court } from "@/types/court";
 import { revalidateGames } from "@/actions/serverActions";
 import { toZonedISOString } from "@/lib/utils";
 
-export default function AddGameForm({ onClose }: { onClose?: () => void }) {
+export default function AddGameForm({
+  onClose,
+  refreshGames,
+}: {
+  onClose?: () => void;
+  refreshGames?: () => Promise<void>;
+}) {
   const { data, updateField, resetData } = useFormData({
     home_team_id: "",
     away_team_id: "",
     location_id: "",
+    court_id: "",
     start_time: "",
     end_time: "",
     status: "scheduled" as "scheduled" | "completed" | "canceled",
@@ -27,16 +36,23 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
   const { toast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
+
+  const filteredCourts = courts.filter(
+    (c) => c.location_id === data.location_id
+  );
 
   useEffect(() => {
     const fetchLists = async () => {
       try {
-        const [locs, tms] = await Promise.all([
+        const [locs, tms, crts] = await Promise.all([
           getAllLocations(),
           getAllTeams(),
+          getAllCourts(),
         ]);
         setLocations(locs);
         setTeams(tms);
+        setCourts(crts);
       } catch (err) {
         console.error("Failed to fetch dropdown data", err);
       }
@@ -68,6 +84,7 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
       home_team_id: data.home_team_id,
       away_team_id: data.away_team_id,
       location_id: data.location_id,
+      court_id: data.court_id ? data.court_id : null,
       start_time: toZonedISOString(new Date(data.start_time)),
       end_time: toZonedISOString(new Date(data.end_time)),
       status: data.status,
@@ -78,6 +95,7 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
       toast({ status: "success", description: "Game created successfully" });
       resetData();
       await revalidateGames();
+      if (refreshGames) await refreshGames();
       if (onClose) onClose();
     } else {
       toast({
@@ -130,7 +148,10 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
           <select
             className="w-full border rounded-md p-2"
             value={data.location_id}
-            onChange={(e) => updateField("location_id", e.target.value)}
+            onChange={(e) => {
+              updateField("location_id", e.target.value);
+              updateField("court_id", "");
+            }}
           >
             <option value="" disabled>
               Select location
@@ -138,6 +159,21 @@ export default function AddGameForm({ onClose }: { onClose?: () => void }) {
             {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>
                 {loc.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Court (optional)</label>
+          <select
+            className="w-full border rounded-md p-2"
+            value={data.court_id}
+            onChange={(e) => updateField("court_id", e.target.value)}
+          >
+            <option value="">Select court</option>
+            {filteredCourts.map((court) => (
+              <option key={court.id} value={court.id}>
+                {court.name}
               </option>
             ))}
           </select>
