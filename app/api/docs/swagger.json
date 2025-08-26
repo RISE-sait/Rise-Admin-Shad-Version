@@ -1720,7 +1720,7 @@
     },
     "/games": {
       "get": {
-        "description": "Retrieves a list of games with optional time-based filtering.",
+        "description": "Retrieves a list of games with optional time-based filtering and location/court filtering.",
         "consumes": ["application/json"],
         "produces": ["application/json"],
         "tags": ["games"],
@@ -1730,6 +1730,34 @@
             "type": "string",
             "description": "Filter by time: upcoming or past",
             "name": "filter",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "\"550e8400-e29b-41d4-a716-446655440000\"",
+            "description": "Filter by court ID (UUID format)",
+            "name": "court_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "\"550e8400-e29b-41d4-a716-446655440000\"",
+            "description": "Filter by location ID (UUID format)",
+            "name": "location_id",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 1,
+            "description": "Page number for pagination (default: 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 10,
+            "description": "Number of records per page (default: 10, max: 100)",
+            "name": "limit",
             "in": "query"
           }
         ],
@@ -5470,6 +5498,12 @@
           "type": "string"
         },
         "away_team_name": {
+          "type": "string"
+        },
+        "court_id": {
+          "type": "string"
+        },
+        "court_name": {
           "type": "string"
         },
         "created_at": {
