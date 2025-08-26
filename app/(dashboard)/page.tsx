@@ -117,7 +117,7 @@ export default function DashboardPage() {
         const events = eventsData
           .filter(
             (e) =>
-              e.location?.id === "2d1df32a-3b8c-4ede-b51c-65e190e4ada7" &&
+              e.location?.id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
               isSameDay(new Date(e.start_at as string), today)
           )
           .map((e) => ({
@@ -149,7 +149,7 @@ export default function DashboardPage() {
         const practices = practicesData
           .filter(
             (p) =>
-              p.location_id === "2d1df32a-3b8c-4ede-b51c-65e190e4ada7" &&
+              p.location_id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
               isSameDay(new Date(p.start_time), today)
           )
           .map((p) => ({
