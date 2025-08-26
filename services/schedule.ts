@@ -1,7 +1,7 @@
 import getValue from "@/configs/constants";
 import { EventEventResponseDto, GameResponseDto } from "@/app/api/Api";
 
-interface PracticeResponseDto {
+export interface PracticeResponseDto {
   id: string;
   court_id?: string;
   court_name?: string;
