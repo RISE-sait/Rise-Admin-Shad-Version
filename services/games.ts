@@ -2,29 +2,15 @@ import getValue from "@/configs/constants";
 import { GameResponseDto } from "@/app/api/Api";
 import { Game } from "@/types/games";
 import { addAuthHeader } from "@/lib/auth-header";
+import { getSchedule } from "@/services/schedule";
 
 export async function getAllGames(): Promise<Game[]> {
   try {
-    // Build the endpoint URL using base API constant and 'games' path
-    const token = localStorage.getItem("jwt");
-    if (!token) throw new Error("No auth token found");
-
-    const response = await fetch(`${getValue("API")}secure/games`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    // If the response status is not in the 200–299 range, throw an error
-    if (!response.ok) {
-      throw new Error(`Failed to fetch games: ${response.statusText}`);
-    }
-
-    // Parse the JSON body into an array of GameResponseDto
-    const gamesResponse: GameResponseDto[] = await response.json();
+    // Use the secure schedule endpoint which returns games along with events
+    const { games: gamesResponse } = await getSchedule();
 
     // Map each DTO into our front-end Game shape
-    const games: Game[] = gamesResponse.map((g) => ({
+    const games: Game[] = gamesResponse.map((g: GameResponseDto) => ({
       id: g.id!, // Required ID
       home_team_id: g.home_team_id!, // Required home team ID
       home_team_name: g.home_team_name!, // Required home team name
