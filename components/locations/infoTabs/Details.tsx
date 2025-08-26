@@ -25,9 +25,11 @@ import { useForm } from "react-hook-form";
 export default function DetailsTab({
   details,
   onDelete,
+  onClose,
 }: {
   details: Location;
   onDelete?: () => void;
+  onClose?: () => void;
 }) {
   const { register, getValues } = useForm({
     defaultValues: {
@@ -53,6 +55,7 @@ export default function DetailsTab({
           description: "Location updated successfully",
         });
         await revalidateLocations();
+        onClose?.();
       } else {
         toast({
           status: "error",

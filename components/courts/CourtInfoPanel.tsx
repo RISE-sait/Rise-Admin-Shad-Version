@@ -67,6 +67,7 @@ export default function CourtInfoPanel({
       // On success, notify and revalidate ISR
       toast({ status: "success", description: "Court updated successfully" });
       await revalidateCourts();
+      onClose?.();
     } else {
       // On failure, show error message
       toast({ status: "error", description: `Error saving changes: ${error}` });

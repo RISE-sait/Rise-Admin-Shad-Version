@@ -44,12 +44,14 @@ interface CustomerInfoPanelProps {
   customer: Customer;
   onCustomerUpdated?: (updated: Partial<Customer>) => void;
   onCustomerArchived?: (id: string) => Promise<void> | void;
+  onClose?: () => void;
 }
 
 export default function CustomerInfoPanel({
   customer,
   onCustomerUpdated,
   onCustomerArchived,
+  onClose,
 }: CustomerInfoPanelProps) {
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
@@ -202,6 +204,7 @@ export default function CustomerInfoPanel({
                 description: "Customer information updated",
               });
             }}
+            onClose={onClose}
           />
         </TabsContent>
 

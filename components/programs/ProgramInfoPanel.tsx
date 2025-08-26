@@ -91,6 +91,7 @@ export default function ProgramInfoPanel({
           description: "Program updated successfully",
         });
         await revalidatePrograms();
+        onClose?.();
       } else {
         toast({
           status: "error",
