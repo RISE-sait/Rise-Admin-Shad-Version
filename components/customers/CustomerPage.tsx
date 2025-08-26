@@ -358,6 +358,7 @@ export default function CustomersPage({
                   ? onUnarchiveCustomer || handleUnarchive
                   : onArchiveCustomer || handleArchive
               }
+              onClose={() => setDrawerOpen(false)}
             />
           )}
           {drawerContent === "add" && (

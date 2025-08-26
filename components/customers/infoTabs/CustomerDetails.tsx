@@ -17,9 +17,11 @@ import { SaveIcon } from "lucide-react";
 export default function DetailsTab({
   customer,
   onCustomerUpdated,
+  onClose,
 }: {
   customer: Customer; // Customer data passed in
   onCustomerUpdated?: (updated: Partial<Customer>) => void; // Callback after update
+  onClose?: () => void;
 }) {
   const { toast } = useToast(); // Toast utility
   const { user } = useUser(); // Current user (for JWT)
@@ -145,6 +147,7 @@ export default function DetailsTab({
             email: formData.email,
             phone: formattedPhone,
           });
+        onClose?.();
       } else {
         // Show API error
         toast({ status: "error", description: error });

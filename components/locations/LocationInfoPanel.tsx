@@ -10,9 +10,11 @@ import SchedulesTab from "./infoTabs/Schedule";
 export default function FacilityInfoPanel({
   facility,
   onDelete,
+  onClose,
 }: {
   facility: Location;
   onDelete?: () => void;
+  onClose?: () => void;
 }) {
   const [activeTab, setActiveTab] = useState("details");
 
@@ -39,7 +41,11 @@ export default function FacilityInfoPanel({
         </div>
 
         <TabsContent value="details" className="pt-4">
-          <DetailsTab details={facility} onDelete={onDelete} />
+          <DetailsTab
+            details={facility}
+            onDelete={onDelete}
+            onClose={onClose}
+          />
         </TabsContent>
 
         <TabsContent value="schedule" className="pt-4">

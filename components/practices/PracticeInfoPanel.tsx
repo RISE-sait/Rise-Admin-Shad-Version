@@ -126,6 +126,7 @@ export default function PracticeInfoPanel({
       });
       await revalidatePractices();
       if (onUpdated) onUpdated();
+      onClose?.();
     } else {
       toast({
         status: "error",

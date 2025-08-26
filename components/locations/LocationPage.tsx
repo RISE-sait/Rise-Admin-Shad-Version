@@ -143,6 +143,7 @@ export default function FacilitiesPage({
             <FacilityInfoPanel
               facility={selectedFacility}
               onDelete={handleDrawerClose}
+              onClose={handleDrawerClose}
             />
           )}
           {drawerContent === "add" && (

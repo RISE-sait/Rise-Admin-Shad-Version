@@ -53,6 +53,7 @@ export default function TeamInfoPanel({
       if (error === null) {
         toast({ status: "success", description: "Team updated successfully" });
         await revalidateTeams();
+        onClose?.();
       } else {
         toast({
           status: "error",

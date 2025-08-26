@@ -106,6 +106,7 @@ export default function StaffForm({
           description: "Staff member updated successfully",
         });
         RefreshData();
+        onClose?.();
       } else {
         toast({
           status: "error",

@@ -117,6 +117,7 @@ export default function GameInfoPanel({
       toast({ status: "success", description: "Game updated successfully" });
       await revalidateGames();
       if (refreshGames) await refreshGames();
+      onClose?.();
     } else {
       toast({
         status: "error",
