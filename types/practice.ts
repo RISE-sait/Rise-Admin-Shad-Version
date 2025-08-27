@@ -8,6 +8,7 @@ export interface Practice {
   location_name: string;
   team_id?: string;
   team_name?: string;
+  booked_by?: string;
   booked_by_name?: string;
   start_at: string;
   end_at: string;
@@ -22,6 +23,7 @@ export interface PracticeRequestDto {
   start_time: string;
   end_time?: string;
   status?: "scheduled" | "completed" | "canceled";
+  booked_by?: string;
 }
 
 export interface PracticeRecurrenceRequestDto {
