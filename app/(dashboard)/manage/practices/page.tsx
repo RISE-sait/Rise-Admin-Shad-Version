@@ -28,6 +28,7 @@ export default function PracticesPageContainer() {
         location_name: p.location_name ?? "",
         team_id: p.team_id,
         team_name: p.team_name,
+        booked_by: p.booked_by,
         booked_by_name: p.booked_by_name ?? "",
         start_at: p.start_time,
         end_at: p.end_time ?? "",

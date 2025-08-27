@@ -116,6 +116,7 @@ export default function PracticeInfoPanel({
       start_time: toZonedISOString(new Date(data.start_at)),
       end_time: toZonedISOString(new Date(data.end_at)),
       status: data.status,
+      booked_by: practice.booked_by,
     };
 
     const error = await updatePractice(practice.id, practiceData, user?.Jwt!);
