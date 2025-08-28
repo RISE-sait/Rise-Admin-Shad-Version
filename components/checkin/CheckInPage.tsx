@@ -5,12 +5,15 @@ import { checkInCustomer, getCustomerById } from "@/services/customer";
 import { Customer } from "@/types/customer";
 import { CustomerMembershipResponseDto } from "@/app/api/Api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LoginLogTable from "@/components/checkin/table/LoginLogTable";
+import { LoginLog } from "@/types/login-logs";
 
 export default function CheckInPage() {
   const [customerId, setCustomerId] = useState("");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [membershipInfo, setMembershipInfo] =
     useState<CustomerMembershipResponseDto | null>(null);
+  const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,7 +28,20 @@ export default function CheckInPage() {
       const membership = await checkInCustomer(customerId);
       setMembershipInfo(membership);
       const customerData = await getCustomerById(customerId);
-      setCustomer(customerData);
+      if (customerData) {
+        setCustomer(customerData);
+        setLoginLogs((prev) => [
+          {
+            id: customerData.id,
+            name: `${customerData.first_name} ${customerData.last_name}`,
+            email: customerData.email,
+            loginTime: new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+      } else {
+        setCustomer(null);
+      }
     } catch (error) {
       console.error("Check-in failed", error);
       setMembershipInfo(null);
@@ -86,6 +102,7 @@ export default function CheckInPage() {
           </div>
         </div>
       )}
+      <LoginLogTable logs={loginLogs} />
     </div>
   );
 }
