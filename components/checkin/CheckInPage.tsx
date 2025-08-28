@@ -5,6 +5,7 @@ import { checkInCustomer, getCustomerById } from "@/services/customer";
 import { Customer } from "@/types/customer";
 import { CustomerMembershipResponseDto } from "@/app/api/Api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import LoginLogTable from "@/components/checkin/table/LoginLogTable";
 import { LoginLog } from "@/types/login-logs";
 
@@ -53,7 +54,7 @@ export default function CheckInPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-6">
       <form onSubmit={handleSubmit}>
         <input
           ref={inputRef}
@@ -66,41 +67,47 @@ export default function CheckInPage() {
       </form>
 
       {customer && (
-        <div className="mt-4 flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage
-              src={customer.profilePicture || ""}
-              alt={`${customer.first_name} ${customer.last_name}`}
-            />
-            <AvatarFallback>
-              {customer.first_name?.[0]}
-              {customer.last_name?.[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-lg font-semibold">
-              {customer.first_name} {customer.last_name}
-            </p>
-            {membershipInfo ? (
-              <>
-                <p>
-                  {membershipInfo.membership_name ||
-                    membershipInfo.membership_plan_name}
-                </p>
-                {membershipInfo.membership_renewal_date && (
-                  <p className="text-sm text-muted-foreground">
-                    Ends{" "}
-                    {new Date(
-                      membershipInfo.membership_renewal_date
-                    ).toLocaleDateString()}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p>No active membership</p>
-            )}
-          </div>
-        </div>
+        <Card className="mt-4">
+          <CardContent className="flex items-center gap-6 p-6">
+            <Avatar className="h-24 w-24">
+              <AvatarImage
+                src={customer.profilePicture || ""}
+                alt={`${customer.first_name} ${customer.last_name}`}
+              />
+              <AvatarFallback>
+                {customer.first_name?.[0]}
+                {customer.last_name?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid gap-2 text-xl">
+              <div className="flex gap-3">
+                <span className="font-medium">Name:</span>
+                <span>
+                  {customer.first_name} {customer.last_name}
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <span className="font-medium">Membership:</span>
+                <span>
+                  {membershipInfo
+                    ? membershipInfo.membership_name ||
+                      membershipInfo.membership_plan_name
+                    : "No active membership"}
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <span className="font-medium">Ends:</span>
+                <span>
+                  {membershipInfo && membershipInfo.membership_renewal_date
+                    ? new Date(
+                        membershipInfo.membership_renewal_date
+                      ).toLocaleDateString()
+                    : "-"}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
       <LoginLogTable logs={loginLogs} />
     </div>
