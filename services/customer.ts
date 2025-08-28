@@ -1,6 +1,9 @@
 import { Customer } from "@/types/customer";
 import getValue from "@/configs/constants";
-import { UserUpdateRequestDto } from "@/app/api/Api";
+import {
+  CustomerMembershipResponseDto,
+  UserUpdateRequestDto,
+} from "@/app/api/Api";
 import { addAuthHeader } from "@/lib/auth-header";
 
 // Define a type for the API response
@@ -13,7 +16,9 @@ interface CustomerApiResponse {
     rebounds: number;
     steals: number;
     wins: number;
+    photo_url?: string;
   };
+  photo_url?: string;
   country_code?: string;
   email: string;
   first_name: string;
@@ -39,7 +44,8 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     last_name: response.last_name,
     email: response.email,
     phone: response.phone,
-    profilePicture: "", // Default empty string as it's not provided by API
+    profilePicture:
+      response.athlete_info?.photo_url || response.photo_url || "",
 
     // Membership info fields - extract from nested object
     membership_name: response.membership_info?.membership_name || "",
@@ -148,6 +154,35 @@ export async function getCustomerById(
     return mapApiResponseToCustomer(customerResponse);
   } catch (error) {
     console.error(`Error fetching customer with ID ${customerId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Check in a customer and return membership information
+ */
+export async function checkInCustomer(
+  id: string
+): Promise<CustomerMembershipResponseDto | null> {
+  try {
+    const url = `${getValue("API")}customers/checkin/${id}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to check in customer: ${response.statusText}`);
+    }
+
+    const membershipInfo: CustomerMembershipResponseDto = await response.json();
+    return membershipInfo;
+  } catch (error) {
+    console.error(`Error checking in customer with ID ${id}:`, error);
     throw error;
   }
 }
