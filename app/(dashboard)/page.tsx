@@ -356,6 +356,7 @@ export default function DashboardPage() {
               variant="outline"
               className="w-full justify-start"
               size="sm"
+              onClick={() => router.push("/manage/checkin")}
             >
               <LogIn className="h-4 w-4 mr-2" />
               Check someone in
