@@ -6,7 +6,6 @@ import { TeamResponse, TeamRequestDto } from "@/app/api/Api";
 export async function getAllTeams(): Promise<Team[]> {
   try {
     const response = await fetch(`${getValue("API")}teams`);
-
     const responseJSON = await response.json();
 
     if (!response.ok) {
@@ -20,8 +19,8 @@ export async function getAllTeams(): Promise<Team[]> {
     return (responseJSON as TeamResponse[]).map((team) => ({
       id: team.id!,
       name: team.name!,
-      created_at: new Date(team.created_at!), // Convert string to Date
-      updated_at: new Date(team.updated_at!), // Convert string to Date
+      created_at: new Date(team.created_at!),
+      updated_at: new Date(team.updated_at!),
       capacity: team.capacity!,
       coach_id: team.coach?.id!,
       coach_name: team.coach?.name || "",
@@ -32,9 +31,41 @@ export async function getAllTeams(): Promise<Team[]> {
   }
 }
 
-export async function getTeamById(id: string): Promise<Team> {
+export async function getUserTeams(jwt: string): Promise<Team[]> {
   try {
-    const response = await fetch(`${getValue("API")}teams/${id}`);
+    const response = await fetch(`${getValue("API")}secure/teams`, {
+      ...addAuthHeader(jwt),
+    });
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get teams: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return (responseJSON as TeamResponse[]).map((team) => ({
+      id: team.id!,
+      name: team.name!,
+      created_at: new Date(team.created_at!),
+      updated_at: new Date(team.updated_at!),
+      capacity: team.capacity!,
+      coach_id: team.coach?.id!,
+      coach_name: team.coach?.name || "",
+    }));
+  } catch (error) {
+    console.error("Error fetching teams:", error);
+    throw error;
+  }
+}
+
+export async function getTeamById(id: string, jwt: string): Promise<Team> {
+  try {
+    const response = await fetch(`${getValue("API")}teams/${id}`, {
+      ...addAuthHeader(jwt),
+    });
     const data: TeamResponse = await response.json();
 
     if (!response.ok) {

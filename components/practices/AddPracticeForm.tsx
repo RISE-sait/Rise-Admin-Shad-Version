@@ -16,7 +16,7 @@ import {
   PracticeRecurrenceRequestDto,
 } from "@/types/practice";
 import { getAllLocations } from "@/services/location";
-import { getAllTeams } from "@/services/teams";
+import { getUserTeams } from "@/services/teams";
 import { getAllCourts } from "@/services/court";
 import { Location } from "@/types/location";
 import { Team } from "@/types/team";
@@ -57,12 +57,13 @@ export default function AddPracticeForm({
   const [mode, setMode] = useState<"once" | "recurring">("once");
 
   useEffect(() => {
+    if (!user?.Jwt) return;
     // Fetch available teams and locations for the dropdown lists
     const fetchLists = async () => {
       try {
         const [locs, tms, crts] = await Promise.all([
           getAllLocations(),
-          getAllTeams(),
+          getUserTeams(user.Jwt),
           getAllCourts(),
         ]);
         setLocations(locs);
@@ -74,7 +75,7 @@ export default function AddPracticeForm({
     };
 
     fetchLists();
-  }, []);
+  }, [user?.Jwt]);
 
   // Create the practice using the chosen mode
   const handleAddPractice = async () => {
