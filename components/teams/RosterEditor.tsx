@@ -16,9 +16,11 @@ import { Customer } from "@/types/customer";
 export default function RosterEditor({
   team,
   onClose,
+  onRosterChange,
 }: {
   team: Team;
   onClose: () => void;
+  onRosterChange?: (members: Team["roster"]) => void;
 }) {
   const { toast } = useToast(); // Initialize toast notifications
   const { user } = useUser(); // Get current user (for auth)
@@ -110,6 +112,7 @@ export default function RosterEditor({
   // Handler for closing the editor: revalidate and call onClose prop
   const handleClose = async () => {
     await revalidateTeams(); // Refresh server data
+    onRosterChange?.(members); // Notify parent of roster change
     onClose(); // Close the editor
   };
 
