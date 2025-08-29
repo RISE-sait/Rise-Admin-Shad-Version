@@ -4,6 +4,7 @@
 // table display and the drawer for viewing or adding a team.
 
 import { useState } from "react";
+import { useUser } from "@/contexts/UserContext";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const { user } = useUser();
 
   const filteredTeams = searchQuery
     ? teams.filter((team) =>
@@ -41,7 +43,8 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
 
   // Open the drawer and load the selected team's full details, including roster
   const handleTeamSelect = (team: Team) => {
-    getTeamById(team.id)
+    if (!user?.Jwt) return;
+    getTeamById(team.id, user.Jwt)
       .then((fullTeam) => {
         setSelectedTeam(fullTeam);
       })

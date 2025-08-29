@@ -23,7 +23,7 @@ import { useFormData } from "@/hooks/form-data";
 import { updatePractice, deletePractice } from "@/services/practices";
 import { PracticeRequestDto } from "@/types/practice";
 import { getAllLocations } from "@/services/location";
-import { getAllTeams } from "@/services/teams";
+import { getUserTeams } from "@/services/teams";
 import { getAllCourts } from "@/services/court";
 import { revalidatePractices } from "@/actions/serverActions";
 import { Practice } from "@/types/practice";
@@ -70,12 +70,13 @@ export default function PracticeInfoPanel({
   );
 
   useEffect(() => {
+    if (!user?.Jwt) return;
     // Load dropdown options for editing the practice
     const fetchLists = async () => {
       try {
         const [locs, tms, crts] = await Promise.all([
           getAllLocations(),
-          getAllTeams(),
+          getUserTeams(user.Jwt),
           getAllCourts(),
         ]);
         setLocations(locs);
@@ -87,7 +88,7 @@ export default function PracticeInfoPanel({
     };
 
     fetchLists();
-  }, []);
+  }, [user?.Jwt]);
 
   // Persist any changes made to the practice
   const handleSave = async () => {
