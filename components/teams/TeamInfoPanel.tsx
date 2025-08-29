@@ -38,6 +38,7 @@ export default function TeamInfoPanel({
   const [capacity, setCapacity] = useState<number>(team.capacity);
   const [coachId] = useState(team.coach_id || "");
   const [rosterOpen, setRosterOpen] = useState(false);
+  const [roster, setRoster] = useState(team.roster);
   const { user } = useUser();
   const { toast } = useToast();
 
@@ -119,16 +120,16 @@ export default function TeamInfoPanel({
             </p>
           </div>
         </div>
-        {team.roster && (
+        {roster && (
           <div>
             <Separator className="my-2" />
             <div className="mt-4 rounded-md border border-yellow-500 p-4 shadow">
               <h3 className="mb-2 text-xl font-semibold">
-                Current Roster ({team.roster.length})
+                Current Roster ({roster.length})
               </h3>
-              {team.roster.length > 0 ? (
+              {roster.length > 0 ? (
                 <ul className="divide-y rounded-md border">
-                  {team.roster.map((member, index) => (
+                  {roster.map((member, index) => (
                     <li key={member.id} className="p-2 even:bg-secondary">
                       {index + 1}. {member.name}
                     </li>
@@ -187,7 +188,11 @@ export default function TeamInfoPanel({
         handleDrawerClose={() => setRosterOpen(false)}
         drawerWidth="w-[50%]"
       >
-        <RosterEditor team={team} onClose={() => setRosterOpen(false)} />
+        <RosterEditor
+          team={{ ...team, roster: roster || [] }}
+          onClose={() => setRosterOpen(false)}
+          onRosterChange={setRoster}
+        />
       </RightDrawer>
     </>
   );

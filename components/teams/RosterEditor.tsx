@@ -11,14 +11,17 @@ import { addAthleteToTeam, removeAthleteFromTeam } from "@/services/athletes";
 import { revalidateTeams } from "@/actions/serverActions";
 import { Team } from "@/types/team";
 import { Customer } from "@/types/customer";
+import { SaveIcon } from "lucide-react";
 
 // Main component to edit a team's roster
 export default function RosterEditor({
   team,
   onClose,
+  onRosterChange,
 }: {
   team: Team;
   onClose: () => void;
+  onRosterChange?: (members: Team["roster"]) => void;
 }) {
   const { toast } = useToast(); // Initialize toast notifications
   const { user } = useUser(); // Get current user (for auth)
@@ -110,6 +113,7 @@ export default function RosterEditor({
   // Handler for closing the editor: revalidate and call onClose prop
   const handleClose = async () => {
     await revalidateTeams(); // Refresh server data
+    onRosterChange?.(members); // Notify parent of roster change
     onClose(); // Close the editor
   };
 
@@ -178,7 +182,12 @@ export default function RosterEditor({
       {/* Footer with Done button */}
       <Separator className="my-2" />
       <div className="flex justify-end">
-        <Button onClick={handleClose}>Done</Button>
+        <Button
+          onClick={handleClose}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <SaveIcon className="h-4 w-4 mr-2" /> Save
+        </Button>
       </div>
     </div>
   );
