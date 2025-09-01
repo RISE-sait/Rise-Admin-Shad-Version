@@ -257,7 +257,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       Price
                     </h1>
                     <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                      {plan.price ?? 0}
+                      {formatPrice(plan.price ?? 0)}
                     </h1>
                     <h1 className="text-stone-500 font-semibold text-sm pt-1">
                       • Every {plan.amt_periods} Months
