@@ -5,7 +5,9 @@ import { TeamResponse, TeamRequestDto } from "@/app/api/Api";
 
 export async function getAllTeams(): Promise<Team[]> {
   try {
-    const response = await fetch(`${getValue("API")}teams`);
+    const response = await fetch(`${getValue("API")}teams`, {
+      cache: "no-store",
+    });
     const responseJSON = await response.json();
 
     if (!response.ok) {
@@ -35,6 +37,7 @@ export async function getUserTeams(jwt: string): Promise<Team[]> {
   try {
     const response = await fetch(`${getValue("API")}secure/teams`, {
       ...addAuthHeader(jwt),
+      cache: "no-store",
     });
     const responseJSON = await response.json();
 
@@ -65,6 +68,7 @@ export async function getTeamById(id: string, jwt: string): Promise<Team> {
   try {
     const response = await fetch(`${getValue("API")}teams/${id}`, {
       ...addAuthHeader(jwt),
+      cache: "no-store",
     });
     const data: TeamResponse = await response.json();
 
