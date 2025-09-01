@@ -4,8 +4,9 @@ import RoleProtected from "@/components/RoleProtected";
 import { StaffRoleEnum } from "@/types/user";
 import { getAllStaffs } from "@/services/staff";
 
-export default async function BarbershopPageContainer() {
+export const revalidate = 0;
 
+export default async function BarbershopPageContainer() {
   const staffData = await getAllStaffs(StaffRoleEnum.BARBER.toUpperCase());
 
   return (
@@ -13,7 +14,7 @@ export default async function BarbershopPageContainer() {
       allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}
       fallback={<PageSkeleton />}
     >
-      <BarbershopPage staffs={staffData}/>
+      <BarbershopPage staffs={staffData} />
     </RoleProtected>
   );
 }
@@ -32,13 +33,13 @@ function PageSkeleton() {
       <Skeleton className="h-px w-full" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map(i => (
+        {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-24 w-full rounded-lg" />
         ))}
       </div>
 
       <div className="flex gap-4 mt-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-10 w-36" />
         ))}
       </div>
