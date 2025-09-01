@@ -19,6 +19,7 @@ import { getCustomers } from "@/services/customer";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { StaffRoleEnum } from "@/types/user";
+import { countTodayLogs } from "@/utils/checkinLogs";
 import {
   Users,
   Calendar,
@@ -34,7 +35,6 @@ import {
 
 // Mock data for demonstration
 const stats = {
-  todayCheckIns: 47,
   upcomingEvents: 8,
   monthlyRevenue: 12450,
   courtUtilization: 78,
@@ -81,6 +81,7 @@ const recentActivity = [
 export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [activeMembers, setActiveMembers] = useState(0);
+  const [todayCheckIns, setTodayCheckIns] = useState(0);
   const { user } = useUser();
   const router = useRouter();
 
@@ -102,6 +103,16 @@ export default function DashboardPage() {
     };
 
     loadActiveMembers();
+  }, []);
+
+  useEffect(() => {
+    const updateCheckIns = () => {
+      setTodayCheckIns(countTodayLogs());
+    };
+    updateCheckIns();
+    window.addEventListener("checkinLogsUpdated", updateCheckIns);
+    return () =>
+      window.removeEventListener("checkinLogsUpdated", updateCheckIns);
   }, []);
 
   useEffect(() => {
@@ -195,7 +206,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.todayCheckIns}</div>
+            <div className="text-2xl font-bold">{todayCheckIns}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600">+{stats.weeklyGrowth}%</span>{" "}
               from last week
