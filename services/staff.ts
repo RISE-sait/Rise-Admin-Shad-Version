@@ -9,7 +9,7 @@ export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
       ? `${getValue("API")}staffs?role=${roleFilter}`
       : `${getValue("API")}staffs`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-store" });
 
     const responseJson = await response.json();
 
@@ -102,6 +102,7 @@ export async function getPendingStaffs(jwt: string): Promise<User[]> {
   try {
     const response = await fetch(`${getValue("API")}register/staff/pending`, {
       ...addAuthHeader(jwt),
+      cache: "no-store",
     });
 
     const responseJson = await response.json();
