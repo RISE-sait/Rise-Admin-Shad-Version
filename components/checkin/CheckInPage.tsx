@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import LoginLogTable from "@/components/checkin/table/LoginLogTable";
 import { LoginLog } from "@/types/login-logs";
+import { loadLogs, saveLogs } from "@/utils/checkinLogs";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -30,6 +31,10 @@ export default function CheckInPage() {
   }, []);
 
   useEffect(() => {
+    setLoginLogs(loadLogs());
+  }, []);
+
+  useEffect(() => {
     if (showNoMembershipAlert) {
       const timer = setTimeout(() => setShowNoMembershipAlert(false), 3000);
       return () => clearTimeout(timer);
@@ -49,15 +54,19 @@ export default function CheckInPage() {
       const customerData = await getCustomerById(customerId);
       if (customerData) {
         setCustomer(customerData);
-        setLoginLogs((prev) => [
-          {
-            id: customerData.id,
-            name: `${customerData.first_name} ${customerData.last_name}`,
-            email: customerData.email,
-            loginTime: new Date().toISOString(),
-          },
-          ...prev,
-        ]);
+        setLoginLogs((prev) => {
+          const updated = [
+            {
+              id: customerData.id,
+              name: `${customerData.first_name} ${customerData.last_name}`,
+              email: customerData.email,
+              loginTime: new Date().toISOString(),
+            },
+            ...prev,
+          ];
+          saveLogs(updated);
+          return updated;
+        });
       } else {
         setCustomer(null);
       }
