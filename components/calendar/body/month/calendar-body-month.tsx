@@ -24,10 +24,10 @@ export default function CalendarBodyMonth() {
   // Get the last day of the month
   const monthEnd = endOfMonth(date);
 
-  // Get the first Monday of the first week (may be in previous month)
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  // Get the last Sunday of the last week (may be in next month)
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // Get the first Sunday of the first week (may be in previous month)
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  // Get the last Saturday of the last week (may be in next month)
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
   // Get all days between start and end
   const calendarDays = eachDayOfInterval({
@@ -50,7 +50,7 @@ export default function CalendarBodyMonth() {
   return (
     <div className="flex flex-col flex-grow overflow-hidden">
       <div className="hidden md:grid grid-cols-7 border-border divide-x divide-border">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div
             key={day}
             className="py-2 text-center text-sm font-medium text-muted-foreground border-b border-border"
