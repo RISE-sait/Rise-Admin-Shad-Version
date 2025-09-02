@@ -17,7 +17,7 @@ export interface Practice {
 }
 
 export interface PracticeRequestDto {
-  court_id: string;
+  court_id?: string;
   location_id: string;
   team_id: string;
   start_time: string;
@@ -27,7 +27,7 @@ export interface PracticeRequestDto {
 }
 
 export interface PracticeRecurrenceRequestDto {
-  court_id: string;
+  court_id?: string;
   location_id: string;
   team_id: string;
   day?: string;

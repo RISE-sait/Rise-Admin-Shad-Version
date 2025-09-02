@@ -26,6 +26,7 @@ const columns: ColumnDef<Practice>[] = [
     id: "court_name",
     accessorKey: "court_name",
     header: "Court",
+    cell: ({ row }) => row.getValue("court_name") || "-",
     minSize: 120,
     size: 180,
   },
