@@ -79,10 +79,10 @@ export default function AddPracticeForm({
 
   // Create the practice using the chosen mode
   const handleAddPractice = async () => {
-    if (!data.team_id || !data.location_id || !data.court_id) {
+    if (!data.team_id || !data.location_id) {
       toast({
         status: "error",
-        description: "Team, location and court are required",
+        description: "Team and location are required",
         variant: "destructive",
       });
       return;
@@ -101,7 +101,7 @@ export default function AddPracticeForm({
       }
 
       const practiceData: PracticeRequestDto = {
-        court_id: data.court_id,
+        court_id: data.court_id || undefined,
         location_id: data.location_id,
         team_id: data.team_id,
         start_time: toZonedISOString(new Date(data.start_at)),
@@ -133,7 +133,7 @@ export default function AddPracticeForm({
       };
 
       const practiceData: PracticeRecurrenceRequestDto = {
-        court_id: data.court_id,
+        court_id: data.court_id || undefined,
         location_id: data.location_id,
         team_id: data.team_id,
         recurrence_start_at: toZonedISOString(
@@ -213,9 +213,7 @@ export default function AddPracticeForm({
             value={data.court_id}
             onChange={(e) => updateField("court_id", e.target.value)}
           >
-            <option value="" disabled>
-              Select court
-            </option>
+            <option value="">Select court</option>
             {filteredCourts.map((court) => (
               <option key={court.id} value={court.id}>
                 {court.name}
