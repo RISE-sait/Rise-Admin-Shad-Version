@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { getSchedule } from "@/services/schedule";
 import { getCustomers } from "@/services/customer";
+import { getAllCourts } from "@/services/court";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { StaffRoleEnum } from "@/types/user";
@@ -37,7 +38,6 @@ import {
 const stats = {
   upcomingEvents: 8,
   monthlyRevenue: 12450,
-  courtUtilization: 78,
   weeklyGrowth: 12,
 };
 
@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [activeMembers, setActiveMembers] = useState(0);
   const [todayCheckIns, setTodayCheckIns] = useState(0);
+  const [courtUtilization, setCourtUtilization] = useState(0);
   const { user } = useUser();
   const router = useRouter();
 
@@ -106,29 +107,26 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const updateCheckIns = () => {
-      setTodayCheckIns(countTodayLogs());
-    };
-    updateCheckIns();
-    window.addEventListener("checkinLogsUpdated", updateCheckIns);
-    return () =>
-      window.removeEventListener("checkinLogsUpdated", updateCheckIns);
-  }, []);
-
-  useEffect(() => {
     const loadSchedule = async () => {
       const today = new Date();
       try {
+        const [scheduleData, courts] = await Promise.all([
+          getSchedule(),
+          getAllCourts(),
+        ]);
+
+        const locationIds = new Set(courts.map((c) => c.location_id));
         const {
           events: eventsData,
           games: gamesData,
           practices: practicesData,
-        } = await getSchedule();
+        } = scheduleData;
 
         const events = eventsData
           .filter(
             (e) =>
-              e.location?.id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
+              e.location?.id &&
+              locationIds.has(e.location.id) &&
               isSameDay(new Date(e.start_at as string), today)
           )
           .map((e) => ({
@@ -144,7 +142,7 @@ export default function DashboardPage() {
         const games = gamesData
           .filter(
             (g) =>
-              g.location_id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
+              locationIds.has(g.location_id) &&
               isSameDay(new Date(g.start_time), today)
           )
           .map((g) => ({
@@ -160,7 +158,7 @@ export default function DashboardPage() {
         const practices = practicesData
           .filter(
             (p) =>
-              p.location_id === "e2d1cd76-592f-4c06-89ee-9027cfbbe9de" &&
+              locationIds.has(p.location_id) &&
               isSameDay(new Date(p.start_time), today)
           )
           .map((p) => ({
@@ -176,9 +174,38 @@ export default function DashboardPage() {
         const all = [...events, ...games, ...practices];
         all.sort((a, b) => a.start_at.getTime() - b.start_at.getTime());
         setSchedule(all);
+
+        const openHour = 9;
+        const closeHour = 23;
+        const availableMinutes = courts.length * (closeHour - openHour) * 60;
+
+        if (availableMinutes > 0) {
+          const openTime = new Date(today);
+          openTime.setHours(openHour, 0, 0, 0);
+          const closeTime = new Date(today);
+          closeTime.setHours(closeHour, 0, 0, 0);
+
+          const usedMinutes = all.reduce((total, item) => {
+            const start = item.start_at < openTime ? openTime : item.start_at;
+            const rawEnd =
+              item.end_at && !isNaN(item.end_at.getTime())
+                ? item.end_at
+                : item.start_at;
+            const end = rawEnd > closeTime ? closeTime : rawEnd;
+            const diff = (end.getTime() - start.getTime()) / 60000;
+            return total + Math.max(0, diff);
+          }, 0);
+
+          setCourtUtilization(
+            Math.min(100, Math.round((usedMinutes / availableMinutes) * 100))
+          );
+        } else {
+          setCourtUtilization(0);
+        }
       } catch (err) {
         console.error("Error loading schedule", err);
         setSchedule([]);
+        setCourtUtilization(0);
       }
     };
 
@@ -254,8 +281,8 @@ export default function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.courtUtilization}%</div>
-            <Progress value={stats.courtUtilization} className="mt-2" />
+            <div className="text-2xl font-bold">{courtUtilization}%</div>
+            <Progress value={courtUtilization} className="mt-2" />
           </CardContent>
         </Card>
       </div>
