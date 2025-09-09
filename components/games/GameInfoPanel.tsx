@@ -45,6 +45,14 @@ export default function GameInfoPanel({
   const { data, updateField } = useFormData({
     home_team_id: game.home_team_id,
     away_team_id: game.away_team_id,
+    home_score:
+      game.home_score !== null && game.home_score !== undefined
+        ? String(game.home_score)
+        : "",
+    away_score:
+      game.away_score !== null && game.away_score !== undefined
+        ? String(game.away_score)
+        : "",
     location_id: game.location_id,
     court_id: game.court_id || "",
     start_time: toLocalISOString(fromZonedISOString(game.start_time)).slice(
@@ -105,6 +113,8 @@ export default function GameInfoPanel({
     const gameData = {
       home_team_id: data.home_team_id,
       away_team_id: data.away_team_id,
+      home_score: data.home_score === "" ? null : Number(data.home_score),
+      away_score: data.away_score === "" ? null : Number(data.away_score),
       location_id: data.location_id,
       court_id: data.court_id ? data.court_id : null,
       start_time: toZonedISOString(new Date(data.start_time)),
@@ -179,6 +189,22 @@ export default function GameInfoPanel({
               </option>
             ))}
           </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Home Score</label>
+          <Input
+            value={data.home_score}
+            onChange={(e) => updateField("home_score", e.target.value)}
+            type="number"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Away Score</label>
+          <Input
+            value={data.away_score}
+            onChange={(e) => updateField("away_score", e.target.value)}
+            type="number"
+          />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Location</label>
