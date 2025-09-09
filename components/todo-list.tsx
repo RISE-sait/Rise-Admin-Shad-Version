@@ -1,73 +1,69 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Clock, Plus, MoreHorizontal, Trash2, AlertCircle } from "lucide-react"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Clock, Plus, MoreHorizontal, Trash2, AlertCircle } from "lucide-react";
 
 interface TodoItem {
-  id: string
-  task: string
-  completed: boolean
-  priority: "low" | "medium" | "high"
-  createdAt: Date
-  dueTime?: string
+  id: string;
+  task: string;
+  completed: boolean;
+  priority: "low" | "medium" | "high";
+  createdAt: Date;
+  dueTime?: string;
 }
 
-const initialTodos: TodoItem[] = [
-  {
-    id: "1",
-    task: "Inspect Court B flooring",
-    completed: false,
-    priority: "high",
-    createdAt: new Date(),
-    dueTime: "10:00 AM",
-  },
-  {
-    id: "2",
-    task: "Update league schedules",
-    completed: true,
-    priority: "medium",
-    createdAt: new Date(),
-    dueTime: "Done",
-  },
-  {
-    id: "3",
-    task: "Order new basketballs",
-    completed: false,
-    priority: "medium",
-    createdAt: new Date(),
-    dueTime: "Today",
-  },
-  {
-    id: "4",
-    task: "Call referee for Friday game",
-    completed: false,
-    priority: "low",
-    createdAt: new Date(),
-    dueTime: "3:00 PM",
-  },
-]
+const STORAGE_KEY = "dashboardTodos";
 
 export function TodoList() {
-  const [todos, setTodos] = useState<TodoItem[]>(initialTodos)
-  const [newTask, setNewTask] = useState("")
-  const [isAdding, setIsAdding] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [todos, setTodos] = useState<TodoItem[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as TodoItem[];
+          return parsed.map((t) => ({
+            ...t,
+            createdAt: new Date(t.createdAt),
+          }));
+        } catch {
+          // ignore parse errors and fall back to defaults
+        }
+      }
+    }
+    return [];
+  });
+  const [newTask, setNewTask] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    }
+  }, [todos]);
 
   const toggleTodo = (id: string) => {
-    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)))
-  }
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  };
 
   const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id))
-  }
-  
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
 
   const addTodo = () => {
     if (newTask.trim()) {
@@ -77,33 +73,37 @@ export function TodoList() {
         completed: false,
         priority: "medium",
         createdAt: new Date(),
-      }
-      setTodos([...todos, newTodo])
-      setNewTask("")
-      setIsAdding(false)
+      };
+      setTodos([...todos, newTodo]);
+      setNewTask("");
+      setIsAdding(false);
     }
-  }
+  };
 
   const updatePriority = (id: string, priority: "low" | "medium" | "high") => {
-    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, priority } : todo)))
-  }
+    setTodos(
+      todos.map((todo) => (todo.id === id ? { ...todo, priority } : todo))
+    );
+  };
 
-  const completedCount = todos.filter((todo) => todo.completed).length
-  const totalCount = todos.length
-  const pendingHighPriority = todos.filter((todo) => !todo.completed && todo.priority === "high").length
+  const completedCount = todos.filter((todo) => todo.completed).length;
+  const totalCount = todos.length;
+  const pendingHighPriority = todos.filter(
+    (todo) => !todo.completed && todo.priority === "high"
+  ).length;
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "text-red-500 border-red-200 bg-red-50"
+        return "text-red-500 border-red-200 bg-red-50";
       case "medium":
-        return "text-amber-500 border-amber-200 bg-amber-50"
+        return "text-amber-500 border-amber-200 bg-amber-50";
       case "low":
-        return "text-green-500 border-green-200 bg-green-50"
+        return "text-green-500 border-green-200 bg-green-50";
       default:
-        return "text-gray-500 border-gray-200 bg-gray-50"
+        return "text-gray-500 border-gray-200 bg-gray-50";
     }
-  }
+  };
 
   return (
     <Card>
@@ -131,39 +131,52 @@ export function TodoList() {
           <div
             key={todo.id}
             className={`relative flex items-center gap-3 p-2 pl-4 rounded-lg border transition-all ${
-                todo.completed ? "bg-muted/30 border-muted" : "border-border"
+              todo.completed ? "bg-muted/30 border-muted" : "border-border"
             }`}
-            >
+          >
             <div
-                className={`absolute left-0 top-0 h-full w-1 rounded-l ${
+              className={`absolute left-0 top-0 h-full w-1 rounded-l ${
                 todo.priority === "high"
-                    ? "bg-red-500"
-                    : todo.priority === "medium"
+                  ? "bg-red-500"
+                  : todo.priority === "medium"
                     ? "bg-amber-500"
                     : "bg-green-500"
-                }`}
+              }`}
             />
             <Checkbox
               id={`todo-${todo.id}`}
               checked={todo.completed}
               onCheckedChange={() => toggleTodo(todo.id)}
-              className={todo.priority === "high" && !todo.completed ? "border-red-400" : ""}
+              className={
+                todo.priority === "high" && !todo.completed
+                  ? "border-red-400"
+                  : ""
+              }
             />
 
             <div className="flex-1 min-w-0">
               <label
                 htmlFor={`todo-${todo.id}`}
                 className={`text-sm cursor-pointer block ${
-                  todo.completed ? "line-through text-muted-foreground" : "font-medium"
+                  todo.completed
+                    ? "line-through text-muted-foreground"
+                    : "font-medium"
                 }`}
               >
                 {todo.task}
               </label>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${getPriorityColor(todo.priority)}`}>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 ${getPriorityColor(todo.priority)}`}
+                >
                   {todo.priority}
                 </Badge>
-                {todo.dueTime && <span className="text-xs text-muted-foreground">{todo.dueTime}</span>}
+                {todo.dueTime && (
+                  <span className="text-xs text-muted-foreground">
+                    {todo.dueTime}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -174,12 +187,25 @@ export function TodoList() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => updatePriority(todo.id, "high")}>Set High Priority</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => updatePriority(todo.id, "medium")}>
+                <DropdownMenuItem
+                  onClick={() => updatePriority(todo.id, "high")}
+                >
+                  Set High Priority
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => updatePriority(todo.id, "medium")}
+                >
                   Set Medium Priority
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => updatePriority(todo.id, "low")}>Set Low Priority</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => deleteTodo(todo.id)} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={() => updatePriority(todo.id, "low")}
+                >
+                  Set Low Priority
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => deleteTodo(todo.id)}
+                  className="text-red-600"
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </DropdownMenuItem>
@@ -196,10 +222,10 @@ export function TodoList() {
               placeholder="Enter new task..."
               className="flex-1 h-8"
               onKeyDown={(e) => {
-                if (e.key === "Enter") addTodo()
+                if (e.key === "Enter") addTodo();
                 if (e.key === "Escape") {
-                  setIsAdding(false)
-                  setNewTask("")
+                  setIsAdding(false);
+                  setNewTask("");
                 }
               }}
               autoFocus
@@ -211,15 +237,20 @@ export function TodoList() {
               size="sm"
               variant="ghost"
               onClick={() => {
-                setIsAdding(false)
-                setNewTask("")
+                setIsAdding(false);
+                setNewTask("");
               }}
             >
               Cancel
             </Button>
           </div>
         ) : (
-          <Button variant="outline" size="sm" className="w-full border-dashed" onClick={() => setIsAdding(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full border-dashed"
+            onClick={() => setIsAdding(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Task
           </Button>
@@ -241,5 +272,5 @@ export function TodoList() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
