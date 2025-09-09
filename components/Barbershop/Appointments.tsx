@@ -158,8 +158,6 @@ export default function AppointmentsPage() {
           params.customer_id = selectedCustomer;
         }
 
-        console.log("Fetching with params:", params);
-
         // Fetch appointments with filters - add error handling
         try {
           const appointmentsData = await getHaircutEvents(params);
@@ -354,8 +352,6 @@ export default function AppointmentsPage() {
         params.customer_id = selectedCustomer;
       }
 
-      console.log("Refreshing appointments with params:", params);
-
       const refreshedAppointments = await getHaircutEvents(params);
       setAppointments(refreshedAppointments);
       applyViewFilter(refreshedAppointments);
@@ -378,8 +374,6 @@ export default function AppointmentsPage() {
   };
 
   const handleAppointmentAdded = async () => {
-    console.log("Appointment added callback triggered");
-
     // Close the drawer right away for better UX
     setDrawerOpen(false);
 

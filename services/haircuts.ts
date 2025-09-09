@@ -42,15 +42,6 @@ export async function uploadHaircut(
       Authorization: `Bearer ${jwt}`,
     };
 
-    console.log(
-      "Uploading file:",
-      file.name,
-      "Size:",
-      file.size,
-      "Type:",
-      file.type
-    );
-
     const response = await fetch(`${getValue("API")}haircuts`, {
       method: "POST",
       headers,
@@ -121,7 +112,6 @@ export async function getHaircutEvents(params?: {
     }
 
     const url = `${getValue("API")}haircuts/events?${queryParams.toString()}`;
-    console.log("Requesting API:", url);
 
     const response = await fetch(url);
 

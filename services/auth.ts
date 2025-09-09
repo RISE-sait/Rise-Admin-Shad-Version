@@ -68,7 +68,6 @@ export const loginWithFirebaseToken = async (
 
     return user;
   } catch (pathError) {
-    console.log("Backend authentication failed, using dev mode");
     console.error("Authentication error:", pathError);
 
     throw new Error("Authentication or authorization failed");
