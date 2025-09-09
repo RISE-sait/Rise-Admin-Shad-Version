@@ -6,7 +6,7 @@
  *
  * @example
  * const formattedDate = formatDate("2025-03-08T01:07:48.652618Z");
- * console.log(formattedDate); // Output: "March 7, 2025, 6:07 PM MST"
+ * // Output: "March 7, 2025, 6:07 PM MST"
  */
 function formatDate(isoString: string): string {
   const date = new Date(isoString);

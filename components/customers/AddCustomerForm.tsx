@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
 // import { CustomerRegistrationRequestDto } from "@/app/api/Api";
 
 interface AddCustomerFormProps {
@@ -11,20 +11,20 @@ interface AddCustomerFormProps {
   onCancel?: () => void;
 }
 
-export default function AddCustomerForm({ 
-  onCustomerAdded, 
-  onCancel 
+export default function AddCustomerForm({
+  onCustomerAdded,
+  onCancel,
 }: AddCustomerFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-      const { toast } = useToast()
-  
+  const { toast } = useToast();
+
   // const [formData, setFormData] = useState<CustomerRegistrationRequestDto>({
   //   first_name: "",
   //   last_name: "",
   //   age: 18,
   //   role: "athlete",
-  //   phone_number: "", 
+  //   phone_number: "",
   //   country_code: "CA", // Use the country code format, not prefix
   //   has_consent_to_email_marketing: false,
   //   has_consent_to_sms: false,
@@ -35,44 +35,44 @@ export default function AddCustomerForm({
   return <div>Not Implemented yet</div>;
 }
 
-  // const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-  //   const { name, value, type } = e.target as HTMLInputElement;
-    
-  //   if (type === 'checkbox') {
-  //     const { checked } = e.target as HTMLInputElement;
-  //     setFormData(prev => ({
-  //       ...prev,
-  //       [name]: checked
-  //     }));
-  //   } else {
-  //     setFormData(prev => ({
-  //       ...prev,
-  //       [name]: name === 'age' ? parseInt(value) : value
-  //     }));
-  //   }
-  // };
+// const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+//   const { name, value, type } = e.target as HTMLInputElement;
+
+//   if (type === 'checkbox') {
+//     const { checked } = e.target as HTMLInputElement;
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: checked
+//     }));
+//   } else {
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: name === 'age' ? parseInt(value) : value
+//     }));
+//   }
+// };
 
 //   const handleAddCustomer = async (e: React.FormEvent) => {
 //     e.preventDefault();
-    
+
 //     // Validate required fields
 //     if (!formData.first_name.trim() || !formData.last_name.trim()) {
 //       toast.error("Please provide both first and last name.");
 //       return;
 //     }
-  
+
 //     // Validate age
 //     if (formData.age <= 0 || formData.age > 120) {
 //       toast.error("Please provide a valid age between 1 and 120.");
 //       return;
 //     }
-  
+
 //     setIsLoading(true);
-  
+
 //     try {
 //       // Create a copy of the form data to modify before sending
 //       const submissionData = { ...formData };
-      
+
 //       // Format phone number with country code if provided
 //       if (submissionData.phone_number) {
 //         // Get the proper dialing code based on country code
@@ -91,25 +91,23 @@ export default function AddCustomerForm({
 //           default:
 //             dialingCode = '+1'; // Default
 //         }
-        
+
 //         // Remove any non-digit characters from phone number
 //         const cleanPhone = submissionData.phone_number.replace(/\D/g, '');
-        
+
 //         // Format phone number with dialing code
 //         submissionData.phone_number = `${dialingCode}${cleanPhone}`;
 //       }
-
 
 //       // Create a default waiver if required (adapt as needed for your use case)
 //       submissionData.waivers = [{
 //         is_waiver_signed: true,
 //         waiver_url: "https://example.com/default-waiver"
 //       }];
-      
-//       console.log("Submitting customer data:", submissionData);
+
 //       await customerService.createCustomer(submissionData);
 //       toast.success("Customer successfully added!");
-      
+
 //       // Reset form
 //       setFormData({
 //         first_name: "",
@@ -121,7 +119,7 @@ export default function AddCustomerForm({
 //         has_consent_to_email_marketing: false,
 //         has_consent_to_sms: false,
 //       });
-      
+
 //       // Notify parent component
 //       if (onCustomerAdded) {
 //         onCustomerAdded();

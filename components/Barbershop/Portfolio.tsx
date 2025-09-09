@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Heading } from "@/components/ui/Heading";
@@ -23,8 +23,8 @@ export default function PortfolioPage() {
   const { toast } = useToast();
   const { user } = useUser();
 
-  const isBarber = user?.Role === StaffRoleEnum.BARBER
-  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN
+  const isBarber = user?.Role === StaffRoleEnum.BARBER;
+  const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN;
 
   // Use ref to prevent multiple fetches
   const fetchCompleted = useRef(false);
@@ -40,19 +40,20 @@ export default function PortfolioPage() {
         setFetchError(null);
 
         // If user is a barber and not admin/superadmin, only fetch their images
-        const barberId = selectedBarber ||
-          (isBarber && !isSuperAdmin ? user?.ID : undefined);
-
-        console.log("Fetching haircuts with barberId:", barberId);
+        const barberId =
+          selectedBarber || (isBarber && !isSuperAdmin ? user?.ID : undefined);
 
         const fetchedImages = await getHaircuts(barberId);
-        console.log("Fetched images:", fetchedImages);
+
         setImages(fetchedImages || []);
         fetchCompleted.current = true;
       } catch (error) {
         console.error("Error fetching haircut images:", error);
         setFetchError("Failed to load haircut images. Please try again later.");
-        toast({ status: "error", description: "Failed to load haircut images" });
+        toast({
+          status: "error",
+          description: "Failed to load haircut images",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -71,7 +72,10 @@ export default function PortfolioPage() {
   // Handle image upload
   const handleUpload = async () => {
     if (!uploadFile || !user?.Jwt) {
-      toast({ status: "error", description: "No file selected or not logged in" });
+      toast({
+        status: "error",
+        description: "No file selected or not logged in",
+      });
       return;
     }
 
@@ -81,8 +85,8 @@ export default function PortfolioPage() {
       toast({ status: "success", description: "Image uploaded successfully" });
 
       // Refresh images
-      const barberId = selectedBarber ||
-        (isBarber && !isSuperAdmin ? user?.ID : undefined);
+      const barberId =
+        selectedBarber || (isBarber && !isSuperAdmin ? user?.ID : undefined);
       const fetchedImages = await getHaircuts(barberId);
       setImages(fetchedImages || []);
 
@@ -105,8 +109,8 @@ export default function PortfolioPage() {
         setIsLoading(true);
         setFetchError(null);
 
-        const barberId = selectedBarber ||
-          (isBarber && !isSuperAdmin ? user?.ID : undefined);
+        const barberId =
+          selectedBarber || (isBarber && !isSuperAdmin ? user?.ID : undefined);
 
         const fetchedImages = await getHaircuts(barberId);
         setImages(fetchedImages || []);
@@ -114,7 +118,10 @@ export default function PortfolioPage() {
       } catch (error) {
         console.error("Error retrying haircut images fetch:", error);
         setFetchError("Failed to load haircut images. Please try again later.");
-        toast({ status: "error", description: "Failed to load haircut images" });
+        toast({
+          status: "error",
+          description: "Failed to load haircut images",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -126,7 +133,10 @@ export default function PortfolioPage() {
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Haircut Portfolio" description="Showcase your best haircuts" />
+        <Heading
+          title="Haircut Portfolio"
+          description="Showcase your best haircuts"
+        />
         <Button
           onClick={() => setUploadModalOpen(true)}
           className="flex items-center gap-2"
@@ -138,7 +148,9 @@ export default function PortfolioPage() {
       <Separator />
 
       <Link href="/manage/barbershop">
-        <Button variant="outline" className="mb-4">← Back to Barbershop</Button>
+        <Button variant="outline" className="mb-4">
+          ← Back to Barbershop
+        </Button>
       </Link>
 
       {/* Gallery */}
@@ -146,22 +158,23 @@ export default function PortfolioPage() {
         {isLoading ? (
           <div className="col-span-3 text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading portfolio images...</p>
+            <p className="mt-4 text-muted-foreground">
+              Loading portfolio images...
+            </p>
           </div>
         ) : fetchError ? (
           <div className="col-span-3 text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-destructive">{fetchError}</p>
-            <Button
-              variant="outline"
-              onClick={handleRetry}
-              className="mt-4"
-            >
+            <Button variant="outline" onClick={handleRetry} className="mt-4">
               Try Again
             </Button>
           </div>
         ) : images && images.length > 0 ? (
           images.map((image, index) => (
-            <div key={index} className="relative rounded-lg overflow-hidden shadow-md aspect-square">
+            <div
+              key={index}
+              className="relative rounded-lg overflow-hidden shadow-md aspect-square"
+            >
               <img
                 src={image}
                 alt={`Haircut ${index + 1}`}
@@ -189,7 +202,11 @@ export default function PortfolioPage() {
           <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Upload Haircut Image</h2>
-              <Button variant="ghost" size="icon" onClick={() => setUploadModalOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setUploadModalOpen(false)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -209,13 +226,17 @@ export default function PortfolioPage() {
                 >
                   {uploadFile ? (
                     <div className="space-y-2">
-                      <p className="text-foreground font-medium">{uploadFile.name}</p>
+                      <p className="text-foreground font-medium">
+                        {uploadFile.name}
+                      </p>
                       <p className="text-sm">Click to change file</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
                       <p>Click to select an image</p>
-                      <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
+                      <p className="text-sm">
+                        (JPG, PNG, WebP formats accepted)
+                      </p>
                     </div>
                   )}
                 </label>

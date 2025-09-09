@@ -115,8 +115,6 @@ export default function CustomersPage({
   // Placeholder for bulk delete action
   const handleBulkDelete = async () => {
     try {
-      // Log IDs being deleted
-      console.log("Deleting customers with IDs:", selectedIds);
       // Reset selection and close modal
       setSelectedIds([]);
       setBulkDeleteOpen(false);
