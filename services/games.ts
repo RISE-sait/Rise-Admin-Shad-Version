@@ -18,8 +18,8 @@ export async function getAllGames(): Promise<Game[]> {
       away_team_id: g.away_team_id!, // Required away team ID
       away_team_name: g.away_team_name!, // Required away team name
       away_team_logo_url: g.away_team_logo_url || "", // Optional logo URL
-      home_score: g.home_score, // Score values can be null/undefined
-      away_score: g.away_score,
+      home_score: g.home_score ?? null, // Normalize missing scores to null
+      away_score: g.away_score ?? null,
       start_time: g.start_time, // Event start timestamp
       end_time: g.end_time, // Event end timestamp
       location_id: g.location_id!, // Required location ID

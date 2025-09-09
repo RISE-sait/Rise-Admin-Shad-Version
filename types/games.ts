@@ -6,8 +6,8 @@ export interface Game {
   away_team_id: string;
   away_team_name: string;
   away_team_logo_url: string;
-  home_score: number;
-  away_score: number;
+  home_score: number | null;
+  away_score: number | null;
   start_time: string;
   end_time: string;
   location_id: string;

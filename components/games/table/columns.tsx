@@ -22,6 +22,18 @@ const columns: ColumnDef<Game>[] = [
     size: 250,
   },
   {
+    id: "score",
+    header: "Score",
+    cell: ({ row }) => {
+      const { home_score, away_score } = row.original;
+      return home_score !== null && away_score !== null
+        ? `${home_score} - ${away_score}`
+        : "TBD";
+    },
+    minSize: 80,
+    size: 100,
+  },
+  {
     id: "location_name",
     accessorKey: "location_name",
     header: "Location",
