@@ -30,7 +30,7 @@ import {
   MapPin,
   TrendingUp,
   UserPlus,
-  BarChart3,
+  Search,
   LogIn,
 } from "lucide-react";
 
@@ -403,25 +403,19 @@ export default function DashboardPage() {
               variant="outline"
               className="w-full justify-start"
               size="sm"
+              onClick={() => router.push("/manage/games")}
             >
               <Calendar className="h-4 w-4 mr-2" />
-              Book a court
+              Schedule a game
             </Button>
             <Button
               variant="outline"
               className="w-full justify-start"
               size="sm"
+              onClick={() => router.push("/manage/customers")}
             >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add new member
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              size="sm"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              View reports
+              <Search className="h-4 w-4 mr-2" />
+              Search a customer
             </Button>
           </CardContent>
         </Card>
