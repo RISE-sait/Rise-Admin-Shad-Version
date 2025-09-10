@@ -12,6 +12,279 @@
   "host": "",
   "basePath": "",
   "paths": {
+    "/admin/customers/{id}/credits/add": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Credit addition request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credits added successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/customers/{id}/credits/deduct": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Credit deduction request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credits deducted successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or insufficient credits",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/events/{id}/credit-cost": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Credit cost update request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event credit cost updated successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Event not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/events/{id}/credit-transactions": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event credit transactions retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid event ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/ai/chat": {
       "post": {
         "consumes": ["application/json"],
@@ -180,6 +453,66 @@
           },
           "404": {
             "description": "Not Found: Athlete or team not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/athletes/{id}/profile": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["athletes"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Athlete ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Athlete profile update data including photo_url",
+            "name": "update_body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/customer.AthleteProfileUpdateRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Athlete profile updated successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Athlete not found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -414,6 +747,124 @@
           },
           "500": {
             "description": "Internal Server Error: Failed to process checkout",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/checkout/events/{id}/enhanced": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["payments"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Payment method request",
+            "name": "request",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment link generated or free enrollment completed",
+            "schema": {
+              "$ref": "#/definitions/payment.CheckoutResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or missing event ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Event not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "409": {
+            "description": "Conflict: Event is full or already booked",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error: Failed to process checkout",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/checkout/events/{id}/options": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["payments"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event enrollment options retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/payment.EventEnrollmentOptions"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid event ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Event not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -2374,6 +2825,85 @@
         }
       }
     },
+    "/health": {
+      "get": {
+        "description": "Returns the health status of the application and its dependencies",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["health"],
+        "summary": "Health check endpoint for load balancer integration",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "schema": {
+              "$ref": "#/definitions/handler.HealthStatus"
+            }
+          },
+          "503": {
+            "description": "Service is unhealthy",
+            "schema": {
+              "$ref": "#/definitions/handler.HealthStatus"
+            }
+          }
+        }
+      }
+    },
+    "/health/security-audit": {
+      "get": {
+        "description": "Performs comprehensive security audit and returns results",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["security"],
+        "summary": "Security audit",
+        "responses": {
+          "200": {
+            "description": "Security audit results",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/health/webhook-retries": {
+      "get": {
+        "description": "Returns statistics about webhook retry attempts",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["health"],
+        "summary": "Webhook retry statistics",
+        "responses": {
+          "200": {
+            "description": "Retry statistics",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/live": {
+      "get": {
+        "description": "Returns whether the service is alive",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["health"],
+        "summary": "Liveness check endpoint",
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/locations": {
       "get": {
         "consumes": ["application/json"],
@@ -3710,6 +4240,35 @@
         }
       }
     },
+    "/ready": {
+      "get": {
+        "description": "Returns whether the service is ready to accept traffic",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["health"],
+        "summary": "Readiness check endpoint",
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "503": {
+            "description": "Service is not ready",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/register/athlete": {
       "post": {
         "description": "Registers a new athlete by verifying the Firebase token and creating an account based on the provided details.",
@@ -4018,6 +4577,95 @@
         }
       }
     },
+    "/secure/credits": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "responses": {
+          "200": {
+            "description": "Credit balance retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/secure/credits/transactions": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 20,
+            "description": "Number of items per page",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "default": 0,
+            "description": "Number of items to skip",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credit transaction history retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/secure/customers/memberships": {
       "get": {
         "security": [
@@ -4094,6 +4742,14 @@
         ],
         "produces": ["application/json", "application/json"],
         "tags": ["games", "games"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Filter by time: upcoming, past, or live",
+            "name": "filter",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of games for the current user",
@@ -4402,6 +5058,370 @@
         }
       }
     },
+    "/subscriptions": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get all subscriptions for the authenticated customer",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["subscriptions"],
+        "responses": {
+          "200": {
+            "description": "Customer subscriptions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/portal": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Create a Stripe Customer Portal session for subscription management",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["subscriptions"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Return URL after portal session",
+            "name": "return_url",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portal session URL",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid return URL",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Customer not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get subscription details with ownership verification",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["subscriptions"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription details",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid subscription ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Subscription not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{id}/cancel": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Cancel a subscription immediately or at period end",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["subscriptions"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "description": "Cancel immediately (default: false - cancel at period end)",
+            "name": "immediate",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancellation successful",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Subscription not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "409": {
+            "description": "Conflict: Subscription already cancelled",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{id}/pause": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Pause a subscription with optional resume date",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["subscriptions"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Resume date (RFC3339 format)",
+            "name": "resume_at",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pause successful",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Subscription not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "409": {
+            "description": "Conflict: Only active subscriptions can be paused",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/{id}/resume": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Resume a paused subscription",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["subscriptions"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resume successful",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid subscription ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Subscription not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "409": {
+            "description": "Conflict: Subscription is not paused",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/teams": {
       "get": {
         "consumes": ["application/json"],
@@ -4437,7 +5457,7 @@
         "tags": ["teams"],
         "parameters": [
           {
-            "description": "Team details",
+            "description": "Team details including name, capacity, coach_id, and optional logo_url",
             "name": "team",
             "in": "body",
             "required": true,
@@ -4533,7 +5553,7 @@
             "required": true
           },
           {
-            "description": "Team details",
+            "description": "Team details including name, capacity, coach_id, and optional logo_url",
             "name": "team",
             "in": "body",
             "required": true,
@@ -4899,6 +5919,14 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        }
+      }
+    },
+    "customer.AthleteProfileUpdateRequestDto": {
+      "type": "object",
+      "properties": {
+        "photo_url": {
           "type": "string"
         }
       }
@@ -5637,6 +6665,44 @@
         }
       }
     },
+    "handler.Check": {
+      "type": "object",
+      "properties": {
+        "details": {},
+        "duration": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "handler.HealthStatus": {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/handler.Check"
+          }
+        },
+        "duration": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
     "identity.AthleteResponseDto": {
       "type": "object",
       "properties": {
@@ -5853,6 +6919,26 @@
       "type": "object",
       "properties": {
         "payment_url": {
+          "type": "string"
+        }
+      }
+    },
+    "payment.EventEnrollmentOptions": {
+      "type": "object",
+      "properties": {
+        "can_enroll_free": {
+          "type": "boolean"
+        },
+        "credit_cost": {
+          "type": "integer"
+        },
+        "has_sufficient_credits": {
+          "type": "boolean"
+        },
+        "membership_plan_id": {
+          "type": "string"
+        },
+        "stripe_price_id": {
           "type": "string"
         }
       }
@@ -6250,6 +7336,9 @@
           "type": "string",
           "example": "faae4b3a-ad9f-463c-ae4b-3aad9fb63c9b"
         },
+        "logo_url": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         }
@@ -6268,6 +7357,9 @@
           "type": "string"
         },
         "id": {
+          "type": "string"
+        },
+        "logo_url": {
           "type": "string"
         },
         "name": {
