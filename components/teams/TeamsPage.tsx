@@ -25,7 +25,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 
-export default function TeamsPage({ teams }: { teams: Team[] }) {
+export default function TeamsPage({
+  teams,
+  refreshTeams,
+}: {
+  teams: Team[];
+  refreshTeams: () => void;
+}) {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
@@ -138,10 +144,14 @@ export default function TeamsPage({ teams }: { teams: Team[] }) {
             <TeamInfoPanel
               team={selectedTeam}
               onClose={() => setDrawerOpen(false)}
+              onTeamChanged={refreshTeams}
             />
           )}
           {drawerContent === "add" && (
-            <AddTeamForm onClose={() => setDrawerOpen(false)} />
+            <AddTeamForm
+              onClose={() => setDrawerOpen(false)}
+              onTeamAdded={refreshTeams}
+            />
           )}
         </div>
       </RightDrawer>
