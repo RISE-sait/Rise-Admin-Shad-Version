@@ -66,10 +66,19 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
       return;
     }
 
+    if (!data.coach_id) {
+      toast({
+        status: "error",
+        description: "Coach is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const teamData: TeamRequestDto = {
       name: data.name,
       capacity: data.capacity || 0,
-      coach_id: data.coach_id || undefined,
+      coach_id: data.coach_id,
     };
     if (logoData) {
       teamData.logo_url = logoData;
@@ -172,18 +181,9 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Capacity</label>
-          <Input
-            value={data.capacity}
-            onChange={(e) => updateField("capacity", parseInt(e.target.value))}
-            type="number"
-            min={0}
-            placeholder="Team capacity"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Coach</label>
+          <label className="text-sm font-medium">
+            Coach <span className="text-red-500">*</span>
+          </label>
           <Select
             value={data.coach_id}
             onValueChange={(id) => updateField("coach_id", id)}
