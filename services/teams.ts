@@ -26,6 +26,7 @@ export async function getAllTeams(): Promise<Team[]> {
       capacity: team.capacity!,
       coach_id: team.coach?.id!,
       coach_name: team.coach?.name || "",
+      logo_url: team.logo_url || "",
     }));
   } catch (error) {
     console.error("Error fetching teams:", error);
@@ -57,6 +58,7 @@ export async function getUserTeams(jwt: string): Promise<Team[]> {
       capacity: team.capacity!,
       coach_id: team.coach?.id!,
       coach_name: team.coach?.name || "",
+      logo_url: team.logo_url || "",
     }));
   } catch (error) {
     console.error("Error fetching teams:", error);
@@ -88,6 +90,7 @@ export async function getTeamById(id: string, jwt: string): Promise<Team> {
       coach_name: data.coach?.name,
       created_at: new Date(data.created_at!),
       updated_at: new Date(data.updated_at!),
+      logo_url: data.logo_url || "",
       roster: data.roster,
     };
   } catch (error) {
@@ -103,7 +106,10 @@ export async function createTeam(
   try {
     const response = await fetch(`${getValue("API")}teams`, {
       method: "POST",
-      ...addAuthHeader(jwt),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
       body: JSON.stringify(teamData),
     });
 
@@ -131,7 +137,10 @@ export async function updateTeam(
   try {
     const response = await fetch(`${getValue("API")}teams/${id}`, {
       method: "PUT",
-      ...addAuthHeader(jwt),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
       body: JSON.stringify(teamData),
     });
 

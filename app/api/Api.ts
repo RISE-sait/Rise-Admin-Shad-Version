@@ -487,6 +487,7 @@ export interface TeamRequestDto {
   /** @example "faae4b3a-ad9f-463c-ae4b-3aad9fb63c9b" */
   coach_id?: string;
   name: string;
+  logo_url?: string;
 }
 
 export interface TeamResponse {
@@ -494,6 +495,7 @@ export interface TeamResponse {
   coach?: TeamCoach;
   created_at?: string;
   id?: string;
+  logo_url?: string;
   name?: string;
   roster?: ApiInternalDomainsTeamDtoRosterMemberInfo[];
   updated_at?: string;
