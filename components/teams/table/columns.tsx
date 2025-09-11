@@ -7,6 +7,25 @@ import { Button } from "@/components/ui/button";
 
 const columns: ColumnDef<Team>[] = [
   {
+    id: "logo_url",
+    accessorKey: "logo_url",
+    header: "Logo",
+    cell: ({ row }) => {
+      const url = row.getValue("logo_url") as string | undefined;
+      return url ? (
+        <img
+          src={url}
+          alt="Team Logo"
+          className="h-8 w-8 rounded-full object-cover"
+        />
+      ) : null;
+    },
+    enableSorting: false,
+    enableHiding: false,
+    minSize: 50,
+    size: 60,
+  },
+  {
     id: "name",
     accessorKey: "name",
     header: ({ column }) => (

@@ -38,6 +38,8 @@ export default function TeamInfoPanel({
   const [capacity, setCapacity] = useState<number>(team.capacity);
   const [coachId] = useState(team.coach_id || "");
   const [rosterOpen, setRosterOpen] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string>(team.logo_url || "");
+  const [logoName, setLogoName] = useState<string>("");
   const [roster, setRoster] = useState(team.roster);
   const { user } = useUser();
   const { toast } = useToast();
@@ -49,6 +51,9 @@ export default function TeamInfoPanel({
       capacity: capacity || 0,
       coach_id: coachId || undefined,
     };
+    if (logoPreview) {
+      teamData.logo_url = logoPreview;
+    }
     try {
       const error = await updateTeam(team.id, teamData, user?.Jwt!);
       if (error === null) {
@@ -113,6 +118,56 @@ export default function TeamInfoPanel({
               onChange={(e) => setCapacity(parseInt(e.target.value))}
             />
           </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Team Logo</label>
+            <div className="border-2 border-dashed rounded-lg p-6 text-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setLogoName(file.name);
+                    const reader = new FileReader();
+                    reader.onload = () =>
+                      setLogoPreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+                id="team-logo-edit"
+              />
+              <label
+                htmlFor="team-logo-edit"
+                className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {logoPreview ? (
+                  <div className="space-y-2">
+                    <p className="text-foreground font-medium">
+                      {logoName || "Image selected"}
+                    </p>
+                    <p className="text-sm">Click to change file</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p>Click to select an image</p>
+                    <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
+                  </div>
+                )}
+              </label>
+            </div>
+            {logoPreview && (
+              <div className="flex justify-center">
+                <img
+                  src={logoPreview}
+                  alt="Preview"
+                  className="max-h-40 rounded"
+                />
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Coach</label>
             <p className="border rounded-md px-3 py-2">
