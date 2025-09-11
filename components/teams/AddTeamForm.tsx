@@ -22,7 +22,13 @@ import { revalidateTeams } from "@/actions/serverActions";
 import { User } from "@/types/user";
 import { useEffect, useState } from "react";
 
-export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
+export default function AddTeamForm({
+  onClose,
+  onTeamAdded,
+}: {
+  onClose?: () => void;
+  onTeamAdded?: () => void;
+}) {
   // useFormData provides a simple object based form state manager
   // with helpers for updating and resetting the data fields.
   const { data, updateField, resetData } = useFormData({
@@ -92,6 +98,7 @@ export default function AddTeamForm({ onClose }: { onClose?: () => void }) {
         setLogoData("");
         setLogoName("");
         await revalidateTeams();
+        onTeamAdded?.();
         if (onClose) onClose();
       } else {
         toast({

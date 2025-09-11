@@ -30,9 +30,11 @@ import { TeamRequestDto } from "@/app/api/Api";
 export default function TeamInfoPanel({
   team,
   onClose,
+  onTeamChanged,
 }: {
   team: Team;
   onClose?: () => void;
+  onTeamChanged?: () => void;
 }) {
   const [name, setName] = useState(team.name);
   const [capacity, setCapacity] = useState<number>(team.capacity);
@@ -59,6 +61,7 @@ export default function TeamInfoPanel({
       if (error === null) {
         toast({ status: "success", description: "Team updated successfully" });
         await revalidateTeams();
+        onTeamChanged?.();
         onClose?.();
       } else {
         toast({
@@ -83,6 +86,7 @@ export default function TeamInfoPanel({
       if (error === null) {
         toast({ status: "success", description: "Team deleted successfully" });
         await revalidateTeams();
+        onTeamChanged?.();
         if (onClose) onClose();
       } else {
         toast({
