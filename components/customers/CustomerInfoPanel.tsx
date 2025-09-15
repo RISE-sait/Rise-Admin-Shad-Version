@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
+import CustomerCredits from "./infoTabs/CustomerCredits";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -23,6 +24,7 @@ import {
   Clock,
   RefreshCw,
   Award,
+  Coins,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -55,7 +57,10 @@ export default function CustomerInfoPanel({
 }: CustomerInfoPanelProps) {
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
-  const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
+  const [currentCustomer, setCurrentCustomer] = useState<Customer>({
+    ...customer,
+    credits: customer.credits ?? 0,
+  });
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
@@ -64,7 +69,7 @@ export default function CustomerInfoPanel({
 
   useEffect(() => {
     // Update currentCustomer when the customer prop changes
-    setCurrentCustomer(customer);
+    setCurrentCustomer({ ...customer, credits: customer.credits ?? 0 });
 
     // Initialize membership plans from the provided customer data
     if (customer.membership_plan_id) {
@@ -87,7 +92,7 @@ export default function CustomerInfoPanel({
     setIsLoading(true);
     try {
       // Use the unified getCustomerById function to get all data
-      const refreshedCustomer = await getCustomerById(customer.id);
+      const refreshedCustomer = await getCustomerById(customer.id, user?.Jwt);
       if (refreshedCustomer) {
         setCurrentCustomer(refreshedCustomer);
 
@@ -176,6 +181,13 @@ export default function CustomerInfoPanel({
               <CreditCard className="h-4 w-4" />
               Membership
             </TabsTrigger>
+            <TabsTrigger
+              value="credits"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Coins className="h-4 w-4" />
+              Credits
+            </TabsTrigger>
             {/* <TabsTrigger
               value="stats"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
@@ -255,6 +267,17 @@ export default function CustomerInfoPanel({
               </p>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="credits">
+          <CustomerCredits
+            customerId={currentCustomer.id}
+            credits={currentCustomer.credits || 0}
+            onCreditChange={(newCredits) => {
+              setCurrentCustomer((prev) => ({ ...prev, credits: newCredits }));
+              onCustomerUpdated?.({ credits: newCredits });
+            }}
+          />
         </TabsContent>
 
         {/* Stats Tab - This will show the athlete_info data that is available */}

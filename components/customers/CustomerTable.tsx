@@ -132,6 +132,14 @@ export const columns: ColumnDef<Customer>[] = [
     size: 150,
   },
   {
+    id: "credits",
+    accessorKey: "credits",
+    header: "Credits",
+    cell: ({ row }) => row.original.credits ?? 0,
+    minSize: 80,
+    size: 100,
+  },
+  {
     id: "start_date",
     accessorKey: "membership_start_date", // key for membership start date
     header: "Start Date",

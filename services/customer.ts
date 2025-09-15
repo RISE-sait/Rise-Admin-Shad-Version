@@ -5,6 +5,7 @@ import {
   UserUpdateRequestDto,
 } from "@/app/api/Api";
 import { addAuthHeader } from "@/lib/auth-header";
+import { getCustomerCredits } from "@/services/credits";
 
 // Define a type for the API response
 interface CustomerApiResponse {
@@ -34,6 +35,7 @@ interface CustomerApiResponse {
   };
   phone: string;
   user_id: string;
+  credits?: number;
 }
 
 // Helper function to map API response to Customer type
@@ -68,6 +70,7 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     // Additional fields not provided by API
     hubspot_id: response.hubspot_id || "",
     is_archived: response.is_archived || false,
+    credits: response.credits ?? 0,
     updated_at: new Date(), // Default to current date
     create_at: new Date(), // Default to current date
   };
@@ -86,7 +89,8 @@ interface CustomersPaginatedResponse {
 export async function getCustomers(
   search?: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  jwt?: string
 ): Promise<{
   customers: Customer[];
   page: number;
@@ -115,8 +119,26 @@ export async function getCustomers(
 
     const json: CustomersPaginatedResponse = await response.json();
 
+    const includesCredits =
+      json.data.length > 0 && (json.data[0] as any).credits !== undefined;
+    const customers = json.data.map(mapApiResponseToCustomer);
+
+    if (!includesCredits && jwt) {
+      await Promise.all(
+        customers.map(async (c) => {
+          try {
+            c.credits = await getCustomerCredits(c.id, jwt, {
+              includeCustomerId: true,
+            });
+          } catch {
+            c.credits = 0;
+          }
+        })
+      );
+    }
+
     return {
-      customers: json.data.map(mapApiResponseToCustomer),
+      customers,
       page: json.page,
       pages: json.pages,
       total: json.total,
@@ -131,7 +153,8 @@ export async function getCustomers(
  * Get customer by ID
  */
 export async function getCustomerById(
-  customerId: string
+  customerId: string,
+  jwt?: string
 ): Promise<Customer | null> {
   try {
     const url = `${getValue("API")}customers/id/${customerId}`;
@@ -151,7 +174,19 @@ export async function getCustomerById(
 
     const customerResponse: CustomerApiResponse = await response.json();
 
-    return mapApiResponseToCustomer(customerResponse);
+    const customer = mapApiResponseToCustomer(customerResponse);
+
+    if (customerResponse.credits === undefined && jwt) {
+      try {
+        customer.credits = await getCustomerCredits(customer.id, jwt, {
+          includeCustomerId: true,
+        });
+      } catch {
+        customer.credits = 0;
+      }
+    }
+
+    return customer;
   } catch (error) {
     console.error(`Error fetching customer with ID ${customerId}:`, error);
     throw error;
@@ -229,7 +264,8 @@ export async function updateCustomer(
 export async function getArchivedCustomers(
   search?: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  jwt?: string
 ): Promise<{
   customers: Customer[];
   page: number;
@@ -256,17 +292,37 @@ export async function getArchivedCustomers(
     const json = await response.json();
 
     // Support both paginated and plain array formats
+    let customers: Customer[] = [];
     if (Array.isArray(json)) {
-      return {
-        customers: json.map(mapApiResponseToCustomer),
-        page: 1,
-        pages: 1,
-        total: json.length,
-      };
+      customers = json.map(mapApiResponseToCustomer);
+    } else {
+      customers = (json.data || []).map(mapApiResponseToCustomer);
+    }
+
+    const includesCredits = Array.isArray(json)
+      ? json.length > 0 && (json[0] as any).credits !== undefined
+      : (json.data || []).length > 0 &&
+        (json.data![0] as any).credits !== undefined;
+    if (!includesCredits && jwt) {
+      await Promise.all(
+        customers.map(async (c) => {
+          try {
+            c.credits = await getCustomerCredits(c.id, jwt, {
+              includeCustomerId: true,
+            });
+          } catch {
+            c.credits = 0;
+          }
+        })
+      );
+    }
+
+    if (Array.isArray(json)) {
+      return { customers, page: 1, pages: 1, total: json.length };
     }
 
     return {
-      customers: (json.data || []).map(mapApiResponseToCustomer),
+      customers,
       page: json.page || 1,
       pages: json.pages || 1,
       total: json.total ?? (json.data ? json.data.length : 0),

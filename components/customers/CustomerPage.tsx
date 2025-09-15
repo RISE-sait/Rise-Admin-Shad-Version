@@ -82,7 +82,9 @@ export default function CustomersPage({
   useEffect(() => {
     setSearchQuery(searchTerm);
   }, [searchTerm]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    credits: true,
+  });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 

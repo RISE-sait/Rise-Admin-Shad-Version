@@ -15,6 +15,7 @@ export interface Customer {
   create_at: Date;
   hubspot_id?: string;
   is_archived?: boolean;
+  credits: number;
 
   assists: number;
   losses: number;
