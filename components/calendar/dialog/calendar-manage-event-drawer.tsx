@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Info, UserRound } from "lucide-react";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
 import EditEventForm from "../event/EditEventForm";
@@ -120,9 +121,21 @@ export default function CalendarManageEventDrawer() {
             }}
             className="space-y-6"
           >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="staff">Staff</TabsTrigger>
+            <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1 rounded-none border-b border-border">
+              <TabsTrigger
+                value="details"
+                className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+              >
+                <Info className="h-4 w-4" />
+                Details
+              </TabsTrigger>
+              <TabsTrigger
+                value="staff"
+                className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+              >
+                <UserRound className="h-4 w-4" />
+                Staff
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="details">
               {showEditForm ? (
