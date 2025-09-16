@@ -4852,6 +4852,66 @@
         }
       }
     },
+    "/staff/{id}/profile": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["staff"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Staff ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Staff profile update data including photo_url",
+            "name": "update_body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/staff.StaffProfileUpdateRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Staff profile updated successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Staff not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/staffs": {
       "get": {
         "consumes": ["application/json"],
@@ -5620,6 +5680,73 @@
           },
           "404": {
             "description": "Not Found: Team not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/upload/image": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Accepts an image file and uploads it to Google Cloud Storage, returning the public URL",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "tags": ["upload"],
+        "summary": "Upload image to cloud storage",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Image file to upload (jpg, jpeg, png, gif, webp)",
+            "name": "image",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "default": "\"images\"",
+            "description": "Folder name in storage bucket",
+            "name": "folder",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid file or file type",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "413": {
+            "description": "Payload Too Large: File size exceeds limit",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -6892,6 +7019,12 @@
         "interval": {
           "type": "string"
         },
+        "joining_fee": {
+          "type": "integer"
+        },
+        "joining_fee_display": {
+          "type": "string"
+        },
         "membership_id": {
           "type": "string"
         },
@@ -7281,6 +7414,14 @@
           "type": "string"
         },
         "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "staff.StaffProfileUpdateRequestDto": {
+      "type": "object",
+      "properties": {
+        "photo_url": {
           "type": "string"
         }
       }
