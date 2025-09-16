@@ -10,6 +10,7 @@ import {
   EventSchedule,
   EventCreateRequest,
   EventRecurrenceCreateRequest,
+  EventStaffMember,
 } from "@/types/events";
 
 export async function getEventsByMonth(
@@ -306,6 +307,62 @@ export async function deleteEvent(
   }
 }
 
+export async function assignStaffToEvent(
+  eventId: string,
+  staffId: string,
+  jwt: string
+): Promise<void> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}events/${eventId}/staffs/${staffId}`,
+      {
+        method: "POST",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (!response.ok) {
+      const responseJSON = await response.json().catch(() => ({}));
+      let errorMessage = `Failed to assign staff to event: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error assigning staff to event:", error);
+    throw error;
+  }
+}
+
+export async function unassignStaffFromEvent(
+  eventId: string,
+  staffId: string,
+  jwt: string
+): Promise<void> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}events/${eventId}/staffs/${staffId}`,
+      {
+        method: "DELETE",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (!response.ok) {
+      const responseJSON = await response.json().catch(() => ({}));
+      let errorMessage = `Failed to remove staff from event: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error removing staff from event:", error);
+    throw error;
+  }
+}
+
 export async function getSchedulesOfProgram(
   programID: string
 ): Promise<EventSchedule[]> {
@@ -368,26 +425,81 @@ export async function getSchedulesOfProgram(
   }
 }
 
-export async function getEvent(id: string): Promise<Event> {
+export async function getEvent(id: string, jwt?: string): Promise<Event> {
   try {
-    const token = localStorage.getItem("jwt");
-    const response = await fetch(`${getValue("API")}secure/events/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const token =
+      jwt ??
+      (typeof window !== "undefined" ? localStorage.getItem("jwt") : null);
 
-    const responseJSON = await response.json();
+    const response = await fetch(
+      `${getValue("API")}events/${id}`,
+      token
+        ? {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        : undefined
+    );
+
+    const contentType = response.headers.get("content-type") ?? "";
+    const responseText = await response.text();
+    const trimmedResponseText = responseText.trim();
+
+    let responseJSON: unknown = null;
+    if (contentType.includes("application/json") && responseText) {
+      try {
+        responseJSON = JSON.parse(responseText);
+      } catch (_parseError) {
+        if (response.ok) {
+          throw new Error("Failed to parse event details.");
+        }
+      }
+    }
 
     if (!response.ok) {
       let errorMessage = `Failed to get event: ${response.statusText}`;
-      if (responseJSON.error) {
-        errorMessage = responseJSON.error.message;
+
+      if (
+        responseJSON &&
+        typeof responseJSON === "object" &&
+        "error" in responseJSON &&
+        responseJSON.error &&
+        typeof responseJSON.error === "object" &&
+        responseJSON.error !== null &&
+        "message" in responseJSON.error
+      ) {
+        const message = (responseJSON.error as { message?: string }).message;
+        if (message) {
+          errorMessage = message;
+        }
+      } else if (
+        !contentType.includes("application/json") &&
+        trimmedResponseText &&
+        !trimmedResponseText.startsWith("<")
+      ) {
+        errorMessage = trimmedResponseText;
       }
+
       throw new Error(errorMessage);
     }
 
+    if (!responseJSON || typeof responseJSON !== "object") {
+      throw new Error("Failed to parse event response.");
+    }
+
     const event = responseJSON as EventEventResponseDto;
+
+    const staffMembers: EventStaffMember[] =
+      event.staff?.map((staffMember) => ({
+        id: staffMember.id ?? "",
+        first_name: staffMember.first_name ?? "",
+        last_name: staffMember.last_name ?? "",
+        email: staffMember.email ?? undefined,
+        phone: staffMember.phone ?? undefined,
+        gender: staffMember.gender ?? undefined,
+        role_name: staffMember.role_name ?? "",
+      })) ?? [];
 
     const evt: Event = {
       id: event.id!,
@@ -420,6 +532,7 @@ export async function getEvent(id: string): Promise<Event> {
             name: event.team.name!,
           }
         : undefined,
+      staff: staffMembers,
 
       customers: event.customers!.map(
         (customer) =>

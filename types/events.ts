@@ -19,11 +19,16 @@ export interface Event {
   updated_by: Person;
   start_at: Date;
   end_at: Date;
+  staff?: EventStaffMember[];
   customers: EventParticipant[];
 }
 
 export interface EventParticipant extends Person {
   has_cancelled_enrollment: boolean;
+}
+
+export interface EventStaffMember extends Person {
+  role_name: string;
 }
 
 export interface Person {
