@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import * as React from "react";
+// import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,14 +16,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
 import EditEventForm from "../event/EditEventForm";
+import EventStaffTab from "../event/EventStaffTab";
 import { deleteEvent } from "@/services/events";
 import { deletePractice } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { revalidateEvents, revalidatePractices } from "@/actions/serverActions";
+import { CalendarEvent } from "@/types/calendar";
 
 export default function CalendarManageEventDrawer() {
   const {
@@ -38,6 +41,7 @@ export default function CalendarManageEventDrawer() {
   const { toast } = useToast();
 
   const [showEditForm, setShowEditForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
 
   async function handleDelete() {
     if (!selectedEvent) return;
@@ -79,7 +83,24 @@ export default function CalendarManageEventDrawer() {
     setSelectedEvent(null);
     // form.reset()
     setShowEditForm(false);
+    setActiveTab("details");
   }
+
+  const handleStaffUpdated = (updatedStaff: CalendarEvent["staff"]) => {
+    if (!selectedEvent) return;
+
+    const updatedEvent: CalendarEvent = {
+      ...selectedEvent,
+      staff: updatedStaff,
+    };
+
+    setSelectedEvent(updatedEvent);
+    setEvents(
+      events.map((event) =>
+        event.id === updatedEvent.id ? updatedEvent : event
+      )
+    );
+  };
 
   return (
     <RightDrawer
@@ -88,92 +109,117 @@ export default function CalendarManageEventDrawer() {
       drawerWidth="w-[40%]"
     >
       {selectedEvent && (
-        <div className="p-6 space-y-6">
-          {showEditForm ? (
-            <EditEventForm onClose={handleClose} />
-          ) : (
-            <>
-              <h1 className="text-xl font-semibold">
-                {selectedEvent.program.name || "Unnamed Event"}
-              </h1>
-              <p className="text-base text-muted-foreground">
-                Date:{" "}
-                {selectedEvent.start_at.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <p className="text-base text-muted-foreground">
-                Start Time:{" "}
-                {selectedEvent.start_at.toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-              <p className="text-base text-muted-foreground">
-                End Time:{" "}
-                {selectedEvent.end_at.toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-              <p className="text-base text-muted-foreground">
-                {selectedEvent.location.name}
-              </p>
-              <p className="text-base text-muted-foreground">
-                {selectedEvent.location.address}
-              </p>
-              {selectedEvent.team?.name && (
-                <p className="text-base text-muted-foreground">
-                  Team: {selectedEvent.team.name}
-                </p>
-              )}
-              {((selectedEvent as any).court_name ||
-                (selectedEvent as any).court ||
-                (selectedEvent as any).court?.name) && (
-                <p className="text-base text-muted-foreground">
-                  Court:{" "}
-                  {(selectedEvent as any).court_name ||
-                    (selectedEvent as any).court?.name ||
-                    (selectedEvent as any).court}
-                </p>
-              )}
-              <Separator />
-              <div className="space-y-4">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setShowEditForm(true)}
-                >
-                  Edit this Event
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full">
-                      Delete
+        <div className="p-6">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => {
+              setActiveTab(value);
+              if (value !== "details") {
+                setShowEditForm(false);
+              }
+            }}
+            className="space-y-6"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="staff">Staff</TabsTrigger>
+            </TabsList>
+            <TabsContent value="details">
+              {showEditForm ? (
+                <EditEventForm onClose={handleClose} />
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <h1 className="text-xl font-semibold">
+                      {selectedEvent.program.name || "Unnamed Event"}
+                    </h1>
+                    <p className="text-base text-muted-foreground">
+                      Date:{" "}
+                      {selectedEvent.start_at.toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    <p className="text-base text-muted-foreground">
+                      Start Time:{" "}
+                      {selectedEvent.start_at.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p className="text-base text-muted-foreground">
+                      End Time:{" "}
+                      {selectedEvent.end_at.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p className="text-base text-muted-foreground">
+                      {selectedEvent.location.name}
+                    </p>
+                    <p className="text-base text-muted-foreground">
+                      {selectedEvent.location.address}
+                    </p>
+                    {selectedEvent.team?.name && (
+                      <p className="text-base text-muted-foreground">
+                        Team: {selectedEvent.team.name}
+                      </p>
+                    )}
+                    {((selectedEvent as any).court_name ||
+                      (selectedEvent as any).court ||
+                      (selectedEvent as any).court?.name) && (
+                      <p className="text-base text-muted-foreground">
+                        Court:{" "}
+                        {(selectedEvent as any).court_name ||
+                          (selectedEvent as any).court?.name ||
+                          (selectedEvent as any).court}
+                      </p>
+                    )}
+                  </div>
+                  <Separator />
+                  <div className="space-y-4">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setShowEditForm(true)}
+                    >
+                      Edit this Event
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this event? This action
-                        cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete}>
-                        Confirm Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </>
-          )}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full">
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this event? This
+                            action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDelete}>
+                            Confirm Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="staff" className="mt-4">
+              <EventStaffTab
+                event={selectedEvent}
+                onStaffChange={handleStaffUpdated}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </RightDrawer>
