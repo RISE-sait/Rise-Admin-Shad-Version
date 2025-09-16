@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,16 @@ export default function CalendarManageEventDrawer() {
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+
+  const eventType = selectedEvent?.program?.type?.toLowerCase();
+  const showStaffTab =
+    !!selectedEvent && eventType !== "game" && eventType !== "practice";
+
+  useEffect(() => {
+    if (!showStaffTab && activeTab === "staff") {
+      setActiveTab("details");
+    }
+  }, [showStaffTab, activeTab]);
 
   async function handleDelete() {
     if (!selectedEvent) return;
@@ -129,13 +139,15 @@ export default function CalendarManageEventDrawer() {
                 <Info className="h-4 w-4" />
                 Details
               </TabsTrigger>
-              <TabsTrigger
-                value="staff"
-                className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
-              >
-                <UserRound className="h-4 w-4" />
-                Staff
-              </TabsTrigger>
+              {showStaffTab && (
+                <TabsTrigger
+                  value="staff"
+                  className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                >
+                  <UserRound className="h-4 w-4" />
+                  Staff
+                </TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="details">
               {showEditForm ? (
@@ -226,12 +238,14 @@ export default function CalendarManageEventDrawer() {
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="staff" className="mt-4">
-              <EventStaffTab
-                event={selectedEvent}
-                onStaffChange={handleStaffUpdated}
-              />
-            </TabsContent>
+            {showStaffTab && (
+              <TabsContent value="staff" className="mt-4">
+                <EventStaffTab
+                  event={selectedEvent}
+                  onStaffChange={handleStaffUpdated}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       )}
