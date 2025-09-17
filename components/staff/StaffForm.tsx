@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Trash, Save } from "lucide-react";
+import { FileText, Trash, Save, User as UserIcon } from "lucide-react";
+import StaffProfilePictureUpload from "./StaffProfilePictureUpload";
 import { useUser } from "@/contexts/UserContext";
 import {
   AlertDialog,
@@ -59,6 +60,7 @@ export default function StaffForm({
   );
   const [email, setEmail] = useState(StaffData?.Email || "");
   const [phone, setPhone] = useState(StaffData?.Phone || "");
+  const [profilePicture, setProfilePicture] = useState(StaffData?.PhotoUrl || "");
 
   const { user } = useUser();
   const jwt = user?.Jwt;
@@ -153,79 +155,167 @@ export default function StaffForm({
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
               <FileText className="h-4 w-4" />
-              Information
+              Staff Information
             </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Details Tab */}
         <TabsContent value="details" className="pt-4">
-          {/* Staff Information Form */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium text-base">Staff Information</h3>
-              <p className="text-sm text-muted-foreground">
-                Update the staff member information
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  First Name
-                </label>
-                <Input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Last Name
-                </label>
-                <Input
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone</label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Modern Staff Information Layout */}
+          <div className="space-y-8">
 
-              <div className="flex flex-row items-center justify-between p-4 border rounded-md">
-                <div className="space-y-0.5">
-                  <div className="text-sm font-medium">Active Status</div>
-                  <div className="text-sm text-muted-foreground">
-                    Determine if this staff member is currently active
+            {/* Header Section with Profile Picture */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-xl p-8 border border-blue-100 dark:border-blue-800">
+              <div className="flex items-start gap-8">
+                {/* Profile Picture */}
+                <div className="flex-shrink-0">
+                  {StaffData && (
+                    <StaffProfilePictureUpload
+                      staffData={StaffData}
+                      currentPhotoUrl={profilePicture}
+                      isOwnProfile={user?.ID === StaffData.ID}
+                      isAdmin={user?.StaffInfo?.Role === StaffRoleEnum.ADMIN || user?.StaffInfo?.Role === StaffRoleEnum.SUPERADMIN}
+                      onPhotoUpdate={(url) => setProfilePicture(url)}
+                    />
+                  )}
+                </div>
+
+                {/* Staff Overview */}
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      {firstName} {lastName}
+                    </h2>
+                    <p className="text-lg text-blue-600 dark:text-blue-400 font-medium">
+                      {role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'No Role Assigned'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span>{isActive ? 'Active' : 'Inactive'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4" />
+                      <span>Staff Member</span>
+                    </div>
                   </div>
                 </div>
-                <Switch checked={isActive} onCheckedChange={setIsActive} />
+              </div>
+            </div>
+
+            {/* Form Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Personal Information</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Update the staff member's personal details and settings
+                </p>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Name Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      First Name *
+                    </label>
+                    <Input
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="h-11"
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Last Name *
+                    </label>
+                    <Input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="h-11"
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Contact Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Email Address *
+                      </label>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-11"
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Phone Number
+                      </label>
+                      <Input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="h-11"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Role and Status */}
+                <div className="space-y-4">
+                  <h4 className="text-base font-medium text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Role & Status
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Staff Role *
+                      </label>
+                      <Select value={role} onValueChange={setRole}>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Account Status
+                      </label>
+                      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {isActive ? 'Active Account' : 'Inactive Account'}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            {isActive ? 'User can access the system' : 'User cannot access the system'}
+                          </div>
+                        </div>
+                        <Switch checked={isActive} onCheckedChange={setIsActive} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

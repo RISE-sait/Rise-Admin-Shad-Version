@@ -3,6 +3,7 @@ interface BaseUser {
   Email?: string;
   Name: string;
   Phone?: string;
+  PhotoUrl?: string;
   CreatedAt: Date;
   UpdatedAt: Date;
 }
@@ -24,6 +25,10 @@ export interface LoggedInUser {
   Jwt: string;
   Dob: string;
   CountryAlpha2Code: string;
+  StaffInfo?: {
+    Role: StaffRoleEnum;
+    IsActive: boolean;
+  };
 }
 
 export enum StaffRoleEnum {

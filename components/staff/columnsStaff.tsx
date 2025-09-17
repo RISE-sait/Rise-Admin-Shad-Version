@@ -2,14 +2,15 @@ import { ColumnDef } from "@tanstack/react-table";
 import { User } from "@/types/user";
 
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 
 // Define the columns for the staff table. Each ColumnDef<User> represents
 // one column: its id, how to render header and cell, and optional settings.
 export const columnsStaff: ColumnDef<User>[] = [
   {
-    // "Name" column shows the staff member's name.
-    id: "Name",
+    // "Profile" column shows the staff member's profile picture and name.
+    id: "Profile",
     // Automatically pull the "Name" property from each User object.
     accessorKey: "Name",
     // Header is a ghost-style button that toggles sorting (asc/desc) by name.
@@ -19,13 +20,37 @@ export const columnsStaff: ColumnDef<User>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         className="font-medium hover:bg-accent hover:text-accent-foreground"
       >
-        Name
+        Profile
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    // Custom cell renderer to show avatar + name
+    cell: ({ row }) => {
+      const staff = row.original;
+      const getInitials = (name: string) => {
+        return name
+          .split(' ')
+          .map(part => part.charAt(0))
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+      };
+
+      return (
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={staff.PhotoUrl} alt={staff.Name} />
+            <AvatarFallback className="text-xs">
+              {getInitials(staff.Name)}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-medium">{staff.Name}</span>
+        </div>
+      );
+    },
     // Minimum and default width for this column.
-    minSize: 180,
-    size: 200,
+    minSize: 200,
+    size: 250,
   },
   {
     // "Role" column shows staff role from nested StaffInfo.
