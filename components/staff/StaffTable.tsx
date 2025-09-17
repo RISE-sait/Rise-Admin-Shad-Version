@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -101,7 +102,15 @@ export default function StaffTable({
 
   // ─── Count how many columns are visible (for “No data” colSpan) ─────────────
   // List all column IDs in the same order they appear in the table header
-  const allColumnIds = ["Name", "Role", "Email", "Phone", "Status", "Actions"];
+  const allColumnIds = [
+    "Avatar",
+    "Name",
+    "Role",
+    "Email",
+    "Phone",
+    "Status",
+    "Actions",
+  ];
   const visibleColumnsCount = useMemo(() => {
     return allColumnIds.reduce((count, id) => {
       // If visibility[id] is explicitly false, skip; otherwise count as visible
@@ -109,12 +118,30 @@ export default function StaffTable({
     }, 0);
   }, [columnVisibility]);
 
+  const getInitials = (name?: string) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl overflow-hidden border">
         <Table className="border-collapse">
           <TableHeader className="bg-muted/100 sticky top-0 z-10">
             <TableRow className="hover:bg-transparent border-b">
+              {/** AVATAR COLUMN HEADER */}
+              {columnVisibility["Avatar"] !== false && (
+                <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[90px]">
+                  Photo
+                </TableHead>
+              )}
+
               {/** NAME COLUMN HEADER */}
               {columnVisibility["Name"] !== false && (
                 <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b w-[220px]">
@@ -175,6 +202,11 @@ export default function StaffTable({
               // ─── Render skeleton rows while loading ───────────────────────────
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i} className="border-b">
+                  {columnVisibility["Avatar"] !== false && (
+                    <TableCell className="px-6 py-4">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                    </TableCell>
+                  )}
                   {columnVisibility["Name"] !== false && (
                     <TableCell className="px-6 py-4">
                       {/* Placeholder skeleton for Name */}
@@ -235,6 +267,19 @@ export default function StaffTable({
                   className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer"
                   onClick={() => onStaffSelect(staff)}
                 >
+                  {columnVisibility["Avatar"] !== false && (
+                    <TableCell className="px-6 py-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={staff.PhotoUrl ?? undefined}
+                          alt={staff.Name}
+                        />
+                        <AvatarFallback className="text-sm font-medium">
+                          {getInitials(staff.Name)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                  )}
                   {columnVisibility["Name"] !== false && (
                     <TableCell className="px-6 py-4 text-sm font-medium">
                       {staff.Name}
