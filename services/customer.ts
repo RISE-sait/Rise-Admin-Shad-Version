@@ -83,6 +83,122 @@ interface CustomersPaginatedResponse {
   limit: number;
 }
 
+type CustomerCreditsResponse = {
+  credit_balance?: number | string;
+  credits?: number | string;
+  balance?: number | string;
+  available_credits?: number | string;
+  remaining_credits?: number | string;
+  current_balance?: number | string;
+  total_credits?: number | string;
+  data?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+};
+
+const parseCreditValue = (value: unknown): number | undefined => {
+  if (typeof value === "number" && !Number.isNaN(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+};
+
+const searchForCreditInObject = (
+  source: Record<string, unknown>,
+  visited = new WeakSet<object>()
+): number | undefined => {
+  if (visited.has(source)) {
+    return undefined;
+  }
+
+  visited.add(source);
+
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value === "number" || typeof value === "string") {
+      if (/credit|balance/i.test(key)) {
+        const parsed = parseCreditValue(value);
+        if (typeof parsed === "number") {
+          return parsed;
+        }
+      }
+    }
+
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const nested = searchForCreditInObject(
+        value as Record<string, unknown>,
+        visited
+      );
+      if (typeof nested === "number") {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const extractCreditsFromResponse = (
+  response: CustomerCreditsResponse
+): number | undefined => {
+  const directCandidates = [
+    response.credit_balance,
+    response.credits,
+    response.balance,
+    response.available_credits,
+    response.remaining_credits,
+    response.current_balance,
+    response.total_credits,
+  ];
+
+  for (const candidate of directCandidates) {
+    const parsed = parseCreditValue(candidate);
+    if (typeof parsed === "number") {
+      return parsed;
+    }
+  }
+
+  const nestedSources = [response.data, response.result];
+
+  for (const source of nestedSources) {
+    if (!source || typeof source !== "object") continue;
+    const nested = source as Record<string, unknown>;
+    const nestedCandidates = [
+      nested.credit_balance,
+      nested.credits,
+      nested.balance,
+      nested.available_credits,
+      nested.remaining_credits,
+      nested.current_balance,
+      nested.total_credits,
+    ];
+
+    for (const candidate of nestedCandidates) {
+      const parsed = parseCreditValue(candidate);
+      if (typeof parsed === "number") {
+        return parsed;
+      }
+    }
+  }
+
+  if (response && typeof response === "object") {
+    const fallback = searchForCreditInObject(
+      response as Record<string, unknown>
+    );
+    if (typeof fallback === "number") {
+      return fallback;
+    }
+  }
+
+  return undefined;
+};
+
 export async function getCustomers(
   search?: string,
   page: number = 1,
@@ -273,6 +389,42 @@ export async function getArchivedCustomers(
     };
   } catch (error) {
     console.error("Error fetching archived customers:", error);
+    throw error;
+  }
+}
+
+export async function getCustomerCredits(
+  id: string,
+  jwt: string
+): Promise<number | undefined> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}admin/customers/${id}/credits`,
+      {
+        method: "GET",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (response.status === 404) {
+      return 0;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch customer credits: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const json: CustomerCreditsResponse = await response
+      .json()
+      .catch(() => ({}) as CustomerCreditsResponse);
+
+    const credits = extractCreditsFromResponse(json);
+
+    return credits ?? 0;
+  } catch (error) {
+    console.error(`Error fetching credits for customer ${id}:`, error);
     throw error;
   }
 }

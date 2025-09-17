@@ -132,6 +132,18 @@ export const columns: ColumnDef<Customer>[] = [
     size: 150,
   },
   {
+    id: "credits",
+    accessorKey: "credits",
+    header: "Credits",
+    cell: ({ row }) => {
+      const credits = row.original.credits;
+      return typeof credits === "number" ? credits : "—";
+    },
+    enableSorting: false,
+    minSize: 100,
+    size: 120,
+  },
+  {
     id: "start_date",
     accessorKey: "membership_start_date", // key for membership start date
     header: "Start Date",

@@ -22,4 +22,5 @@ export interface Customer {
   rebounds: number;
   steals: number;
   wins: number;
+  credits?: number;
 }
