@@ -40,6 +40,7 @@ export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
         Email: responseStaff.email!,
         Name: responseStaff.first_name! + " " + responseStaff.last_name!,
         Phone: responseStaff.phone!,
+        PhotoUrl: (responseStaff as any).photo_url,
         StaffInfo: {
           IsActive: responseStaff.is_active!,
           Role: role,
@@ -185,5 +186,36 @@ export async function updateStaff(
   } catch (error) {
     console.error("Error updating staff:", error);
     return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
+export async function updateStaffProfile(
+  staffId: string,
+  photoUrl: string,
+  jwt: string
+): Promise<boolean> {
+  try {
+    // REAL UPDATE CODE - Backend server required
+    const response = await fetch(`${getValue("API")}staffs/${staffId}/profile`, {
+      method: "PATCH",
+      headers: {
+        'Authorization': `Bearer ${jwt}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        photo_url: photoUrl
+      })
+    });
+
+    if (response.status === 204) {
+      return true;
+    }
+
+    const errorText = await response.text();
+    console.error("Profile update error:", errorText);
+    throw new Error('Profile update failed');
+  } catch (error) {
+    console.error("Error updating staff profile:", error);
+    throw error;
   }
 }
