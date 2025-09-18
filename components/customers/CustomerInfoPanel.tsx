@@ -2,12 +2,20 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Customer } from "@/types/customer";
+import { Customer, CustomerCreditTransaction } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,9 +31,7 @@ import {
   TrashIcon,
   UserCircle,
   CreditCard,
-  Clock,
   RefreshCw,
-  Award,
   Coins,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +42,7 @@ import {
   addCustomerCredits,
   deductCustomerCredits,
   getCustomerCredits,
+  getCustomerCreditTransactions,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 
@@ -73,6 +80,20 @@ export default function CustomerInfoPanel({
   const [deductCreditsAmount, setDeductCreditsAmount] = useState("");
   const [addCreditsDescription, setAddCreditsDescription] = useState("");
   const [deductCreditsDescription, setDeductCreditsDescription] = useState("");
+  const [transactions, setTransactions] = useState<CustomerCreditTransaction[]>(
+    []
+  );
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(false);
+  const [transactionsError, setTransactionsError] = useState<string | null>(
+    null
+  );
+  const [transactionsPagination, setTransactionsPagination] = useState({
+    limit: 10,
+    offset: 0,
+  });
+  const { limit: transactionsLimit, offset: transactionsOffset } =
+    transactionsPagination;
+  const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
 
   const { toast } = useToast();
   const { user } = useUser();
@@ -85,6 +106,14 @@ export default function CustomerInfoPanel({
 
   const numericCredits =
     typeof currentCustomer.credits === "number" ? currentCustomer.credits : 0;
+
+  const transactionPage =
+    transactionsLimit > 0
+      ? Math.floor(transactionsOffset / transactionsLimit) + 1
+      : 1;
+  const transactionRangeStart =
+    transactions.length > 0 ? transactionsOffset + 1 : 0;
+  const transactionRangeEnd = transactionsOffset + transactions.length;
 
   const applyCreditsUpdate = useCallback(
     (customerId: string, nextCredits: number) => {
@@ -147,6 +176,64 @@ export default function CustomerInfoPanel({
     [applyCreditsUpdate, toast, user?.Jwt]
   );
 
+  const fetchTransactions = useCallback(
+    async (
+      customerId: string,
+      pagination: { limit?: number; offset?: number } = {}
+    ) => {
+      if (!customerId || !user?.Jwt) {
+        return;
+      }
+
+      const limitToUse =
+        typeof pagination.limit === "number" &&
+        Number.isFinite(pagination.limit)
+          ? pagination.limit
+          : transactionsLimit;
+      const offsetToUse =
+        typeof pagination.offset === "number" &&
+        Number.isFinite(pagination.offset)
+          ? pagination.offset
+          : transactionsOffset;
+
+      setIsTransactionsLoading(true);
+      setTransactionsError(null);
+
+      try {
+        const records = await getCustomerCreditTransactions(
+          customerId,
+          user.Jwt,
+          {
+            limit: limitToUse,
+            offset: offsetToUse,
+          }
+        );
+        setTransactions(records);
+        setHasMoreTransactions(records.length === limitToUse);
+      } catch (error) {
+        console.error("Error loading customer credit transactions:", error);
+        setTransactions([]);
+        setHasMoreTransactions(false);
+        setTransactionsError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load credit transactions."
+        );
+      } finally {
+        setIsTransactionsLoading(false);
+      }
+    },
+    [transactionsLimit, transactionsOffset, user?.Jwt]
+  );
+
+  useEffect(() => {
+    setTransactions([]);
+    setTransactionsError(null);
+    setTransactionsPagination((prev) =>
+      prev.offset === 0 ? prev : { ...prev, offset: 0 }
+    );
+  }, [customer.id]);
+
   useEffect(() => {
     // Update currentCustomer when the customer prop changes
     setCurrentCustomer(customer);
@@ -190,7 +277,13 @@ export default function CustomerInfoPanel({
         } else {
           setMembershipPlans([]);
         }
-        await loadCustomerCredits(refreshedCustomer.id);
+        await Promise.all([
+          loadCustomerCredits(refreshedCustomer.id),
+          fetchTransactions(refreshedCustomer.id, {
+            limit: transactionsLimit,
+            offset: transactionsOffset,
+          }),
+        ]);
       }
     } catch (error) {
       console.error("Error refreshing customer data:", error);
@@ -200,6 +293,42 @@ export default function CustomerInfoPanel({
     }
   };
 
+  const refreshCreditsAndTransactions = useCallback(async () => {
+    if (!currentCustomer.id) {
+      return;
+    }
+
+    await Promise.all([
+      loadCustomerCredits(currentCustomer.id),
+      fetchTransactions(currentCustomer.id, {
+        limit: transactionsLimit,
+        offset: transactionsOffset,
+      }),
+    ]);
+  }, [
+    currentCustomer.id,
+    fetchTransactions,
+    loadCustomerCredits,
+    transactionsLimit,
+    transactionsOffset,
+  ]);
+
+  const handleTransactionsRetry = useCallback(() => {
+    if (!currentCustomer.id) {
+      return;
+    }
+
+    void fetchTransactions(currentCustomer.id, {
+      limit: transactionsLimit,
+      offset: transactionsOffset,
+    });
+  }, [
+    currentCustomer.id,
+    fetchTransactions,
+    transactionsLimit,
+    transactionsOffset,
+  ]);
+
   useEffect(() => {
     if (!customer.id) {
       return;
@@ -207,6 +336,17 @@ export default function CustomerInfoPanel({
 
     loadCustomerCredits(customer.id);
   }, [customer.id, loadCustomerCredits]);
+
+  useEffect(() => {
+    if (!customer.id) {
+      return;
+    }
+
+    void fetchTransactions(customer.id, {
+      limit: transactionsLimit,
+      offset: transactionsOffset,
+    });
+  }, [customer.id, fetchTransactions, transactionsLimit, transactionsOffset]);
 
   const handleArchiveToggle = async () => {
     try {
@@ -323,8 +463,13 @@ export default function CustomerInfoPanel({
       }
 
       if (typeof result.balance !== "number") {
-        void loadCustomerCredits(currentCustomer.id);
+        await loadCustomerCredits(currentCustomer.id);
       }
+
+      await fetchTransactions(currentCustomer.id, {
+        limit: transactionsLimit,
+        offset: transactionsOffset,
+      });
 
       toast({
         status: "success",
@@ -498,15 +643,16 @@ export default function CustomerInfoPanel({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    currentCustomer.id &&
-                    loadCustomerCredits(currentCustomer.id)
+                  onClick={() => void refreshCreditsAndTransactions()}
+                  disabled={
+                    isCreditsLoading || isTransactionsLoading || !user?.Jwt
                   }
-                  disabled={isCreditsLoading || !user?.Jwt}
                 >
                   <RefreshCw
                     className={`h-4 w-4 mr-2 ${
-                      isCreditsLoading ? "animate-spin" : ""
+                      isCreditsLoading || isTransactionsLoading
+                        ? "animate-spin"
+                        : ""
                     }`}
                   />
                   Refresh Balance
@@ -616,6 +762,195 @@ export default function CustomerInfoPanel({
                       disabled={creditsAction !== null}
                       rows={3}
                     />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4 md:col-span-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold">Credit History</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Review the most recent credit adjustments applied to this
+                      account.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {isTransactionsLoading && (
+                      <span className="text-xs text-muted-foreground">
+                        Updating…
+                      </span>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="transaction-page-size"
+                        className="text-sm text-muted-foreground"
+                      >
+                        Rows per page
+                      </Label>
+                      <select
+                        id="transaction-page-size"
+                        className="h-9 rounded-md border bg-background px-2 text-sm"
+                        value={transactionsLimit}
+                        onChange={(event) => {
+                          const nextLimit = Number(event.target.value);
+                          setTransactionsPagination({
+                            limit:
+                              Number.isFinite(nextLimit) && nextLimit > 0
+                                ? nextLimit
+                                : 10,
+                            offset: 0,
+                          });
+                        }}
+                        disabled={isTransactionsLoading}
+                      >
+                        {[10, 20, 50].map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border">
+                  {isTransactionsLoading && transactions.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      Loading transactions…
+                    </div>
+                  ) : transactionsError ? (
+                    <div className="p-6 text-center space-y-4">
+                      <p className="text-sm text-destructive">
+                        {transactionsError}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTransactionsRetry}
+                        disabled={isTransactionsLoading}
+                      >
+                        Try again
+                      </Button>
+                    </div>
+                  ) : transactions.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      No credit transactions found.
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="cursor-default hover:bg-transparent">
+                          <TableHead>Date</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="text-right">Change</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {transactions.map((transaction) => {
+                          const normalizedAmount = Number.isFinite(
+                            transaction.amount
+                          )
+                            ? transaction.amount
+                            : Number(transaction.amount) || 0;
+                          const isDebit =
+                            normalizedAmount < 0 ||
+                            (typeof transaction.type === "string" &&
+                              /deduct|debit|withdraw|remove/.test(
+                                transaction.type.toLowerCase()
+                              ));
+                          const displayAmount = Math.abs(normalizedAmount);
+                          const formattedAmount = displayAmount.toLocaleString(
+                            undefined,
+                            {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 2,
+                            }
+                          );
+                          const createdAtDate = new Date(
+                            transaction.created_at
+                          );
+                          const formattedDate = Number.isNaN(
+                            createdAtDate.getTime()
+                          )
+                            ? transaction.created_at
+                            : createdAtDate.toLocaleString();
+                          const descriptionText =
+                            typeof transaction.description === "string"
+                              ? transaction.description.trim()
+                              : "";
+                          const fallbackTypeText =
+                            typeof transaction.type === "string"
+                              ? transaction.type.trim()
+                              : "";
+                          const descriptionContent =
+                            descriptionText || fallbackTypeText || "—";
+
+                          return (
+                            <TableRow
+                              key={transaction.id}
+                              className="cursor-default hover:bg-transparent"
+                            >
+                              <TableCell className="whitespace-nowrap">
+                                {formattedDate}
+                              </TableCell>
+                              <TableCell className="max-w-md whitespace-pre-line break-words text-sm">
+                                {descriptionContent}
+                              </TableCell>
+                              <TableCell
+                                className={`text-right font-medium ${
+                                  isDebit
+                                    ? "text-destructive"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                                }`}
+                              >
+                                {`${isDebit ? "-" : "+"}${formattedAmount}`}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {transactions.length > 0
+                      ? `Showing ${transactionRangeStart}–${transactionRangeEnd} (Page ${transactionPage})`
+                      : "Showing 0 transactions"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setTransactionsPagination((prev) => ({
+                          ...prev,
+                          offset: Math.max(0, prev.offset - prev.limit),
+                        }))
+                      }
+                      disabled={
+                        transactionsOffset === 0 || isTransactionsLoading
+                      }
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setTransactionsPagination((prev) => ({
+                          ...prev,
+                          offset: prev.offset + prev.limit,
+                        }))
+                      }
+                      disabled={!hasMoreTransactions || isTransactionsLoading}
+                    >
+                      Next
+                    </Button>
                   </div>
                 </div>
               </div>

@@ -24,3 +24,12 @@ export interface Customer {
   wins: number;
   credits?: number;
 }
+
+export interface CustomerCreditTransaction {
+  id: string;
+  created_at: string;
+  amount: number;
+  balanceAfter?: number | null;
+  description?: string | null;
+  type?: string | null;
+}

@@ -1,4 +1,4 @@
-import { Customer } from "@/types/customer";
+import { Customer, CustomerCreditTransaction } from "@/types/customer";
 import getValue from "@/configs/constants";
 import {
   CustomerMembershipResponseDto,
@@ -199,6 +199,215 @@ const extractCreditsFromResponse = (
   return undefined;
 };
 
+const unwrapPrimitiveValue = (value: unknown): unknown => {
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  const validFlag =
+    (typeof record.Valid === "boolean" && record.Valid === false) ||
+    (typeof record.valid === "boolean" && record.valid === false);
+
+  if (validFlag) {
+    return undefined;
+  }
+
+  const candidateKeys = [
+    "String",
+    "string",
+    "Value",
+    "value",
+    "Time",
+    "time",
+    "Timestamp",
+    "timestamp",
+    "Date",
+    "date",
+    "Int64",
+    "int64",
+    "Int32",
+    "int32",
+    "Float64",
+    "float64",
+    "Float32",
+    "float32",
+    "Bool",
+    "bool",
+  ];
+
+  for (const key of candidateKeys) {
+    if (key in record) {
+      const candidate = record[key];
+      if (candidate !== undefined && candidate !== null) {
+        return unwrapPrimitiveValue(candidate);
+      }
+    }
+  }
+
+  return value;
+};
+
+const toTimestampString = (value: unknown): string | undefined => {
+  const unwrapped = unwrapPrimitiveValue(value);
+
+  if (unwrapped === null || unwrapped === undefined) {
+    return undefined;
+  }
+
+  if (typeof unwrapped === "string") {
+    const trimmed = unwrapped.trim();
+    return trimmed ? trimmed : undefined;
+  }
+
+  if (unwrapped instanceof Date) {
+    return unwrapped.toISOString();
+  }
+
+  if (typeof unwrapped === "number" && Number.isFinite(unwrapped)) {
+    return new Date(unwrapped).toISOString();
+  }
+
+  return undefined;
+};
+
+const extractTransactionsFromPayload = (payload: unknown): unknown[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const container = payload as Record<string, unknown>;
+  const directKeys = ["data", "transactions", "records", "items", "results"];
+
+  for (const key of directKeys) {
+    const candidate = container[key];
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+
+  const nestedContainers = ["result", "payload", "meta"];
+  for (const key of [...directKeys, ...nestedContainers]) {
+    const candidate = container[key];
+    if (!candidate || typeof candidate !== "object") {
+      continue;
+    }
+
+    const nested = candidate as Record<string, unknown>;
+    for (const nestedKey of directKeys) {
+      const nestedValue = nested[nestedKey];
+      if (Array.isArray(nestedValue)) {
+        return nestedValue;
+      }
+    }
+  }
+
+  for (const value of Object.values(container)) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+  }
+
+  return [];
+};
+
+const normalizeTransactionEntry = (
+  entry: unknown,
+  index: number,
+  context: { customerId: string; offset?: number }
+): CustomerCreditTransaction | null => {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const record = entry as Record<string, unknown>;
+  const offsetBase = context.offset ?? 0;
+
+  const idSource =
+    record.id ??
+    record.transaction_id ??
+    record.transactionId ??
+    record.uuid ??
+    record._id;
+
+  const createdAtSource =
+    record.createdAt ??
+    record.created_at ??
+    record.timestamp ??
+    record.datetime ??
+    record.date;
+
+  const amountSource =
+    record.amount ??
+    record.value ??
+    record.change ??
+    record.delta ??
+    record.amount_change;
+  const balanceSource =
+    record.balanceAfter ??
+    record.balance_after ??
+    record.balance ??
+    record.remaining ??
+    record.current_balance ??
+    record.postBalance ??
+    record.balanceAfterChange;
+
+  const normalizedAmount = parseCreditValue(unwrapPrimitiveValue(amountSource));
+  const normalizedBalance = parseCreditValue(
+    unwrapPrimitiveValue(balanceSource)
+  );
+
+  const descriptionSource =
+    record.description ??
+    record.reason ??
+    record.note ??
+    record.message ??
+    record.details;
+  const typeSource =
+    record.type ?? record.action ?? record.direction ?? record.kind;
+
+  const rawDescription = unwrapPrimitiveValue(descriptionSource);
+  const rawType = unwrapPrimitiveValue(typeSource);
+
+  const createdAt =
+    toTimestampString(createdAtSource) ?? new Date().toISOString();
+  const fallbackId = `${context.customerId}-tx-${offsetBase + index}`;
+
+  const resolvedId =
+    idSource !== undefined && idSource !== null
+      ? (unwrapPrimitiveValue(idSource) ?? idSource)
+      : undefined;
+
+  const description =
+    typeof rawDescription === "string"
+      ? rawDescription.trim() || undefined
+      : typeof rawDescription === "number" ||
+          typeof rawDescription === "boolean"
+        ? String(rawDescription)
+        : undefined;
+
+  const type =
+    typeof rawType === "string"
+      ? rawType.trim() || undefined
+      : typeof rawType === "number" || typeof rawType === "boolean"
+        ? String(rawType)
+        : undefined;
+
+  return {
+    id: resolvedId !== undefined ? String(resolvedId) : fallbackId,
+    created_at: createdAt,
+    amount: normalizedAmount ?? 0,
+    balanceAfter: normalizedBalance ?? undefined,
+    description,
+    type,
+  };
+};
+
 const parseResponsePayload = (rawText: string): Record<string, unknown> => {
   if (!rawText) {
     return {};
@@ -319,6 +528,71 @@ const mutateCustomerCredits = async (
 
   return handleCreditsMutationResponse(response, fallbackMessage);
 };
+
+export async function getCustomerCreditTransactions(
+  customerId: string,
+  jwt: string,
+  pagination: { limit?: number; offset?: number } = {}
+): Promise<CustomerCreditTransaction[]> {
+  if (!customerId) {
+    return [];
+  }
+
+  if (!jwt) {
+    throw new Error(
+      "Authentication token is required to fetch credit transactions."
+    );
+  }
+
+  const sanitizedLimit =
+    typeof pagination.limit === "number" && Number.isFinite(pagination.limit)
+      ? Math.max(1, Math.floor(pagination.limit))
+      : undefined;
+
+  const sanitizedOffset =
+    typeof pagination.offset === "number" && Number.isFinite(pagination.offset)
+      ? Math.max(0, Math.floor(pagination.offset))
+      : undefined;
+
+  const baseUrl = `${getValue("API")}admin/customers/${encodeURIComponent(
+    customerId
+  )}/credits/transactions`;
+  const url = new URL(baseUrl);
+
+  if (typeof sanitizedLimit === "number") {
+    url.searchParams.set("limit", String(sanitizedLimit));
+  }
+
+  if (typeof sanitizedOffset === "number") {
+    url.searchParams.set("offset", String(sanitizedOffset));
+  }
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    ...addAuthHeader(jwt),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch credit transactions: ${response.status} ${response.statusText}`.trim()
+    );
+  }
+
+  const payload = await response.json().catch(() => null);
+  const rawTransactions = extractTransactionsFromPayload(payload);
+
+  return rawTransactions
+    .map((entry, index) =>
+      normalizeTransactionEntry(entry, index, {
+        customerId,
+        offset: sanitizedOffset,
+      })
+    )
+    .filter(
+      (transaction): transaction is CustomerCreditTransaction =>
+        transaction !== null
+    );
+}
 
 export async function getCustomers(
   search?: string,
