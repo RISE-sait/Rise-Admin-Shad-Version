@@ -83,7 +83,7 @@ interface CustomersPaginatedResponse {
   limit: number;
 }
 
-type CustomerCreditsResponse = {
+export type CustomerCreditsResponse = {
   credit_balance?: number | string;
   credits?: number | string;
   balance?: number | string;
@@ -197,6 +197,127 @@ const extractCreditsFromResponse = (
   }
 
   return undefined;
+};
+
+const parseResponsePayload = (rawText: string): Record<string, unknown> => {
+  if (!rawText) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(rawText) as Record<string, unknown>;
+  } catch {
+    return { message: rawText } as Record<string, unknown>;
+  }
+};
+
+const extractErrorMessageFromPayload = (
+  payload: Record<string, unknown>
+): string | undefined => {
+  if (typeof payload.error === "string") {
+    return payload.error;
+  }
+
+  if (
+    payload.error &&
+    typeof payload.error === "object" &&
+    payload.error !== null
+  ) {
+    const nestedError = payload.error as Record<string, unknown>;
+    if (typeof nestedError.message === "string") {
+      return nestedError.message;
+    }
+  }
+
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+    const first = payload.errors[0];
+    if (typeof first === "string") {
+      return first;
+    }
+
+    if (first && typeof first === "object") {
+      const nestedFirst = first as Record<string, unknown>;
+      if (typeof nestedFirst.message === "string") {
+        return nestedFirst.message;
+      }
+    }
+  }
+
+  if (typeof payload.message === "string") {
+    return payload.message;
+  }
+
+  if (typeof payload.detail === "string") {
+    return payload.detail;
+  }
+
+  return undefined;
+};
+
+export interface CustomerCreditsMutationResult {
+  balance?: number;
+  response: CustomerCreditsResponse;
+}
+
+const handleCreditsMutationResponse = async (
+  response: Response,
+  fallbackMessage: string
+): Promise<CustomerCreditsMutationResult> => {
+  const rawText = await response.text();
+  const payload = parseResponsePayload(rawText);
+
+  if (!response.ok) {
+    const message =
+      extractErrorMessageFromPayload(payload) ??
+      `${fallbackMessage}: ${response.status} ${response.statusText}`.trim();
+    throw new Error(message);
+  }
+
+  const parsedPayload = payload as CustomerCreditsResponse;
+  const credits = extractCreditsFromResponse(parsedPayload);
+
+  return {
+    balance: credits,
+    response: parsedPayload,
+  };
+};
+
+const mutateCustomerCredits = async (
+  id: string,
+  amount: number,
+  description: string,
+  jwt: string,
+  action: "add" | "deduct"
+): Promise<CustomerCreditsMutationResult> => {
+  if (!Number.isFinite(amount) || amount === 0) {
+    throw new Error("Amount must be a positive number.");
+  }
+
+  const normalizedAmount = Math.abs(amount);
+  const normalizedDescription = description.trim();
+
+  if (!normalizedDescription) {
+    throw new Error("Description is required.");
+  }
+
+  const response = await fetch(
+    `${getValue("API")}admin/customers/${id}/credits/${action}`,
+    {
+      method: "POST",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify({
+        amount: normalizedAmount,
+        description: normalizedDescription,
+      }),
+    }
+  );
+
+  const fallbackMessage =
+    action === "add"
+      ? "Failed to add customer credits"
+      : "Failed to deduct customer credits";
+
+  return handleCreditsMutationResponse(response, fallbackMessage);
 };
 
 export async function getCustomers(
@@ -427,6 +548,24 @@ export async function getCustomerCredits(
     console.error(`Error fetching credits for customer ${id}:`, error);
     throw error;
   }
+}
+
+export async function addCustomerCredits(
+  id: string,
+  amount: number,
+  description: string,
+  jwt: string
+): Promise<CustomerCreditsMutationResult> {
+  return mutateCustomerCredits(id, amount, description, jwt, "add");
+}
+
+export async function deductCustomerCredits(
+  id: string,
+  amount: number,
+  description: string,
+  jwt: string
+): Promise<CustomerCreditsMutationResult> {
+  return mutateCustomerCredits(id, amount, description, jwt, "deduct");
 }
 
 export async function archiveCustomer(id: string, jwt: string): Promise<void> {

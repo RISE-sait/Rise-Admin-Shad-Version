@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Customer } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,12 +26,16 @@ import {
   Clock,
   RefreshCw,
   Award,
+  Coins,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   getCustomerById,
   archiveCustomer,
   unarchiveCustomer,
+  addCustomerCredits,
+  deductCustomerCredits,
+  getCustomerCredits,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 
@@ -58,9 +65,87 @@ export default function CustomerInfoPanel({
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [isCreditsLoading, setIsCreditsLoading] = useState(false);
+  const [creditsAction, setCreditsAction] = useState<"add" | "deduct" | null>(
+    null
+  );
+  const [addCreditsAmount, setAddCreditsAmount] = useState("");
+  const [deductCreditsAmount, setDeductCreditsAmount] = useState("");
+  const [addCreditsDescription, setAddCreditsDescription] = useState("");
+  const [deductCreditsDescription, setDeductCreditsDescription] = useState("");
 
   const { toast } = useToast();
   const { user } = useUser();
+
+  const onCustomerUpdatedRef = useRef(onCustomerUpdated);
+
+  useEffect(() => {
+    onCustomerUpdatedRef.current = onCustomerUpdated;
+  }, [onCustomerUpdated]);
+
+  const numericCredits =
+    typeof currentCustomer.credits === "number" ? currentCustomer.credits : 0;
+
+  const applyCreditsUpdate = useCallback(
+    (customerId: string, nextCredits: number) => {
+      if (!Number.isFinite(nextCredits)) {
+        return;
+      }
+
+      setCurrentCustomer((prev) =>
+        prev.id === customerId ? { ...prev, credits: nextCredits } : prev
+      );
+
+      onCustomerUpdatedRef.current?.({ credits: nextCredits });
+    },
+    []
+  );
+  const parsedAddAmount = Number(addCreditsAmount);
+  const parsedDeductAmount = Number(deductCreditsAmount);
+  const isAddDisabled =
+    creditsAction !== null ||
+    !user?.Jwt ||
+    !addCreditsAmount.trim() ||
+    !addCreditsDescription.trim() ||
+    Number.isNaN(parsedAddAmount) ||
+    parsedAddAmount <= 0;
+  const isDeductDisabled =
+    creditsAction !== null ||
+    !user?.Jwt ||
+    !deductCreditsAmount.trim() ||
+    !deductCreditsDescription.trim() ||
+    Number.isNaN(parsedDeductAmount) ||
+    parsedDeductAmount <= 0 ||
+    parsedDeductAmount > numericCredits;
+
+  const loadCustomerCredits = useCallback(
+    async (customerId: string) => {
+      if (!customerId || !user?.Jwt) {
+        return;
+      }
+
+      setIsCreditsLoading(true);
+      try {
+        const credits = await getCustomerCredits(customerId, user.Jwt);
+        if (typeof credits === "number") {
+          applyCreditsUpdate(customerId, credits);
+        }
+      } catch (error) {
+        console.error("Error loading customer credits:", error);
+        toast({
+          status: "error",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to load customer credits",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCreditsLoading(false);
+      }
+    },
+    [applyCreditsUpdate, toast, user?.Jwt]
+  );
 
   useEffect(() => {
     // Update currentCustomer when the customer prop changes
@@ -105,6 +190,7 @@ export default function CustomerInfoPanel({
         } else {
           setMembershipPlans([]);
         }
+        await loadCustomerCredits(refreshedCustomer.id);
       }
     } catch (error) {
       console.error("Error refreshing customer data:", error);
@@ -113,6 +199,14 @@ export default function CustomerInfoPanel({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!customer.id) {
+      return;
+    }
+
+    loadCustomerCredits(customer.id);
+  }, [customer.id, loadCustomerCredits]);
 
   const handleArchiveToggle = async () => {
     try {
@@ -140,6 +234,125 @@ export default function CustomerInfoPanel({
         description: "Error archiving customer",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleCreditMutation = async (type: "add" | "deduct") => {
+    if (!currentCustomer.id) {
+      return;
+    }
+
+    if (!user?.Jwt) {
+      toast({
+        status: "error",
+        description: "You must be logged in to manage credits.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const rawValue =
+      type === "add" ? addCreditsAmount.trim() : deductCreditsAmount.trim();
+    const amount = Number(rawValue);
+
+    if (!rawValue || Number.isNaN(amount) || amount <= 0) {
+      toast({
+        status: "error",
+        description: "Please enter a valid credit amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const description =
+      type === "add"
+        ? addCreditsDescription.trim()
+        : deductCreditsDescription.trim();
+
+    if (!description) {
+      toast({
+        status: "error",
+        description: "Please provide a description for this change.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      type === "deduct" &&
+      typeof currentCustomer.credits === "number" &&
+      amount > currentCustomer.credits
+    ) {
+      toast({
+        status: "error",
+        description: "Cannot deduct more credits than the customer has.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCreditsAction(type);
+    try {
+      const result =
+        type === "add"
+          ? await addCustomerCredits(
+              currentCustomer.id,
+              amount,
+              description,
+              user.Jwt
+            )
+          : await deductCustomerCredits(
+              currentCustomer.id,
+              amount,
+              description,
+              user.Jwt
+            );
+
+      const fallbackBalance =
+        typeof currentCustomer.credits === "number"
+          ? type === "add"
+            ? currentCustomer.credits + amount
+            : currentCustomer.credits - amount
+          : undefined;
+
+      const nextBalance =
+        typeof result.balance === "number" ? result.balance : fallbackBalance;
+
+      if (typeof nextBalance === "number") {
+        applyCreditsUpdate(currentCustomer.id, nextBalance);
+      }
+
+      if (typeof result.balance !== "number") {
+        void loadCustomerCredits(currentCustomer.id);
+      }
+
+      toast({
+        status: "success",
+        description:
+          type === "add"
+            ? `Successfully added ${amount} credits.`
+            : `Successfully deducted ${amount} credits.`,
+      });
+
+      if (type === "add") {
+        setAddCreditsAmount("");
+        setAddCreditsDescription("");
+      } else {
+        setDeductCreditsAmount("");
+        setDeductCreditsDescription("");
+      }
+    } catch (error) {
+      console.error("Error updating customer credits:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update customer credits.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreditsAction(null);
     }
   };
 
@@ -175,6 +388,13 @@ export default function CustomerInfoPanel({
             >
               <CreditCard className="h-4 w-4" />
               Membership
+            </TabsTrigger>
+            <TabsTrigger
+              value="credits"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Coins className="h-4 w-4" />
+              Credits
             </TabsTrigger>
             {/* <TabsTrigger
               value="stats"
@@ -255,6 +475,152 @@ export default function CustomerInfoPanel({
               </p>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="credits">
+          <div className="space-y-6">
+            <div className="rounded-lg border bg-muted/20 p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Current Balance
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-semibold">
+                      {isCreditsLoading ? "Loading..." : numericCredits}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      credits
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    currentCustomer.id &&
+                    loadCustomerCredits(currentCustomer.id)
+                  }
+                  disabled={isCreditsLoading || !user?.Jwt}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${
+                      isCreditsLoading ? "animate-spin" : ""
+                    }`}
+                  />
+                  Refresh Balance
+                </Button>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Manage this customer's available credits by adding or deducting
+                amounts below.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-4 rounded-lg border p-4">
+                <div>
+                  <h3 className="text-base font-semibold">Add Credits</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Increase the customer's available credits.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="flex-1 space-y-1">
+                      <Label htmlFor="add-credits-amount">Amount</Label>
+                      <Input
+                        id="add-credits-amount"
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="Amount"
+                        value={addCreditsAmount}
+                        onChange={(event) =>
+                          setAddCreditsAmount(event.target.value)
+                        }
+                        disabled={creditsAction !== null}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full sm:w-auto"
+                      onClick={() => handleCreditMutation("add")}
+                      disabled={isAddDisabled}
+                    >
+                      {creditsAction === "add" ? "Adding..." : "Add"}
+                    </Button>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="add-credits-description">Description</Label>
+                    <Textarea
+                      id="add-credits-description"
+                      placeholder="Describe the reason for adding credits"
+                      value={addCreditsDescription}
+                      onChange={(event) =>
+                        setAddCreditsDescription(event.target.value)
+                      }
+                      disabled={creditsAction !== null}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 rounded-lg border p-4">
+                <div>
+                  <h3 className="text-base font-semibold">Deduct Credits</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Reduce the customer's available credits.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="flex-1 space-y-1">
+                      <Label htmlFor="deduct-credits-amount">Amount</Label>
+                      <Input
+                        id="deduct-credits-amount"
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="Amount"
+                        value={deductCreditsAmount}
+                        onChange={(event) =>
+                          setDeductCreditsAmount(event.target.value)
+                        }
+                        disabled={creditsAction !== null}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full sm:w-auto"
+                      onClick={() => handleCreditMutation("deduct")}
+                      disabled={isDeductDisabled}
+                    >
+                      {creditsAction === "deduct" ? "Deducting..." : "Deduct"}
+                    </Button>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="deduct-credits-description">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="deduct-credits-description"
+                      placeholder="Describe the reason for deducting credits"
+                      value={deductCreditsDescription}
+                      onChange={(event) =>
+                        setDeductCreditsDescription(event.target.value)
+                      }
+                      disabled={creditsAction !== null}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Stats Tab - This will show the athlete_info data that is available */}
