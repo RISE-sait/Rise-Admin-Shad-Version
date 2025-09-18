@@ -12,6 +12,72 @@
   "host": "",
   "basePath": "",
   "paths": {
+    "/admin/customers/{id}/credits": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credit balance retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid customer ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Customer not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/admin/customers/{id}/credits/add": {
       "post": {
         "security": [
@@ -135,6 +201,155 @@
           },
           "403": {
             "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/customers/{id}/credits/transactions": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 20,
+            "description": "Number of items per page",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "default": 0,
+            "description": "Number of items to skip",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credit transaction history retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid customer ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Customer not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/customers/{id}/credits/weekly-usage": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Weekly usage retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid customer ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Customer not found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -4666,6 +4881,41 @@
         }
       }
     },
+    "/secure/credits/weekly-usage": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "responses": {
+          "200": {
+            "description": "Weekly usage retrieved successfully\" example({\"customer_id\":\"uuid\",\"current_week_usage\":1,\"weekly_limit\":2,\"remaining_credits\":1})",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/secure/customers/memberships": {
       "get": {
         "security": [
@@ -4852,11 +5102,71 @@
         }
       }
     },
+    "/staff/{id}/profile": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["staffs"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Staff ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Staff profile update data including photo_url",
+            "name": "update_body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/staff.StaffProfileUpdateRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Staff profile updated successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Staff not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/staffs": {
       "get": {
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["staff"],
+        "tags": ["staffs"],
         "parameters": [
           {
             "type": "string",
@@ -4964,7 +5274,7 @@
         ],
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["staff"],
+        "tags": ["staffs"],
         "parameters": [
           {
             "type": "string",
@@ -5019,7 +5329,7 @@
         ],
         "consumes": ["application/json"],
         "produces": ["application/json"],
-        "tags": ["staff"],
+        "tags": ["staffs"],
         "parameters": [
           {
             "type": "string",
@@ -5620,6 +5930,79 @@
           },
           "404": {
             "description": "Not Found: Team not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/upload/image": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Accepts an image file and uploads it to Google Cloud Storage, returning the public URL",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "tags": ["upload"],
+        "summary": "Upload image to cloud storage",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Image file to upload (jpg, jpeg, png, gif, webp)",
+            "name": "image",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "default": "\"images\"",
+            "description": "Folder name in storage bucket",
+            "name": "folder",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Target user ID for admin uploads (admins only)",
+            "name": "target_user_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid file or file type",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "413": {
+            "description": "Payload Too Large: File size exceeds limit",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -6259,6 +6642,11 @@
           "type": "string",
           "example": "0bab3927-50eb-42b3-9d6b-2350dd00a111"
         },
+        "credit_cost": {
+          "type": "integer",
+          "minimum": 0,
+          "example": 5
+        },
         "end_at": {
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
@@ -6298,6 +6686,9 @@
         "created_by": {
           "$ref": "#/definitions/event.PersonResponseDto"
         },
+        "credit_cost": {
+          "type": "integer"
+        },
         "customers": {
           "type": "array",
           "items": {
@@ -6313,8 +6704,14 @@
         "location": {
           "$ref": "#/definitions/event.LocationInfo"
         },
+        "price_id": {
+          "type": "string"
+        },
         "program": {
           "$ref": "#/definitions/event.ProgramInfo"
+        },
+        "required_membership_plan_id": {
+          "type": "string"
         },
         "staff": {
           "type": "array",
@@ -6785,6 +7182,9 @@
         "phone": {
           "type": "string"
         },
+        "photo_url": {
+          "type": "string"
+        },
         "role": {
           "type": "string"
         }
@@ -6860,6 +7260,10 @@
         "amt_periods": {
           "type": "integer"
         },
+        "credit_allocation": {
+          "type": "integer",
+          "minimum": 0
+        },
         "membership_id": {
           "type": "string"
         },
@@ -6871,6 +7275,10 @@
         },
         "stripe_price_id": {
           "type": "string"
+        },
+        "weekly_credit_limit": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },
@@ -6883,6 +7291,9 @@
         "created_at": {
           "type": "string"
         },
+        "credit_allocation": {
+          "type": "integer"
+        },
         "currency": {
           "type": "string"
         },
@@ -6890,6 +7301,12 @@
           "type": "string"
         },
         "interval": {
+          "type": "string"
+        },
+        "joining_fee": {
+          "type": "integer"
+        },
+        "joining_fee_display": {
           "type": "string"
         },
         "membership_id": {
@@ -6912,6 +7329,9 @@
         },
         "updated_at": {
           "type": "string"
+        },
+        "weekly_credit_limit": {
+          "type": "integer"
         }
       }
     },
@@ -7281,6 +7701,14 @@
           "type": "string"
         },
         "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "staff.StaffProfileUpdateRequestDto": {
+      "type": "object",
+      "properties": {
+        "photo_url": {
           "type": "string"
         }
       }

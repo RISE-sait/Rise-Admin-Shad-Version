@@ -1,4 +1,4 @@
-import { Customer } from "@/types/customer";
+import { Customer, CustomerCreditTransaction } from "@/types/customer";
 import getValue from "@/configs/constants";
 import {
   CustomerMembershipResponseDto,
@@ -81,6 +81,517 @@ interface CustomersPaginatedResponse {
   pages: number;
   total: number;
   limit: number;
+}
+
+export type CustomerCreditsResponse = {
+  credit_balance?: number | string;
+  credits?: number | string;
+  balance?: number | string;
+  available_credits?: number | string;
+  remaining_credits?: number | string;
+  current_balance?: number | string;
+  total_credits?: number | string;
+  data?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+};
+
+const parseCreditValue = (value: unknown): number | undefined => {
+  if (typeof value === "number" && !Number.isNaN(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+};
+
+const searchForCreditInObject = (
+  source: Record<string, unknown>,
+  visited = new WeakSet<object>()
+): number | undefined => {
+  if (visited.has(source)) {
+    return undefined;
+  }
+
+  visited.add(source);
+
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value === "number" || typeof value === "string") {
+      if (/credit|balance/i.test(key)) {
+        const parsed = parseCreditValue(value);
+        if (typeof parsed === "number") {
+          return parsed;
+        }
+      }
+    }
+
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const nested = searchForCreditInObject(
+        value as Record<string, unknown>,
+        visited
+      );
+      if (typeof nested === "number") {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const extractCreditsFromResponse = (
+  response: CustomerCreditsResponse
+): number | undefined => {
+  const directCandidates = [
+    response.credit_balance,
+    response.credits,
+    response.balance,
+    response.available_credits,
+    response.remaining_credits,
+    response.current_balance,
+    response.total_credits,
+  ];
+
+  for (const candidate of directCandidates) {
+    const parsed = parseCreditValue(candidate);
+    if (typeof parsed === "number") {
+      return parsed;
+    }
+  }
+
+  const nestedSources = [response.data, response.result];
+
+  for (const source of nestedSources) {
+    if (!source || typeof source !== "object") continue;
+    const nested = source as Record<string, unknown>;
+    const nestedCandidates = [
+      nested.credit_balance,
+      nested.credits,
+      nested.balance,
+      nested.available_credits,
+      nested.remaining_credits,
+      nested.current_balance,
+      nested.total_credits,
+    ];
+
+    for (const candidate of nestedCandidates) {
+      const parsed = parseCreditValue(candidate);
+      if (typeof parsed === "number") {
+        return parsed;
+      }
+    }
+  }
+
+  if (response && typeof response === "object") {
+    const fallback = searchForCreditInObject(
+      response as Record<string, unknown>
+    );
+    if (typeof fallback === "number") {
+      return fallback;
+    }
+  }
+
+  return undefined;
+};
+
+const unwrapPrimitiveValue = (value: unknown): unknown => {
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  const validFlag =
+    (typeof record.Valid === "boolean" && record.Valid === false) ||
+    (typeof record.valid === "boolean" && record.valid === false);
+
+  if (validFlag) {
+    return undefined;
+  }
+
+  const candidateKeys = [
+    "String",
+    "string",
+    "Value",
+    "value",
+    "Time",
+    "time",
+    "Timestamp",
+    "timestamp",
+    "Date",
+    "date",
+    "Int64",
+    "int64",
+    "Int32",
+    "int32",
+    "Float64",
+    "float64",
+    "Float32",
+    "float32",
+    "Bool",
+    "bool",
+  ];
+
+  for (const key of candidateKeys) {
+    if (key in record) {
+      const candidate = record[key];
+      if (candidate !== undefined && candidate !== null) {
+        return unwrapPrimitiveValue(candidate);
+      }
+    }
+  }
+
+  return value;
+};
+
+const toTimestampString = (value: unknown): string | undefined => {
+  const unwrapped = unwrapPrimitiveValue(value);
+
+  if (unwrapped === null || unwrapped === undefined) {
+    return undefined;
+  }
+
+  if (typeof unwrapped === "string") {
+    const trimmed = unwrapped.trim();
+    return trimmed ? trimmed : undefined;
+  }
+
+  if (unwrapped instanceof Date) {
+    return unwrapped.toISOString();
+  }
+
+  if (typeof unwrapped === "number" && Number.isFinite(unwrapped)) {
+    return new Date(unwrapped).toISOString();
+  }
+
+  return undefined;
+};
+
+const extractTransactionsFromPayload = (payload: unknown): unknown[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const container = payload as Record<string, unknown>;
+  const directKeys = ["data", "transactions", "records", "items", "results"];
+
+  for (const key of directKeys) {
+    const candidate = container[key];
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+
+  const nestedContainers = ["result", "payload", "meta"];
+  for (const key of [...directKeys, ...nestedContainers]) {
+    const candidate = container[key];
+    if (!candidate || typeof candidate !== "object") {
+      continue;
+    }
+
+    const nested = candidate as Record<string, unknown>;
+    for (const nestedKey of directKeys) {
+      const nestedValue = nested[nestedKey];
+      if (Array.isArray(nestedValue)) {
+        return nestedValue;
+      }
+    }
+  }
+
+  for (const value of Object.values(container)) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+  }
+
+  return [];
+};
+
+const normalizeTransactionEntry = (
+  entry: unknown,
+  index: number,
+  context: { customerId: string; offset?: number }
+): CustomerCreditTransaction | null => {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const record = entry as Record<string, unknown>;
+  const offsetBase = context.offset ?? 0;
+
+  const idSource =
+    record.id ??
+    record.transaction_id ??
+    record.transactionId ??
+    record.uuid ??
+    record._id;
+
+  const createdAtSource =
+    record.createdAt ??
+    record.created_at ??
+    record.timestamp ??
+    record.datetime ??
+    record.date;
+
+  const amountSource =
+    record.amount ??
+    record.value ??
+    record.change ??
+    record.delta ??
+    record.amount_change;
+  const balanceSource =
+    record.balanceAfter ??
+    record.balance_after ??
+    record.balance ??
+    record.remaining ??
+    record.current_balance ??
+    record.postBalance ??
+    record.balanceAfterChange;
+
+  const normalizedAmount = parseCreditValue(unwrapPrimitiveValue(amountSource));
+  const normalizedBalance = parseCreditValue(
+    unwrapPrimitiveValue(balanceSource)
+  );
+
+  const descriptionSource =
+    record.description ??
+    record.reason ??
+    record.note ??
+    record.message ??
+    record.details;
+  const typeSource =
+    record.type ?? record.action ?? record.direction ?? record.kind;
+
+  const rawDescription = unwrapPrimitiveValue(descriptionSource);
+  const rawType = unwrapPrimitiveValue(typeSource);
+
+  const createdAt =
+    toTimestampString(createdAtSource) ?? new Date().toISOString();
+  const fallbackId = `${context.customerId}-tx-${offsetBase + index}`;
+
+  const resolvedId =
+    idSource !== undefined && idSource !== null
+      ? (unwrapPrimitiveValue(idSource) ?? idSource)
+      : undefined;
+
+  const description =
+    typeof rawDescription === "string"
+      ? rawDescription.trim() || undefined
+      : typeof rawDescription === "number" ||
+          typeof rawDescription === "boolean"
+        ? String(rawDescription)
+        : undefined;
+
+  const type =
+    typeof rawType === "string"
+      ? rawType.trim() || undefined
+      : typeof rawType === "number" || typeof rawType === "boolean"
+        ? String(rawType)
+        : undefined;
+
+  return {
+    id: resolvedId !== undefined ? String(resolvedId) : fallbackId,
+    created_at: createdAt,
+    amount: normalizedAmount ?? 0,
+    balanceAfter: normalizedBalance ?? undefined,
+    description,
+    type,
+  };
+};
+
+const parseResponsePayload = (rawText: string): Record<string, unknown> => {
+  if (!rawText) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(rawText) as Record<string, unknown>;
+  } catch {
+    return { message: rawText } as Record<string, unknown>;
+  }
+};
+
+const extractErrorMessageFromPayload = (
+  payload: Record<string, unknown>
+): string | undefined => {
+  if (typeof payload.error === "string") {
+    return payload.error;
+  }
+
+  if (
+    payload.error &&
+    typeof payload.error === "object" &&
+    payload.error !== null
+  ) {
+    const nestedError = payload.error as Record<string, unknown>;
+    if (typeof nestedError.message === "string") {
+      return nestedError.message;
+    }
+  }
+
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+    const first = payload.errors[0];
+    if (typeof first === "string") {
+      return first;
+    }
+
+    if (first && typeof first === "object") {
+      const nestedFirst = first as Record<string, unknown>;
+      if (typeof nestedFirst.message === "string") {
+        return nestedFirst.message;
+      }
+    }
+  }
+
+  if (typeof payload.message === "string") {
+    return payload.message;
+  }
+
+  if (typeof payload.detail === "string") {
+    return payload.detail;
+  }
+
+  return undefined;
+};
+
+export interface CustomerCreditsMutationResult {
+  balance?: number;
+  response: CustomerCreditsResponse;
+}
+
+const handleCreditsMutationResponse = async (
+  response: Response,
+  fallbackMessage: string
+): Promise<CustomerCreditsMutationResult> => {
+  const rawText = await response.text();
+  const payload = parseResponsePayload(rawText);
+
+  if (!response.ok) {
+    const message =
+      extractErrorMessageFromPayload(payload) ??
+      `${fallbackMessage}: ${response.status} ${response.statusText}`.trim();
+    throw new Error(message);
+  }
+
+  const parsedPayload = payload as CustomerCreditsResponse;
+  const credits = extractCreditsFromResponse(parsedPayload);
+
+  return {
+    balance: credits,
+    response: parsedPayload,
+  };
+};
+
+const mutateCustomerCredits = async (
+  id: string,
+  amount: number,
+  description: string,
+  jwt: string,
+  action: "add" | "deduct"
+): Promise<CustomerCreditsMutationResult> => {
+  if (!Number.isFinite(amount) || amount === 0) {
+    throw new Error("Amount must be a positive number.");
+  }
+
+  const normalizedAmount = Math.abs(amount);
+  const normalizedDescription = description.trim();
+
+  if (!normalizedDescription) {
+    throw new Error("Description is required.");
+  }
+
+  const response = await fetch(
+    `${getValue("API")}admin/customers/${id}/credits/${action}`,
+    {
+      method: "POST",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify({
+        amount: normalizedAmount,
+        description: normalizedDescription,
+      }),
+    }
+  );
+
+  const fallbackMessage =
+    action === "add"
+      ? "Failed to add customer credits"
+      : "Failed to deduct customer credits";
+
+  return handleCreditsMutationResponse(response, fallbackMessage);
+};
+
+export async function getCustomerCreditTransactions(
+  customerId: string,
+  jwt: string,
+  pagination: { limit?: number; offset?: number } = {}
+): Promise<CustomerCreditTransaction[]> {
+  if (!customerId) {
+    return [];
+  }
+
+  if (!jwt) {
+    throw new Error(
+      "Authentication token is required to fetch credit transactions."
+    );
+  }
+
+  const sanitizedLimit =
+    typeof pagination.limit === "number" && Number.isFinite(pagination.limit)
+      ? Math.max(1, Math.floor(pagination.limit))
+      : undefined;
+
+  const sanitizedOffset =
+    typeof pagination.offset === "number" && Number.isFinite(pagination.offset)
+      ? Math.max(0, Math.floor(pagination.offset))
+      : undefined;
+
+  const baseUrl = `${getValue("API")}admin/customers/${encodeURIComponent(
+    customerId
+  )}/credits/transactions`;
+  const url = new URL(baseUrl);
+
+  if (typeof sanitizedLimit === "number") {
+    url.searchParams.set("limit", String(sanitizedLimit));
+  }
+
+  if (typeof sanitizedOffset === "number") {
+    url.searchParams.set("offset", String(sanitizedOffset));
+  }
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    ...addAuthHeader(jwt),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch credit transactions: ${response.status} ${response.statusText}`.trim()
+    );
+  }
+
+  const payload = await response.json().catch(() => null);
+  const rawTransactions = extractTransactionsFromPayload(payload);
+
+  return rawTransactions
+    .map((entry, index) =>
+      normalizeTransactionEntry(entry, index, {
+        customerId,
+        offset: sanitizedOffset,
+      })
+    )
+    .filter(
+      (transaction): transaction is CustomerCreditTransaction =>
+        transaction !== null
+    );
 }
 
 export async function getCustomers(
@@ -275,6 +786,60 @@ export async function getArchivedCustomers(
     console.error("Error fetching archived customers:", error);
     throw error;
   }
+}
+
+export async function getCustomerCredits(
+  id: string,
+  jwt: string
+): Promise<number | undefined> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}admin/customers/${id}/credits`,
+      {
+        method: "GET",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (response.status === 404) {
+      return 0;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch customer credits: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const json: CustomerCreditsResponse = await response
+      .json()
+      .catch(() => ({}) as CustomerCreditsResponse);
+
+    const credits = extractCreditsFromResponse(json);
+
+    return credits ?? 0;
+  } catch (error) {
+    console.error(`Error fetching credits for customer ${id}:`, error);
+    throw error;
+  }
+}
+
+export async function addCustomerCredits(
+  id: string,
+  amount: number,
+  description: string,
+  jwt: string
+): Promise<CustomerCreditsMutationResult> {
+  return mutateCustomerCredits(id, amount, description, jwt, "add");
+}
+
+export async function deductCustomerCredits(
+  id: string,
+  amount: number,
+  description: string,
+  jwt: string
+): Promise<CustomerCreditsMutationResult> {
+  return mutateCustomerCredits(id, amount, description, jwt, "deduct");
 }
 
 export async function archiveCustomer(id: string, jwt: string): Promise<void> {

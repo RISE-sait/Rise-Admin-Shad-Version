@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import CustomerPage from "./CustomerPage";
 import { Customer } from "@/types/customer";
-import { archiveCustomer, unarchiveCustomer } from "@/services/customer";
+import {
+  archiveCustomer,
+  unarchiveCustomer,
+  getCustomerCredits,
+} from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,16 +34,83 @@ export default function CustomersManager({
   const [archivedList, setArchivedList] =
     useState<Customer[]>(archivedCustomers);
 
-  useEffect(() => {
-    setActiveList(customers);
-  }, [customers]);
-
-  useEffect(() => {
-    setArchivedList(archivedCustomers);
-  }, [archivedCustomers]);
-
   const { user } = useUser();
   const { toast } = useToast();
+
+  const jwt = user?.Jwt;
+
+  const fetchCreditsForList = useCallback(
+    async (list: Customer[]) => {
+      if (!list.length) {
+        return [];
+      }
+
+      if (!jwt) {
+        return list.map((customer) => ({ ...customer }));
+      }
+
+      const results = await Promise.allSettled(
+        list.map((customer) => getCustomerCredits(customer.id, jwt))
+      );
+
+      return list.map((customer, index) => {
+        const result = results[index];
+        const updated: Customer = { ...customer };
+
+        if (result.status === "fulfilled") {
+          if (typeof result.value === "number") {
+            updated.credits = result.value;
+          } else {
+            updated.credits = undefined;
+          }
+        } else {
+          console.error(
+            `Failed to load credits for customer ${customer.id}:`,
+            result.reason
+          );
+        }
+
+        return updated;
+      });
+    },
+    [jwt]
+  );
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const syncActive = async () => {
+      const updated = await fetchCreditsForList(customers);
+      if (isCancelled) return;
+
+      setActiveList(updated);
+    };
+
+    setActiveList(customers.map((customer) => ({ ...customer })));
+    syncActive();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [customers, fetchCreditsForList]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const syncArchived = async () => {
+      const updated = await fetchCreditsForList(archivedCustomers);
+      if (isCancelled) return;
+
+      setArchivedList(updated);
+    };
+
+    setArchivedList(archivedCustomers.map((customer) => ({ ...customer })));
+    syncArchived();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [archivedCustomers, fetchCreditsForList]);
 
   const handleArchive = async (id: string) => {
     if (!user) return;
