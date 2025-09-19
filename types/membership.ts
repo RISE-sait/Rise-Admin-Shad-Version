@@ -13,8 +13,8 @@ export interface MembershipPlan {
   stripe_price_id: string;
   stripe_joining_fees_id?: string;
   amt_periods: number;
-  price?: number;
-  joining_fee?: number;
+  credit_allocation?: number | null;
+  weekly_credit_limit?: number | null;
 }
 
 export interface MembershipPlanRequestDto {
@@ -23,4 +23,6 @@ export interface MembershipPlanRequestDto {
   stripe_price_id: string;
   stripe_joining_fees_id?: string;
   amt_periods: number;
+  credit_allocation?: number;
+  weekly_credit_limit?: number;
 }
