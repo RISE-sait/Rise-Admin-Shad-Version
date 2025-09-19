@@ -18,17 +18,6 @@ export async function getPlansForMembership(
 
     const data: MembershipPlanPlanResponse[] = await res.json();
 
-    // Ensure numeric values for price-related fields to avoid NaN when formatting
-    const parseNumber = (value: unknown): number => {
-      if (typeof value === "number") return value;
-      if (typeof value === "string") {
-        const cleaned = value.replace(/[^0-9.-]+/g, "");
-        const parsed = parseFloat(cleaned);
-        return isNaN(parsed) ? 0 : parsed;
-      }
-      return 0;
-    };
-
     return data.map((plan) => ({
       id: plan.id!,
       membership_id: plan.membership_id!,
@@ -36,8 +25,8 @@ export async function getPlansForMembership(
       stripe_price_id: plan.stripe_price_id || "",
       stripe_joining_fees_id: plan.stripe_joining_fees_id || "",
       amt_periods: plan.amt_periods || 0,
-      price: parseNumber((plan as any).price),
-      joining_fee: parseNumber((plan as any).joining_fee),
+      credit_allocation: (plan as any).credit_allocation ?? null,
+      weekly_credit_limit: (plan as any).weekly_credit_limit ?? null,
     }));
   } catch (err) {
     console.error("🔥 Error loading membership plans:", err);
