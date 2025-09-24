@@ -235,6 +235,11 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
             Manage Barber Services
           </Link>
         </Button>
+        <Button variant="outline" asChild>
+          <Link href="/manage/barbershop/availability">
+            Manage Availability
+          </Link>
+        </Button>
       </div>
 
       {/* Stats Cards */}
