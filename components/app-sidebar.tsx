@@ -23,6 +23,7 @@ import {
   Gamepad2,
   Trophy,
   Dribbble,
+  FolderSearch,
 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -121,39 +122,49 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               ]
             : []),
         ]
-      : [
-          {
-            title: "Dashboard",
-            url: "/",
-            icon: <HomeIcon width={20} height={15} />,
-            isActive: true,
-            items: [
-              // Everyone with access can see Calendar
-              {
-                title: "Calendar",
-                url: "/calendar",
-                icon: <Calendar width={15} height={15} />,
-              },
-            ],
-          },
-          // Only include Manage section when there are items to show
-          ...(manageItems.length
-            ? [
+      : role === StaffRoleEnum.BARBER
+        ? [
+            {
+              title: "Barbershop",
+              url: "/manage/barbershop/manage-barbers",
+              icon: <Scissors width={20} height={20} />,
+            },
+          ]
+        : [
+            {
+              title: "Dashboard",
+              url: "/",
+              icon: <HomeIcon width={20} height={15} />,
+              isActive: true,
+              items: [
+                // Everyone with access can see Calendar
                 {
-                  title: "Manage",
-                  icon: <Wrench width={15} height={15} />,
-                  isActive: true,
-                  items: manageItems,
+                  title: "Calendar",
+                  url: "/calendar",
+                  icon: <Calendar width={15} height={15} />,
                 },
-              ]
-            : []),
-        ];
+              ],
+            },
+            // Only include Manage section when there are items to show
+            ...(manageItems.length
+              ? [
+                  {
+                    title: "Manage",
+                    icon: <Wrench width={15} height={15} />,
+                    isActive: true,
+                    items: manageItems,
+                  },
+                ]
+              : []),
+          ];
+
+  const homeHref = role === StaffRoleEnum.BARBER ? "/manage/barbershop" : "/";
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-center h-12 pt-12 pb-8 w-full">
-          <Link href={"/"}>
+          <Link href={homeHref}>
             <Image
               src={"/RiseLogo1.png"}
               alt={"Rise Logo"}
