@@ -24,19 +24,23 @@ export default function StaffProfilePictureUpload({
   currentPhotoUrl,
   isOwnProfile,
   isAdmin,
-  onPhotoUpdate
+  onPhotoUpdate,
 }: StaffProfilePictureUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [profilePicture, setProfilePicture] = useState(currentPhotoUrl || '');
+  const [profilePicture, setProfilePicture] = useState(currentPhotoUrl || "");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Prioritize local state over prop changes to prevent reverting after upload
   useEffect(() => {
-    if (currentPhotoUrl && !profilePicture) {
-      setProfilePicture(currentPhotoUrl);
+    if (currentPhotoUrl) {
+      if (currentPhotoUrl !== profilePicture) {
+        setProfilePicture(currentPhotoUrl);
+      }
+    } else if (profilePicture) {
+      setProfilePicture("");
     }
-  }, [currentPhotoUrl]);
+  }, [currentPhotoUrl, profilePicture]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user } = useUser();
@@ -44,16 +48,16 @@ export default function StaffProfilePictureUpload({
 
   // More robust permission checking
   const userRole = user?.StaffInfo?.Role || user?.Role;
-  const isAdminRole = userRole === StaffRoleEnum.ADMIN || userRole === StaffRoleEnum.SUPERADMIN;
+  const isAdminRole =
+    userRole === StaffRoleEnum.ADMIN || userRole === StaffRoleEnum.SUPERADMIN;
   const isOwner = user?.ID === staffData.ID;
   const canUpdate = isAdminRole || isOwner || isAdmin || isOwnProfile;
 
-
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -74,18 +78,20 @@ export default function StaffProfilePictureUpload({
 
       toast({
         status: "success",
-        description: "File selected successfully. Click 'Update Profile Picture' to save.",
+        description:
+          "File selected successfully. Click 'Update Profile Picture' to save.",
       });
     } catch (error) {
       toast({
         status: "error",
-        description: error instanceof Error ? error.message : "Invalid file selected",
+        description:
+          error instanceof Error ? error.message : "Invalid file selected",
         variant: "destructive",
       });
       setSelectedFile(null);
       setPreviewUrl(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -103,7 +109,11 @@ export default function StaffProfilePictureUpload({
         description: "Uploading image...",
       });
 
-      const cloudUrl = await uploadProfileImage(selectedFile, user.Jwt, staffData.ID);
+      const cloudUrl = await uploadProfileImage(
+        selectedFile,
+        user.Jwt,
+        staffData.ID
+      );
 
       toast({
         status: "info",
@@ -117,7 +127,7 @@ export default function StaffProfilePictureUpload({
       setSelectedFile(null);
 
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
 
       onPhotoUpdate?.(cloudUrl);
@@ -126,11 +136,13 @@ export default function StaffProfilePictureUpload({
         status: "success",
         description: "Profile picture updated successfully!",
       });
-
     } catch (error) {
       toast({
         status: "error",
-        description: error instanceof Error ? error.message : "Upload failed. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Upload failed. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -146,19 +158,15 @@ export default function StaffProfilePictureUpload({
 
   const displayImage = previewUrl || profilePicture;
 
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col items-center space-y-4">
         <div className="relative group">
           <Avatar
-            className={`h-24 w-24 ${canUpdate ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+            className={`h-24 w-24 ${canUpdate ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
             onClick={handleAvatarClick}
           >
-            <AvatarImage
-              src={displayImage}
-              alt={staffData.Name}
-            />
+            <AvatarImage src={displayImage} alt={staffData.Name} />
             <AvatarFallback className="text-lg">
               {getInitials(staffData.Name)}
             </AvatarFallback>
@@ -201,7 +209,7 @@ export default function StaffProfilePictureUpload({
               className="w-full"
             >
               <Upload className="h-4 w-4 mr-2" />
-              {selectedFile ? 'Change Photo' : 'Select Photo'}
+              {selectedFile ? "Change Photo" : "Select Photo"}
             </Button>
 
             {selectedFile && (

@@ -45,6 +45,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import StaffProfilePictureUpload from "@/components/staff/StaffProfilePictureUpload";
+import { getAllStaffs } from "@/services/staff";
+import type { User } from "@/types/user";
 import { useTheme } from "next-themes";
 import ReactCountryFlag from "react-country-flag";
 type CountryOption = { code: string; name: string };
@@ -58,6 +61,7 @@ const countryNames: Record<string, string> = {
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { user, setUser } = useUser();
+  const [loggedInStaff, setLoggedInStaff] = useState<User | null>(null);
   const { toast } = useToast();
 
   const initialName = user?.Name ? user.Name.split(" ") : [];
@@ -97,6 +101,36 @@ export default function SettingsPage() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!user?.ID) {
+      setLoggedInStaff(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadStaffProfile = async () => {
+      try {
+        const staffs = await getAllStaffs();
+        if (!isMounted) return;
+        const staffRecord = staffs.find((staff) => staff.ID === user.ID);
+        if (staffRecord) {
+          setLoggedInStaff(staffRecord);
+        } else {
+          setLoggedInStaff(null);
+        }
+      } catch (error) {
+        console.error("Failed to load staff profile", error);
+      }
+    };
+
+    loadStaffProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.ID]);
 
   useEffect(() => {
     if (!user) return;
@@ -212,6 +246,16 @@ export default function SettingsPage() {
       Dob: dobString,
       CountryAlpha2Code: editCountry,
     });
+    setLoggedInStaff((prev) =>
+      prev
+        ? {
+            ...prev,
+            Name: `${editFirstName} ${editLastName}`.trim(),
+            Email: editEmail,
+            Phone: phoneDigits ? normalizedPhone : prev.Phone,
+          }
+        : prev
+    );
     toast({ title: "Profile updated", status: "success" });
     setProfileOpen(false);
   };
@@ -351,6 +395,21 @@ export default function SettingsPage() {
             <SheetTitle>Edit Profile</SheetTitle>
           </SheetHeader>
           <div className="space-y-4 py-4">
+            {loggedInStaff && (
+              <div className="flex justify-center md:justify-start">
+                <StaffProfilePictureUpload
+                  staffData={loggedInStaff}
+                  currentPhotoUrl={loggedInStaff.PhotoUrl}
+                  isOwnProfile
+                  isAdmin={false}
+                  onPhotoUpdate={(photoUrl) =>
+                    setLoggedInStaff((prev) =>
+                      prev ? { ...prev, PhotoUrl: photoUrl } : prev
+                    )
+                  }
+                />
+              </div>
+            )}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="edit-first-name">First name</Label>
