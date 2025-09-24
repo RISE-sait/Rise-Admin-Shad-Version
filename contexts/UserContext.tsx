@@ -6,6 +6,7 @@ import { LoggedInUser, StaffRoleEnum } from "@/types/user";
 import { onIdTokenChanged } from "firebase/auth";
 import { auth } from "@/configs/firebase";
 import { loginWithFirebaseToken } from "@/services/auth";
+import { getAllStaffs } from "@/services/staff";
 
 type UserContextType = {
   user: LoggedInUser | null;
@@ -75,6 +76,36 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     return () => unsubscribe();
   }, [router, pathname]);
+
+  useEffect(() => {
+    if (!user?.ID) return;
+    if (user.PhotoUrl) return;
+
+    let isMounted = true;
+
+    const loadPhoto = async () => {
+      try {
+        const staffs = await getAllStaffs();
+        if (!isMounted) return;
+        const staffRecord = staffs.find((staff) => staff.ID === user.ID);
+        if (!staffRecord?.PhotoUrl) return;
+
+        setUser((prev) => {
+          if (!prev) return prev;
+          if (prev.PhotoUrl === staffRecord.PhotoUrl) return prev;
+          return { ...prev, PhotoUrl: staffRecord.PhotoUrl };
+        });
+      } catch (error) {
+        console.error("Failed to load user photo", error);
+      }
+    };
+
+    loadPhoto();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.ID, user?.PhotoUrl, setUser]);
 
   const logout = () => {
     // Update context state
