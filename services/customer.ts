@@ -573,6 +573,12 @@ export async function getCustomerCreditTransactions(
   });
 
   if (!response.ok) {
+    // If the response is 404, it likely means no transactions exist for this user
+    // This is a valid state, not an error
+    if (response.status === 404) {
+      return [];
+    }
+
     throw new Error(
       `Failed to fetch credit transactions: ${response.status} ${response.statusText}`.trim()
     );

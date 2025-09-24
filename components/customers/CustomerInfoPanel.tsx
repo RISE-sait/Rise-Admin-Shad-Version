@@ -834,8 +834,17 @@ export default function CustomerInfoPanel({
                       </Button>
                     </div>
                   ) : transactions.length === 0 ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">
-                      No credit transactions found.
+                    <div className="p-8 text-center">
+                      <div className="mb-4">
+                        <Coins className="h-12 w-12 mx-auto text-muted-foreground/40" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">
+                        No Credit History
+                      </h3>
+                      <p className="text-muted-foreground">
+                        This customer hasn't had any credit transactions yet.
+                        Credit additions and deductions will appear here.
+                      </p>
                     </div>
                   ) : (
                     <Table>
