@@ -2754,6 +2754,326 @@
         }
       }
     },
+    "/haircuts/barbers/me/availability": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get all availability records for the authenticated barber",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["barber-availability"],
+        "summary": "Get my availability schedule",
+        "responses": {
+          "200": {
+            "description": "Barber availability schedule",
+            "schema": {
+              "$ref": "#/definitions/haircut_event.WeeklyAvailabilityResponseDto"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Set working hours for a specific day of the week",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["barber-availability"],
+        "summary": "Set availability for a day",
+        "parameters": [
+          {
+            "description": "Availability details",
+            "name": "availability",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/haircut_event.SetAvailabilityDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Availability created successfully",
+            "schema": {
+              "$ref": "#/definitions/haircut_event.AvailabilityResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "409": {
+            "description": "Conflict: Availability already exists",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/haircuts/barbers/me/availability/bulk": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Set working hours for multiple days of the week in one request",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["barber-availability"],
+        "summary": "Set availability for multiple days",
+        "parameters": [
+          {
+            "description": "Multiple availability records",
+            "name": "availability",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/haircut_event.BulkSetAvailabilityDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All availability set successfully",
+            "schema": {
+              "$ref": "#/definitions/haircut_event.WeeklyAvailabilityResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/haircuts/barbers/me/availability/{id}": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Update an existing availability record by ID",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["barber-availability"],
+        "summary": "Update availability record",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Availability ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated availability details",
+            "name": "availability",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/haircut_event.UpdateAvailabilityDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability updated successfully",
+            "schema": {
+              "$ref": "#/definitions/haircut_event.AvailabilityResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Availability record not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Delete an existing availability record by ID",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["barber-availability"],
+        "summary": "Delete availability record",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Availability ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content: Availability deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Availability record not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/haircuts/barbers/{barber_id}/availability": {
+      "get": {
+        "description": "Get available booking slots for a specific barber on a given date, considering their working hours and existing bookings.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["haircuts"],
+        "summary": "Get available time slots for a barber",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Barber ID",
+            "name": "barber_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "example": "\"2025-09-20\"",
+            "description": "Date in YYYY-MM-DD format",
+            "name": "date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "example": 30,
+            "description": "Service duration in minutes (default: 30)",
+            "name": "service_duration",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available time slots",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/haircuts/events": {
       "get": {
         "description": "Retrieve all haircut events, with optional filters by barber ID and customer ID.",
@@ -4916,6 +5236,61 @@
         }
       }
     },
+    "/secure/customers/delete-account": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Permanently deletes the authenticated customer's account including all data from database, Firebase, and cancels Stripe subscriptions",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "summary": "Delete customer account",
+        "parameters": [
+          {
+            "description": "Account deletion confirmation",
+            "name": "confirmation",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/customer.AccountDeletionRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Missing confirmation",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/secure/customers/memberships": {
       "get": {
         "security": [
@@ -5012,6 +5387,116 @@
           },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/secure/notifications/register": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Register an Expo push token for receiving notifications",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["notifications"],
+        "summary": "Register push notification token",
+        "parameters": [
+          {
+            "description": "Push token registration details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.RegisterPushTokenRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token registered successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/secure/notifications/send": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Send a push notification to all members of a specific team",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["notifications"],
+        "summary": "Send team notification",
+        "parameters": [
+          {
+            "description": "Notification details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.SendNotificationRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification sent successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -6306,6 +6791,16 @@
         }
       }
     },
+    "customer.AccountDeletionRequest": {
+      "type": "object",
+      "required": ["confirm_deletion"],
+      "properties": {
+        "confirm_deletion": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
     "customer.AthleteProfileUpdateRequestDto": {
       "type": "object",
       "properties": {
@@ -6591,6 +7086,41 @@
           "type": "string"
         },
         "tag": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.RegisterPushTokenRequestDto": {
+      "type": "object",
+      "required": ["device_type", "expo_push_token"],
+      "properties": {
+        "device_type": {
+          "type": "string",
+          "enum": ["ios", "android"]
+        },
+        "expo_push_token": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.SendNotificationRequestDto": {
+      "type": "object",
+      "required": ["body", "team_id", "title", "type"],
+      "properties": {
+        "body": {
+          "type": "string"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "team_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
           "type": "string"
         }
       }
@@ -6969,6 +7499,47 @@
         }
       }
     },
+    "haircut_event.AvailabilityResponseDto": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "day_of_week": {
+          "description": "0=Sunday, 6=Saturday",
+          "type": "integer"
+        },
+        "end_time": {
+          "description": "HH:MM format",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "start_time": {
+          "description": "HH:MM format",
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "haircut_event.BulkSetAvailabilityDto": {
+      "type": "object",
+      "required": ["availability"],
+      "properties": {
+        "availability": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/haircut_event.SetAvailabilityDto"
+          }
+        }
+      }
+    },
     "haircut_event.EventResponseDto": {
       "type": "object",
       "properties": {
@@ -7020,6 +7591,69 @@
         "service_name": {
           "type": "string",
           "example": "Haircut"
+        }
+      }
+    },
+    "haircut_event.SetAvailabilityDto": {
+      "type": "object",
+      "required": ["day_of_week", "end_time", "start_time"],
+      "properties": {
+        "day_of_week": {
+          "description": "0=Sunday, 6=Saturday",
+          "type": "integer",
+          "maximum": 6,
+          "minimum": 0,
+          "example": 1
+        },
+        "end_time": {
+          "description": "HH:MM format",
+          "type": "string",
+          "example": "17:00"
+        },
+        "is_active": {
+          "description": "Optional, defaults to true",
+          "type": "boolean",
+          "example": true
+        },
+        "start_time": {
+          "description": "HH:MM format",
+          "type": "string",
+          "example": "09:00"
+        }
+      }
+    },
+    "haircut_event.UpdateAvailabilityDto": {
+      "type": "object",
+      "required": ["end_time", "start_time"],
+      "properties": {
+        "end_time": {
+          "type": "string",
+          "example": "17:00"
+        },
+        "is_active": {
+          "type": "boolean",
+          "example": true
+        },
+        "start_time": {
+          "type": "string",
+          "example": "09:00"
+        }
+      }
+    },
+    "haircut_event.WeeklyAvailabilityResponseDto": {
+      "type": "object",
+      "properties": {
+        "availability": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/haircut_event.AvailabilityResponseDto"
+          }
+        },
+        "barber_id": {
+          "type": "string"
+        },
+        "barber_name": {
+          "type": "string"
         }
       }
     },
@@ -7303,10 +7937,7 @@
         "interval": {
           "type": "string"
         },
-        "joining_fee": {
-          "type": "integer"
-        },
-        "joining_fee_display": {
+        "joining_fee_price": {
           "type": "string"
         },
         "membership_id": {
