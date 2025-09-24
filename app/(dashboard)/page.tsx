@@ -24,11 +24,9 @@ import { countTodayLogs } from "@/utils/checkinLogs";
 import {
   Users,
   Calendar,
-  DollarSign,
   Activity,
   Clock,
   MapPin,
-  TrendingUp,
   UserPlus,
   Search,
   LogIn,
@@ -37,7 +35,6 @@ import {
 // Mock data for demonstration
 const stats = {
   upcomingEvents: 8,
-  monthlyRevenue: 12450,
   weeklyGrowth: 12,
 };
 
@@ -50,33 +47,6 @@ interface ScheduleItem {
   court?: string;
   type: string;
 }
-
-const recentActivity = [
-  {
-    id: 1,
-    action: "New member registration",
-    user: "Sarah Johnson",
-    time: "2 minutes ago",
-  },
-  {
-    id: 2,
-    action: "Court A booking confirmed",
-    user: "Lakers Team",
-    time: "15 minutes ago",
-  },
-  {
-    id: 3,
-    action: "Equipment maintenance completed",
-    user: "System",
-    time: "1 hour ago",
-  },
-  {
-    id: 4,
-    action: "Monthly membership renewed",
-    user: "Mike Chen",
-    time: "2 hours ago",
-  },
-];
 
 export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
@@ -224,7 +194,7 @@ export default function DashboardPage() {
       <Separator />
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -234,27 +204,6 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{todayCheckIns}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+{stats.weeklyGrowth}%</span>{" "}
-              from last week
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Monthly Revenue
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.monthlyRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+8.2%</span> from last month
-            </p>
           </CardContent>
         </Card>
 
@@ -267,9 +216,6 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeMembers}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+5</span> new this week
-            </p>
           </CardContent>
         </Card>
 
@@ -346,103 +292,48 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>Latest updates and notifications</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
-                <div className="space-y-1 flex-1">
-                  <p className="text-sm font-medium">{activity.action}</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">
-                      {activity.user}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+        <div className="lg:col-span-3 space-y-4">
+          <TodoList />
 
-      {/* Action Items Row */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {/* Today's To-Do - Now using the separate component */}
-        <TodoList />
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              size="sm"
-              onClick={() => router.push("/manage/checkin")}
-            >
-              <LogIn className="h-4 w-4 mr-2" />
-              Check someone in
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              size="sm"
-              onClick={() => router.push("/manage/games")}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule a game
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              size="sm"
-              onClick={() => router.push("/manage/customers")}
-            >
-              <Search className="h-4 w-4 mr-2" />
-              Search a customer
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Staff on Duty */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Staff on Duty
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Mike Johnson</span>
-              <Badge variant="default">Manager</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Sarah Davis</span>
-              <Badge variant="secondary">Front Desk</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Alex Chen</span>
-              <Badge variant="outline">Maintenance</Badge>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                size="sm"
+                onClick={() => router.push("/manage/checkin")}
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Check someone in
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                size="sm"
+                onClick={() => router.push("/manage/games")}
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule a game
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                size="sm"
+                onClick={() => router.push("/manage/customers")}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search a customer
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
