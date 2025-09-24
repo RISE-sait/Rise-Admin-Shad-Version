@@ -20,6 +20,7 @@ export interface LoggedInUser {
   Email: string;
   Name: string;
   Phone: string;
+  PhotoUrl?: string;
   Role: StaffRoleEnum;
   IsActive: boolean;
   Jwt: string;

@@ -54,10 +54,17 @@ export const loginWithFirebaseToken = async (
       throw new Error("Invalid role type");
     }
 
+    const photoUrl =
+      (data as any)?.photo_url ||
+      (data as any)?.photoUrl ||
+      (data as any)?.photoURL ||
+      (data as any)?.photo;
+
     const user: LoggedInUser = {
       ID: data.id!,
       Email: data.email || "", // Email might not be in response
       Name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
+      PhotoUrl: photoUrl ?? undefined,
       Role: role,
       IsActive: data.is_active_staff || false,
       Jwt: jwtToken,

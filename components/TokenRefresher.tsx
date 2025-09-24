@@ -20,7 +20,14 @@ export default function TokenRefresher() {
         const updatedUser = await loginWithFirebaseToken(idToken);
         if (updatedUser) {
           localStorage.setItem("jwt", updatedUser.Jwt);
-          setUser(updatedUser);
+          setUser((prev) => {
+            if (!prev) return updatedUser;
+            return {
+              ...prev,
+              ...updatedUser,
+              PhotoUrl: updatedUser.PhotoUrl ?? prev.PhotoUrl,
+            };
+          });
         }
       } catch (err) {
         console.error("Failed to refresh JWT", err);
