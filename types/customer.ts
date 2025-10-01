@@ -23,6 +23,7 @@ export interface Customer {
   steals: number;
   wins: number;
   credits?: number;
+  notes?: string | null;
 }
 
 export interface CustomerCreditTransaction {

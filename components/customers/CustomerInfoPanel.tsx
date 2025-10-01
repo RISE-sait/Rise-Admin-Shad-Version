@@ -33,6 +33,7 @@ import {
   CreditCard,
   RefreshCw,
   Coins,
+  FileText,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -43,6 +44,7 @@ import {
   deductCustomerCredits,
   getCustomerCredits,
   getCustomerCreditTransactions,
+  updateCustomerNotes,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 
@@ -94,6 +96,8 @@ export default function CustomerInfoPanel({
   const { limit: transactionsLimit, offset: transactionsOffset } =
     transactionsPagination;
   const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
+  const [notesDraft, setNotesDraft] = useState(customer.notes ?? "");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   const { toast } = useToast();
   const { user } = useUser();
@@ -237,6 +241,7 @@ export default function CustomerInfoPanel({
   useEffect(() => {
     // Update currentCustomer when the customer prop changes
     setCurrentCustomer(customer);
+    setNotesDraft(customer.notes ?? "");
 
     // Initialize membership plans from the provided customer data
     if (customer.membership_plan_id) {
@@ -262,6 +267,7 @@ export default function CustomerInfoPanel({
       const refreshedCustomer = await getCustomerById(customer.id);
       if (refreshedCustomer) {
         setCurrentCustomer(refreshedCustomer);
+        setNotesDraft(refreshedCustomer.notes ?? "");
 
         // Create a membership plan object from the customer data if available
         if (refreshedCustomer.membership_plan_id) {
@@ -328,6 +334,52 @@ export default function CustomerInfoPanel({
     transactionsLimit,
     transactionsOffset,
   ]);
+
+  const hasNotesChanged = notesDraft !== (currentCustomer.notes ?? "");
+  const maxNotesLength = 5000;
+
+  const handleSaveNotes = async () => {
+    if (!currentCustomer.id) {
+      toast({
+        status: "error",
+        description: "Customer ID is missing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user?.Jwt) {
+      toast({
+        status: "error",
+        description: "You must be signed in to update notes",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsSavingNotes(true);
+      await updateCustomerNotes(currentCustomer.id, notesDraft, user.Jwt);
+      setCurrentCustomer((prev) => ({ ...prev, notes: notesDraft }));
+      onCustomerUpdatedRef.current?.({ notes: notesDraft });
+      toast({
+        status: "success",
+        description: "Customer notes updated",
+      });
+    } catch (error) {
+      console.error("Failed to update customer notes:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update customer notes",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
 
   useEffect(() => {
     if (!customer.id) {
@@ -541,6 +593,13 @@ export default function CustomerInfoPanel({
               <Coins className="h-4 w-4" />
               Credits
             </TabsTrigger>
+            <TabsTrigger
+              value="notes"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <FileText className="h-4 w-4" />
+              Notes
+            </TabsTrigger>
             {/* <TabsTrigger
               value="stats"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
@@ -620,6 +679,37 @@ export default function CustomerInfoPanel({
               </p>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="notes">
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Customer Notes</h3>
+                <p className="text-sm text-muted-foreground">
+                  Keep important details about this customer in one place.
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleSaveNotes}
+                disabled={!hasNotesChanged || isSavingNotes}
+              >
+                {isSavingNotes ? "Saving..." : "Save Notes"}
+              </Button>
+            </div>
+            <Textarea
+              value={notesDraft}
+              onChange={(event) => setNotesDraft(event.target.value)}
+              placeholder="No notes"
+              className="min-h-[200px]"
+              maxLength={maxNotesLength}
+              disabled={isSavingNotes}
+            />
+            <div className="text-xs text-muted-foreground text-right">
+              {notesDraft.length}/{maxNotesLength} characters
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="credits">

@@ -1738,6 +1738,73 @@
         }
       }
     },
+    "/customers/{id}/notes": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Customer notes update data",
+            "name": "notes_body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/customer.NotesUpdateRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notes updated successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Customer not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/customers/{id}/unarchive": {
       "post": {
         "consumes": ["application/json"],
@@ -6892,6 +6959,9 @@
         "membership_plan_name": {
           "type": "string"
         },
+        "next_payment_date": {
+          "type": "string"
+        },
         "price": {
           "type": "string"
         },
@@ -6923,6 +6993,15 @@
         },
         "membership_start_date": {
           "type": "string"
+        }
+      }
+    },
+    "customer.NotesUpdateRequestDto": {
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": "string",
+          "maxLength": 5000
         }
       }
     },
@@ -6985,6 +7064,9 @@
         },
         "membership_info": {
           "$ref": "#/definitions/customer.MembershipResponseDto"
+        },
+        "notes": {
+          "type": "string"
         },
         "phone": {
           "type": "string"
