@@ -32,6 +32,7 @@ interface CustomerApiResponse {
     membership_renewal_date: string;
     membership_start_date: string;
   };
+  notes?: string | null;
   phone: string;
   user_id: string;
 }
@@ -68,6 +69,7 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     // Additional fields not provided by API
     hubspot_id: response.hubspot_id || "",
     is_archived: response.is_archived || false,
+    notes: typeof response.notes === "string" ? response.notes : null,
     updated_at: new Date(), // Default to current date
     create_at: new Date(), // Default to current date
   };
@@ -740,6 +742,43 @@ export async function updateCustomer(
   } catch (error) {
     console.error("Error updating customer:", error);
     return error instanceof Error ? error.message : "Unknown error occurred";
+  }
+}
+
+export async function updateCustomerNotes(
+  id: string,
+  notes: string,
+  jwt: string
+): Promise<void> {
+  try {
+    const response = await fetch(`${getValue("API")}customers/${id}/notes`, {
+      method: "PUT",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!response.ok) {
+      const responseJSON = await response.json().catch(() => ({}));
+      let errorMessage =
+        response.statusText || "Failed to update customer notes";
+
+      if (typeof responseJSON === "object" && responseJSON !== null) {
+        if (typeof (responseJSON as any).error?.message === "string") {
+          errorMessage = (responseJSON as any).error.message;
+        } else if (typeof (responseJSON as any).message === "string") {
+          errorMessage = (responseJSON as any).message;
+        }
+      }
+
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error updating customer notes:", error);
+    throw error instanceof Error
+      ? error
+      : new Error(
+          "An unexpected error occurred while updating customer notes."
+        );
   }
 }
 
