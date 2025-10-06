@@ -231,7 +231,7 @@ export default function DetailsTab({
       </div>
 
       {/* Athlete Statistics Section (only if customer ID exists) */}
-      {customer.id && (
+      {/* {customer.id && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">
             Athlete Statistics
@@ -243,7 +243,7 @@ export default function DetailsTab({
           </h3>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Wins */}
+            // Wins
             <div>
               <label htmlFor="wins" className="block text-sm font-medium mb-1">
                 Wins
@@ -265,7 +265,7 @@ export default function DetailsTab({
               />
             </div>
 
-            {/* Losses */}
+            // Losses
             <div>
               <label
                 htmlFor="losses"
@@ -290,7 +290,7 @@ export default function DetailsTab({
               />
             </div>
 
-            {/* Points */}
+            // Points
             <div>
               <label
                 htmlFor="points"
@@ -315,7 +315,7 @@ export default function DetailsTab({
               />
             </div>
 
-            {/* Rebounds */}
+            // Rebounds
             <div>
               <label
                 htmlFor="rebounds"
@@ -340,7 +340,7 @@ export default function DetailsTab({
               />
             </div>
 
-            {/* Assists */}
+            // Assists
             <div>
               <label
                 htmlFor="assists"
@@ -365,7 +365,7 @@ export default function DetailsTab({
               />
             </div>
 
-            {/* Steals */}
+            // Steals
             <div>
               <label
                 htmlFor="steals"
@@ -391,7 +391,7 @@ export default function DetailsTab({
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Save Button */}
       <div className="flex items-center justify-end gap-3 mt-4">
