@@ -13,6 +13,13 @@ import { SaveIcon } from "lucide-react";
 import { Program } from "@/types/program";
 import { useForm } from "react-hook-form";
 import { JSX } from "react";
+import {
+  PROGRAM_TEXT_INPUT_MESSAGE,
+  PROGRAM_TEXT_INPUT_PATTERN,
+  PROGRAM_TEXT_INPUT_REGEX,
+  PROGRAM_TEXT_AREA_REGEX,
+  sanitizeProgramText,
+} from "@/lib/programValidation";
 
 export default function DetailsForm({
   saveAction,
@@ -31,9 +38,20 @@ export default function DetailsForm({
   levels: string[];
   DeleteButton?: JSX.Element;
 }) {
-  const { register, getValues, watch, setValue } = useForm<Program>({
+  const {
+    register,
+    getValues,
+    watch,
+    setValue,
+    trigger,
+    formState: { errors },
+  } = useForm<Program>({
     defaultValues: {
       ...program,
+      name: sanitizeProgramText(program.name),
+      description: sanitizeProgramText(program.description, {
+        allowNewLines: true,
+      }),
     },
   });
 
@@ -41,6 +59,11 @@ export default function DetailsForm({
   const currentLevel = watch("level");
 
   const handleSubmit = async () => {
+    const isValid = await trigger(["name", "description"]);
+
+    if (!isValid) {
+      return;
+    }
     const name = getValues("name");
     const description = getValues("description");
     const level = getValues("level");
@@ -57,9 +80,28 @@ export default function DetailsForm({
           <Label htmlFor="name">Program Name</Label>
           <Input
             id="name"
-            {...register("name")}
+            {...register("name", {
+              pattern: {
+                value: PROGRAM_TEXT_INPUT_REGEX,
+                message: PROGRAM_TEXT_INPUT_MESSAGE,
+              },
+              onChange: (event) => {
+                const sanitizedValue = sanitizeProgramText(event.target.value);
+                if (sanitizedValue !== event.target.value) {
+                  event.target.value = sanitizedValue;
+                }
+              },
+            })}
             placeholder="Enter program name"
+            pattern={PROGRAM_TEXT_INPUT_PATTERN}
+            title={PROGRAM_TEXT_INPUT_MESSAGE}
+            aria-invalid={errors.name ? "true" : "false"}
           />
+          {errors.name && (
+            <p className="text-sm text-destructive" role="alert">
+              {errors.name.message}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-2">
@@ -67,9 +109,29 @@ export default function DetailsForm({
           <Textarea
             id="description"
             placeholder="Enter program description"
-            {...register("description")}
+            {...register("description", {
+              pattern: {
+                value: PROGRAM_TEXT_AREA_REGEX,
+                message: PROGRAM_TEXT_INPUT_MESSAGE,
+              },
+              onChange: (event) => {
+                const sanitizedValue = sanitizeProgramText(event.target.value, {
+                  allowNewLines: true,
+                });
+                if (sanitizedValue !== event.target.value) {
+                  event.target.value = sanitizedValue;
+                }
+              },
+            })}
             className="min-h-[100px]"
+            title={PROGRAM_TEXT_INPUT_MESSAGE}
+            aria-invalid={errors.description ? "true" : "false"}
           />
+          {errors.description && (
+            <p className="text-sm text-destructive" role="alert">
+              {errors.description.message}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-2">
