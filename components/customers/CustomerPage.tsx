@@ -53,6 +53,8 @@ const debounce = (func: Function, delay: number) => {
 };
 
 // Main component for displaying and managing customers
+const SEARCH_INPUT_PATTERN = /^[a-zA-Z0-9\s'-]*$/;
+
 export default function CustomersPage({
   customers,
   searchTerm,
@@ -179,10 +181,15 @@ export default function CustomersPage({
             placeholder="Search customers..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
+            onChange={(event) => {
+              const { value } = event.target;
+              if (!SEARCH_INPUT_PATTERN.test(value)) {
+                return;
+              }
+
+              setSearchQuery(value);
               // Debounce URL update for smoother UX
-              debounce(() => replace({ search: e.target.value }), 30)();
+              debounce(() => replace({ search: value }), 30)();
             }}
           />
         </div>

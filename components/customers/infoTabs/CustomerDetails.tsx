@@ -14,6 +14,12 @@ import { useUser } from "@/contexts/UserContext";
 import { SaveIcon } from "lucide-react";
 
 // DetailsTab component displays and updates customer personal info and stats
+type FormField = "first_name" | "last_name" | "email" | "phone";
+
+const NAME_INPUT_PATTERN = /^[a-zA-Z\s'-]*$/;
+const EMAIL_INPUT_PATTERN = /^[a-zA-Z0-9@._+-]*$/;
+const PHONE_INPUT_PATTERN = /^\+?[0-9\s-]*$/;
+
 export default function DetailsTab({
   customer,
   onCustomerUpdated,
@@ -68,7 +74,19 @@ export default function DetailsTab({
   }, [customer]);
 
   // Handler for updating form fields
-  const handleChange = (field: string, value: string | number) => {
+  const handleChange = (field: FormField, value: string) => {
+    const fieldPatterns: Record<FormField, RegExp> = {
+      first_name: NAME_INPUT_PATTERN,
+      last_name: NAME_INPUT_PATTERN,
+      email: EMAIL_INPUT_PATTERN,
+      phone: PHONE_INPUT_PATTERN,
+    };
+
+    const pattern = fieldPatterns[field];
+
+    if (pattern && !pattern.test(value)) {
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       [field]: value,
