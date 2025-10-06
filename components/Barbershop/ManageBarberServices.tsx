@@ -31,18 +31,26 @@ import { MoreHorizontal, FolderSearch } from "lucide-react";
 import RightDrawer from "../reusable/RightDrawer";
 import AddBarberServiceForm from "./AddBarberServiceForm";
 import { HaircutServiceBarberServiceResponseDto } from "@/app/api/Api";
+import { matchesSearchQuery } from "@/utils/inputValidation";
 
 export default function ManageBarberServicesPage() {
-  const [services, setServices] = useState<HaircutServiceBarberServiceResponseDto[]>([]);
-  const [filteredServices, setFilteredServices] = useState<HaircutServiceBarberServiceResponseDto[]>([]);
+  const [services, setServices] = useState<
+    HaircutServiceBarberServiceResponseDto[]
+  >([]);
+  const [filteredServices, setFilteredServices] = useState<
+    HaircutServiceBarberServiceResponseDto[]
+  >([]);
   const [barbers, setBarbers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<HaircutServiceBarberServiceResponseDto | null>(null);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(null);
+  const [selectedService, setSelectedService] =
+    useState<HaircutServiceBarberServiceResponseDto | null>(null);
+  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
+    null
+  );
   const [deleteLoading, setDeleteLoading] = useState(false);
-  
+
   const { toast } = useToast();
   const { user } = useUser();
 
@@ -54,29 +62,32 @@ export default function ManageBarberServicesPage() {
         // Fetch barbers
         const staffData = await getAllStaffs("BARBER");
         setBarbers(staffData);
-        
+
         // Fetch barber services - no mapping needed as we're using the exact API model
         const servicesData = await getBarberServices();
         setServices(servicesData);
         setFilteredServices(servicesData);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast({ status: "error", description: "Failed to load barber services" });
+        toast({
+          status: "error",
+          description: "Failed to load barber services",
+        });
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, [toast]);
 
   // Filter services when search query changes
   useEffect(() => {
-    if (searchQuery) {
+    if (searchQuery.trim()) {
       const filtered = services.filter(
-        service =>
-          service.barber_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          service.haircut_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        (service) =>
+          matchesSearchQuery(searchQuery, service.barber_name) ||
+          matchesSearchQuery(searchQuery, service.haircut_name)
       );
       setFilteredServices(filtered);
     } else {
@@ -84,7 +95,9 @@ export default function ManageBarberServicesPage() {
     }
   }, [searchQuery, services]);
 
-  const handleServiceSelect = (service: HaircutServiceBarberServiceResponseDto) => {
+  const handleServiceSelect = (
+    service: HaircutServiceBarberServiceResponseDto
+  ) => {
     setSelectedService(service);
     setDrawerContent("details");
     setDrawerOpen(true);
@@ -98,7 +111,7 @@ export default function ManageBarberServicesPage() {
   const handleServiceAdded = async () => {
     setDrawerOpen(false);
     toast({ status: "info", description: "Refreshing services..." });
-    
+
     try {
       const servicesData = await getBarberServices();
       setServices(servicesData);
@@ -106,7 +119,10 @@ export default function ManageBarberServicesPage() {
       toast({ status: "success", description: "Service added successfully" });
     } catch (error) {
       console.error("Error refreshing services:", error);
-      toast({ status: "warning", description: "Service added but list refresh failed" });
+      toast({
+        status: "warning",
+        description: "Service added but list refresh failed",
+      });
     }
   };
 
@@ -116,27 +132,30 @@ export default function ManageBarberServicesPage() {
       toast({ status: "error", description: "Invalid service ID" });
       return;
     }
-    
+
     if (!user?.Jwt) {
-      toast({ status: "error", description: "You must be logged in to remove services" });
+      toast({
+        status: "error",
+        description: "You must be logged in to remove services",
+      });
       return;
     }
-    
+
     setDeleteLoading(true);
-    
+
     try {
       await deleteBarberService(serviceId, user.Jwt);
-      
+
       // Close drawer if it's open
       if (drawerOpen) {
         setDrawerOpen(false);
       }
-      
+
       // Refresh the services list
       const updatedServices = await getBarberServices();
       setServices(updatedServices);
       setFilteredServices(updatedServices);
-      
+
       toast({ status: "success", description: "Service removed successfully" });
     } catch (error) {
       console.error("Error deleting service:", error);
@@ -149,22 +168,22 @@ export default function ManageBarberServicesPage() {
   return (
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
-        <Heading title="Barber Services" description="Manage which barbers offer which services" />
-        <Button
-          onClick={handleAddService}
-          className="flex items-center gap-2"
-        >
+        <Heading
+          title="Barber Services"
+          description="Manage which barbers offer which services"
+        />
+        <Button onClick={handleAddService} className="flex items-center gap-2">
           <PlusIcon className="h-4 w-4" />
           Add Barber Service
         </Button>
       </div>
-      
+
       <Separator />
-      
+
       <Button variant="outline" className="mb-4" asChild>
         <Link href="/manage/barbershop">← Back to Barbershop</Link>
       </Button>
-      
+
       {/* Search */}
       <div className="flex items-center justify-between mb-4">
         <div className="relative flex-1 max-w-sm">
@@ -184,14 +203,10 @@ export default function ManageBarberServicesPage() {
           <TableHeader className="bg-muted/100 sticky top-0 z-10">
             <TableRow className="hover:bg-transparent border-b">
               <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b">
-                <div className="flex items-center space-x-2">
-                  Barber
-                </div>
+                <div className="flex items-center space-x-2">Barber</div>
               </TableHead>
               <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b">
-                <div className="flex items-center space-x-2">
-                  Service
-                </div>
+                <div className="flex items-center space-x-2">Service</div>
               </TableHead>
               <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b">
                 <div className="flex items-center space-x-2">
@@ -206,7 +221,10 @@ export default function ManageBarberServicesPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center py-8 text-muted-foreground"
+                >
                   Loading services...
                 </TableCell>
               </TableRow>
@@ -227,15 +245,24 @@ export default function ManageBarberServicesPage() {
                     {service.haircut_id || "N/A"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm font-medium text-right">
-                    <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex justify-end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-accent">
+                          <Button
+                            variant="ghost"
+                            className="h-8 w-8 p-0 hover:bg-accent"
+                          >
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="border bg-popover text-popover-foreground">
+                        <DropdownMenuContent
+                          align="end"
+                          className="border bg-popover text-popover-foreground"
+                        >
                           <DropdownMenuLabel className="px-3 py-2">
                             Service Actions
                           </DropdownMenuLabel>
@@ -250,7 +277,11 @@ export default function ManageBarberServicesPage() {
                             className="px-3 py-2 hover:bg-destructive/10 cursor-pointer text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm("Are you sure you want to remove this service?")) {
+                              if (
+                                confirm(
+                                  "Are you sure you want to remove this service?"
+                                )
+                              ) {
                                 handleServiceDelete(service.id || "");
                               }
                             }}
@@ -265,7 +296,10 @@ export default function ManageBarberServicesPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center py-8 text-muted-foreground"
+                >
                   <div className="flex flex-col items-center space-y-2">
                     <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
                     <span>No barber services found</span>
@@ -286,33 +320,49 @@ export default function ManageBarberServicesPage() {
         >
           <div className="p-4">
             <h2 className="text-2xl font-bold tracking-tight mb-4">
-              {drawerContent === "details" ? "Service Details" : "Add Barber Service"}
+              {drawerContent === "details"
+                ? "Service Details"
+                : "Add Barber Service"}
             </h2>
             {drawerContent === "details" && selectedService && (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Barber</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Barber
+                  </h3>
                   <p className="text-lg">{selectedService.barber_name}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Service</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Service
+                  </h3>
                   <p className="text-lg">{selectedService.haircut_name}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Service Type ID</h3>
-                  <p className="text-lg">{selectedService.haircut_id || "N/A"}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Service Type ID
+                  </h3>
+                  <p className="text-lg">
+                    {selectedService.haircut_id || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Created At</h3>
-                  <p className="text-lg">{selectedService.created_at || "N/A"}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Created At
+                  </h3>
+                  <p className="text-lg">
+                    {selectedService.created_at || "N/A"}
+                  </p>
                 </div>
                 <div className="flex space-x-4 pt-4">
-                  <Button 
-                    variant="destructive" 
+                  <Button
+                    variant="destructive"
                     className="flex-1"
                     disabled={deleteLoading}
                     onClick={() => {
-                      if (confirm("Are you sure you want to remove this service?")) {
+                      if (
+                        confirm("Are you sure you want to remove this service?")
+                      ) {
                         handleServiceDelete(selectedService.id || "");
                       }
                     }}
