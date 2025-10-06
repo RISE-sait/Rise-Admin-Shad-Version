@@ -20,6 +20,7 @@ import columns from "./table/columns"; // Column definitions for the court table
 import { VisibilityState } from "@tanstack/react-table"; // Type for column visibility state
 import { Heading } from "@/components/ui/Heading"; // Heading component
 import { Separator } from "@/components/ui/separator"; // Separator line component
+import { sanitizeTextInput } from "@/utils/inputValidation";
 
 // Main page component to manage courts
 export default function CourtPage({ courts }: { courts: Court[] }) {
@@ -86,7 +87,7 @@ export default function CourtPage({ courts }: { courts: Court[] }) {
             placeholder="Search courts..."
             className="pl-8"
             value={searchQuery} // Bind search input value
-            onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
+            onChange={(e) => setSearchQuery(sanitizeTextInput(e.target.value))} // Update search query state
           />
         </div>
         <div className="flex items-center gap-4">

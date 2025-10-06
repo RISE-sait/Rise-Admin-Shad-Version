@@ -21,6 +21,7 @@ import { deleteLocation, updateLocation } from "@/services/location";
 import { Location } from "@/types/location";
 import { PencilIcon, MapPinIcon, SaveIcon, TrashIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { sanitizeTextInput } from "@/utils/inputValidation";
 
 export default function DetailsTab({
   details,
@@ -31,12 +32,15 @@ export default function DetailsTab({
   onDelete?: () => void;
   onClose?: () => void;
 }) {
-  const { register, getValues } = useForm({
+  const { register, getValues, setValue, watch } = useForm({
     defaultValues: {
       name: details.name,
       address: details.address,
     },
   });
+
+  const nameValue = watch("name") ?? "";
+  const addressValue = watch("address") ?? "";
 
   const { user } = useUser();
   const { toast } = useToast();
@@ -102,6 +106,13 @@ export default function DetailsTab({
           </label>
           <Input
             {...register("name")}
+            value={nameValue}
+            onChange={(event) =>
+              setValue("name", sanitizeTextInput(event.target.value), {
+                shouldDirty: true,
+                shouldTouch: true,
+              })
+            }
             placeholder="Enter facility name"
             className="text-lg h-12 px-4"
           />
@@ -114,6 +125,13 @@ export default function DetailsTab({
           </label>
           <Input
             {...register("address")}
+            value={addressValue}
+            onChange={(event) =>
+              setValue("address", sanitizeTextInput(event.target.value), {
+                shouldDirty: true,
+                shouldTouch: true,
+              })
+            }
             placeholder="Enter facility address"
             className="text-lg h-12 px-4"
           />

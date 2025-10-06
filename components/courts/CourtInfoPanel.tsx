@@ -31,6 +31,7 @@ import { getAllLocations } from "@/services/location"; // API service to fetch a
 import { CourtRequestDto } from "@/app/api/Api"; // DTO type for court create/update payload
 import { revalidateCourts } from "@/actions/serverActions"; // Trigger ISR revalidation for courts
 import { PencilIcon, MapPinIcon, SaveIcon, TrashIcon } from "lucide-react"; // Icon components
+import { sanitizeTextInput } from "@/utils/inputValidation";
 
 // Component for viewing and editing court details
 interface CourtInfoPanelProps {
@@ -117,7 +118,7 @@ export default function CourtInfoPanel({
                 </label>
                 <Input
                   value={name} // Bind to local name state
-                  onChange={(e) => setName(e.target.value)} // Update name state on change
+                  onChange={(e) => setName(sanitizeTextInput(e.target.value))} // Update name state on change
                   placeholder="Enter court name"
                   className="text-lg h-12 px-4"
                 />
