@@ -32,6 +32,14 @@ export default function StaffPage({ staffs }: { staffs: User[] }) {
   // Map of column ID → boolean indicating if that column is visible
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
+  const sanitizeSearchInput = (value: string) =>
+    value.replace(/[^a-zA-Z0-9@.\s'-]/g, "");
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = sanitizeSearchInput(event.target.value);
+    setSearchQuery(sanitizedValue);
+  };
+
   // Called when a row is clicked: opens the drawer for editing
   const handleStaffSelect = (staffMember: User) => {
     setSelectedStaff(staffMember);
@@ -80,7 +88,7 @@ export default function StaffPage({ staffs }: { staffs: User[] }) {
           placeholder="Search staff"
           className="pl-8"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
 
