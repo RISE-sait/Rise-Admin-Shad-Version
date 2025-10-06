@@ -21,6 +21,11 @@ import { TeamRequestDto } from "@/app/api/Api";
 import { revalidateTeams } from "@/actions/serverActions";
 import { User } from "@/types/user";
 import { useEffect, useState } from "react";
+import {
+  sanitizeTextInput,
+  TEAM_TEXT_INPUT_PATTERN,
+  TEAM_TEXT_INPUT_PATTERN_STRING,
+} from "@/utils/inputValidation";
 
 export default function AddTeamForm({
   onClose,
@@ -63,10 +68,22 @@ export default function AddTeamForm({
   // Submit handler that validates input and calls the createTeam API.
   // If successful it resets the form and optionally closes the drawer.
   const handleAddTeam = async () => {
-    if (!data.name.trim()) {
+    const trimmedName = data.name.trim();
+
+    if (!trimmedName) {
       toast({
         status: "error",
         description: "Team name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!TEAM_TEXT_INPUT_PATTERN.test(trimmedName)) {
+      toast({
+        status: "error",
+        description:
+          "Team name contains invalid characters. Please use only letters, numbers, spaces, commas, periods, apostrophes, and hyphens.",
         variant: "destructive",
       });
       return;
@@ -82,7 +99,7 @@ export default function AddTeamForm({
     }
 
     const teamData: TeamRequestDto = {
-      name: data.name,
+      name: trimmedName,
       capacity: data.capacity || 0,
       coach_id: data.coach_id,
     };
@@ -126,9 +143,13 @@ export default function AddTeamForm({
           </label>
           <Input
             value={data.name}
-            onChange={(e) => updateField("name", e.target.value)}
+            onChange={(e) =>
+              updateField("name", sanitizeTextInput(e.target.value))
+            }
             type="text"
             placeholder="Enter team name"
+            pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
+            title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
           />
         </div>
 

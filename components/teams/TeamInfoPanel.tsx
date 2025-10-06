@@ -26,6 +26,11 @@ import { updateTeam, deleteTeam } from "@/services/teams";
 import { revalidateTeams } from "@/actions/serverActions";
 import { Team } from "@/types/team";
 import { TeamRequestDto } from "@/app/api/Api";
+import {
+  sanitizeTextInput,
+  TEAM_TEXT_INPUT_PATTERN,
+  TEAM_TEXT_INPUT_PATTERN_STRING,
+} from "@/utils/inputValidation";
 
 export default function TeamInfoPanel({
   team,
@@ -36,7 +41,7 @@ export default function TeamInfoPanel({
   onClose?: () => void;
   onTeamChanged?: () => void;
 }) {
-  const [name, setName] = useState(team.name);
+  const [name, setName] = useState(() => sanitizeTextInput(team.name));
   const [capacity, setCapacity] = useState<number>(team.capacity);
   const [coachId] = useState(team.coach_id || "");
   const [rosterOpen, setRosterOpen] = useState(false);
@@ -48,8 +53,28 @@ export default function TeamInfoPanel({
 
   // Save any edits made to the team and refresh the table
   const handleSave = async () => {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      toast({
+        status: "error",
+        description: "Team name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!TEAM_TEXT_INPUT_PATTERN.test(trimmedName)) {
+      toast({
+        status: "error",
+        description:
+          "Team name contains invalid characters. Please use only letters, numbers, spaces, commas, periods, apostrophes, and hyphens.",
+        variant: "destructive",
+      });
+      return;
+    }
     const teamData: TeamRequestDto = {
-      name,
+      name: trimmedName,
       capacity: capacity || 0,
       coach_id: coachId || undefined,
     };
@@ -111,7 +136,12 @@ export default function TeamInfoPanel({
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Team Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              value={name}
+              onChange={(e) => setName(sanitizeTextInput(e.target.value))}
+              pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
+              title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
+            />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Capacity</label>
