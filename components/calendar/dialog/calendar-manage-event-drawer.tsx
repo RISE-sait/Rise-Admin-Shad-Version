@@ -45,6 +45,9 @@ export default function CalendarManageEventDrawer() {
   const [activeTab, setActiveTab] = useState("details");
 
   const eventType = selectedEvent?.program?.type?.toLowerCase();
+  const eventTypeLabel = eventType
+    ? eventType.charAt(0).toUpperCase() + eventType.slice(1)
+    : "Event";
   const showStaffTab =
     !!selectedEvent && eventType !== "game" && eventType !== "practice";
 
@@ -155,6 +158,11 @@ export default function CalendarManageEventDrawer() {
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-2">
+                    {eventTypeLabel && (
+                      <p className="font-bold uppercase text-primary">
+                        {eventTypeLabel}
+                      </p>
+                    )}
                     <h1 className="text-xl font-semibold">
                       {selectedEvent.program.name || "Unnamed Event"}
                     </h1>
