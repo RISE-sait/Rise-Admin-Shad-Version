@@ -25,6 +25,7 @@ export interface CalendarEvent {
   end_at: Date;
   capacity: number;
   color?: string;
+  credit_cost?: number;
   createdBy: {
     firstName: string;
     id: string;

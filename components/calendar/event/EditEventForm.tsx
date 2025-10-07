@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { SaveIcon } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -58,7 +60,9 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
     court_id: "",
     start_at: "",
     end_at: "",
+    credit_cost: "",
   });
+  const [usingCredits, setUsingCredits] = useState(false);
 
   const filteredCourts = courts.filter(
     (c) => c.location_id === data.location_id
@@ -97,7 +101,12 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           "",
         start_at: toLocalISOString(selectedEvent.start_at).slice(0, 16),
         end_at: toLocalISOString(selectedEvent.end_at).slice(0, 16),
+        credit_cost:
+          selectedEvent.credit_cost != null
+            ? String(selectedEvent.credit_cost)
+            : "",
       });
+      setUsingCredits(selectedEvent.credit_cost != null);
     }
   }, [selectedEvent]);
 
@@ -120,6 +129,32 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       return;
     }
 
+    let creditCost: number | undefined;
+
+    if (usingCredits) {
+      if (!data.credit_cost) {
+        toast({
+          status: "error",
+          description: "Credit cost is required when using credits",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const parsedCreditCost = Number(data.credit_cost);
+
+      if (!Number.isFinite(parsedCreditCost) || parsedCreditCost <= 0) {
+        toast({
+          status: "error",
+          description: "Please provide a valid credit cost greater than zero",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      creditCost = parsedCreditCost;
+    }
+
     const eventData: EventCreateRequest = {
       program_id: data.program_id,
       team_id: data.team_id || undefined,
@@ -127,6 +162,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       court_id: data.court_id ? data.court_id : null,
       start_at: toZonedISOString(new Date(data.start_at)),
       end_at: toZonedISOString(new Date(data.end_at)),
+      credit_cost: creditCost,
     };
 
     const error = await updateEvent(selectedEvent.id, eventData, user?.Jwt!);
@@ -146,6 +182,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         color: getColorFromProgramType(program?.type),
         start_at: new Date(data.start_at),
         end_at: new Date(data.end_at),
+        credit_cost: creditCost,
         program: {
           id: program?.id || "",
           name: program?.name || "",
@@ -258,6 +295,42 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
             type="datetime-local"
           />
         </div>
+
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="event-using-credits"
+            checked={usingCredits}
+            onCheckedChange={(checked) => {
+              const isChecked = checked === true;
+              setUsingCredits(isChecked);
+              if (!isChecked) {
+                setData((prev) => ({ ...prev, credit_cost: "" }));
+              }
+            }}
+          />
+          <Label
+            htmlFor="event-using-credits"
+            className="text-sm font-medium cursor-pointer"
+          >
+            Use credits
+          </Label>
+        </div>
+        {usingCredits && (
+          <div className="space-y-2">
+            <Label htmlFor="event-credit-cost" className="text-sm font-medium">
+              Credit cost
+            </Label>
+            <Input
+              id="event-credit-cost"
+              type="number"
+              min="1"
+              value={data.credit_cost}
+              onChange={(e) =>
+                setData({ ...data, credit_cost: e.target.value })
+              }
+            />
+          </div>
+        )}
       </div>
       <Button
         onClick={handleUpdate}

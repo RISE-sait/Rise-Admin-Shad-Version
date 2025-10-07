@@ -64,6 +64,10 @@ export default function CalendarPage() {
           start_at: fromZonedISOString(event.start_at!),
           end_at: fromZonedISOString(event.end_at!),
           capacity: event.capacity ?? 0,
+          credit_cost:
+            event.credit_cost != null && event.credit_cost !== ""
+              ? Number(event.credit_cost)
+              : undefined,
           createdBy: {
             firstName: event.created_by?.first_name ?? "",
             id: event.created_by?.id ?? "",

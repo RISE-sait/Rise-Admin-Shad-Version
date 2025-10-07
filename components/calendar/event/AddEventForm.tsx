@@ -212,6 +212,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
           start_at: new Date(data.start_at),
           end_at: new Date(data.end_at),
           capacity: data.capacity ? Number(data.capacity) : 0,
+          credit_cost:
+            usingCredits && data.credit_cost
+              ? Number(data.credit_cost)
+              : undefined,
           createdBy: { id: user?.ID || "", firstName, lastName },
           updatedBy: { id: user?.ID || "", firstName, lastName },
           customers: [],
@@ -267,6 +271,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               start_at: eventStart,
               end_at: eventEnd,
               capacity: data.capacity ? Number(data.capacity) : 0,
+              credit_cost:
+                usingCredits && data.credit_cost
+                  ? Number(data.credit_cost)
+                  : undefined,
               createdBy: { id: user?.ID || "", firstName, lastName },
               updatedBy: { id: user?.ID || "", firstName, lastName },
               customers: [],
