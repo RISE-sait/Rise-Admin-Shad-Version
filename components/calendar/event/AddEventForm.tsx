@@ -25,6 +25,8 @@ import { useCalendarContext } from "../calendar-context";
 import { CalendarEvent } from "@/types/calendar";
 import { colorOptions } from "@/components/calendar/calendar-tailwind-classes";
 import { toZonedISOString } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 function getColorFromProgramType(programType?: string): string {
   switch (programType) {
@@ -59,6 +61,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     event_end_at: "",
     day: "MONDAY",
     capacity: 0,
+    credit_cost: "",
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -72,6 +75,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     (c) => c.location_id === data.location_id
   );
   const [mode, setMode] = useState<"once" | "recurring">("once");
+  const [usingCredits, setUsingCredits] = useState(false);
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -105,6 +109,24 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     }
 
     let error: string | null = null;
+    let creditCost: number | undefined;
+
+    if (usingCredits) {
+      const parsedCreditCost = Number(data.credit_cost);
+      if (
+        !data.credit_cost ||
+        Number.isNaN(parsedCreditCost) ||
+        parsedCreditCost <= 0
+      ) {
+        toast({
+          status: "error",
+          description: "Please provide a valid credit cost greater than zero",
+          variant: "destructive",
+        });
+        return;
+      }
+      creditCost = parsedCreditCost;
+    }
 
     if (mode === "once") {
       if (!data.start_at || !data.end_at) {
@@ -124,6 +146,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         start_at: toZonedISOString(new Date(data.start_at)),
         end_at: toZonedISOString(new Date(data.end_at)),
         capacity: data.capacity ? Number(data.capacity) : undefined,
+        credit_cost: creditCost,
       };
 
       error = await createEvent(eventData, user?.Jwt!);
@@ -163,6 +186,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         event_end_at: formatTime(data.event_end_at),
         day: data.day,
         capacity: data.capacity ? Number(data.capacity) : undefined,
+        credit_cost: creditCost,
       };
 
       error = await createEvents(eventData, user?.Jwt!);
@@ -173,6 +197,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         description: "Event created successfully",
       });
       resetData();
+      setUsingCredits(false);
       await revalidateEvents();
       if (mode === "once") {
         const program = programs.find((p) => p.id === data.program_id);
@@ -431,6 +456,39 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             </div>
           </TabsContent>
         </Tabs>
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="event-using-credits"
+            checked={usingCredits}
+            onCheckedChange={(checked) => {
+              const isChecked = checked === true;
+              setUsingCredits(isChecked);
+              if (!isChecked) {
+                updateField("credit_cost", "");
+              }
+            }}
+          />
+          <Label
+            htmlFor="event-using-credits"
+            className="text-sm font-medium cursor-pointer"
+          >
+            Use credits
+          </Label>
+        </div>
+        {usingCredits && (
+          <div className="space-y-2">
+            <Label htmlFor="event-credit-cost" className="text-sm font-medium">
+              Credit cost
+            </Label>
+            <Input
+              id="event-credit-cost"
+              type="number"
+              min="1"
+              value={data.credit_cost}
+              onChange={(e) => updateField("credit_cost", e.target.value)}
+            />
+          </div>
+        )}
       </div>
       <Button onClick={handleAddEvent} className="w-full">
         Add Event

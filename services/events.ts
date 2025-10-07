@@ -112,9 +112,13 @@ export async function createEvent(
   jwt: string
 ): Promise<string | null> {
   try {
-    const { court_id, ...rest } = eventData;
+    const { court_id, capacity, credit_cost, ...rest } = eventData;
     const requestData: Record<string, unknown> = {
       ...rest,
+      ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
+      ...(typeof credit_cost !== "undefined" && {
+        credit_cost: Number(credit_cost),
+      }),
       court_id: court_id || null,
     };
 
@@ -148,11 +152,12 @@ export async function createEvents(
   jwt: string
 ) {
   try {
-    const { court_id, ...rest } = eventsData;
+    const { court_id, capacity, credit_cost, ...rest } = eventsData;
     const requestData: Record<string, unknown> = {
       ...rest,
-      ...(typeof eventsData.capacity !== "undefined" && {
-        capacity: Number(eventsData.capacity),
+      ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
+      ...(typeof credit_cost !== "undefined" && {
+        credit_cost: Number(credit_cost),
       }),
       court_id: court_id || null,
     };
@@ -188,9 +193,13 @@ export async function updateEvent(
   jwt: string
 ): Promise<string | null> {
   try {
-    const { court_id, ...rest } = eventData;
+    const { court_id, capacity, credit_cost, ...rest } = eventData;
     const requestData: Record<string, unknown> = {
       ...rest,
+      ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
+      ...(typeof credit_cost !== "undefined" && {
+        credit_cost: Number(credit_cost),
+      }),
       court_id: court_id || null,
     };
 
