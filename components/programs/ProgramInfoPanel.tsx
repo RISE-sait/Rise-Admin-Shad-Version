@@ -115,13 +115,13 @@ export default function ProgramInfoPanel({
               <FileText className="h-4 w-4" />
               Information
             </TabsTrigger>
-            <TabsTrigger
+            {/* <TabsTrigger
               value="schedule"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
               <Calendar className="h-4 w-4" />
               Schedule
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ChangeEvent } from "react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,32 @@ export default function StaffForm({
   const { user } = useUser();
   const jwt = user?.Jwt;
   const { toast } = useToast();
+
+  const sanitizeNameInput = (value: string) =>
+    value.replace(/[^a-zA-Z\s'-]/g, "");
+  const sanitizePhoneInput = (value: string) =>
+    value.replace(/[^0-9+()\s-]/g, "");
+  const sanitizeEmailInput = (value: string) => value.replace(/\s/g, "");
+
+  const handleFirstNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = sanitizeNameInput(event.target.value);
+    setFirstName(sanitizedValue);
+  };
+
+  const handleLastNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = sanitizeNameInput(event.target.value);
+    setLastName(sanitizedValue);
+  };
+
+  const handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = sanitizeEmailInput(event.target.value);
+    setEmail(sanitizedValue);
+  };
+
+  const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const sanitizedValue = sanitizePhoneInput(event.target.value);
+    setPhone(sanitizedValue);
+  };
 
   const formattedRole = role
     ? role
@@ -260,7 +287,7 @@ export default function StaffForm({
                     </label>
                     <Input
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      onChange={handleFirstNameChange}
                       className="h-11"
                       placeholder="Enter first name"
                     />
@@ -271,7 +298,7 @@ export default function StaffForm({
                     </label>
                     <Input
                       value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      onChange={handleLastNameChange}
                       className="h-11"
                       placeholder="Enter last name"
                     />
@@ -297,7 +324,7 @@ export default function StaffForm({
                     <Input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={handleEmailChange}
                       className="h-11"
                       placeholder="Enter email address"
                     />
@@ -308,7 +335,7 @@ export default function StaffForm({
                     </label>
                     <Input
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       className="h-11"
                       placeholder="Enter phone number"
                     />

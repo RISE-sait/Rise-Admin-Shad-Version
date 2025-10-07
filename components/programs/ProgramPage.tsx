@@ -17,6 +17,11 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { VisibilityState } from "@tanstack/react-table";
+import {
+  PROGRAM_TEXT_INPUT_MESSAGE,
+  PROGRAM_TEXT_INPUT_PATTERN,
+  sanitizeProgramText,
+} from "@/lib/programValidation";
 
 type ProgramType =
   | "course"
@@ -164,8 +169,12 @@ export default function ProgramPage({
           type="search"
           placeholder="Search programs..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(event) =>
+            setSearchQuery(sanitizeProgramText(event.target.value))
+          }
           className="max-w-xs"
+          pattern={PROGRAM_TEXT_INPUT_PATTERN}
+          title={PROGRAM_TEXT_INPUT_MESSAGE}
         />
         <p className="text-sm text-muted-foreground">
           {`${filteredPractices.length} programs found`}

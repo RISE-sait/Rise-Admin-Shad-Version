@@ -18,6 +18,10 @@ import { Team } from "@/types/team";
 import { getTeamById } from "@/services/teams";
 import { VisibilityState } from "@tanstack/react-table";
 import {
+  sanitizeTextInput,
+  TEAM_TEXT_INPUT_PATTERN_STRING,
+} from "@/utils/inputValidation";
+import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -87,7 +91,9 @@ export default function TeamsPage({
             placeholder="Search teams..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(sanitizeTextInput(e.target.value))}
+            pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
+            title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
           />
         </div>
         <div className="flex items-center gap-4">

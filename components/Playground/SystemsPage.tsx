@@ -10,6 +10,7 @@ import AddSystemForm from "./AddSystemForm";
 import SystemInfoPanel from "./SystemInfoPanel";
 import SystemsTable from "./SystemsTable";
 import { PlaygroundSystem } from "@/types/playground";
+import { matchesSearchQuery } from "@/utils/inputValidation";
 
 export default function SystemsPage({
   systems,
@@ -27,10 +28,9 @@ export default function SystemsPage({
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredSystems = searchQuery
-    ? systems.filter((s) =>
-        s.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  const trimmedQuery = searchQuery.trim();
+  const filteredSystems = trimmedQuery
+    ? systems.filter((s) => matchesSearchQuery(trimmedQuery, s.name))
     : systems;
 
   const handleSystemSelect = (system: PlaygroundSystem) => {

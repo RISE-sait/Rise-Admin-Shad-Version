@@ -26,6 +26,7 @@ import { useUser } from "@/contexts/UserContext";
 import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { getHaircutEvents, deleteHaircutEvent } from "@/services/haircuts";
 import { getAllStaffs } from "@/services/staff";
+import { matchesSearchQuery } from "@/utils/inputValidation";
 import BarberTable from "./BarberTable";
 import RightDrawer from "../reusable/RightDrawer";
 import AppointmentInfoPanel from "./AppointmentInfoPanel";
@@ -266,12 +267,13 @@ export default function AppointmentsPage() {
   const applySearchFilter = (
     appointmentsToFilter: HaircutEventEventResponseDto[]
   ) => {
-    if (!searchQuery) return appointmentsToFilter;
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) return appointmentsToFilter;
 
     return appointmentsToFilter.filter(
       (apt) =>
-        apt.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        apt.barber_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        matchesSearchQuery(trimmedQuery, apt.customer_name) ||
+        matchesSearchQuery(trimmedQuery, apt.barber_name)
     );
   };
 

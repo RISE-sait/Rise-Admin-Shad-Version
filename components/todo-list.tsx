@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Clock, Plus, MoreHorizontal, Trash2, AlertCircle } from "lucide-react";
 
+const TASK_REGEX = new RegExp("^[\\p{L}\\p{N}\\s.,'!&()\\-:]{3,120}$", "u");
+
 interface TodoItem {
   id: string;
   task: string;
@@ -46,6 +48,31 @@ export function TodoList() {
   const [newTask, setNewTask] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [inputError, setInputError] = useState<string | null>(null);
+
+  const validateTask = (value: string) => {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      setInputError("Task is required.");
+      return false;
+    }
+
+    if (trimmed.length < 3) {
+      setInputError("Tasks must be at least 3 characters long.");
+      return false;
+    }
+
+    if (!TASK_REGEX.test(trimmed)) {
+      setInputError(
+        "Use letters, numbers, spaces, or . , ' ! & ( ) - : characters only."
+      );
+      return false;
+    }
+
+    setInputError(null);
+    return true;
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -66,18 +93,22 @@ export function TodoList() {
   };
 
   const addTodo = () => {
-    if (newTask.trim()) {
-      const newTodo: TodoItem = {
-        id: Date.now().toString(),
-        task: newTask.trim(),
-        completed: false,
-        priority: "medium",
-        createdAt: new Date(),
-      };
-      setTodos([...todos, newTodo]);
-      setNewTask("");
-      setIsAdding(false);
+    if (!validateTask(newTask)) {
+      return;
     }
+
+    const newTodo: TodoItem = {
+      id: Date.now().toString(),
+      task: newTask.trim(),
+      completed: false,
+      priority: "medium",
+      createdAt: new Date(),
+    };
+
+    setTodos([...todos, newTodo]);
+    setNewTask("");
+    setInputError(null);
+    setIsAdding(false);
   };
 
   const updatePriority = (id: string, priority: "low" | "medium" | "high") => {
@@ -215,41 +246,62 @@ export function TodoList() {
         ))}
 
         {isAdding ? (
-          <div className="flex items-center gap-2 p-2 border rounded-lg">
-            <Input
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              placeholder="Enter new task..."
-              className="flex-1 h-8"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addTodo();
-                if (e.key === "Escape") {
+          <>
+            <div className="flex items-center gap-2 p-2 border rounded-lg">
+              <Input
+                value={newTask}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNewTask(value);
+
+                  if (inputError) {
+                    validateTask(value);
+                  }
+                }}
+                placeholder="Enter new task..."
+                className="flex-1 h-8"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addTodo();
+                  if (e.key === "Escape") {
+                    setIsAdding(false);
+                    setNewTask("");
+                    setInputError(null);
+                  }
+                }}
+                autoFocus
+              />
+              <Button
+                size="sm"
+                onClick={addTodo}
+                disabled={!newTask.trim() || !!inputError}
+              >
+                Add
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
                   setIsAdding(false);
                   setNewTask("");
-                }
-              }}
-              autoFocus
-            />
-            <Button size="sm" onClick={addTodo} disabled={!newTask.trim()}>
-              Add
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setIsAdding(false);
-                setNewTask("");
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
+                  setInputError(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+            {inputError && (
+              <p className="text-xs text-red-500 px-1">{inputError}</p>
+            )}
+          </>
         ) : (
           <Button
             variant="outline"
             size="sm"
             className="w-full border-dashed"
-            onClick={() => setIsAdding(true)}
+            onClick={() => {
+              setIsAdding(true);
+              setInputError(null);
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Task

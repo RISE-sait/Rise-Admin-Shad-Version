@@ -99,6 +99,9 @@ export default function CustomerInfoPanel({
   const [notesDraft, setNotesDraft] = useState(customer.notes ?? "");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
 
+  const CREDITS_AMOUNT_PATTERN = /^\d*$/;
+  const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'-]*$/;
+
   const { toast } = useToast();
   const { user } = useUser();
 
@@ -700,7 +703,13 @@ export default function CustomerInfoPanel({
             </div>
             <Textarea
               value={notesDraft}
-              onChange={(event) => setNotesDraft(event.target.value)}
+              onChange={(event) => {
+                const { value } = event.target;
+                if (!NOTES_INPUT_PATTERN.test(value)) {
+                  return;
+                }
+                setNotesDraft(value);
+              }}
               placeholder="No notes"
               className="min-h-[200px]"
               maxLength={maxNotesLength}
@@ -773,9 +782,14 @@ export default function CustomerInfoPanel({
                         step="1"
                         placeholder="Amount"
                         value={addCreditsAmount}
-                        onChange={(event) =>
-                          setAddCreditsAmount(event.target.value)
-                        }
+                        onChange={(event) => {
+                          const { value } = event.target;
+                          if (!CREDITS_AMOUNT_PATTERN.test(value)) {
+                            return;
+                          }
+
+                          setAddCreditsAmount(value);
+                        }}
                         disabled={creditsAction !== null}
                       />
                     </div>
@@ -794,9 +808,14 @@ export default function CustomerInfoPanel({
                       id="add-credits-description"
                       placeholder="Describe the reason for adding credits"
                       value={addCreditsDescription}
-                      onChange={(event) =>
-                        setAddCreditsDescription(event.target.value)
-                      }
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        if (!NOTES_INPUT_PATTERN.test(value)) {
+                          return;
+                        }
+
+                        setAddCreditsDescription(value);
+                      }}
                       disabled={creditsAction !== null}
                       rows={3}
                     />
@@ -822,9 +841,14 @@ export default function CustomerInfoPanel({
                         step="1"
                         placeholder="Amount"
                         value={deductCreditsAmount}
-                        onChange={(event) =>
-                          setDeductCreditsAmount(event.target.value)
-                        }
+                        onChange={(event) => {
+                          const { value } = event.target;
+                          if (!CREDITS_AMOUNT_PATTERN.test(value)) {
+                            return;
+                          }
+
+                          setDeductCreditsAmount(value);
+                        }}
                         disabled={creditsAction !== null}
                       />
                     </div>
@@ -846,9 +870,14 @@ export default function CustomerInfoPanel({
                       id="deduct-credits-description"
                       placeholder="Describe the reason for deducting credits"
                       value={deductCreditsDescription}
-                      onChange={(event) =>
-                        setDeductCreditsDescription(event.target.value)
-                      }
+                      onChange={(event) => {
+                        const { value } = event.target;
+                        if (!NOTES_INPUT_PATTERN.test(value)) {
+                          return;
+                        }
+
+                        setDeductCreditsDescription(value);
+                      }}
                       disabled={creditsAction !== null}
                       rows={3}
                     />

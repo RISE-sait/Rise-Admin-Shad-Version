@@ -21,6 +21,7 @@ import columns from "./table/columns";
 import { VisibilityState } from "@tanstack/react-table";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
+import { sanitizeTextInput } from "@/utils/inputValidation";
 
 export default function FacilitiesPage({
   facilities,
@@ -85,7 +86,7 @@ export default function FacilitiesPage({
             placeholder="Search locations..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(sanitizeTextInput(e.target.value))}
           />
         </div>
         <div className="flex items-center gap-4">

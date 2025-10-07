@@ -9,6 +9,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useFormData } from "@/hooks/form-data";
 import { revalidateLocations } from "@/actions/serverActions";
 import { useToast } from "@/hooks/use-toast";
+import { sanitizeTextInput } from "@/utils/inputValidation";
 
 interface AddFacilityFormProps {
   onSuccess?: () => void;
@@ -73,7 +74,9 @@ export default function AddFacilityForm({ onSuccess }: AddFacilityFormProps) {
             Name <span className="text-red-500">*</span>
           </label>
           <Input
-            onChange={(e) => updateField("name", e.target.value)}
+            onChange={(e) =>
+              updateField("name", sanitizeTextInput(e.target.value))
+            }
             type="text"
             value={data.name}
             placeholder="Enter facility name"
@@ -85,7 +88,9 @@ export default function AddFacilityForm({ onSuccess }: AddFacilityFormProps) {
             Address <span className="text-red-500">*</span>
           </label>
           <Input
-            onChange={(e) => updateField("address", e.target.value)}
+            onChange={(e) =>
+              updateField("address", sanitizeTextInput(e.target.value))
+            }
             type="text"
             value={data.address}
             placeholder="Enter facility address"

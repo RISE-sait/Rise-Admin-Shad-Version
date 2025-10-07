@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const CUSTOMER_ID_REGEX = /^[A-Za-z0-9-]*$/;
+
 export default function CheckInPage() {
   const [customerId, setCustomerId] = useState("");
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -24,6 +26,7 @@ export default function CheckInPage() {
     useState<CustomerMembershipResponseDto | null>(null);
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const [showNoMembershipAlert, setShowNoMembershipAlert] = useState(false);
+  const [inputError, setInputError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -41,17 +44,32 @@ export default function CheckInPage() {
     }
   }, [showNoMembershipAlert]);
 
+  const handleInputChange = (value: string) => {
+    if (CUSTOMER_ID_REGEX.test(value)) {
+      setCustomerId(value);
+      setInputError(null);
+    } else {
+      setInputError(
+        "Customer ID can only include letters, numbers, and hyphens."
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!customerId) return;
+    const sanitizedCustomerId = customerId.trim();
+    if (!sanitizedCustomerId) {
+      setInputError("Please enter a valid customer ID.");
+      return;
+    }
 
     try {
-      const membership = await checkInCustomer(customerId);
+      const membership = await checkInCustomer(sanitizedCustomerId);
       setMembershipInfo(membership);
       if (!membership) {
         setShowNoMembershipAlert(true);
       }
-      const customerData = await getCustomerById(customerId);
+      const customerData = await getCustomerById(sanitizedCustomerId);
       if (customerData) {
         setCustomer(customerData);
         setLoginLogs((prev) => {
@@ -76,6 +94,7 @@ export default function CheckInPage() {
       setCustomer(null);
     } finally {
       setCustomerId("");
+      setInputError(null);
       inputRef.current?.focus();
     }
   };
@@ -87,11 +106,24 @@ export default function CheckInPage() {
           <input
             ref={inputRef}
             value={customerId}
-            onChange={(e) => setCustomerId(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder="Scan customer ID"
             className="w-full rounded border p-2"
             autoFocus
+            pattern="[A-Za-z0-9-]*"
+            aria-invalid={inputError ? "true" : "false"}
+            aria-describedby={inputError ? "customer-id-error" : undefined}
+            title="Only letters, numbers, and hyphens are allowed."
           />
+          {inputError && (
+            <p
+              id="customer-id-error"
+              className="mt-2 text-sm text-destructive"
+              role="alert"
+            >
+              {inputError}
+            </p>
+          )}
         </form>
 
         {customer && (

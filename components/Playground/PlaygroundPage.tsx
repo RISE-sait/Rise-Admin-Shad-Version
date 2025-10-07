@@ -13,6 +13,7 @@ import AddBookingForm from "./AddBookingForm";
 import BookingInfoPanel from "./BookingInfoPanel";
 import { PlaygroundSession, PlaygroundSystem } from "@/types/playground";
 import { toZonedISOString } from "@/lib/utils";
+import { matchesSearchQuery } from "@/utils/inputValidation";
 
 interface PlaygroundPageProps {
   sessions: PlaygroundSession[];
@@ -57,9 +58,11 @@ export default function PlaygroundPage({
 
   // Filter bookings list when searchQuery changes
   useEffect(() => {
-    if (searchQuery) {
-      const filtered = bookings.filter((b) =>
-        b.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
+    if (searchQuery.trim()) {
+      const filtered = bookings.filter(
+        (b) =>
+          matchesSearchQuery(searchQuery, b.customer_name) ||
+          matchesSearchQuery(searchQuery, b.system_name)
       );
       setFilteredBookings(filtered);
     } else {

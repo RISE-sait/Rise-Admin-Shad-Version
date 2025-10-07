@@ -146,6 +146,14 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
     });
   };
 
+  const handleCancelPlan = (planId: string) => {
+    setToggledPlanId((prev) => (prev === planId ? null : prev));
+    setEditablePlans((prev) => {
+      const { [planId]: _removed, ...rest } = prev;
+      return rest;
+    });
+  };
+
   // toggle between adding new plans
   const toggleNewPlan = () => {
     setNewPlanToggle((prev) => {
@@ -505,6 +513,16 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                   >
                     {" "}
                     Save{" "}
+                  </div>
+                  <div
+                    className="p-1 pl-5 pr-5 bg-yellow-700 hover:bg-yellow-900 rounded cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancelPlan(plan.id);
+                    }}
+                  >
+                    {" "}
+                    Cancel{" "}
                   </div>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

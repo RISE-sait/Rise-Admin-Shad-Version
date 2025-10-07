@@ -18,6 +18,7 @@ import { getAllLocations } from "@/services/location"; // Service to fetch all l
 import { CourtRequestDto } from "@/app/api/Api"; // DTO type for court creation request
 import { revalidateCourts } from "@/actions/serverActions"; // Action to revalidate court data on server
 import { Location } from "@/types/location"; // Type definition for a location
+import { sanitizeTextInput } from "@/utils/inputValidation";
 
 export default function AddCourtForm({
   onCourtAdded,
@@ -82,7 +83,9 @@ export default function AddCourtForm({
             Name <span className="text-red-500">*</span>
           </label>
           <Input
-            onChange={(e) => updateField("name", e.target.value)} // Update form data on change
+            onChange={(e) =>
+              updateField("name", sanitizeTextInput(e.target.value))
+            } // Update form data on change
             type="text"
             value={data.name}
             placeholder="Enter court name"
