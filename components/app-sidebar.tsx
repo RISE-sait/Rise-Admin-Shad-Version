@@ -51,7 +51,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: <MapPin width={15} height={15} />,
           },
           {
-            title: "Membership / Credit Packages",
+            title: "Memberships",
+            description: "Credit Packages",
             url: "/manage/memberships",
             icon: <Ticket width={15} height={15} />,
           },
