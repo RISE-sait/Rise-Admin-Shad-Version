@@ -15,6 +15,10 @@ export async function revalidateMemberships() {
   revalidatePath("/manage/memberships");
 }
 
+export async function revalidateCreditPackages() {
+  revalidatePath("/manage/credits");
+}
+
 export async function revalidateStaffs() {
   revalidatePath("/manage/staffs");
 }

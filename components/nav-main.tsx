@@ -21,6 +21,7 @@ interface NavItem {
   icon?: React.ReactNode;
   isActive?: boolean;
   items?: NavItem[];
+  description?: string;
 }
 
 interface NavMainProps {
@@ -41,16 +42,30 @@ export function NavMain({ items }: NavMainProps) {
                   className="text-base hover:bg-primary/20 data-[active=true]:bg-primary/30"
                   isActive={pathname === item.url}
                 >
-                  <Link href={item.url}>
+                  <Link href={item.url} className="flex items-start gap-2">
                     {item.icon}
-                    <span>{item.title}</span>
+                    <span className="flex flex-col leading-tight">
+                      <span>{item.title}</span>
+                      {item.description ? (
+                        <span className="text-xs text-muted-foreground">
+                          {item.description}
+                        </span>
+                      ) : null}
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ) : (
-              <SidebarGroupLabel className="flex items-center gap-2 px-2 text-base font-medium">
+              <SidebarGroupLabel className="flex items-start gap-2 px-2 text-base font-medium">
                 {item.icon}
-                <span>{item.title}</span>
+                <span className="flex flex-col leading-tight">
+                  <span>{item.title}</span>
+                  {item.description ? (
+                    <span className="text-xs text-muted-foreground">
+                      {item.description}
+                    </span>
+                  ) : null}
+                </span>
               </SidebarGroupLabel>
             )}
             {item.items?.length ? (
@@ -62,11 +77,21 @@ export function NavMain({ items }: NavMainProps) {
                       className="text-base hover:bg-primary/20 data-[active=true]:bg-primary/30"
                       isActive={pathname === subItem.url}
                     >
-                      <Link href={subItem.url ?? "#"}>
+                      <Link
+                        href={subItem.url ?? "#"}
+                        className="flex items-start gap-2"
+                      >
                         {subItem.icon ?? (
-                          <ArrowRight className="mr-2 h-4 w-4" />
+                          <ArrowRight className="mt-0.5 h-4 w-4" />
                         )}
-                        <span>{subItem.title}</span>
+                        <span className="flex flex-col leading-tight">
+                          <span>{subItem.title}</span>
+                          {subItem.description ? (
+                            <span className="text-xs text-muted-foreground">
+                              {subItem.description}
+                            </span>
+                          ) : null}
+                        </span>
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>

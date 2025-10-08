@@ -912,6 +912,57 @@
         }
       }
     },
+    "/checkout/credit_packages/{id}": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["payments"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Credit Package ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Checkout URL generated successfully",
+            "schema": {
+              "$ref": "#/definitions/payment.CheckoutResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID or customer has remaining credits",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Package not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/checkout/events/{id}": {
       "post": {
         "security": [
@@ -1444,6 +1495,224 @@
           },
           "404": {
             "description": "Not Found: Court not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/credit_packages": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credit-packages"],
+        "responses": {
+          "200": {
+            "description": "List of credit packages",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/credit_package.CreditPackageResponse"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["admin-credit-packages"],
+        "parameters": [
+          {
+            "description": "Credit package details",
+            "name": "package",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/credit_package.CreateCreditPackageRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Credit package created successfully",
+            "schema": {
+              "$ref": "#/definitions/credit_package.CreditPackageResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/credit_packages/{id}": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credit-packages"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Credit Package ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credit package details",
+            "schema": {
+              "$ref": "#/definitions/credit_package.CreditPackageResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Package not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["admin-credit-packages"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Credit Package ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated credit package details",
+            "name": "package",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/credit_package.UpdateCreditPackageRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credit package updated successfully",
+            "schema": {
+              "$ref": "#/definitions/credit_package.CreditPackageResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Package not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["admin-credit-packages"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Credit Package ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Credit package deleted successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Package not found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -6858,6 +7127,85 @@
         }
       }
     },
+    "credit_package.CreateCreditPackageRequest": {
+      "type": "object",
+      "required": ["credit_allocation", "name", "stripe_price_id"],
+      "properties": {
+        "credit_allocation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 3
+        },
+        "stripe_price_id": {
+          "type": "string"
+        },
+        "weekly_credit_limit": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "credit_package.CreditPackageResponse": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "credit_allocation": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "stripe_price_id": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "weekly_credit_limit": {
+          "type": "integer"
+        }
+      }
+    },
+    "credit_package.UpdateCreditPackageRequest": {
+      "type": "object",
+      "required": ["credit_allocation", "name", "stripe_price_id"],
+      "properties": {
+        "credit_allocation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 150,
+          "minLength": 3
+        },
+        "stripe_price_id": {
+          "type": "string"
+        },
+        "weekly_credit_limit": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
     "customer.AccountDeletionRequest": {
       "type": "object",
       "required": ["confirm_deletion"],
@@ -7207,6 +7555,17 @@
         }
       }
     },
+    "event.CourtInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "event.CustomerResponseDto": {
       "type": "object",
       "properties": {
@@ -7294,6 +7653,9 @@
       "properties": {
         "capacity": {
           "type": "integer"
+        },
+        "court": {
+          "$ref": "#/definitions/event.CourtInfo"
         },
         "created_by": {
           "$ref": "#/definitions/event.PersonResponseDto"
@@ -7399,6 +7761,11 @@
         "court_id": {
           "type": "string",
           "example": "0bab3927-50eb-42b3-9d6b-2350dd00a100"
+        },
+        "credit_cost": {
+          "type": "integer",
+          "minimum": 0,
+          "example": 5
         },
         "day": {
           "type": "string",
