@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,29 +35,8 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   const [newStripeJoiningFeeId, setNewStripeJoiningFeeId] =
     useState<string>("");
   const [newPlanToggle, setNewPlanToggle] = useState(false);
-  const [newUsingCredits, setNewUsingCredits] = useState(false);
-  const [newCreditAllocation, setNewCreditAllocation] = useState<string>("");
-  const [newWeeklyCreditLimit, setNewWeeklyCreditLimit] = useState<string>("");
 
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
-
-  const parseOptionalNumber = (value: unknown) => {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      if (trimmed === "") {
-        return undefined;
-      }
-      const numericValue = Number(trimmed);
-      return Number.isNaN(numericValue) ? undefined : numericValue;
-    }
-    if (typeof value === "number") {
-      return Number.isNaN(value) ? undefined : value;
-    }
-    return undefined;
-  };
 
   const fetchPlans = async () => {
     try {
@@ -97,16 +75,6 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
           amt_periods: plan.amt_periods?.toString() ?? "",
           stripe_price_id: plan.stripe_price_id ?? "",
           stripe_joining_fees_id: plan.stripe_joining_fees_id ?? "",
-          credit_allocation:
-            plan.credit_allocation != null
-              ? plan.credit_allocation.toString()
-              : "",
-          weekly_credit_limit:
-            plan.weekly_credit_limit != null
-              ? plan.weekly_credit_limit.toString()
-              : "",
-          usingCredits:
-            plan.credit_allocation != null || plan.weekly_credit_limit != null,
         },
       }));
     }
@@ -127,25 +95,6 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
     }));
   };
 
-  const handlePlanCreditsToggle = (planId: string, enabled: boolean) => {
-    setEditablePlans((prev) => {
-      const currentPlan = prev[planId] || {};
-      return {
-        ...prev,
-        [planId]: {
-          ...currentPlan,
-          usingCredits: enabled,
-          credit_allocation: enabled
-            ? (currentPlan.credit_allocation ?? "")
-            : "",
-          weekly_credit_limit: enabled
-            ? (currentPlan.weekly_credit_limit ?? "")
-            : "",
-        },
-      };
-    });
-  };
-
   const handleCancelPlan = (planId: string) => {
     setToggledPlanId((prev) => (prev === planId ? null : prev));
     setEditablePlans((prev) => {
@@ -162,20 +111,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         setNewStripePriceId("");
         setNewStripeJoiningFeeId("");
         setNewPeriod("");
-        setNewUsingCredits(false);
-        setNewCreditAllocation("");
-        setNewWeeklyCreditLimit("");
       }
       return !prev;
     });
-  };
-
-  const handleNewPlanCreditToggle = (enabled: boolean) => {
-    setNewUsingCredits(enabled);
-    if (!enabled) {
-      setNewCreditAllocation("");
-      setNewWeeklyCreditLimit("");
-    }
   };
 
   // add new plan
@@ -218,12 +156,6 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
             ? newStripeJoiningFeeId
             : undefined,
           amt_periods: parsedPeriod,
-          ...(newUsingCredits
-            ? {
-                credit_allocation: parseOptionalNumber(newCreditAllocation),
-                weekly_credit_limit: parseOptionalNumber(newWeeklyCreditLimit),
-              }
-            : {}),
         }),
       });
       if (!response.ok) {
@@ -242,9 +174,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         setNewStripePriceId("");
         setNewStripeJoiningFeeId("");
         setNewPeriod("");
-        setNewCreditAllocation("");
-        setNewWeeklyCreditLimit("");
-        setNewUsingCredits(false);
+
         setNewPlanToggle(false);
       }
     } catch (err) {
@@ -284,16 +214,6 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
               ? updatedPlan.stripe_joining_fees_id
               : undefined,
             amt_periods: parsedPeriod,
-            ...(updatedPlan.usingCredits
-              ? {
-                  credit_allocation: parseOptionalNumber(
-                    updatedPlan.credit_allocation
-                  ),
-                  weekly_credit_limit: parseOptionalNumber(
-                    updatedPlan.weekly_credit_limit
-                  ),
-                }
-              : {}),
           }),
         }
       );
@@ -448,61 +368,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     />
                   </div>
                 </div>
-                <div className="pt-3 flex items-center space-x-2">
-                  <Checkbox
-                    id={`plan-${plan.id}-using-credits`}
-                    checked={Boolean(editablePlans[plan.id]?.usingCredits)}
-                    onCheckedChange={(checked) =>
-                      handlePlanCreditsToggle(plan.id, checked === true)
-                    }
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <Label
-                    htmlFor={`plan-${plan.id}-using-credits`}
-                    className="text-sm font-medium cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Using credits
-                  </Label>
-                </div>
-                {editablePlans[plan.id]?.usingCredits && (
-                  <div className="pt-3 flex">
-                    <div className="w-full pr-5">
-                      <Label className="w-full">Credit allocation</Label>
-                      <Input
-                        className="w-full mt-1"
-                        onChange={(e) =>
-                          handleInputChange(
-                            plan.id,
-                            "credit_allocation",
-                            e.target.value
-                          )
-                        }
-                        value={editablePlans[plan.id]?.credit_allocation || ""}
-                        placeholder="0"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                    <div className="w-full pl-1 ">
-                      <Label className="w-full">Weekly credit limit</Label>
-                      <Input
-                        className="w-full mt-1"
-                        onChange={(e) =>
-                          handleInputChange(
-                            plan.id,
-                            "weekly_credit_limit",
-                            e.target.value
-                          )
-                        }
-                        value={
-                          editablePlans[plan.id]?.weekly_credit_limit || ""
-                        }
-                        placeholder="0"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                  </div>
-                )}
+
                 <div className="flex pt-5 gap-3">
                   <div
                     className="p-1 pl-5 pr-5 bg-green-600 hover:bg-green-700 rounded cursor-pointer"
@@ -647,47 +513,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                 />
               </div>
             </div>
-            <div className="pt-3 flex items-center space-x-2">
-              <Checkbox
-                id="new-plan-using-credits"
-                checked={newUsingCredits}
-                onCheckedChange={(checked) =>
-                  handleNewPlanCreditToggle(checked === true)
-                }
-                onClick={(e) => e.stopPropagation()}
-              />
-              <Label
-                htmlFor="new-plan-using-credits"
-                className="text-sm font-medium cursor-pointer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Using credits
-              </Label>
-            </div>
-            {newUsingCredits && (
-              <div className="pt-3 flex">
-                <div className="w-full pr-5">
-                  <Label className="w-full">Credit allocation</Label>
-                  <Input
-                    className="w-full mt-1"
-                    value={newCreditAllocation}
-                    onChange={(e) => setNewCreditAllocation(e.target.value)}
-                    placeholder="0"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                <div className="w-full pl-1 ">
-                  <Label className="w-full">Weekly credit limit</Label>
-                  <Input
-                    className="w-full mt-1"
-                    value={newWeeklyCreditLimit}
-                    onChange={(e) => setNewWeeklyCreditLimit(e.target.value)}
-                    placeholder="0"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-              </div>
-            )}
+
             <div className="flex pt-5 gap-3">
               <div
                 className="p-1 pl-5 pr-5 bg-green-600 hover:bg-green-700 rounded cursor-pointer"
