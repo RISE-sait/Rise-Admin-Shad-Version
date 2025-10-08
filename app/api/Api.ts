@@ -136,6 +136,7 @@ export interface EventEventRequestDto {
 }
 
 export interface EventEventResponseDto {
+  court: any;
   credit_cost?: null;
   capacity?: number;
   created_by?: EventPersonResponseDto;
