@@ -77,6 +77,7 @@ export interface EventCreateRequest {
   start_at: string;
   end_at: string;
   capacity?: number;
+  credit_cost?: number;
 }
 
 export interface EventRecurrenceCreateRequest {
@@ -90,4 +91,5 @@ export interface EventRecurrenceCreateRequest {
   event_end_at: string;
   day?: string;
   capacity?: number;
+  credit_cost?: number;
 }

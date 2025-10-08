@@ -195,6 +195,11 @@ export default function CalendarManageEventDrawer() {
                     <p className="text-base text-muted-foreground">
                       {selectedEvent.location.address}
                     </p>
+                    {selectedEvent.credit_cost != null && (
+                      <p className="text-base text-muted-foreground">
+                        Credit cost: {selectedEvent.credit_cost}
+                      </p>
+                    )}
                     {selectedEvent.team?.name && (
                       <p className="text-base text-muted-foreground">
                         Team: {selectedEvent.team.name}

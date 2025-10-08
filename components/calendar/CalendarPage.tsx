@@ -64,6 +64,16 @@ export default function CalendarPage() {
           start_at: fromZonedISOString(event.start_at!),
           end_at: fromZonedISOString(event.end_at!),
           capacity: event.capacity ?? 0,
+          court: event.court
+            ? {
+                id: event.court.id ?? "",
+                name: event.court.name ?? "",
+              }
+            : undefined,
+          credit_cost:
+            event.credit_cost != null && event.credit_cost !== ""
+              ? Number(event.credit_cost)
+              : undefined,
           createdBy: {
             firstName: event.created_by?.first_name ?? "",
             id: event.created_by?.id ?? "",
@@ -134,6 +144,10 @@ export default function CalendarPage() {
               id: g.location_id,
               name: g.location_name,
             },
+            court: {
+              id: g.court_id ?? "",
+              name: g.court_name ?? "",
+            },
             program: {
               id: g.id!,
               name: `${g.home_team_name} vs ${g.away_team_name}`,
@@ -168,6 +182,10 @@ export default function CalendarPage() {
               address: "",
               id: p.location_id,
               name: p.location_name ?? "",
+            },
+            court: {
+              id: p.court_id ?? "",
+              name: p.court_name ?? "",
             },
             program: {
               id: p.team_id ?? p.id,
