@@ -105,7 +105,7 @@ export default function CreditsPage({
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
         <Heading
-          title="Credits"
+          title="Credit Packages"
           description="Manage credit packages and their availability"
         />
         <Button

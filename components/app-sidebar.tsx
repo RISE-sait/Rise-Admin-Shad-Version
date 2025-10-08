@@ -51,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             icon: <MapPin width={15} height={15} />,
           },
           {
-            title: "Memberships",
+            title: "Membership / Credit Packages",
             url: "/manage/memberships",
             icon: <Ticket width={15} height={15} />,
           },
@@ -79,10 +79,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Amenities",
             url: "/manage/amenities",
             icon: <Gamepad2 width={15} height={15} />,
-          },
-          {
-            title: "Credits",
-            url: "/manage/credits",
           },
         ]
       : role === StaffRoleEnum.COACH
