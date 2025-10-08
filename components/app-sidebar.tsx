@@ -80,6 +80,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/manage/amenities",
             icon: <Gamepad2 width={15} height={15} />,
           },
+          {
+            title: "Credits",
+            url: "/manage/credits",
+          },
         ]
       : role === StaffRoleEnum.COACH
         ? [
