@@ -203,6 +203,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         const program = programs.find((p) => p.id === data.program_id);
         const location = locations.find((l) => l.id === data.location_id);
         const team = teams.find((t) => t.id === data.team_id);
+        const court = courts.find((c) => c.id === data.court_id);
         const nameParts = (user?.Name || " ").split(" ");
         const firstName = nameParts.shift() || "";
         const lastName = nameParts.join(" ");
@@ -230,6 +231,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             name: location?.name || "",
             address: location?.address || "",
           },
+          court: {
+            id: data.court_id || "",
+            name: court?.name || "",
+          },
           team: { id: team?.id || "", name: team?.name || "" },
         } as CalendarEvent;
         setEvents([...events, newEvent]);
@@ -237,6 +242,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         const program = programs.find((p) => p.id === data.program_id);
         const location = locations.find((l) => l.id === data.location_id);
         const team = teams.find((t) => t.id === data.team_id);
+        const court = courts.find((c) => c.id === data.court_id);
         const nameParts = (user?.Name || " ").split(" ");
         const firstName = nameParts.shift() || "";
         const lastName = nameParts.join(" ");
@@ -288,6 +294,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                 id: location?.id || "",
                 name: location?.name || "",
                 address: location?.address || "",
+              },
+              court: {
+                id: data.court_id || "",
+                name: court?.name || "",
               },
               team: { id: team?.id || "", name: team?.name || "" },
             } as CalendarEvent);
