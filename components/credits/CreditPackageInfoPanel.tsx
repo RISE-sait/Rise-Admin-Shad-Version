@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { SaveIcon, TrashIcon } from "lucide-react";
 
 interface CreditPackageInfoPanelProps {
   creditPackage: CreditPackage;
@@ -241,10 +242,7 @@ export default function CreditPackageInfoPanel({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" disabled={!isDirty || isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
           <Button
             type="button"
             variant="outline"
@@ -253,39 +251,43 @@ export default function CreditPackageInfoPanel({
           >
             Reset
           </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              type="submit"
+              disabled={!isDirty || isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <SaveIcon className="h-4 w-4 mr-2" />
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" /> Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete credit package</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this credit package? This
+                    action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Confirm delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </form>
-
-      <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 space-y-3">
-        <div>
-          <h3 className="text-sm font-semibold text-destructive">
-            Danger zone
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Deleting this credit package will remove it permanently.
-          </p>
-        </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">Delete credit package</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete credit package</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this credit package? This action
-                cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
-                Confirm delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
 
       <div className="text-xs text-muted-foreground">
         {(() => {
