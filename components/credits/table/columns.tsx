@@ -48,16 +48,7 @@ export const columns: ColumnDef<CreditPackage>[] = [
   {
     id: "credit_allocation",
     accessorKey: "credit_allocation",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="font-medium hover:bg-accent hover:text-accent-foreground"
-      >
-        Credit Allocation
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: "Credit Allocation",
     cell: ({ row }) => {
       const value = row.getValue("credit_allocation") as number;
       return value ?? "-";
@@ -68,16 +59,8 @@ export const columns: ColumnDef<CreditPackage>[] = [
   {
     id: "weekly_credit_limit",
     accessorKey: "weekly_credit_limit",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="font-medium hover:bg-accent hover:text-accent-foreground"
-      >
-        Weekly Limit
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: "Weekly Limit",
+
     cell: ({ row }) => {
       const value = row.getValue("weekly_credit_limit") as number;
       return value ?? "-";
@@ -88,16 +71,7 @@ export const columns: ColumnDef<CreditPackage>[] = [
   {
     id: "stripe_price_id",
     accessorKey: "stripe_price_id",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="font-medium hover:bg-accent hover:text-accent-foreground"
-      >
-        Stripe Price ID
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: "Stripe Price ID",
     minSize: 200,
     size: 260,
   },
