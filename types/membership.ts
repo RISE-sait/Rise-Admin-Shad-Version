@@ -15,6 +15,7 @@ export interface MembershipPlan {
   amt_periods: number;
   credit_allocation?: number | null;
   weekly_credit_limit?: number | null;
+  visibility: boolean;
 }
 
 export interface MembershipPlanRequestDto {

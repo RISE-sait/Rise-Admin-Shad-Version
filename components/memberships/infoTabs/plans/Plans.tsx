@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +17,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import getValue from "@/configs/constants";
 import { MembershipPlan } from "@/types/membership";
-import { getPlansForMembership } from "@/services/membershipPlan";
+import {
+  getPlansForMembership,
+  updatePlanVisibility,
+} from "@/services/membershipPlan";
 
 export default function PlansTab({ membershipId }: { membershipId: string }) {
   const { user } = useUser();
@@ -37,6 +41,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   const [newPlanToggle, setNewPlanToggle] = useState(false);
 
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
+  const [visibilityLoading, setVisibilityLoading] = useState<string | null>(
+    null
+  );
 
   const fetchPlans = async () => {
     try {
@@ -75,6 +82,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
           amt_periods: plan.amt_periods?.toString() ?? "",
           stripe_price_id: plan.stripe_price_id ?? "",
           stripe_joining_fees_id: plan.stripe_joining_fees_id ?? "",
+          visibility: plan.visibility,
         },
       }));
     }
@@ -101,6 +109,71 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
       const { [planId]: _removed, ...rest } = prev;
       return rest;
     });
+  };
+
+  const handleVisibilityToggle = async (
+    planId: string,
+    nextVisibility: boolean
+  ) => {
+    if (!jwt) {
+      toast({
+        status: "error",
+        description: "Authentication required to update plan visibility.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const previousPlans = plans.map((plan) => ({ ...plan }));
+    setVisibilityLoading(planId);
+    setPlans((prev) =>
+      prev.map((plan) =>
+        plan.id === planId ? { ...plan, visibility: nextVisibility } : plan
+      )
+    );
+    setEditablePlans((prev) =>
+      prev[planId]
+        ? {
+            ...prev,
+            [planId]: {
+              ...prev[planId],
+              visibility: nextVisibility,
+            },
+          }
+        : prev
+    );
+
+    try {
+      await updatePlanVisibility(planId, nextVisibility, jwt);
+      toast({
+        status: "success",
+        description: "Plan visibility updated successfully",
+      });
+      await refreshPlans();
+    } catch (error) {
+      console.error("Failed to update plan visibility", error);
+      setPlans(previousPlans);
+      setEditablePlans((prev) =>
+        prev[planId]
+          ? {
+              ...prev,
+              [planId]: {
+                ...prev[planId],
+                visibility:
+                  previousPlans.find((plan) => plan.id === planId)
+                    ?.visibility ?? false,
+              },
+            }
+          : prev
+      );
+      toast({
+        status: "error",
+        description: "Failed to update plan visibility",
+        variant: "destructive",
+      });
+    } finally {
+      setVisibilityLoading(null);
+    }
   };
 
   // toggle between adding new plans
@@ -271,36 +344,56 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
               key={plan.id}
               className="w-full p-3 rounded-lg border-orange-500 border"
             >
-              <div className="p-2">
-                <div
-                  className="cursor-pointer"
-                  onClick={() => handleTogglePlan(plan.id)}
-                >
-                  <h1>{plan.name}</h1>
-                  <div className="flex flex-wrap gap-x-2">
-                    <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
-                      Stripe price id
-                    </h1>
-                    <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                      {plan.stripe_price_id || "—"}
-                    </h1>
-                    <h1 className="text-stone-500 font-semibold text-sm pt-1">
-                      • Every {plan.amt_periods} Months
-                    </h1>
-                  </div>
-                  {(plan.credit_allocation != null ||
-                    plan.weekly_credit_limit != null) && (
-                    <div className="flex flex-col text-xs text-stone-500 pt-1 space-y-0.5">
-                      {plan.credit_allocation != null && (
-                        <span>Credits allocated: {plan.credit_allocation}</span>
-                      )}
-                      {plan.weekly_credit_limit != null && (
-                        <span>
-                          Weekly credit limit: {plan.weekly_credit_limit}
-                        </span>
-                      )}
+              <div className="p-2 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => handleTogglePlan(plan.id)}
+                  >
+                    <h1>{plan.name}</h1>
+                    <div className="flex flex-wrap gap-x-2">
+                      <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
+                        Stripe price id
+                      </h1>
+                      <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
+                        {plan.stripe_price_id || "—"}
+                      </h1>
+                      <h1 className="text-stone-500 font-semibold text-sm pt-1">
+                        • Every {plan.amt_periods} Months
+                      </h1>
                     </div>
-                  )}
+                    {(plan.credit_allocation != null ||
+                      plan.weekly_credit_limit != null) && (
+                      <div className="flex flex-col text-xs text-stone-500 pt-1 space-y-0.5">
+                        {plan.credit_allocation != null && (
+                          <span>
+                            Credits allocated: {plan.credit_allocation}
+                          </span>
+                        )}
+                        {plan.weekly_credit_limit != null && (
+                          <span>
+                            Weekly credit limit: {plan.weekly_credit_limit}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className="flex flex-col items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Label className="text-xs text-muted-foreground">
+                      Visible
+                    </Label>
+                    <Switch
+                      checked={plan.visibility}
+                      onCheckedChange={(checked) =>
+                        handleVisibilityToggle(plan.id, checked)
+                      }
+                      disabled={visibilityLoading === plan.id}
+                      aria-label="Toggle plan visibility"
+                    />
+                  </div>
                 </div>
                 <div className="pt-2 flex">
                   <div className="w-full pr-5">
@@ -431,32 +524,54 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
               className="w-full dark:hover:bg-gray-900 hover:bg-muted/100 cursor-pointer  p-3 rounded-lg border-grey-500 border"
               onClick={() => handleTogglePlan(plan.id)}
             >
-              <div className="p-2">
-                <h1>{plan.name}</h1>
-                <div className="flex flex-wrap gap-x-2">
-                  <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
-                    Stripe price id
-                  </h1>
-                  <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                    {plan.stripe_price_id || "—"}
-                  </h1>
-                  <h1 className="text-stone-500 font-semibold text-sm pt-1">
-                    • Every {plan.amt_periods} Months
-                  </h1>
-                </div>
-                {(plan.credit_allocation != null ||
-                  plan.weekly_credit_limit != null) && (
-                  <div className="flex flex-col text-xs text-stone-500 pt-1 space-y-0.5">
-                    {plan.credit_allocation != null && (
-                      <span>Credits allocated: {plan.credit_allocation}</span>
-                    )}
-                    {plan.weekly_credit_limit != null && (
-                      <span>
-                        Weekly credit limit: {plan.weekly_credit_limit}
-                      </span>
+              <div className="p-2 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h1>{plan.name}</h1>
+                    <div className="flex flex-wrap gap-x-2">
+                      <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
+                        Stripe price id
+                      </h1>
+                      <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
+                        {plan.stripe_price_id || "—"}
+                      </h1>
+                      <h1 className="text-stone-500 font-semibold text-sm pt-1">
+                        • Every {plan.amt_periods} Months
+                      </h1>
+                    </div>
+                    {(plan.credit_allocation != null ||
+                      plan.weekly_credit_limit != null) && (
+                      <div className="flex flex-col text-xs text-stone-500 pt-1 space-y-0.5">
+                        {plan.credit_allocation != null && (
+                          <span>
+                            Credits allocated: {plan.credit_allocation}
+                          </span>
+                        )}
+                        {plan.weekly_credit_limit != null && (
+                          <span>
+                            Weekly credit limit: {plan.weekly_credit_limit}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+                  <div
+                    className="flex flex-col items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Label className="text-xs text-muted-foreground">
+                      Visible
+                    </Label>
+                    <Switch
+                      checked={plan.visibility}
+                      onCheckedChange={(checked) =>
+                        handleVisibilityToggle(plan.id, checked)
+                      }
+                      disabled={visibilityLoading === plan.id}
+                      aria-label="Toggle plan visibility"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           );

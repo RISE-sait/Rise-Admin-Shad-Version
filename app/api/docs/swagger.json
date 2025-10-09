@@ -4402,6 +4402,13 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "boolean",
+            "default": false,
+            "description": "Include hidden plans (admin only)",
+            "name": "include_hidden",
+            "in": "query"
           }
         ],
         "responses": {
@@ -7263,6 +7270,10 @@
         "credit_allocation": {
           "type": "integer"
         },
+        "currency": {
+          "description": "e.g., \"CAD\"",
+          "type": "string"
+        },
         "description": {
           "type": "string"
         },
@@ -7271,6 +7282,10 @@
         },
         "name": {
           "type": "string"
+        },
+        "price": {
+          "description": "Price in dollars (e.g., 49.99)",
+          "type": "number"
         },
         "stripe_price_id": {
           "type": "string"
@@ -8487,6 +8502,9 @@
         },
         "interval": {
           "type": "string"
+        },
+        "is_visible": {
+          "type": "boolean"
         },
         "joining_fee_price": {
           "type": "string"
