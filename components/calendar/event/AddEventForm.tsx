@@ -16,6 +16,10 @@ import { getAllPrograms } from "@/services/program";
 import { getAllTeams } from "@/services/teams";
 import { getAllLocations } from "@/services/location";
 import { getAllCourts } from "@/services/court";
+import {
+  getAllMembershipPlans,
+  MembershipPlanWithMembershipName,
+} from "@/services/membershipPlan";
 import { Program } from "@/types/program";
 import { Team } from "@/types/team";
 import { Location } from "@/types/location";
@@ -62,6 +66,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     day: "MONDAY",
     capacity: 0,
     credit_cost: "",
+    price_id: "",
+    required_membership_plan_id: "",
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -70,6 +76,9 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
+  const [membershipPlans, setMembershipPlans] = useState<
+    MembershipPlanWithMembershipName[]
+  >([]);
 
   const filteredCourts = courts.filter(
     (c) => c.location_id === data.location_id
@@ -80,16 +89,18 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     const fetchLists = async () => {
       try {
-        const [progs, tms, locs, crts] = await Promise.all([
+        const [progs, tms, locs, crts, plans] = await Promise.all([
           getAllPrograms("all"),
           getAllTeams(),
           getAllLocations(),
           getAllCourts(),
+          getAllMembershipPlans(),
         ]);
         setPrograms(progs);
         setTeams(tms);
         setLocations(locs);
         setCourts(crts);
+        setMembershipPlans(plans);
       } catch (err) {
         console.error("Failed to fetch dropdown data", err);
       }
@@ -147,6 +158,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         end_at: toZonedISOString(new Date(data.end_at)),
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
+        ...(data.price_id ? { price_id: data.price_id } : {}),
+        ...(data.required_membership_plan_id
+          ? { required_membership_plan_id: data.required_membership_plan_id }
+          : {}),
       };
 
       error = await createEvent(eventData, user?.Jwt!);
@@ -187,6 +202,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         day: data.day,
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
+        ...(data.price_id ? { price_id: data.price_id } : {}),
+        ...(data.required_membership_plan_id
+          ? { required_membership_plan_id: data.required_membership_plan_id }
+          : {}),
       };
 
       error = await createEvents(eventData, user?.Jwt!);
@@ -217,6 +236,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             usingCredits && data.credit_cost
               ? Number(data.credit_cost)
               : undefined,
+
+          price_id: data.price_id || undefined,
+          required_membership_plan_id:
+            data.required_membership_plan_id || undefined,
           createdBy: { id: user?.ID || "", firstName, lastName },
           updatedBy: { id: user?.ID || "", firstName, lastName },
           customers: [],
@@ -281,6 +304,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                 usingCredits && data.credit_cost
                   ? Number(data.credit_cost)
                   : undefined,
+
+              price_id: data.price_id || undefined,
+              required_membership_plan_id:
+                data.required_membership_plan_id || undefined,
               createdBy: { id: user?.ID || "", firstName, lastName },
               updatedBy: { id: user?.ID || "", firstName, lastName },
               customers: [],
@@ -507,6 +534,39 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             />
           </div>
         )}
+        <div className="space-y-2">
+          <Label htmlFor="event-price-id" className="text-sm font-medium">
+            Price ID (optional)
+          </Label>
+          <Input
+            id="event-price-id"
+            value={data.price_id}
+            onChange={(e) => updateField("price_id", e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label
+            htmlFor="event-required-membership-plan-id"
+            className="text-sm font-medium"
+          >
+            Required Membership Plan (optional)
+          </Label>
+          <select
+            id="event-required-membership-plan-id"
+            className="w-full border rounded-md p-2"
+            value={data.required_membership_plan_id}
+            onChange={(e) =>
+              updateField("required_membership_plan_id", e.target.value)
+            }
+          >
+            <option value="">No membership requirement</option>
+            {membershipPlans.map((plan) => (
+              <option key={plan.id} value={plan.id}>
+                {`${plan.membershipName} – ${plan.name}`}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <Button onClick={handleAddEvent} className="w-full">
         Add Event

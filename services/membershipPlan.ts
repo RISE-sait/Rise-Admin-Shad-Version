@@ -1,6 +1,11 @@
 import getValue from "@/configs/constants";
 import { MembershipPlanPlanResponse } from "@/app/api/Api";
 import { MembershipPlan } from "@/types/membership";
+import { getAllMemberships } from "@/services/membership";
+
+export interface MembershipPlanWithMembershipName extends MembershipPlan {
+  membershipName: string;
+}
 
 export async function getPlansForMembership(
   membershipId: string
@@ -32,4 +37,22 @@ export async function getPlansForMembership(
     console.error("🔥 Error loading membership plans:", err);
     throw err;
   }
+}
+
+export async function getAllMembershipPlans(): Promise<
+  MembershipPlanWithMembershipName[]
+> {
+  const memberships = await getAllMemberships();
+
+  const plansByMembership = await Promise.all(
+    memberships.map(async (membership) => {
+      const plans = await getPlansForMembership(membership.id);
+      return plans.map((plan) => ({
+        ...plan,
+        membershipName: membership.name,
+      }));
+    })
+  );
+
+  return plansByMembership.flat();
 }

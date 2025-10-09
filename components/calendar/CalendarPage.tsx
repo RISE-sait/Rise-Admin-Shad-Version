@@ -74,6 +74,16 @@ export default function CalendarPage() {
             event.credit_cost != null && event.credit_cost !== ""
               ? Number(event.credit_cost)
               : undefined,
+
+          price_id:
+            event.price_id != null && event.price_id !== ""
+              ? String(event.price_id)
+              : undefined,
+          required_membership_plan_id:
+            event.required_membership_plan_id != null &&
+            event.required_membership_plan_id !== ""
+              ? String(event.required_membership_plan_id)
+              : undefined,
           createdBy: {
             firstName: event.created_by?.first_name ?? "",
             id: event.created_by?.id ?? "",
