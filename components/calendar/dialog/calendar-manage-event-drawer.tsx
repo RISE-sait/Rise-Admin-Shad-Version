@@ -200,21 +200,36 @@ export default function CalendarManageEventDrawer() {
                         Credit cost: {selectedEvent.credit_cost}
                       </p>
                     )}
+                    {selectedEvent.price_id && (
+                      <p className="text-base text-muted-foreground">
+                        Price ID: {selectedEvent.price_id}
+                      </p>
+                    )}
+                    {selectedEvent.required_membership_plan_id && (
+                      <p className="text-base text-muted-foreground">
+                        Required Membership Plan ID:{" "}
+                        {selectedEvent.required_membership_plan_id}
+                      </p>
+                    )}
                     {selectedEvent.team?.name && (
                       <p className="text-base text-muted-foreground">
                         Team: {selectedEvent.team.name}
                       </p>
                     )}
-                    {((selectedEvent as any).court_name ||
-                      (selectedEvent as any).court ||
-                      (selectedEvent as any).court?.name) && (
-                      <p className="text-base text-muted-foreground">
-                        Court:{" "}
-                        {(selectedEvent as any).court_name ||
-                          (selectedEvent as any).court?.name ||
-                          (selectedEvent as any).court}
-                      </p>
-                    )}
+                    {(() => {
+                      const eventCourt = (selectedEvent as any).court;
+                      const courtName =
+                        (selectedEvent as any).court_name ||
+                        (typeof eventCourt === "string"
+                          ? eventCourt
+                          : eventCourt?.name || "");
+
+                      return courtName ? (
+                        <p className="text-base text-muted-foreground">
+                          Court: {courtName}
+                        </p>
+                      ) : null;
+                    })()}
                   </div>
                   <Separator />
                   <div className="space-y-4">

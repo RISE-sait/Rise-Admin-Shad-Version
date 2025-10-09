@@ -61,6 +61,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
     start_at: "",
     end_at: "",
     credit_cost: "",
+    price_id: "",
+    required_membership_plan_id: "",
   });
   const [usingCredits, setUsingCredits] = useState(false);
 
@@ -105,6 +107,9 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           selectedEvent.credit_cost != null
             ? String(selectedEvent.credit_cost)
             : "",
+        price_id: selectedEvent.price_id ?? "",
+        required_membership_plan_id:
+          selectedEvent.required_membership_plan_id ?? "",
       });
       setUsingCredits(selectedEvent.credit_cost != null);
     }
@@ -163,6 +168,10 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       start_at: toZonedISOString(new Date(data.start_at)),
       end_at: toZonedISOString(new Date(data.end_at)),
       credit_cost: creditCost,
+      ...(data.price_id ? { price_id: data.price_id } : {}),
+      ...(data.required_membership_plan_id
+        ? { required_membership_plan_id: data.required_membership_plan_id }
+        : {}),
     };
 
     const error = await updateEvent(selectedEvent.id, eventData, user?.Jwt!);
@@ -183,6 +192,9 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         start_at: new Date(data.start_at),
         end_at: new Date(data.end_at),
         credit_cost: creditCost,
+        price_id: data.price_id || undefined,
+        required_membership_plan_id:
+          data.required_membership_plan_id || undefined,
         program: {
           id: program?.id || "",
           name: program?.name || "",
@@ -331,6 +343,34 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
             />
           </div>
         )}
+        <div className="space-y-2">
+          <Label htmlFor="event-price-id" className="text-sm font-medium">
+            Price ID (optional)
+          </Label>
+          <Input
+            id="event-price-id"
+            value={data.price_id}
+            onChange={(e) => setData({ ...data, price_id: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label
+            htmlFor="event-required-membership-plan-id"
+            className="text-sm font-medium"
+          >
+            Required Membership Plan ID (optional)
+          </Label>
+          <Input
+            id="event-required-membership-plan-id"
+            value={data.required_membership_plan_id}
+            onChange={(e) =>
+              setData({
+                ...data,
+                required_membership_plan_id: e.target.value,
+              })
+            }
+          />
+        </div>
       </div>
       <Button
         onClick={handleUpdate}

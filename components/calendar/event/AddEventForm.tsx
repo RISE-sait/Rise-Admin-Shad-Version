@@ -62,6 +62,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     day: "MONDAY",
     capacity: 0,
     credit_cost: "",
+    price_id: "",
+    required_membership_plan_id: "",
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -147,6 +149,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         end_at: toZonedISOString(new Date(data.end_at)),
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
+        ...(data.price_id ? { price_id: data.price_id } : {}),
+        ...(data.required_membership_plan_id
+          ? { required_membership_plan_id: data.required_membership_plan_id }
+          : {}),
       };
 
       error = await createEvent(eventData, user?.Jwt!);
@@ -187,6 +193,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         day: data.day,
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
+        ...(data.price_id ? { price_id: data.price_id } : {}),
+        ...(data.required_membership_plan_id
+          ? { required_membership_plan_id: data.required_membership_plan_id }
+          : {}),
       };
 
       error = await createEvents(eventData, user?.Jwt!);
@@ -217,6 +227,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             usingCredits && data.credit_cost
               ? Number(data.credit_cost)
               : undefined,
+
+          price_id: data.price_id || undefined,
+          required_membership_plan_id:
+            data.required_membership_plan_id || undefined,
           createdBy: { id: user?.ID || "", firstName, lastName },
           updatedBy: { id: user?.ID || "", firstName, lastName },
           customers: [],
@@ -281,6 +295,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                 usingCredits && data.credit_cost
                   ? Number(data.credit_cost)
                   : undefined,
+
+              price_id: data.price_id || undefined,
+              required_membership_plan_id:
+                data.required_membership_plan_id || undefined,
               createdBy: { id: user?.ID || "", firstName, lastName },
               updatedBy: { id: user?.ID || "", firstName, lastName },
               customers: [],
@@ -507,6 +525,31 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             />
           </div>
         )}
+        <div className="space-y-2">
+          <Label htmlFor="event-price-id" className="text-sm font-medium">
+            Price ID (optional)
+          </Label>
+          <Input
+            id="event-price-id"
+            value={data.price_id}
+            onChange={(e) => updateField("price_id", e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label
+            htmlFor="event-required-membership-plan-id"
+            className="text-sm font-medium"
+          >
+            Required Membership Plan ID (optional)
+          </Label>
+          <Input
+            id="event-required-membership-plan-id"
+            value={data.required_membership_plan_id}
+            onChange={(e) =>
+              updateField("required_membership_plan_id", e.target.value)
+            }
+          />
+        </div>
       </div>
       <Button onClick={handleAddEvent} className="w-full">
         Add Event

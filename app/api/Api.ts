@@ -149,6 +149,8 @@ export interface EventEventResponseDto {
   start_at?: string;
   team?: EventTeamInfo;
   updated_by?: EventPersonResponseDto;
+  price_id?: string | null;
+  required_membership_plan_id?: string | null;
 }
 
 export interface EventLocation {
