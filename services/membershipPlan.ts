@@ -33,7 +33,7 @@ export async function getPlansForMembership(
 ): Promise<MembershipPlan[]> {
   try {
     const res = await fetch(
-      `${getValue("API")}memberships/${membershipId}/plans`
+      `${getValue("API")}memberships/${membershipId}/plans?include_hidden=true`
     );
 
     if (!res.ok) {
@@ -67,21 +67,14 @@ async function patchPlanVisibility(
 }
 
 export async function updatePlanVisibility(
-  membershipId: string,
   planId: string,
   visibility: boolean,
   jwt: string
 ): Promise<void> {
   const apiBase = getValue("API");
+  const url = `${apiBase}memberships/plans/${planId}/visibility`;
 
-  const primaryUrl = `${apiBase}memberships/${membershipId}/plans/${planId}/visibility`;
-  const fallbackUrl = `${apiBase}memberships/plans/${planId}/visibility`;
-
-  let res = await patchPlanVisibility(primaryUrl, visibility, jwt);
-
-  if (!res.ok && res.status === 404) {
-    res = await patchPlanVisibility(fallbackUrl, visibility, jwt);
-  }
+  const res = await patchPlanVisibility(url, visibility, jwt);
 
   if (!res.ok) {
     const errorText = await res.text();

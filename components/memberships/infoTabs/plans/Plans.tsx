@@ -144,7 +144,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
     );
 
     try {
-      await updatePlanVisibility(membershipId, planId, nextVisibility, jwt);
+      await updatePlanVisibility(planId, nextVisibility, jwt);
       toast({
         status: "success",
         description: "Plan visibility updated successfully",
