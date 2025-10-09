@@ -14,6 +14,10 @@ import { getAllPrograms } from "@/services/program";
 import { getAllTeams } from "@/services/teams";
 import { getAllLocations } from "@/services/location";
 import { getAllCourts } from "@/services/court";
+import {
+  getAllMembershipPlans,
+  MembershipPlanWithMembershipName,
+} from "@/services/membershipPlan";
 import { Program } from "@/types/program";
 import { Team } from "@/types/team";
 import { Location } from "@/types/location";
@@ -52,6 +56,9 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
+  const [membershipPlans, setMembershipPlans] = useState<
+    MembershipPlanWithMembershipName[]
+  >([]);
 
   const [data, setData] = useState({
     program_id: "",
@@ -73,16 +80,18 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     const fetchLists = async () => {
       try {
-        const [progs, tms, locs, crts] = await Promise.all([
+        const [progs, tms, locs, crts, plans] = await Promise.all([
           getAllPrograms("all"),
           getAllTeams(),
           getAllLocations(),
           getAllCourts(),
+          getAllMembershipPlans(),
         ]);
         setPrograms(progs);
         setTeams(tms);
         setLocations(locs);
         setCourts(crts);
+        setMembershipPlans(plans);
       } catch (err) {
         console.error("Failed to fetch dropdown data", err);
       }
@@ -358,10 +367,11 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
             htmlFor="event-required-membership-plan-id"
             className="text-sm font-medium"
           >
-            Required Membership Plan ID (optional)
+            Required Membership Plan (optional)
           </Label>
-          <Input
+          <select
             id="event-required-membership-plan-id"
+            className="w-full border rounded-md p-2"
             value={data.required_membership_plan_id}
             onChange={(e) =>
               setData({
@@ -369,7 +379,14 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                 required_membership_plan_id: e.target.value,
               })
             }
-          />
+          >
+            <option value="">No membership requirement</option>
+            {membershipPlans.map((plan) => (
+              <option key={plan.id} value={plan.id}>
+                {`${plan.membershipName} – ${plan.name}`}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <Button

@@ -28,6 +28,10 @@ import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { revalidateEvents, revalidatePractices } from "@/actions/serverActions";
 import { CalendarEvent } from "@/types/calendar";
+import {
+  getAllMembershipPlans,
+  MembershipPlanWithMembershipName,
+} from "@/services/membershipPlan";
 
 export default function CalendarManageEventDrawer() {
   const {
@@ -43,6 +47,22 @@ export default function CalendarManageEventDrawer() {
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const [membershipPlans, setMembershipPlans] = useState<
+    MembershipPlanWithMembershipName[]
+  >([]);
+  const requiredMembershipPlanLabel = selectedEvent?.required_membership_plan_id
+    ? (() => {
+        const plan = membershipPlans.find(
+          (item) => item.id === selectedEvent.required_membership_plan_id
+        );
+
+        if (!plan) {
+          return undefined;
+        }
+
+        return `${plan.membershipName} – ${plan.name}`;
+      })()
+    : undefined;
 
   const eventType = selectedEvent?.program?.type?.toLowerCase();
   const eventTypeLabel = eventType
@@ -50,6 +70,25 @@ export default function CalendarManageEventDrawer() {
     : "Event";
   const showStaffTab =
     !!selectedEvent && eventType !== "game" && eventType !== "practice";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const plans = await getAllMembershipPlans();
+        if (isMounted) {
+          setMembershipPlans(plans);
+        }
+      } catch (error) {
+        console.error("Failed to load membership plans", error);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!showStaffTab && activeTab === "staff") {
@@ -207,8 +246,9 @@ export default function CalendarManageEventDrawer() {
                     )}
                     {selectedEvent.required_membership_plan_id && (
                       <p className="text-base text-muted-foreground">
-                        Required Membership Plan ID:{" "}
-                        {selectedEvent.required_membership_plan_id}
+                        Required Membership Plan:{" "}
+                        {requiredMembershipPlanLabel ||
+                          selectedEvent.required_membership_plan_id}
                       </p>
                     )}
                     {selectedEvent.team?.name && (
