@@ -229,7 +229,9 @@ export default function DetailsTab({
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => handleChange("email", e.target.value)}
+            readOnly
+            disabled
+            className="cursor-not-allowed bg-muted"
           />
         </div>
 
