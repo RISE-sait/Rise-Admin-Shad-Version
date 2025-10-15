@@ -5,7 +5,16 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SaveIcon, TrashIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SaveIcon, TrashIcon, Dumbbell, Calendar } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,110 +168,152 @@ export default function PracticeInfoPanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-3">
       {practice.booked_by_name && (
         <p className="text-sm text-muted-foreground">
           Booked By: {practice.booked_by_name}
         </p>
       )}
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Team</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.team_id}
-            onChange={(e) => updateField("team_id", e.target.value)}
-          >
-            <option value="" disabled>
-              Select team
-            </option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Location</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.location_id}
-            onChange={(e) => {
-              updateField("location_id", e.target.value);
-              updateField("court_id", "");
-            }}
-          >
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Court</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.court_id}
-            onChange={(e) => updateField("court_id", e.target.value)}
-          >
-            <option value="">Select court</option>
-            {filteredCourts.map((court) => (
-              <option key={court.id} value={court.id}>
-                {court.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Start Time</label>
-          <Input
-            value={data.start_at}
-            onChange={(e) => updateField("start_at", e.target.value)}
-            type="datetime-local"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">End Time</label>
-          <Input
-            value={data.end_at}
-            onChange={(e) => updateField("end_at", e.target.value)}
-            type="datetime-local"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Status</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.status}
-            onChange={(e) =>
-              updateField(
-                "status",
-                e.target.value as "scheduled" | "completed" | "canceled"
-              )
-            }
-          >
-            <option value="scheduled">Scheduled</option>
-            <option value="completed">Completed</option>
-            <option value="canceled">Canceled</option>
-          </select>
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-3">
-        <Button
-          onClick={handleSave}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
-        </Button>
+
+      {/* Practice Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Dumbbell className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Practice Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Team <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.team_id}
+                onValueChange={(value) => updateField("team_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Location <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.location_id}
+                onValueChange={(value) => {
+                  updateField("location_id", value);
+                  updateField("court_id", "");
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Court</label>
+              <Select
+                value={data.court_id}
+                onValueChange={(value) => updateField("court_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select court (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCourts.map((court) => (
+                    <SelectItem key={court.id} value={court.id}>
+                      {court.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Schedule Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Start Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.start_at}
+                onChange={(e) => updateField("start_at", e.target.value)}
+                type="datetime-local"
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                End Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.end_at}
+                onChange={(e) => updateField("end_at", e.target.value)}
+                type="datetime-local"
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={data.status}
+                onValueChange={(value) =>
+                  updateField(
+                    "status",
+                    value as "scheduled" | "completed" | "canceled"
+                  )
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scheduled">Scheduled</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="canceled">Canceled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="flex items-center justify-end gap-3 pt-2">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700"
+              variant="outline"
+              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
-              <TrashIcon className="h-4 w-4 mr-2" /> Delete
+              <TrashIcon className="h-4 w-4 mr-2" />
+              Delete Practice
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -275,12 +326,23 @@ export default function PracticeInfoPanel({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
                 Confirm Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Button
+          onClick={handleSave}
+          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+        >
+          <SaveIcon className="h-4 w-4 mr-2" />
+          Save Changes
+        </Button>
       </div>
     </div>
   );

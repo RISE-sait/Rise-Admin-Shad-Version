@@ -1,72 +1,67 @@
 "use client";
 
-import React, { useEffect, useState } from "react"; // React and hooks for component lifecycle and state
-import { Input } from "@/components/ui/input"; // Input UI component
-import { Button } from "@/components/ui/button"; // Button UI component
+import React, { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // Select dropdown UI components
-import { useUser } from "@/contexts/UserContext"; // Hook to access current user context
-import { useToast } from "@/hooks/use-toast"; // Hook for showing toast notifications
-import { useFormData } from "@/hooks/form-data"; // Hook for managing form state
-import { createCourt } from "@/services/court"; // Service to call API for creating a court
-import { getAllLocations } from "@/services/location"; // Service to fetch all locations
-import { CourtRequestDto } from "@/app/api/Api"; // DTO type for court creation request
-import { revalidateCourts } from "@/actions/serverActions"; // Action to revalidate court data on server
-import { Location } from "@/types/location"; // Type definition for a location
+} from "@/components/ui/select";
+import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
+import { useFormData } from "@/hooks/form-data";
+import { createCourt } from "@/services/court";
+import { getAllLocations } from "@/services/location";
+import { CourtRequestDto } from "@/app/api/Api";
+import { revalidateCourts } from "@/actions/serverActions";
+import { Location } from "@/types/location";
 import { sanitizeTextInput } from "@/utils/inputValidation";
+import { Grid3x3, MapPin } from "lucide-react";
 
 export default function AddCourtForm({
   onCourtAdded,
 }: {
   onCourtAdded?: () => void;
 }) {
-  // Initialize form data state with default values
   const { data, updateField, resetData } = useFormData({
     name: "",
     location_id: "",
   });
-  const { user } = useUser(); // Get current user (for auth token)
-  const { toast } = useToast(); // Initialize toast for feedback
-  const [locations, setLocations] = useState<Location[]>([]); // State to hold list of locations
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [locations, setLocations] = useState<Location[]>([]);
 
   useEffect(() => {
-    // Fetch all locations when component mounts
     getAllLocations()
       .then(setLocations)
       .catch(() => {
-        // Show error toast if locations fail to load
         toast({ status: "error", description: "Failed to load locations" });
       });
   }, [toast]);
 
   const handleAddCourt = async () => {
-    // Validate that name and location are provided
     if (!data.name.trim() || !data.location_id) {
       toast({ status: "error", description: "Name and location are required" });
       return;
     }
 
-    // Prepare request data
     const courtData: CourtRequestDto = {
       name: data.name,
       location_id: data.location_id,
     };
 
-    // Call API to create the court
     const error = await createCourt(courtData, user?.Jwt!);
     if (error === null) {
-      // On success, show success toast, reset form, and revalidate cache and close panel
       toast({ status: "success", description: "Court created successfully" });
       resetData();
       await revalidateCourts();
       onCourtAdded?.();
     } else {
-      // On failure, show error toast with message
       toast({
         status: "error",
         description: `Failed to create court: ${error}`,
@@ -76,50 +71,64 @@ export default function AddCourtForm({
 
   return (
     <div className="space-y-6 pt-3">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          {/* Label and input for court name */}
-          <label className="text-sm font-medium">
-            Name <span className="text-red-500">*</span>
-          </label>
-          <Input
-            onChange={(e) =>
-              updateField("name", sanitizeTextInput(e.target.value))
-            } // Update form data on change
-            type="text"
-            value={data.name}
-            placeholder="Enter court name"
-          />
-        </div>
+      {/* Court Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Grid3x3 className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Court Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                onChange={(e) =>
+                  updateField("name", sanitizeTextInput(e.target.value))
+                }
+                type="text"
+                value={data.name}
+                placeholder="Enter court name"
+                className="bg-background"
+              />
+            </div>
 
-        <div className="space-y-2">
-          {/* Label and select for choosing a location */}
-          <label className="text-sm font-medium">
-            Location <span className="text-red-500">*</span>
-          </label>
-          <Select
-            value={data.location_id}
-            onValueChange={(value) => updateField("location_id", value)} // Update form data on select
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Render a dropdown item for each fetched location */}
-              {locations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id}>
-                  {loc.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Location <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.location_id}
+                onValueChange={(value) => updateField("location_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="pt-2">
+        <Button
+          onClick={handleAddCourt}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Grid3x3 className="h-5 w-5 mr-2" />
+          Create Court
+        </Button>
       </div>
-
-      {/* Button to submit the form and add a new court */}
-      <Button onClick={handleAddCourt} className="w-full">
-        Add Court
-      </Button>
     </div>
   );
 }

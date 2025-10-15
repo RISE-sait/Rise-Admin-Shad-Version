@@ -4,6 +4,8 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { toZonedISOString } from "@/lib/utils";
 import {
@@ -21,6 +23,7 @@ import {
   updatePlaygroundSession,
 } from "@/services/playground";
 import { revalidatePlayground } from "@/actions/serverActions";
+import { Gamepad2, Calendar } from "lucide-react";
 
 interface AddBookingFormProps {
   initialData?: PlaygroundSession;
@@ -89,69 +92,100 @@ export default function AddBookingForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* System selection */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">System</label>
-        <Select
-          value={formData.system_id}
-          onValueChange={(val) =>
-            setFormData((prev) => ({
-              ...prev,
-              system_id: val,
-              system_name: systems.find((s) => s.id === val)?.name || "",
-            }))
-          }
+    <form onSubmit={handleSubmit} className="space-y-6 pt-3">
+      {/* Session Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Gamepad2 className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Session Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                System <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={formData.system_id}
+                onValueChange={(val) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    system_id: val,
+                    system_name: systems.find((s) => s.id === val)?.name || "",
+                  }))
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select system" />
+                </SelectTrigger>
+                <SelectContent>
+                  {systems.map((sys) => (
+                    <SelectItem key={sys.id} value={sys.id}>
+                      {sys.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Schedule Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Start Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="datetime-local"
+                value={format(formData.start_time, "yyyy-MM-dd'T'HH:mm")}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    start_time: new Date(e.target.value),
+                  }))
+                }
+                className="bg-background"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                End Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="datetime-local"
+                value={format(formData.end_time, "yyyy-MM-dd'T'HH:mm")}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    end_time: new Date(e.target.value),
+                  }))
+                }
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="pt-2">
+        <Button
+          type="submit"
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select system" />
-          </SelectTrigger>
-          <SelectContent>
-            {systems.map((sys) => (
-              <SelectItem key={sys.id} value={sys.id}>
-                {sys.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Start time field */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Start Time</label>
-        <Input
-          type="datetime-local"
-          value={format(formData.start_time, "yyyy-MM-dd'T'HH:mm")}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              start_time: new Date(e.target.value),
-            }))
-          }
-        />
-      </div>
-
-      {/* End time field */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">End Time</label>
-        <Input
-          type="datetime-local"
-          value={format(formData.end_time, "yyyy-MM-dd'T'HH:mm")}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              end_time: new Date(e.target.value),
-            }))
-          }
-        />
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-2 pt-2 justify-end">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          <Gamepad2 className="h-5 w-5 mr-2" />
+          {formData.id ? "Update Session" : "Create Session"}
         </Button>
-        <Button type="submit">Save</Button>
       </div>
     </form>
   );

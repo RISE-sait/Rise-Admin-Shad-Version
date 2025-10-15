@@ -51,6 +51,8 @@ export default function BarberTable({
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">(
     "asc"
   );
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -96,6 +98,17 @@ export default function BarberTable({
     });
   }, [appointments, sortColumn, sortDirection]);
 
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
+
+  // Reset to page 1 when appointments change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [appointments]);
+
   // Function to determine appointment status
   const getAppointmentStatus = (
     appointment: HaircutEventEventResponseDto
@@ -129,57 +142,58 @@ export default function BarberTable({
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border">
-      <Table className="border-collapse">
-        <TableHeader className="bg-muted/100 sticky top-0 z-10">
-          <TableRow className="hover:bg-transparent border-b">
-            <TableHead
-              className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
-              onClick={() => handleSort("customer")}
-            >
-              <div className="flex items-center space-x-2">
-                Customer
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </div>
-            </TableHead>
-            <TableHead
-              className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
-              onClick={() => handleSort("barber")}
-            >
-              <div className="flex items-center space-x-2">
-                Barber
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </div>
-            </TableHead>
-            <TableHead
-              className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
-              onClick={() => handleSort("date")}
-            >
-              <div className="flex items-center space-x-2">
-                Date
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-              </div>
-            </TableHead>
-            <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b">
-              Status
-            </TableHead>
-            <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b text-right">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                className="h-24 text-center py-8 text-muted-foreground"
+    <div className="space-y-4">
+      <div className="rounded-xl overflow-hidden border">
+        <Table className="border-collapse">
+          <TableHeader className="bg-muted/100 sticky top-0 z-10">
+            <TableRow className="hover:bg-transparent border-b">
+              <TableHead
+                className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
+                onClick={() => handleSort("customer")}
               >
-                Loading appointments...
-              </TableCell>
+                <div className="flex items-center space-x-2">
+                  Customer
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
+                onClick={() => handleSort("barber")}
+              >
+                <div className="flex items-center space-x-2">
+                  Barber
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b cursor-pointer"
+                onClick={() => handleSort("date")}
+              >
+                <div className="flex items-center space-x-2">
+                  Date
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </div>
+              </TableHead>
+              <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b">
+                Status
+              </TableHead>
+              <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b text-right">
+                Actions
+              </TableHead>
             </TableRow>
-          ) : sortedAppointments.length > 0 ? (
-            sortedAppointments.map((appointment) => {
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center py-8 text-muted-foreground"
+                >
+                  Loading appointments...
+                </TableCell>
+              </TableRow>
+            ) : paginatedAppointments.length > 0 ? (
+              paginatedAppointments.map((appointment) => {
               const status = getAppointmentStatus(appointment);
               return (
                 <TableRow
@@ -296,5 +310,59 @@ export default function BarberTable({
         </TableBody>
       </Table>
     </div>
+
+    {/* Pagination Controls */}
+    {!isLoading && sortedAppointments.length > 0 && (
+      <div className="flex items-center justify-between px-4 py-3 border rounded-xl">
+        <div className="text-sm text-muted-foreground">
+          Showing {startIndex + 1} to {Math.min(endIndex, sortedAppointments.length)} of {sortedAppointments.length} appointments
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                // Show first page, last page, current page, and pages around current
+                return (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                );
+              })
+              .map((page, index, array) => (
+                <React.Fragment key={page}>
+                  {index > 0 && array[index - 1] !== page - 1 && (
+                    <span className="px-2 text-muted-foreground">...</span>
+                  )}
+                  <Button
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className={currentPage === page ? "bg-yellow-500 hover:bg-yellow-600 text-gray-900" : ""}
+                  >
+                    {page}
+                  </Button>
+                </React.Fragment>
+              ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    )}
+  </div>
   );
 }

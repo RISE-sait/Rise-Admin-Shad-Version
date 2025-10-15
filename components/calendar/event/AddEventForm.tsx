@@ -3,7 +3,18 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar, MapPin, Clock, Users, Trophy, CreditCard, Award, Info } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -344,233 +355,320 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="space-y-6 pt-3">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Program</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.program_id}
-            onChange={(e) => updateField("program_id", e.target.value)}
-          >
-            <option value="" disabled>
-              Select program
-            </option>
-            {programs.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Team (optional)</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.team_id}
-            onChange={(e) => updateField("team_id", e.target.value)}
-          >
-            <option value="">Select team</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Location</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.location_id}
-            onChange={(e) => {
-              updateField("location_id", e.target.value);
-              updateField("court_id", "");
-            }}
-          >
-            <option value="" disabled>
-              Select location
-            </option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Court (optional)</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.court_id}
-            onChange={(e) => updateField("court_id", e.target.value)}
-          >
-            <option value="">Select Court</option>
-            {filteredCourts.map((court) => (
-              <option key={court.id} value={court.id}>
-                {court.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <Tabs
-          value={mode}
-          onValueChange={(v) => setMode(v as "once" | "recurring")}
-          className="pt-2"
-        >
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="once">One-time</TabsTrigger>
-            <TabsTrigger value="recurring">Recurring</TabsTrigger>
-          </TabsList>
-          <TabsContent value="once" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Time</label>
-              <Input
-                value={data.start_at}
-                onChange={(e) => updateField("start_at", e.target.value)}
-                type="datetime-local"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Time</label>
-              <Input
-                value={data.end_at}
-                onChange={(e) => updateField("end_at", e.target.value)}
-                type="datetime-local"
-              />
-            </div>
-          </TabsContent>
-          <TabsContent value="recurring" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Recurrence Start</label>
-              <Input
-                value={data.recurrence_start_at}
-                onChange={(e) =>
-                  updateField("recurrence_start_at", e.target.value)
-                }
-                type="date"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Recurrence End</label>
-              <Input
-                value={data.recurrence_end_at}
-                onChange={(e) =>
-                  updateField("recurrence_end_at", e.target.value)
-                }
-                type="date"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Day of Week</label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={data.day}
-                onChange={(e) => updateField("day", e.target.value)}
-              >
-                {[
-                  "MONDAY",
-                  "TUESDAY",
-                  "WEDNESDAY",
-                  "THURSDAY",
-                  "FRIDAY",
-                  "SATURDAY",
-                  "SUNDAY",
-                ].map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Time</label>
-              <Input
-                value={data.event_start_at}
-                onChange={(e) => updateField("event_start_at", e.target.value)}
-                type="time"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Time</label>
-              <Input
-                value={data.event_end_at}
-                onChange={(e) => updateField("event_end_at", e.target.value)}
-                type="time"
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-        <div className="flex items-center space-x-2 pt-2">
-          <Checkbox
-            id="event-using-credits"
-            checked={usingCredits}
-            onCheckedChange={(checked) => {
-              const isChecked = checked === true;
-              setUsingCredits(isChecked);
-              if (!isChecked) {
-                updateField("credit_cost", "");
-              }
-            }}
-          />
-          <Label
-            htmlFor="event-using-credits"
-            className="text-sm font-medium cursor-pointer"
-          >
-            Use credits
-          </Label>
-        </div>
-        {usingCredits && (
-          <div className="space-y-2">
-            <Label htmlFor="event-credit-cost" className="text-sm font-medium">
-              Credit cost
-            </Label>
-            <Input
-              id="event-credit-cost"
-              type="number"
-              min="1"
-              value={data.credit_cost}
-              onChange={(e) => updateField("credit_cost", e.target.value)}
-            />
+      {/* Program Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Program</h3>
           </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="event-price-id" className="text-sm font-medium">
-            Price ID (optional)
-          </Label>
-          <Input
-            id="event-price-id"
-            value={data.price_id}
-            onChange={(e) => updateField("price_id", e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label
-            htmlFor="event-required-membership-plan-id"
-            className="text-sm font-medium"
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Program <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={data.program_id}
+              onValueChange={(value) => updateField("program_id", value)}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Select program" />
+              </SelectTrigger>
+              <SelectContent>
+                {programs.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Location Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Venue Details</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Location <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.location_id}
+                onValueChange={(value) => {
+                  updateField("location_id", value);
+                  updateField("court_id", "");
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Court (Optional)
+              </label>
+              <Select
+                value={data.court_id}
+                onValueChange={(value) => updateField("court_id", value)}
+                disabled={!data.location_id || filteredCourts.length === 0}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue
+                    placeholder={
+                      !data.location_id
+                        ? "Select location first"
+                        : filteredCourts.length === 0
+                        ? "No courts available"
+                        : "Select court"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCourts.map((court) => (
+                    <SelectItem key={court.id} value={court.id}>
+                      {court.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Schedule Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <Tabs
+            value={mode}
+            onValueChange={(v) => setMode(v as "once" | "recurring")}
           >
-            Required Membership Plan (optional)
-          </Label>
-          <select
-            id="event-required-membership-plan-id"
-            className="w-full border rounded-md p-2"
-            value={data.required_membership_plan_id}
-            onChange={(e) =>
-              updateField("required_membership_plan_id", e.target.value)
-            }
-          >
-            <option value="">No membership requirement</option>
-            {membershipPlans.map((plan) => (
-              <option key={plan.id} value={plan.id}>
-                {`${plan.membershipName} – ${plan.name}`}
-              </option>
-            ))}
-          </select>
-        </div>
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="once">One-time</TabsTrigger>
+              <TabsTrigger value="recurring">Recurring</TabsTrigger>
+            </TabsList>
+            <TabsContent value="once" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Start Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.start_at}
+                  onChange={(e) => updateField("start_at", e.target.value)}
+                  type="datetime-local"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  End Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.end_at}
+                  onChange={(e) => updateField("end_at", e.target.value)}
+                  type="datetime-local"
+                  className="bg-background"
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="recurring" className="space-y-4 pt-4">
+              <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
+                  <strong>How recurring events work:</strong> Select a date range and day of the week. An event will be created for every occurrence of that day within the range. For example, selecting "Monday" from Jan 1-31 will create an event for each Monday in January. Users can book any individual occurrence.
+                </AlertDescription>
+              </Alert>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Recurrence Start <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.recurrence_start_at}
+                  onChange={(e) =>
+                    updateField("recurrence_start_at", e.target.value)
+                  }
+                  type="date"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Recurrence End <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.recurrence_end_at}
+                  onChange={(e) =>
+                    updateField("recurrence_end_at", e.target.value)
+                  }
+                  type="date"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Day of Week <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={data.day}
+                  onValueChange={(value) => updateField("day", value)}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      "MONDAY",
+                      "TUESDAY",
+                      "WEDNESDAY",
+                      "THURSDAY",
+                      "FRIDAY",
+                      "SATURDAY",
+                      "SUNDAY",
+                    ].map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Start Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.event_start_at}
+                  onChange={(e) => updateField("event_start_at", e.target.value)}
+                  type="time"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  End Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.event_end_at}
+                  onChange={(e) => updateField("event_end_at", e.target.value)}
+                  type="time"
+                  className="bg-background"
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Payment & Access Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Payment & Access</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="event-using-credits"
+                checked={usingCredits}
+                onCheckedChange={(checked) => {
+                  const isChecked = checked === true;
+                  setUsingCredits(isChecked);
+                  if (!isChecked) {
+                    updateField("credit_cost", "");
+                  }
+                }}
+              />
+              <Label
+                htmlFor="event-using-credits"
+                className="text-sm font-medium cursor-pointer"
+              >
+                Use credits
+              </Label>
+            </div>
+            {usingCredits && (
+              <div className="space-y-2">
+                <Label htmlFor="event-credit-cost" className="text-sm font-medium">
+                  Credit Cost <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="event-credit-cost"
+                  type="number"
+                  min="1"
+                  value={data.credit_cost}
+                  onChange={(e) => updateField("credit_cost", e.target.value)}
+                  className="bg-background"
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="event-price-id" className="text-sm font-medium text-muted-foreground">
+                Price ID (Optional)
+              </Label>
+              <Input
+                id="event-price-id"
+                value={data.price_id}
+                onChange={(e) => updateField("price_id", e.target.value)}
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="event-required-membership-plan-id"
+                className="text-sm font-medium text-muted-foreground"
+              >
+                Required Membership Plan (Optional)
+              </Label>
+              <Select
+                value={data.required_membership_plan_id}
+                onValueChange={(value) =>
+                  updateField("required_membership_plan_id", value)
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="No membership requirement" />
+                </SelectTrigger>
+                <SelectContent>
+                  {membershipPlans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {`${plan.membershipName} – ${plan.name}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="pt-2">
+        <Button
+          onClick={handleAddEvent}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Calendar className="h-5 w-5 mr-2" />
+          Create Event
+        </Button>
       </div>
-      <Button onClick={handleAddEvent} className="w-full">
-        Add Event
-      </Button>
     </div>
   );
 }

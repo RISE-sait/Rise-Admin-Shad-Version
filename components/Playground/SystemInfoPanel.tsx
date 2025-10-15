@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SaveIcon, TrashIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { SaveIcon, TrashIcon, Gamepad2 } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -78,27 +80,40 @@ export default function SystemInfoPanel({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">System Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-3">
-        <Button
-          onClick={handleSave}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
-        </Button>
+    <div className="space-y-6 pt-3">
+      {/* System Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Gamepad2 className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">System Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                System Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="flex items-center justify-end gap-3 pt-2">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700"
+              variant="outline"
+              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
             >
-              <TrashIcon className="h-4 w-4 mr-2" /> Delete
+              <TrashIcon className="h-4 w-4 mr-2" />
+              Delete System
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -111,12 +126,23 @@ export default function SystemInfoPanel({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
                 Confirm Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Button
+          onClick={handleSave}
+          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+        >
+          <SaveIcon className="h-4 w-4 mr-2" />
+          Save Changes
+        </Button>
       </div>
     </div>
   );

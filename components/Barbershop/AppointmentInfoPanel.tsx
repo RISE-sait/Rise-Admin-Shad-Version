@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { HaircutEventEventResponseDto } from "@/app/api/Api";
 import { format } from "date-fns";
 import { fromZonedISOString } from "@/lib/utils";
@@ -9,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import { deleteHaircutEvent } from "@/services/haircuts";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Calendar, ClipboardList, Clock, User } from "lucide-react";
+import { Calendar, ClipboardList, Clock, User, Scissors, TrashIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -103,99 +105,126 @@ export default function AppointmentInfoPanel({
           </TabsList>
         </div>
 
-        <TabsContent value="details">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-secondary/10 p-4 rounded-lg">
-                <h3 className="font-medium text-muted-foreground mb-2">
-                  Appointment Time
-                </h3>
-                <div className="flex items-center mb-2">
-                  <Calendar className="h-4 w-4 mr-2 text-primary" />
-                  <span>{getFormattedDate(appointment.start_at)}</span>
+        <TabsContent value="details" className="pt-4">
+          <div className="space-y-6">
+            {/* Appointment Time Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Appointment Time</h3>
                 </div>
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-primary" />
-                  <span>Duration: {getAppointmentDuration()}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>{getFormattedDate(appointment.start_at)}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>Duration: {getAppointmentDuration()}</span>
+                  </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-2">Barber Information</h3>
-                <p>
-                  <strong>Name:</strong>{" "}
-                  {appointment.barber_name || "Not assigned"}
-                </p>
-                <p>
-                  <strong>ID:</strong> {appointment.barber_id || "N/A"}
-                </p>
-              </div>
+            {/* Barber Information Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Scissors className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Barber Information</h3>
+                </div>
+                <div className="space-y-2">
+                  <p>
+                    <strong>Name:</strong>{" "}
+                    {appointment.barber_name || "Not assigned"}
+                  </p>
+                  <p>
+                    <strong>ID:</strong> {appointment.barber_id || "N/A"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-2">Date Information</h3>
-                <p>
-                  <strong>Created:</strong>{" "}
-                  {getFormattedDate(appointment.created_at)}
-                </p>
-                <p>
-                  <strong>Last Updated:</strong>{" "}
-                  {getFormattedDate(appointment.updated_at)}
-                </p>
-              </div>
-            </div>
+            {/* Date Information Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Date Information</h3>
+                </div>
+                <div className="space-y-2">
+                  <p>
+                    <strong>Created:</strong>{" "}
+                    {getFormattedDate(appointment.created_at)}
+                  </p>
+                  <p>
+                    <strong>Last Updated:</strong>{" "}
+                    {getFormattedDate(appointment.updated_at)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="customer">
-          <div className="space-y-4">
-            <div className="border rounded-lg p-4">
-              <h3 className="font-medium mb-2">Customer Information</h3>
-              <p>
-                <strong>Name:</strong>{" "}
-                {appointment.customer_name || "Not specified"}
-              </p>
-              <p>
-                <strong>ID:</strong> {appointment.customer_id || "N/A"}
-              </p>
-            </div>
-          </div>
+        <TabsContent value="customer" className="pt-4">
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <User className="h-5 w-5 text-yellow-500" />
+                <h3 className="font-semibold text-lg">Customer Information</h3>
+              </div>
+              <div className="space-y-2">
+                <p>
+                  <strong>Name:</strong>{" "}
+                  {appointment.customer_name || "Not specified"}
+                </p>
+                <p>
+                  <strong>ID:</strong> {appointment.customer_id || "N/A"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
-        <div className="max-w-full mx-auto px-2 flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            ID: {appointment.id || "New Appointment"}
-          </p>
+      <Separator />
 
-          <div className="flex items-center gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  disabled={isCancelling}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  {isCancelling ? "Canceling..." : "Cancel Appointment"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to cancel this appointment?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleCancelAppointment}>
-                    Confirm Cancel
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <p className="text-sm text-muted-foreground mr-auto">
+          ID: {appointment.id || "New Appointment"}
+        </p>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              disabled={isCancelling}
+              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" />
+              {isCancelling ? "Canceling..." : "Cancel Appointment"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to cancel this appointment?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancelAppointment}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Confirm Cancel
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

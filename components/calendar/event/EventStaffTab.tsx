@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { UserCheck, UserPlus, Search } from "lucide-react";
 import { revalidateEvents } from "@/actions/serverActions";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
@@ -336,82 +338,28 @@ export default function EventStaffTab({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <div>
-          <h3 className="text-lg font-semibold">Assigned Staff</h3>
-          <p className="text-sm text-muted-foreground">
+      {/* Assigned Staff Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <UserCheck className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Assigned Staff</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
             Manage the staff members assigned to this event.
           </p>
-        </div>
-        {assignedStaff.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No staff members are currently assigned.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {assignedStaff.map((staff) => {
-              const displayName = getFullName(staff) || staff.email || "Staff";
-              return (
-                <li
-                  key={staff.id}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {displayName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatRole(staff.roleName)}
-                      {staff.email ? ` • ${staff.email}` : ""}
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => void handleUnassign(staff)}
-                    disabled={pendingStaffId === staff.id}
-                  >
-                    Remove
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
-      <Separator />
-
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold">Available Staff</h3>
-          <p className="text-sm text-muted-foreground">
-            Search for staff members to add to this event.
-          </p>
-        </div>
-        <Input
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Search by name, role, or email"
-        />
-        <ScrollArea className="h-64 rounded-md border">
-          <div className="p-3 space-y-2">
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading staff…</p>
-            ) : filteredAvailableStaff.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {searchTerm
-                  ? "No staff members match your search."
-                  : "No additional staff members available."}
-              </p>
-            ) : (
-              filteredAvailableStaff.map((staff) => {
-                const displayName =
-                  getFullName(staff) || staff.email || "Staff";
+          {assignedStaff.length === 0 ? (
+            <div className="text-center py-8 text-sm text-muted-foreground bg-muted/30 rounded-lg">
+              No staff members are currently assigned.
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {assignedStaff.map((staff) => {
+                const displayName = getFullName(staff) || staff.email || "Staff";
                 return (
-                  <div
+                  <li
                     key={staff.id}
-                    className="flex items-center justify-between rounded-md bg-muted/60 px-3 py-2"
+                    className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 transition-colors hover:bg-muted/50"
                   >
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none">
@@ -424,18 +372,87 @@ export default function EventStaffTab({
                     </div>
                     <Button
                       size="sm"
-                      onClick={() => void handleAssign(staff)}
+                      variant="destructive"
+                      onClick={() => void handleUnassign(staff)}
                       disabled={pendingStaffId === staff.id}
                     >
-                      Add
+                      Remove
                     </Button>
-                  </div>
+                  </li>
                 );
-              })
-            )}
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Available Staff Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <UserPlus className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Available Staff</h3>
           </div>
-        </ScrollArea>
-      </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Search for staff members to add to this event.
+          </p>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search by name, role, or email"
+              className="pl-9 bg-background"
+            />
+          </div>
+          <ScrollArea className="h-64 rounded-lg border bg-muted/20">
+            <div className="p-3 space-y-2">
+              {isLoading ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  Loading staff…
+                </div>
+              ) : filteredAvailableStaff.length === 0 ? (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  {searchTerm
+                    ? "No staff members match your search."
+                    : "No additional staff members available."}
+                </div>
+              ) : (
+                filteredAvailableStaff.map((staff) => {
+                  const displayName =
+                    getFullName(staff) || staff.email || "Staff";
+                  return (
+                    <div
+                      key={staff.id}
+                      className="flex items-center justify-between rounded-lg bg-background border px-4 py-3 transition-colors hover:bg-muted/50"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {displayName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatRole(staff.roleName)}
+                          {staff.email ? ` • ${staff.email}` : ""}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+                        onClick={() => void handleAssign(staff)}
+                        disabled={pendingStaffId === staff.id}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }
