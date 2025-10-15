@@ -224,16 +224,25 @@ export default function TeamInfoPanel({
           </CardContent>
         </Card>
 
-          {!team.is_external && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Coach</label>
-              <p className="border rounded-md px-3 py-2">
-                {team.coach_name || "-"}
-              </p>
-            </div>
-          )}
-        </div>
-        {!team.is_external && roster && (
+        {!team.is_external && (
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <UserCheck className="h-5 w-5 text-yellow-500" />
+                <h3 className="font-semibold text-lg">Coach Assignment</h3>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Coach</label>
+                <p className="border rounded-md px-3 py-2 bg-background">
+                  {team.coach_name || "-"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {!team.is_external &&
+          roster &&
+          user?.Role !== StaffRoleEnum.COACH && (
           <div>
             <Separator className="my-2" />
             <div className="mt-4 rounded-md border border-yellow-500 p-4 shadow">
