@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Trash, Save, Mail, Phone, User } from "lucide-react";
+import { FileText, Trash, Save, Mail, Phone, User as UserIcon } from "lucide-react";
 import StaffProfilePictureUpload from "./StaffProfilePictureUpload";
 import { useUser } from "@/contexts/UserContext";
 import {
