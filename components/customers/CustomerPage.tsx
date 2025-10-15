@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
-import { PlusIcon, Search } from "lucide-react";
+import { PlusIcon, Search, Download } from "lucide-react";
 import RightDrawer from "../reusable/RightDrawer";
 import { Customer } from "@/types/customer";
 import { Input } from "@/components/ui/input";
@@ -23,8 +23,9 @@ import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { useRouterQuery } from "@/hooks/router-query";
-import { archiveCustomer, unarchiveCustomer } from "@/services/customer";
+import { archiveCustomer, unarchiveCustomer, exportCustomers, exportArchivedCustomers } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/hooks/use-toast";
 
 // Define props for the CustomersPage component
 interface CustomerPageProps {
@@ -87,6 +88,7 @@ export default function CustomersPage({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Custom hook to sync URL query parameters for search & pagination
   const { replace, val } = useRouterQuery<{
@@ -138,6 +140,7 @@ export default function CustomersPage({
 
   // Get current user context for auth-protected actions
   const { user } = useUser();
+  const { toast } = useToast();
 
   // Archive a customer: calls service and reloads page on success
   const handleArchive = async (id: string) => {
@@ -158,6 +161,58 @@ export default function CustomersPage({
     if (selectedCustomer?.id === id) {
       setDrawerOpen(false);
       setSelectedCustomer(null);
+    }
+  };
+
+  // Export customers list
+  const handleExport = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to export customers",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      console.log("🔄 Starting customer export...");
+      const blob = isArchivedList
+        ? await exportArchivedCustomers(user.Jwt)
+        : await exportCustomers(user.Jwt);
+      console.log("✅ Export successful, blob size:", blob.size);
+
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const fileName = isArchivedList
+        ? `archived-customers-export-${new Date().toISOString().split('T')[0]}.csv`
+        : `customers-export-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Customers exported successfully",
+      });
+    } catch (error) {
+      console.error("❌ Error exporting customers:", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      toast({
+        variant: "destructive",
+        title: "Export Failed",
+        description: error instanceof Error ? error.message : "Failed to export customers",
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -194,6 +249,16 @@ export default function CustomersPage({
           />
         </div>
         <div className="flex items-center gap-4">
+          {/* Export button */}
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            <Download className="h-4 w-4" />
+            {isExporting ? "Exporting..." : "Export"}
+          </Button>
           {/* Column visibility dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
