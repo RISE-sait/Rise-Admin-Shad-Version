@@ -1,17 +1,19 @@
-"use client"; // Ensure this component is rendered on the client side
+"use client";
 
-import React, { useEffect, useState } from "react"; // React core and hooks
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Tabs UI components
-import { Input } from "@/components/ui/input"; // Text input component
+import React, { useEffect, useState } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // Select/dropdown components
-import { Button } from "@/components/ui/button"; // Button component
-import { useToast } from "@/hooks/use-toast"; // Hook for showing toast notifications
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,17 +25,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useUser } from "@/contexts/UserContext"; // Hook to access current user/auth context
-import { Court } from "@/types/court"; // Type for court object
-import { Location } from "@/types/location"; // Type for location object
-import { deleteCourt, updateCourt } from "@/services/court"; // API services for court operations
-import { getAllLocations } from "@/services/location"; // API service to fetch all locations
-import { CourtRequestDto } from "@/app/api/Api"; // DTO type for court create/update payload
-import { revalidateCourts } from "@/actions/serverActions"; // Trigger ISR revalidation for courts
-import { PencilIcon, MapPinIcon, SaveIcon, TrashIcon } from "lucide-react"; // Icon components
+import { useUser } from "@/contexts/UserContext";
+import { Court } from "@/types/court";
+import { Location } from "@/types/location";
+import { deleteCourt, updateCourt } from "@/services/court";
+import { getAllLocations } from "@/services/location";
+import { CourtRequestDto } from "@/app/api/Api";
+import { revalidateCourts } from "@/actions/serverActions";
+import { Grid3x3, MapPinIcon, SaveIcon, TrashIcon, FileText } from "lucide-react";
 import { sanitizeTextInput } from "@/utils/inputValidation";
 
-// Component for viewing and editing court details
 interface CourtInfoPanelProps {
   court: Court;
   onClose?: () => void;
@@ -43,48 +44,40 @@ export default function CourtInfoPanel({
   court,
   onClose,
 }: CourtInfoPanelProps) {
-  const { toast } = useToast(); // Toast handler for feedback messages
-  const { user } = useUser(); // Authenticated user (for JWT token)
-  const [name, setName] = useState(court.name); // Local state for court name input
-  const [locationId, setLocationId] = useState(court.location_id); // Local state for selected location ID
-  const [locations, setLocations] = useState<Location[]>([]); // State to hold fetched locations list
-  const [activeTab, setActiveTab] = useState("details"); // State for active tab identifier
+  const { toast } = useToast();
+  const { user } = useUser();
+  const [name, setName] = useState(court.name);
+  const [locationId, setLocationId] = useState(court.location_id);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [activeTab, setActiveTab] = useState("details");
 
-  // On mount, fetch all available locations for the dropdown
   useEffect(() => {
     getAllLocations()
-      .then(setLocations) // Populate locations state
+      .then(setLocations)
       .catch(() => {
-        // Show error if fetching locations fails
         toast({ status: "error", description: "Failed to load locations" });
       });
   }, [toast]);
 
-  // Save handler: update the court via API
   const handleSaveAll = async () => {
-    const courtData: CourtRequestDto = { name, location_id: locationId }; // Build payload
-    const error = await updateCourt(court.id, courtData, user?.Jwt!); // Call update API
+    const courtData: CourtRequestDto = { name, location_id: locationId };
+    const error = await updateCourt(court.id, courtData, user?.Jwt!);
     if (error === null) {
-      // On success, notify and revalidate ISR
       toast({ status: "success", description: "Court updated successfully" });
       await revalidateCourts();
       onClose?.();
     } else {
-      // On failure, show error message
       toast({ status: "error", description: `Error saving changes: ${error}` });
     }
   };
 
-  // Delete handler: remove the court after confirmation
   const handleDelete = async () => {
-    const error = await deleteCourt(court.id, user?.Jwt!); // Call delete API
+    const error = await deleteCourt(court.id, user?.Jwt!);
     if (error === null) {
-      // On success, notify and revalidate ISR
       toast({ status: "success", description: "Court deleted successfully" });
       await revalidateCourts();
-      if (onClose) onClose(); // Close panel if callback provided
+      if (onClose) onClose();
     } else {
-      // On failure, show error message
       toast({ status: "error", description: `Error deleting court: ${error}` });
     }
   };
@@ -92,79 +85,69 @@ export default function CourtInfoPanel({
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        {/* Tab header */}
         <div className="border-b mb-6">
           <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1">
             <TabsTrigger
               value="details"
-              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary rounded-none bg-transparent hover:bg-muted/50"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
-              <PencilIcon className="h-4 w-4" /> {/* Icon for the tab */}
-              Information {/* Tab label */}
+              <FileText className="h-4 w-4" />
+              Information
             </TabsTrigger>
           </TabsList>
         </div>
 
-        {/* Tab content: Details form */}
         <TabsContent value="details" className="pt-4">
-          <div className="space-y-8">
-            <div className="space-y-6">
-              {/* Court Name Field */}
-              <div className="space-y-3">
-                <label className="text-base font-medium flex items-center gap-2">
-                  <PencilIcon className="h-5 w-5 text-muted-foreground" />{" "}
-                  {/* Label icon */}
-                  Court Name {/* Field label */}
-                </label>
-                <Input
-                  value={name} // Bind to local name state
-                  onChange={(e) => setName(sanitizeTextInput(e.target.value))} // Update name state on change
-                  placeholder="Enter court name"
-                  className="text-lg h-12 px-4"
-                />
-              </div>
+          <div className="space-y-6">
+            {/* Court Information Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Grid3x3 className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Court Information</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Court Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      value={name}
+                      onChange={(e) => setName(sanitizeTextInput(e.target.value))}
+                      placeholder="Enter court name"
+                      className="bg-background"
+                    />
+                  </div>
 
-              {/* Location Select Field */}
-              <div className="space-y-3">
-                <label className="text-base font-medium flex items-center gap-2">
-                  <MapPinIcon className="h-5 w-5 text-muted-foreground" />{" "}
-                  {/* Label icon */}
-                  Location {/* Field label */}
-                </label>
-                <Select
-                  value={locationId} // Bind to local locationId state
-                  onValueChange={setLocationId} // Update locationId on select
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location" />{" "}
-                    {/* Placeholder text */}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {/* Render each location as a selectable item */}
-                    {locations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>
-                        {loc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Location <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={locationId} onValueChange={setLocationId}>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 mt-4">
-              <Button
-                onClick={handleSaveAll} // Trigger save handler
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <SaveIcon className="h-4 w-4 mr-2" /> {/* Save icon */}
-                Save Changes {/* Button label */}
-              </Button>
+            <Separator />
+
+            <div className="flex items-center justify-end gap-3 pt-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    variant="destructive"
-                    className="bg-red-600 hover:bg-red-700"
+                    variant="outline"
+                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
                     <TrashIcon className="h-4 w-4 mr-2" />
                     Delete Court
@@ -180,12 +163,23 @@ export default function CourtInfoPanel({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
                       Confirm Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              <Button
+                onClick={handleSaveAll}
+                className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+              >
+                <SaveIcon className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
             </div>
           </div>
         </TabsContent>

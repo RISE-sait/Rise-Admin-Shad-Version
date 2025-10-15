@@ -16,18 +16,33 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Info, UserRound } from "lucide-react";
+import {
+  Info,
+  UserRound,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  CreditCard,
+  DollarSign,
+  Award,
+  Trophy
+} from "lucide-react";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
 import EditEventForm from "../event/EditEventForm";
 import EventStaffTab from "../event/EventStaffTab";
-import { deleteEvent } from "@/services/events";
+import AttendeesTable from "./manage/AttendeesTable";
+import { deleteEvent, getEvent } from "@/services/events";
 import { deletePractice } from "@/services/practices";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { revalidateEvents, revalidatePractices } from "@/actions/serverActions";
 import { CalendarEvent } from "@/types/calendar";
+import { EventParticipant } from "@/types/events";
 import {
   getAllMembershipPlans,
   MembershipPlanWithMembershipName,
@@ -50,6 +65,8 @@ export default function CalendarManageEventDrawer() {
   const [membershipPlans, setMembershipPlans] = useState<
     MembershipPlanWithMembershipName[]
   >([]);
+  const [fullEventData, setFullEventData] = useState<EventParticipant[] | null>(null);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const requiredMembershipPlanLabel = selectedEvent?.required_membership_plan_id
     ? (() => {
         const plan = membershipPlans.find(
@@ -69,6 +86,8 @@ export default function CalendarManageEventDrawer() {
     ? eventType.charAt(0).toUpperCase() + eventType.slice(1)
     : "Event";
   const showStaffTab =
+    !!selectedEvent && eventType !== "game" && eventType !== "practice";
+  const showCustomersTab =
     !!selectedEvent && eventType !== "game" && eventType !== "practice";
 
   useEffect(() => {
@@ -95,6 +114,38 @@ export default function CalendarManageEventDrawer() {
       setActiveTab("details");
     }
   }, [showStaffTab, activeTab]);
+
+  // Fetch full event data when drawer opens for events (not games/practices)
+  useEffect(() => {
+    let isMounted = true;
+
+    if (selectedEvent && showCustomersTab && manageEventDialogOpen) {
+      setIsLoadingCustomers(true);
+      getEvent(selectedEvent.id, user?.Jwt)
+        .then((eventData) => {
+          if (isMounted) {
+            setFullEventData(eventData.customers);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch full event data:", error);
+          if (isMounted) {
+            setFullEventData([]);
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setIsLoadingCustomers(false);
+          }
+        });
+    } else {
+      setFullEventData(null);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedEvent?.id, showCustomersTab, manageEventDialogOpen, user?.Jwt]);
 
   async function handleDelete() {
     if (!selectedEvent) return;
@@ -137,6 +188,8 @@ export default function CalendarManageEventDrawer() {
     // form.reset()
     setShowEditForm(false);
     setActiveTab("details");
+    setFullEventData(null);
+    setIsLoadingCustomers(false);
   }
 
   const handleStaffUpdated = (updatedStaff: CalendarEvent["staff"]) => {
@@ -181,6 +234,15 @@ export default function CalendarManageEventDrawer() {
                 <Info className="h-4 w-4" />
                 Details
               </TabsTrigger>
+              {showCustomersTab && (
+                <TabsTrigger
+                  value="customers"
+                  className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+                >
+                  <Users className="h-4 w-4" />
+                  Customers
+                </TabsTrigger>
+              )}
               {showStaffTab && (
                 <TabsTrigger
                   value="staff"
@@ -196,94 +258,175 @@ export default function CalendarManageEventDrawer() {
                 <EditEventForm onClose={handleClose} />
               ) : (
                 <div className="space-y-6">
-                  <div className="space-y-2">
+                  {/* Header Section */}
+                  <div className="space-y-3">
                     {eventTypeLabel && (
-                      <p className="font-bold uppercase text-primary">
+                      <Badge className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 text-xs font-semibold px-3 py-1">
                         {eventTypeLabel}
-                      </p>
+                      </Badge>
                     )}
-                    <h1 className="text-xl font-semibold">
+                    <h1 className="text-2xl font-bold">
                       {selectedEvent.program.name || "Unnamed Event"}
                     </h1>
-                    <p className="text-base text-muted-foreground">
-                      Date:{" "}
-                      {selectedEvent.start_at.toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                    <p className="text-base text-muted-foreground">
-                      Start Time:{" "}
-                      {selectedEvent.start_at.toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <p className="text-base text-muted-foreground">
-                      End Time:{" "}
-                      {selectedEvent.end_at.toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <p className="text-base text-muted-foreground">
-                      {selectedEvent.location.name}
-                    </p>
-                    <p className="text-base text-muted-foreground">
-                      {selectedEvent.location.address}
-                    </p>
-                    {selectedEvent.credit_cost != null && (
-                      <p className="text-base text-muted-foreground">
-                        Credit cost: {selectedEvent.credit_cost}
-                      </p>
-                    )}
-                    {selectedEvent.price_id && (
-                      <p className="text-base text-muted-foreground">
-                        Price ID: {selectedEvent.price_id}
-                      </p>
-                    )}
-                    {selectedEvent.required_membership_plan_id && (
-                      <p className="text-base text-muted-foreground">
-                        Required Membership Plan:{" "}
-                        {requiredMembershipPlanLabel ||
-                          selectedEvent.required_membership_plan_id}
-                      </p>
-                    )}
-                    {selectedEvent.team?.name && (
-                      <p className="text-base text-muted-foreground">
-                        Team: {selectedEvent.team.name}
-                      </p>
-                    )}
-                    {(() => {
-                      const eventCourt = (selectedEvent as any).court;
-                      const courtName =
-                        (selectedEvent as any).court_name ||
-                        (typeof eventCourt === "string"
-                          ? eventCourt
-                          : eventCourt?.name || "");
-
-                      return courtName ? (
-                        <p className="text-base text-muted-foreground">
-                          Court: {courtName}
-                        </p>
-                      ) : null;
-                    })()}
                   </div>
+
+                  {/* Date & Time Card */}
+                  <Card className="border-l-4 border-l-yellow-500">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Calendar className="h-5 w-5 text-yellow-500" />
+                        <h3 className="font-semibold text-lg">Schedule</h3>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-sm font-medium">Date</p>
+                            <p className="text-sm text-muted-foreground">
+                              {selectedEvent.start_at.toLocaleDateString("en-US", {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4 w-4 text-muted-foreground mt-1" />
+                          <div>
+                            <p className="text-sm font-medium">Time</p>
+                            <p className="text-sm text-muted-foreground">
+                              {selectedEvent.start_at.toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              -{" "}
+                              {selectedEvent.end_at.toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Location Card */}
+                  <Card className="border-l-4 border-l-yellow-500">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <MapPin className="h-5 w-5 text-yellow-500" />
+                        <h3 className="font-semibold text-lg">Venue</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">
+                          {selectedEvent.location.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedEvent.location.address}
+                        </p>
+                        {(() => {
+                          const eventCourt = (selectedEvent as any).court;
+                          const courtName =
+                            (selectedEvent as any).court_name ||
+                            (typeof eventCourt === "string"
+                              ? eventCourt
+                              : eventCourt?.name || "");
+
+                          return courtName ? (
+                            <p className="text-sm text-muted-foreground">
+                              Court: {courtName}
+                            </p>
+                          ) : null;
+                        })()}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Team Card (if applicable) */}
+                  {selectedEvent.team?.name && (
+                    <Card className="border-l-4 border-l-yellow-500">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Users className="h-5 w-5 text-yellow-500" />
+                          <h3 className="font-semibold text-lg">Team</h3>
+                        </div>
+                        <p className="text-sm font-medium">
+                          {selectedEvent.team.name}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Payment & Access Card (if applicable) */}
+                  {(selectedEvent.credit_cost != null ||
+                    selectedEvent.price_id ||
+                    selectedEvent.required_membership_plan_id) && (
+                    <Card className="border-l-4 border-l-yellow-500">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <CreditCard className="h-5 w-5 text-yellow-500" />
+                          <h3 className="font-semibold text-lg">Payment & Access</h3>
+                        </div>
+                        <div className="space-y-3">
+                          {selectedEvent.credit_cost != null && (
+                            <div className="flex items-start gap-3">
+                              <Trophy className="h-4 w-4 text-muted-foreground mt-1" />
+                              <div>
+                                <p className="text-sm font-medium">Credit Cost</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedEvent.credit_cost} credits
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {selectedEvent.price_id && (
+                            <div className="flex items-start gap-3">
+                              <DollarSign className="h-4 w-4 text-muted-foreground mt-1" />
+                              <div>
+                                <p className="text-sm font-medium">Price ID</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedEvent.price_id}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {selectedEvent.required_membership_plan_id && (
+                            <div className="flex items-start gap-3">
+                              <Award className="h-4 w-4 text-muted-foreground mt-1" />
+                              <div>
+                                <p className="text-sm font-medium">
+                                  Required Membership
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {requiredMembershipPlanLabel ||
+                                    selectedEvent.required_membership_plan_id}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   <Separator />
-                  <div className="space-y-4">
+
+                  {/* Action Buttons */}
+                  <div className="space-y-3">
                     <Button
                       variant="outline"
-                      className="w-full"
+                      className="w-full h-11"
                       onClick={() => setShowEditForm(true)}
                     >
                       Edit this Event
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full">
-                          Delete
+                        <Button variant="destructive" className="w-full h-11">
+                          Delete Event
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -306,6 +449,21 @@ export default function CalendarManageEventDrawer() {
                 </div>
               )}
             </TabsContent>
+            {showCustomersTab && (
+              <TabsContent value="customers" className="mt-4">
+                {isLoadingCustomers ? (
+                  <Card className="border-l-4 border-l-yellow-500">
+                    <CardContent className="pt-6">
+                      <div className="text-center py-12">
+                        <p className="text-sm text-muted-foreground">Loading customers...</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <AttendeesTable data={fullEventData || []} />
+                )}
+              </TabsContent>
+            )}
             {showStaffTab && (
               <TabsContent value="staff" className="mt-4">
                 <EventStaffTab

@@ -3,7 +3,6 @@ import { useToast } from "@/hooks/use-toast";
 import DetailsForm from "./infoTabs/Details";
 import { createProgram } from "@/services/program";
 import { useUser } from "@/contexts/UserContext";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ProgramRequestDto } from "@/app/api/Api";
 import { revalidatePrograms } from "@/actions/serverActions";
 
@@ -66,21 +65,18 @@ export default function AddProgramForm({
   }
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0"></CardHeader>
-      <CardContent>
-        <DetailsForm
-          program={{
-            name: "",
-            description: "",
-            level: "",
-            type: "",
-            capacity: 0,
-          }}
-          saveAction={handleSaveAll}
-          levels={levels}
-        />
-      </CardContent>
-    </Card>
+    <div className="pt-3">
+      <DetailsForm
+        program={{
+          name: "",
+          description: "",
+          level: "",
+          type: "",
+          capacity: 0,
+        }}
+        saveAction={handleSaveAll}
+        levels={levels}
+      />
+    </div>
   );
 }

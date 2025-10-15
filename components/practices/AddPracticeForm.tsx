@@ -6,6 +6,15 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +32,7 @@ import { Team } from "@/types/team";
 import { Court } from "@/types/court";
 import { revalidatePractices } from "@/actions/serverActions";
 import { toZonedISOString } from "@/lib/utils";
+import { Dumbbell, Calendar, MapPin } from "lucide-react";
 
 export default function AddPracticeForm({
   onClose,
@@ -168,186 +178,253 @@ export default function AddPracticeForm({
 
   return (
     <div className="space-y-6 pt-3">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Team</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.team_id}
-            onChange={(e) => updateField("team_id", e.target.value)}
-          >
-            <option value="" disabled>
-              Select team
-            </option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Location</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.location_id}
-            onChange={(e) => {
-              updateField("location_id", e.target.value);
-              updateField("court_id", "");
-            }}
-          >
-            <option value="" disabled>
-              Select location
-            </option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Court</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.court_id}
-            onChange={(e) => updateField("court_id", e.target.value)}
-          >
-            <option value="">Select court</option>
-            {filteredCourts.map((court) => (
-              <option key={court.id} value={court.id}>
-                {court.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Practice Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Dumbbell className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Practice Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Team <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.team_id}
+                onValueChange={(value) => updateField("team_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Location <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.location_id}
+                onValueChange={(value) => {
+                  updateField("location_id", value);
+                  updateField("court_id", "");
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Court</label>
+              <Select
+                value={data.court_id}
+                onValueChange={(value) => updateField("court_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select court (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCourts.map((court) => (
+                    <SelectItem key={court.id} value={court.id}>
+                      {court.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Tabs
-          value={mode}
-          onValueChange={(v) => setMode(v as "once" | "recurring")}
-          className="pt-2"
+      {/* Schedule Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <Tabs
+            value={mode}
+            onValueChange={(v) => setMode(v as "once" | "recurring")}
+          >
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="once">One-time</TabsTrigger>
+              <TabsTrigger value="recurring">Recurring</TabsTrigger>
+            </TabsList>
+            <TabsContent value="once" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Start Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.start_at}
+                  onChange={(e) => updateField("start_at", e.target.value)}
+                  type="datetime-local"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  End Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.end_at}
+                  onChange={(e) => updateField("end_at", e.target.value)}
+                  type="datetime-local"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  value={data.status}
+                  onValueChange={(value) =>
+                    updateField(
+                      "status",
+                      value as "scheduled" | "completed" | "canceled"
+                    )
+                  }
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="canceled">Canceled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TabsContent>
+            <TabsContent value="recurring" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Recurrence Start <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.recurrence_start_at}
+                  onChange={(e) =>
+                    updateField("recurrence_start_at", e.target.value)
+                  }
+                  type="datetime-local"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Recurrence End <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.recurrence_end_at}
+                  onChange={(e) =>
+                    updateField("recurrence_end_at", e.target.value)
+                  }
+                  type="datetime-local"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Day of Week <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={data.day}
+                  onValueChange={(value) => updateField("day", value)}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      "MONDAY",
+                      "TUESDAY",
+                      "WEDNESDAY",
+                      "THURSDAY",
+                      "FRIDAY",
+                      "SATURDAY",
+                      "SUNDAY",
+                    ].map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Start Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.event_start_at}
+                  onChange={(e) => updateField("event_start_at", e.target.value)}
+                  type="time"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  End Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.event_end_at}
+                  onChange={(e) => updateField("event_end_at", e.target.value)}
+                  type="time"
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  value={data.status}
+                  onValueChange={(value) =>
+                    updateField(
+                      "status",
+                      value as "scheduled" | "completed" | "canceled"
+                    )
+                  }
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="canceled">Canceled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="pt-2">
+        <Button
+          onClick={handleAddPractice}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="once">One-time</TabsTrigger>
-            <TabsTrigger value="recurring">Recurring</TabsTrigger>
-          </TabsList>
-          <TabsContent value="once" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Time</label>
-              <Input
-                value={data.start_at}
-                onChange={(e) => updateField("start_at", e.target.value)}
-                type="datetime-local"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Time</label>
-              <Input
-                value={data.end_at}
-                onChange={(e) => updateField("end_at", e.target.value)}
-                type="datetime-local"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={data.status}
-                onChange={(e) =>
-                  updateField(
-                    "status",
-                    e.target.value as "scheduled" | "completed" | "canceled"
-                  )
-                }
-              >
-                <option value="scheduled">Scheduled</option>
-                <option value="completed">Completed</option>
-                <option value="canceled">Canceled</option>
-              </select>
-            </div>
-          </TabsContent>
-          <TabsContent value="recurring" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Recurrence Start</label>
-              <Input
-                value={data.recurrence_start_at}
-                onChange={(e) =>
-                  updateField("recurrence_start_at", e.target.value)
-                }
-                type="datetime-local"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Recurrence End</label>
-              <Input
-                value={data.recurrence_end_at}
-                onChange={(e) =>
-                  updateField("recurrence_end_at", e.target.value)
-                }
-                type="datetime-local"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Day of Week</label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={data.day}
-                onChange={(e) => updateField("day", e.target.value)}
-              >
-                {[
-                  "MONDAY",
-                  "TUESDAY",
-                  "WEDNESDAY",
-                  "THURSDAY",
-                  "FRIDAY",
-                  "SATURDAY",
-                  "SUNDAY",
-                ].map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Time</label>
-              <Input
-                value={data.event_start_at}
-                onChange={(e) => updateField("event_start_at", e.target.value)}
-                type="time"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Time</label>
-              <Input
-                value={data.event_end_at}
-                onChange={(e) => updateField("event_end_at", e.target.value)}
-                type="time"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={data.status}
-                onChange={(e) =>
-                  updateField(
-                    "status",
-                    e.target.value as "scheduled" | "completed" | "canceled"
-                  )
-                }
-              >
-                <option value="scheduled">Scheduled</option>
-                <option value="completed">Completed</option>
-                <option value="canceled">Canceled</option>
-              </select>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <Dumbbell className="h-5 w-5 mr-2" />
+          Create Practice
+        </Button>
       </div>
-      <Button onClick={handleAddPractice} className="w-full">
-        Add Practice
-      </Button>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -9,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { SaveIcon } from "lucide-react";
+import { SaveIcon, FileText, Hash, Layers } from "lucide-react";
 import { Program } from "@/types/program";
 import { useForm } from "react-hook-form";
 import { JSX } from "react";
@@ -75,125 +77,154 @@ export default function DetailsForm({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="name">Program Name</Label>
-          <Input
-            id="name"
-            {...register("name", {
-              pattern: {
-                value: PROGRAM_TEXT_INPUT_REGEX,
-                message: PROGRAM_TEXT_INPUT_MESSAGE,
-              },
-              onChange: (event) => {
-                const sanitizedValue = sanitizeProgramText(event.target.value);
-                if (sanitizedValue !== event.target.value) {
-                  event.target.value = sanitizedValue;
-                }
-              },
-            })}
-            placeholder="Enter program name"
-            pattern={PROGRAM_TEXT_INPUT_PATTERN}
-            title={PROGRAM_TEXT_INPUT_MESSAGE}
-            aria-invalid={errors.name ? "true" : "false"}
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive" role="alert">
-              {errors.name.message}
-            </p>
-          )}
-        </div>
+      {/* Program Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Program Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">
+                Program Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="name"
+                {...register("name", {
+                  pattern: {
+                    value: PROGRAM_TEXT_INPUT_REGEX,
+                    message: PROGRAM_TEXT_INPUT_MESSAGE,
+                  },
+                  onChange: (event) => {
+                    const sanitizedValue = sanitizeProgramText(event.target.value);
+                    if (sanitizedValue !== event.target.value) {
+                      event.target.value = sanitizedValue;
+                    }
+                  },
+                })}
+                placeholder="Enter program name"
+                pattern={PROGRAM_TEXT_INPUT_PATTERN}
+                title={PROGRAM_TEXT_INPUT_MESSAGE}
+                aria-invalid={errors.name ? "true" : "false"}
+                className="bg-background"
+              />
+              {errors.name && (
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            placeholder="Enter program description"
-            {...register("description", {
-              pattern: {
-                value: PROGRAM_TEXT_AREA_REGEX,
-                message: PROGRAM_TEXT_INPUT_MESSAGE,
-              },
-              onChange: (event) => {
-                const sanitizedValue = sanitizeProgramText(event.target.value, {
-                  allowNewLines: true,
-                });
-                if (sanitizedValue !== event.target.value) {
-                  event.target.value = sanitizedValue;
-                }
-              },
-            })}
-            className="min-h-[100px]"
-            title={PROGRAM_TEXT_INPUT_MESSAGE}
-            aria-invalid={errors.description ? "true" : "false"}
-          />
-          {errors.description && (
-            <p className="text-sm text-destructive" role="alert">
-              {errors.description.message}
-            </p>
-          )}
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Enter program description"
+                {...register("description", {
+                  pattern: {
+                    value: PROGRAM_TEXT_AREA_REGEX,
+                    message: PROGRAM_TEXT_INPUT_MESSAGE,
+                  },
+                  onChange: (event) => {
+                    const sanitizedValue = sanitizeProgramText(event.target.value, {
+                      allowNewLines: true,
+                    });
+                    if (sanitizedValue !== event.target.value) {
+                      event.target.value = sanitizedValue;
+                    }
+                  },
+                })}
+                className="min-h-[100px] bg-background"
+                title={PROGRAM_TEXT_INPUT_MESSAGE}
+                aria-invalid={errors.description ? "true" : "false"}
+              />
+              {errors.description && (
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="grid gap-2">
-          <Label htmlFor="level">Level</Label>
-          <Select
-            defaultValue={program.level}
-            onValueChange={(value) => setValue("level", value)}
-          >
-            <SelectTrigger id="level">
-              <SelectValue placeholder="Select level" />
-            </SelectTrigger>
-            <SelectContent>
-              {levels.map((level) => (
-                <SelectItem key={level} value={level}>
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Program Configuration Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Layers className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Program Configuration</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="level">
+                Level <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                defaultValue={program.level}
+                onValueChange={(value) => setValue("level", value)}
+              >
+                <SelectTrigger id="level" className="bg-background">
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {levels.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="type">Program Type</Label>
-          <Select
-            defaultValue={program.type}
-            onValueChange={(value) => setValue("type", value)}
-          >
-            <SelectTrigger id="type">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="course">Course</SelectItem>
-              <SelectItem value="tournament">Tournament</SelectItem>
-              <SelectItem value="tryouts">Tryouts</SelectItem>
-              <SelectItem value="event">Event</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="type">
+                Program Type <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                defaultValue={program.type}
+                onValueChange={(value) => setValue("type", value)}
+              >
+                <SelectTrigger id="type" className="bg-background">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="course">Course</SelectItem>
+                  <SelectItem value="tournament">Tournament</SelectItem>
+                  <SelectItem value="tryouts">Tryouts</SelectItem>
+                  <SelectItem value="event">Event</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="capacity">Default Capacity</Label>
-          <Input
-            id="capacity"
-            type="number"
-            min={1}
-            placeholder="NULL"
-            {...register("capacity", { valueAsNumber: true })}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="capacity">Default Capacity</Label>
+              <Input
+                id="capacity"
+                type="number"
+                min={1}
+                placeholder="NULL"
+                {...register("capacity", { valueAsNumber: true })}
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex items-center justify-end gap-3 mt-4">
-          <Button
-            onClick={handleSubmit}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <SaveIcon className="h-4 w-4 mr-2" />
-            Save Changes
-          </Button>
+      <Separator />
 
-          {DeleteButton && DeleteButton}
-        </div>
+      <div className="flex items-center justify-end gap-3 pt-2">
+        {DeleteButton && DeleteButton}
+        <Button
+          onClick={handleSubmit}
+          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+        >
+          <SaveIcon className="h-4 w-4 mr-2" />
+          Save Changes
+        </Button>
       </div>
     </div>
   );

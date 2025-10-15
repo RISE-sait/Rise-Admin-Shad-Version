@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CreditPackage, CreditPackageRequest } from "@/types/credit-package";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
@@ -37,7 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { SaveIcon, TrashIcon } from "lucide-react";
+import { SaveIcon, TrashIcon, Coins } from "lucide-react";
 
 interface CreditPackageInfoPanelProps {
   creditPackage: CreditPackage;
@@ -139,157 +141,189 @@ export default function CreditPackageInfoPanel({
 
   return (
     <div className="space-y-6">
-      <form className="space-y-4" onSubmit={onSubmit}>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Name</label>
-          <Input
-            {...register("name", {
-              required: "Name is required.",
-              pattern: {
-                value: TEXT_PATTERN,
-                message: TEXT_PATTERN_MESSAGE,
-              },
-              setValueAs: sanitizeSingleLineInput,
-            })}
-            placeholder="Package name"
-          />
-          {errors.name && (
-            <p className="text-xs text-red-500">{errors.name.message}</p>
-          )}
-        </div>
+      <form className="space-y-6" onSubmit={onSubmit}>
+        {/* Package Information Section */}
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Coins className="h-5 w-5 text-yellow-500" />
+              <h3 className="font-semibold text-lg">Package Information</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  {...register("name", {
+                    required: "Name is required.",
+                    pattern: {
+                      value: TEXT_PATTERN,
+                      message: TEXT_PATTERN_MESSAGE,
+                    },
+                    setValueAs: sanitizeSingleLineInput,
+                  })}
+                  placeholder="Package name"
+                  className="bg-background"
+                />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name.message}</p>
+                )}
+              </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Description</label>
-          <Textarea
-            rows={4}
-            {...register("description", {
-              pattern: {
-                value: MULTILINE_TEXT_PATTERN,
-                message: MULTILINE_TEXT_MESSAGE,
-              },
-              setValueAs: (value: string) =>
-                value ? sanitizeMultilineInput(value) : value,
-            })}
-            placeholder="Describe this credit package"
-          />
-          {errors.description && (
-            <p className="text-xs text-red-500">
-              {errors.description.message as string}
-            </p>
-          )}
-        </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  rows={4}
+                  {...register("description", {
+                    pattern: {
+                      value: MULTILINE_TEXT_PATTERN,
+                      message: MULTILINE_TEXT_MESSAGE,
+                    },
+                    setValueAs: (value: string) =>
+                      value ? sanitizeMultilineInput(value) : value,
+                  })}
+                  placeholder="Describe this credit package"
+                  className="bg-background"
+                />
+                {errors.description && (
+                  <p className="text-xs text-red-500">
+                    {errors.description.message as string}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Credit Allocation</label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              {...register("credit_allocation", {
-                required: "Credit allocation is required.",
-                valueAsNumber: true,
-                validate: (value) =>
-                  NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
-              })}
-              placeholder="0"
-            />
-            {errors.credit_allocation && (
-              <p className="text-xs text-red-500">
-                {errors.credit_allocation.message as string}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Weekly Credit Limit</label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              {...register("weekly_credit_limit", {
-                required: "Weekly credit limit is required.",
-                valueAsNumber: true,
-                validate: (value) =>
-                  NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
-              })}
-              placeholder="0"
-            />
-            {errors.weekly_credit_limit && (
-              <p className="text-xs text-red-500">
-                {errors.weekly_credit_limit.message as string}
-              </p>
-            )}
-          </div>
-        </div>
+        {/* Credit Configuration Section */}
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Coins className="h-5 w-5 text-yellow-500" />
+              <h3 className="font-semibold text-lg">Credit Configuration</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Credit Allocation <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    {...register("credit_allocation", {
+                      required: "Credit allocation is required.",
+                      valueAsNumber: true,
+                      validate: (value) =>
+                        NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
+                    })}
+                    placeholder="0"
+                    className="bg-background"
+                  />
+                  {errors.credit_allocation && (
+                    <p className="text-xs text-red-500">
+                      {errors.credit_allocation.message as string}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Weekly Credit Limit <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    {...register("weekly_credit_limit", {
+                      required: "Weekly credit limit is required.",
+                      valueAsNumber: true,
+                      validate: (value) =>
+                        NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
+                    })}
+                    placeholder="0"
+                    className="bg-background"
+                  />
+                  {errors.weekly_credit_limit && (
+                    <p className="text-xs text-red-500">
+                      {errors.weekly_credit_limit.message as string}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Stripe Price ID</label>
-          <Input
-            {...register("stripe_price_id", {
-              required: "Stripe price ID is required.",
-              pattern: {
-                value: STRIPE_PRICE_PATTERN,
-                message: STRIPE_PRICE_MESSAGE,
-              },
-              setValueAs: sanitizeStripePriceId,
-            })}
-            placeholder="price_123ABC"
-          />
-          {errors.stripe_price_id && (
-            <p className="text-xs text-red-500">
-              {errors.stripe_price_id.message as string}
-            </p>
-          )}
-        </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Stripe Price ID <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  {...register("stripe_price_id", {
+                    required: "Stripe price ID is required.",
+                    pattern: {
+                      value: STRIPE_PRICE_PATTERN,
+                      message: STRIPE_PRICE_MESSAGE,
+                    },
+                    setValueAs: sanitizeStripePriceId,
+                  })}
+                  placeholder="price_123ABC"
+                  className="bg-background"
+                />
+                {errors.stripe_price_id && (
+                  <p className="text-xs text-red-500">
+                    {errors.stripe_price_id.message as string}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => reset()}
-            disabled={isSubmitting || !isDirty}
-          >
-            Reset
-          </Button>
-          <div className="flex items-center gap-3">
-            <Button
-              type="submit"
-              disabled={!isDirty || isSubmitting}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <SaveIcon className="h-4 w-4 mr-2" />
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
+        <Separator />
+
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete Package
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete credit package</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this credit package? This
+                  action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
                   className="bg-red-600 hover:bg-red-700"
                 >
-                  <TrashIcon className="h-4 w-4 mr-2" /> Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete credit package</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this credit package? This
-                    action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Confirm delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <Button
+            type="submit"
+            disabled={!isDirty || isSubmitting}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </form>
 
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-muted-foreground pt-4">
         {(() => {
           const createdAt = new Date(creditPackage.created_at);
           const updatedAt = new Date(creditPackage.updated_at);

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Customer, CustomerCreditTransaction } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import {
   RefreshCw,
   Coins,
   FileText,
+  SaveIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -639,140 +641,173 @@ export default function CustomerInfoPanel({
           {membershipPlans && membershipPlans.length > 0 ? (
             <div className="space-y-4">
               {membershipPlans.map((plan) => (
-                <div key={plan.id} className="border rounded-lg p-4">
-                  <h3 className="text-lg font-medium">
-                    {plan.membership_name}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Status:</span>
-                      <span className="ml-2 font-medium">{plan.status}</span>
+                <Card key={plan.id} className="border-l-4 border-l-yellow-500">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CreditCard className="h-5 w-5 text-yellow-500" />
+                      <h3 className="font-semibold text-lg">
+                        {plan.membership_name}
+                      </h3>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Started:</span>
-                      <span className="ml-2 font-medium">
-                        {plan.start_date
-                          ? new Date(plan.start_date).toLocaleDateString()
-                          : "N/A"}
-                      </span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Status
+                        </label>
+                        <p className="text-sm font-medium">{plan.status}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Started
+                        </label>
+                        <p className="text-sm font-medium">
+                          {plan.start_date
+                            ? new Date(plan.start_date).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Renewal
+                        </label>
+                        <p className="text-sm font-medium">
+                          {plan.renewal_date
+                            ? new Date(plan.renewal_date).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Renewal:</span>
-                      <span className="ml-2 font-medium">
-                        {plan.renewal_date
-                          ? new Date(plan.renewal_date).toLocaleDateString()
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center">
-              <div className="mb-4">
-                <CreditCard className="h-12 w-12 mx-auto text-muted-foreground/40" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">
-                No Membership Information
-              </h3>
-              <p className="text-muted-foreground">
-                This customer doesn't have any membership plans associated with
-                their account.
-              </p>
-            </div>
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="p-8 text-center">
+                  <div className="mb-4">
+                    <CreditCard className="h-12 w-12 mx-auto text-muted-foreground/40" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">
+                    No Membership Information
+                  </h3>
+                  <p className="text-muted-foreground">
+                    This customer doesn't have any membership plans associated with
+                    their account.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
         <TabsContent value="notes">
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Customer Notes</h3>
-                <p className="text-sm text-muted-foreground">
-                  Keep important details about this customer in one place.
-                </p>
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Customer Notes</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Keep important details about this customer in one place.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleSaveNotes}
+                    disabled={!hasNotesChanged || isSavingNotes}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+                  >
+                    <SaveIcon className="h-4 w-4 mr-2" />
+                    {isSavingNotes ? "Saving..." : "Save Notes"}
+                  </Button>
+                </div>
+                <Textarea
+                  value={notesDraft}
+                  onChange={(event) => {
+                    const { value } = event.target;
+                    if (!NOTES_INPUT_PATTERN.test(value)) {
+                      return;
+                    }
+                    setNotesDraft(value);
+                  }}
+                  placeholder="No notes"
+                  className="min-h-[200px] bg-background"
+                  maxLength={maxNotesLength}
+                  disabled={isSavingNotes}
+                />
+                <div className="text-xs text-muted-foreground text-right">
+                  {notesDraft.length}/{maxNotesLength} characters
+                </div>
               </div>
-              <Button
-                type="button"
-                onClick={handleSaveNotes}
-                disabled={!hasNotesChanged || isSavingNotes}
-              >
-                {isSavingNotes ? "Saving..." : "Save Notes"}
-              </Button>
-            </div>
-            <Textarea
-              value={notesDraft}
-              onChange={(event) => {
-                const { value } = event.target;
-                if (!NOTES_INPUT_PATTERN.test(value)) {
-                  return;
-                }
-                setNotesDraft(value);
-              }}
-              placeholder="No notes"
-              className="min-h-[200px]"
-              maxLength={maxNotesLength}
-              disabled={isSavingNotes}
-            />
-            <div className="text-xs text-muted-foreground text-right">
-              {notesDraft.length}/{maxNotesLength} characters
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="credits">
           <div className="space-y-6">
-            <div className="rounded-lg border bg-muted/20 p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Current Balance
-                  </p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-semibold">
-                      {isCreditsLoading ? "Loading..." : numericCredits}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      credits
-                    </span>
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <Coins className="h-8 w-8 text-yellow-500" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Current Balance
+                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-semibold">
+                          {isCreditsLoading ? "Loading..." : numericCredits}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          credits
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void refreshCreditsAndTransactions()}
+                    disabled={
+                      isCreditsLoading || isTransactionsLoading || !user?.Jwt
+                    }
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 mr-2 ${
+                        isCreditsLoading || isTransactionsLoading
+                          ? "animate-spin"
+                          : ""
+                      }`}
+                    />
+                    Refresh Balance
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void refreshCreditsAndTransactions()}
-                  disabled={
-                    isCreditsLoading || isTransactionsLoading || !user?.Jwt
-                  }
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 mr-2 ${
-                      isCreditsLoading || isTransactionsLoading
-                        ? "animate-spin"
-                        : ""
-                    }`}
-                  />
-                  Refresh Balance
-                </Button>
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Manage this customer's available credits by adding or deducting
-                amounts below.
-              </p>
-            </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Manage this customer's available credits by adding or deducting
+                  amounts below.
+                </p>
+              </CardContent>
+            </Card>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-4 rounded-lg border p-4">
-                <div>
-                  <h3 className="text-base font-semibold">Add Credits</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Increase the customer's available credits.
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <Card className="border-l-4 border-l-green-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Coins className="h-5 w-5 text-green-500" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Add Credits</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Increase the customer's available credits.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div className="flex-1 space-y-1">
                       <Label htmlFor="add-credits-amount">Amount</Label>
                       <Input
@@ -795,7 +830,7 @@ export default function CustomerInfoPanel({
                     </div>
                     <Button
                       type="button"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
                       onClick={() => handleCreditMutation("add")}
                       disabled={isAddDisabled}
                     >
@@ -818,20 +853,26 @@ export default function CustomerInfoPanel({
                       }}
                       disabled={creditsAction !== null}
                       rows={3}
+                      className="bg-background"
                     />
                   </div>
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="space-y-4 rounded-lg border p-4">
-                <div>
-                  <h3 className="text-base font-semibold">Deduct Credits</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Reduce the customer's available credits.
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <Card className="border-l-4 border-l-red-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Coins className="h-5 w-5 text-red-500" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Deduct Credits</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Reduce the customer's available credits.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div className="flex-1 space-y-1">
                       <Label htmlFor="deduct-credits-amount">Amount</Label>
                       <Input
@@ -880,19 +921,26 @@ export default function CustomerInfoPanel({
                       }}
                       disabled={creditsAction !== null}
                       rows={3}
+                      className="bg-background"
                     />
                   </div>
-                </div>
-              </div>
-              <div className="space-y-4 md:col-span-2">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold">Credit History</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Review the most recent credit adjustments applied to this
-                      account.
-                    </p>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+              <Card className="border-l-4 border-l-yellow-500">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-yellow-500" />
+                      <div>
+                        <h3 className="font-semibold text-lg">Credit History</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Review the most recent credit adjustments applied to this
+                          account.
+                        </p>
+                      </div>
+                    </div>
                   <div className="flex items-center gap-3">
                     {isTransactionsLoading && (
                       <span className="text-xs text-muted-foreground">
@@ -930,9 +978,9 @@ export default function CustomerInfoPanel({
                       </select>
                     </div>
                   </div>
-                </div>
+                  </div>
 
-                <div className="rounded-lg border">
+                  <div className="rounded-lg border">
                   {isTransactionsLoading && transactions.length === 0 ? (
                     <div className="p-6 text-center text-sm text-muted-foreground">
                       Loading transactions…
@@ -1040,9 +1088,9 @@ export default function CustomerInfoPanel({
                       </TableBody>
                     </Table>
                   )}
-                </div>
+                  </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-sm text-muted-foreground">
                     {transactions.length > 0
                       ? `Showing ${transactionRangeStart}–${transactionRangeEnd} (Page ${transactionPage})`
@@ -1080,9 +1128,9 @@ export default function CustomerInfoPanel({
                       Next
                     </Button>
                   </div>
-                </div>
-              </div>
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
           </div>
         </TabsContent>
 

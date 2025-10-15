@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -19,6 +21,7 @@ import { toZonedISOString } from "@/lib/utils";
 import { getCustomers } from "@/services/customer";
 import { Customer } from "@/types/customer";
 import { StaffRoleEnum } from "@/types/user";
+import { Scissors, Calendar, User } from "lucide-react";
 
 interface AddAppointmentFormProps {
   onAppointmentAdded: () => void;
@@ -208,136 +211,159 @@ export default function AddAppointmentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-3">
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Customer <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={formData.customer_id}
-          onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, customer_id: value }))
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue
-              placeholder={
-                isLoadingCustomers ? "Loading customers..." : "Select customer"
-              }
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {customers.map((customer) => (
-              <SelectItem key={customer.id} value={customer.id}>
-                {`${customer.first_name} ${customer.last_name}`} (
-                {customer.email})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6 pt-3">
+      {/* Appointment Information Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Appointment Information</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Customer <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={formData.customer_id}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, customer_id: value }))
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue
+                    placeholder={
+                      isLoadingCustomers ? "Loading customers..." : "Select customer"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {`${customer.first_name} ${customer.last_name}`} (
+                      {customer.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Barber <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={formData.barber_id}
-          onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, barber_id: value }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select barber" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableBarbers.map((barber) => (
-              <SelectItem key={barber.id} value={barber.id}>
-                {barber.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Barber <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={formData.barber_id}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, barber_id: value }))
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select barber" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableBarbers.map((barber) => (
+                    <SelectItem key={barber.id} value={barber.id}>
+                      {barber.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Service <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={formData.service_name}
-          onValueChange={(value) =>
-            setFormData((prev) => ({ ...prev, service_name: value }))
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {/* Update these options to match the available services */}
-            <SelectItem value="Regular Haircut">Regular Haircut</SelectItem>
-            <SelectItem value="Buzz">Buzz</SelectItem>
-            <SelectItem value="Razor">Razor</SelectItem>
-            <SelectItem value="Beard Trim">Beard Trim</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Service <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={formData.service_name}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, service_name: value }))
+                }
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Regular Haircut">Regular Haircut</SelectItem>
+                  <SelectItem value="Buzz">Buzz</SelectItem>
+                  <SelectItem value="Razor">Razor</SelectItem>
+                  <SelectItem value="Beard Trim">Beard Trim</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Date <span className="text-red-500">*</span>
-        </label>
-        <Input
-          type="date"
-          value={formData.date}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, date: e.target.value }))
-          }
-          required
-        />
-      </div>
+      {/* Schedule Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, date: e.target.value }))
+                }
+                required
+                className="bg-background"
+              />
+            </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Start Time <span className="text-red-500">*</span>
-          </label>
-          <Input
-            type="time"
-            value={formData.time}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, time: e.target.value }))
-            }
-            required
-          />
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Start Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, time: e.target.value }))
+                  }
+                  required
+                  className="bg-background"
+                />
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            End Time <span className="text-red-500">*</span>
-          </label>
-          <Input
-            type="time"
-            value={formData.endTime}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, endTime: e.target.value }))
-            }
-            required
-          />
-        </div>
-      </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  End Time <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, endTime: e.target.value }))
+                  }
+                  required
+                  className="bg-background"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="flex space-x-4 pt-4">
-        <Button type="submit" disabled={isLoading} className="flex-1">
-          {isLoading ? "Creating..." : "Create Appointment"}
-        </Button>
+      <Separator />
+
+      <div className="pt-2">
         <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
-          Cancel
+          <Scissors className="h-5 w-5 mr-2" />
+          {isLoading ? "Creating..." : "Create Appointment"}
         </Button>
       </div>
     </form>

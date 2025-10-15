@@ -11,7 +11,6 @@ import { Customer } from "@/types/customer";
 import { Input } from "@/components/ui/input";
 import CustomerTable from "./CustomerTable";
 import CustomerInfoPanel from "./CustomerInfoPanel";
-import AddCustomerForm from "./AddCustomerForm";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -77,9 +76,6 @@ export default function CustomersPage({
     null
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
-    null
-  );
   // State for search input and column visibility toggles
   const [searchQuery, setSearchQuery] = useState(searchTerm);
   useEffect(() => {
@@ -102,7 +98,6 @@ export default function CustomersPage({
   // Handler to open drawer with customer details
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setDrawerContent("details");
     setDrawerOpen(true);
   };
 
@@ -403,19 +398,17 @@ export default function CustomersPage({
         loading={false} // Update with actual loading state if needed
       />
 
-      {/* Drawer for customer details or add form */}
+      {/* Drawer for customer details */}
       <RightDrawer
         drawerOpen={drawerOpen}
         handleDrawerClose={() => setDrawerOpen(false)}
-        drawerWidth={drawerContent === "details" ? "w-[75%]" : "w-[25%]"}
+        drawerWidth="w-[75%]"
       >
         <div className="p-4">
-          {/* Drawer header based on mode */}
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Customer Details" : "Add Customer"}
+            Customer Details
           </h2>
-          {/* Conditional content: details view or add form */}
-          {drawerContent === "details" && selectedCustomer && (
+          {selectedCustomer && (
             <CustomerInfoPanel
               customer={selectedCustomer}
               onCustomerUpdated={(updated) =>
@@ -427,12 +420,6 @@ export default function CustomersPage({
                   : onArchiveCustomer || handleArchive
               }
               onClose={() => setDrawerOpen(false)}
-            />
-          )}
-          {drawerContent === "add" && (
-            <AddCustomerForm
-              onCustomerAdded={() => {}}
-              onCancel={() => setDrawerOpen(false)}
             />
           )}
         </div>

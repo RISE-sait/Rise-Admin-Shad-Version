@@ -7,6 +7,7 @@ import type { ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Trash, Save, Mail, Phone } from "lucide-react";
+import { FileText, Trash, Save, Mail, Phone, User as UserIcon } from "lucide-react";
 import StaffProfilePictureUpload from "./StaffProfilePictureUpload";
 import { useUser } from "@/contexts/UserContext";
 import {
@@ -199,11 +200,10 @@ export default function StaffForm({
 
         {/* Details Tab */}
         <TabsContent value="details" className="pt-4">
-          {/* Modern Staff Information Layout */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Header Section with Profile Picture */}
-            <Card className="border-border bg-card shadow-sm">
-              <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-start">
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="flex flex-col gap-6 pt-6 md:flex-row md:items-start">
                 <div className="flex-shrink-0">
                   {StaffData && (
                     <StaffProfilePictureUpload
@@ -268,134 +268,131 @@ export default function StaffForm({
               </CardContent>
             </Card>
 
-            {/* Form Section */}
-            <div className="space-y-10">
-              <section className="space-y-6">
-                <div className="space-y-1.5">
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Personal Information
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Update the staff member's personal details and settings.
-                  </p>
+            {/* Personal Information Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Personal Information</h3>
                 </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      First Name <span className="text-destructive">*</span>
-                    </label>
-                    <Input
-                      value={firstName}
-                      onChange={handleFirstNameChange}
-                      className="h-11"
-                      placeholder="Enter first name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Last Name <span className="text-destructive">*</span>
-                    </label>
-                    <Input
-                      value={lastName}
-                      onChange={handleLastNameChange}
-                      className="h-11"
-                      placeholder="Enter last name"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <section className="space-y-6 border-t border-border pt-6">
-                <div className="space-y-1">
-                  <h4 className="text-base font-semibold text-foreground">
-                    Contact Information
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Keep communication details up to date.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Email Address <span className="text-destructive">*</span>
-                    </label>
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={handleEmailChange}
-                      className="h-11"
-                      placeholder="Enter email address"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Phone Number
-                    </label>
-                    <Input
-                      value={phone}
-                      onChange={handlePhoneChange}
-                      className="h-11"
-                      placeholder="Enter phone number"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <section className="space-y-6 border-t border-border pt-6">
-                <div className="space-y-1">
-                  <h4 className="text-base font-semibold text-foreground">
-                    Role &amp; Status
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Control the staff member's permissions and access.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Staff Role <span className="text-destructive">*</span>
-                    </label>
-                    <Select value={role} onValueChange={setRole}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Account Status
-                    </label>
-                    <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-4">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium text-foreground">
-                          {isActive ? "Active account" : "Inactive account"}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {isActive
-                            ? "User can access the system"
-                            : "User cannot access the system"}
-                        </div>
-                      </div>
-                      <Switch
-                        checked={isActive}
-                        onCheckedChange={setIsActive}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        First Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        value={firstName}
+                        onChange={handleFirstNameChange}
+                        className="bg-background"
+                        placeholder="Enter first name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Last Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        value={lastName}
+                        onChange={handleLastNameChange}
+                        className="bg-background"
+                        placeholder="Enter last name"
                       />
                     </div>
                   </div>
                 </div>
-              </section>
-            </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Mail className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Contact Information</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={handleEmailChange}
+                        className="bg-background"
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Phone Number
+                      </label>
+                      <Input
+                        value={phone}
+                        onChange={handlePhoneChange}
+                        className="bg-background"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Role & Status Section */}
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-semibold text-lg">Role & Status</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Staff Role <span className="text-red-500">*</span>
+                      </label>
+                      <Select value={role} onValueChange={setRole}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Account Status
+                      </label>
+                      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-4">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-foreground">
+                            {isActive ? "Active account" : "Inactive account"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {isActive
+                              ? "User can access the system"
+                              : "User cannot access the system"}
+                          </div>
+                        </div>
+                        <Switch
+                          checked={isActive}
+                          onCheckedChange={setIsActive}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
@@ -409,43 +406,47 @@ export default function StaffForm({
         </TabsContent>
       </Tabs>
 
+      <Separator />
+
       {/* Action Buttons */}
-      <div className="sticky bottom-0 bg-background py-4 border-t shadow-sm z-10 mt-8">
-        <div className="px-4 md:px-6 flex justify-end gap-3">
-          <Button
-            className="bg-green-600 hover:bg-green-700"
-            onClick={(e) => UpdateStaff()}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save Changes
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              Delete Staff
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this staff member? This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={DeleteStaff}
                 className="bg-red-600 hover:bg-red-700"
               >
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this staff member? This action
-                  cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={DeleteStaff}>
-                  Confirm Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+                Confirm Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <Button
+          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          onClick={(e) => UpdateStaff()}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Save Changes
+        </Button>
       </div>
     </div>
   );
