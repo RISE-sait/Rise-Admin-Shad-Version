@@ -503,6 +503,7 @@ export interface TeamResponse {
   name?: string;
   roster?: ApiInternalDomainsTeamDtoRosterMemberInfo[];
   updated_at?: string;
+  is_external?: boolean;
 }
 
 export interface UserUpdateRequestDto {
