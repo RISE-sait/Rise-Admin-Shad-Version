@@ -5,6 +5,8 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Users, Image as ImageIcon, UserCheck, Hash } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -136,103 +139,139 @@ export default function AddTeamForm({
   // Render the minimal form layout using shadcn/ui components
   return (
     <div className="space-y-6 pt-3">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Team Name <span className="text-red-500">*</span>
-          </label>
-          <Input
-            value={data.name}
-            onChange={(e) =>
-              updateField("name", sanitizeTextInput(e.target.value))
-            }
-            type="text"
-            placeholder="Enter team name"
-            pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
-            title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Capacity</label>
-          <Input
-            value={data.capacity}
-            onChange={(e) => updateField("capacity", parseInt(e.target.value))}
-            type="number"
-            min={0}
-            placeholder="Team capacity"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Team Logo</label>
-          <div className="border-2 border-dashed rounded-lg p-6 text-center">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setLogoName(file.name);
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    setLogoData(reader.result as string);
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-              className="hidden"
-              id="team-logo-upload"
-            />
-            <label
-              htmlFor="team-logo-upload"
-              className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {logoData ? (
-                <div className="space-y-2">
-                  <p className="text-foreground font-medium">{logoName}</p>
-                  <p className="text-sm">Click to change file</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p>Click to select an image</p>
-                  <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
-                </div>
-              )}
-            </label>
+      {/* Team Details Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Team Details</h3>
           </div>
-          {logoData && (
-            <div className="flex justify-center">
-              <img src={logoData} alt="Preview" className="max-h-40 rounded" />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Team Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.name}
+                onChange={(e) =>
+                  updateField("name", sanitizeTextInput(e.target.value))
+                }
+                type="text"
+                placeholder="Enter team name"
+                pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
+                title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
+                className="bg-background"
+              />
             </div>
-          )}
-        </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Coach <span className="text-red-500">*</span>
-          </label>
-          <Select
-            value={data.coach_id}
-            onValueChange={(id) => updateField("coach_id", id)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Coach" />
-            </SelectTrigger>
-            <SelectContent>
-              {coaches.map((c) => (
-                <SelectItem key={c.ID} value={c.ID}>
-                  {c.Name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Capacity</label>
+              <Input
+                value={data.capacity}
+                onChange={(e) => updateField("capacity", parseInt(e.target.value))}
+                type="number"
+                min={0}
+                placeholder="Team capacity"
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Team Logo Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <ImageIcon className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Team Logo</h3>
+          </div>
+          <div className="space-y-2">
+            <div className="border-2 border-dashed rounded-lg p-6 text-center bg-background">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setLogoName(file.name);
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      setLogoData(reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+                id="team-logo-upload"
+              />
+              <label
+                htmlFor="team-logo-upload"
+                className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {logoData ? (
+                  <div className="space-y-2">
+                    <p className="text-foreground font-medium">{logoName}</p>
+                    <p className="text-sm">Click to change file</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p>Click to select an image</p>
+                    <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
+                  </div>
+                )}
+              </label>
+            </div>
+            {logoData && (
+              <div className="flex justify-center">
+                <img src={logoData} alt="Preview" className="max-h-40 rounded" />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Coach Assignment Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <UserCheck className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Coach Assignment</h3>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Coach <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={data.coach_id}
+              onValueChange={(id) => updateField("coach_id", id)}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Select Coach" />
+              </SelectTrigger>
+              <SelectContent>
+                {coaches.map((c) => (
+                  <SelectItem key={c.ID} value={c.ID}>
+                    {c.Name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="pt-2">
+        <Button
+          onClick={handleAddTeam}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Users className="h-5 w-5 mr-2" />
+          Create Team
+        </Button>
       </div>
-
-      <Button onClick={handleAddTeam} className="w-full">
-        Add Team
-      </Button>
     </div>
   );
 }

@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { SaveIcon, TrashIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { SaveIcon, TrashIcon, Users, Image as ImageIcon, UserCheck } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ import { updateTeam, deleteTeam } from "@/services/teams";
 import { revalidateTeams } from "@/actions/serverActions";
 import { Team } from "@/types/team";
 import { TeamRequestDto } from "@/app/api/Api";
+import { StaffRoleEnum } from "@/types/user";
 import {
   sanitizeTextInput,
   TEAM_TEXT_INPUT_PATTERN,
@@ -133,85 +135,114 @@ export default function TeamInfoPanel({
   return (
     <>
       <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Team Name</label>
-            <Input
-              value={name}
-              onChange={(e) => setName(sanitizeTextInput(e.target.value))}
-              pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
-              title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Capacity</label>
-            <Input
-              type="number"
-              min={0}
-              value={capacity}
-              onChange={(e) => setCapacity(parseInt(e.target.value))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Team Logo</label>
-            <div className="border-2 border-dashed rounded-lg p-6 text-center">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setLogoName(file.name);
-                    const reader = new FileReader();
-                    reader.onload = () =>
-                      setLogoPreview(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                className="hidden"
-                id="team-logo-edit"
-              />
-              <label
-                htmlFor="team-logo-edit"
-                className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {logoPreview ? (
-                  <div className="space-y-2">
-                    <p className="text-foreground font-medium">
-                      {logoName || "Image selected"}
-                    </p>
-                    <p className="text-sm">Click to change file</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p>Click to select an image</p>
-                    <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
-                  </div>
-                )}
-              </label>
+        {/* Team Details Section */}
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="h-5 w-5 text-yellow-500" />
+              <h3 className="font-semibold text-lg">Team Details</h3>
             </div>
-            {logoPreview && (
-              <div className="flex justify-center">
-                <img
-                  src={logoPreview}
-                  alt="Preview"
-                  className="max-h-40 rounded"
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Team Name</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(sanitizeTextInput(e.target.value))}
+                  pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
+                  title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
+                  className="bg-background"
                 />
               </div>
-            )}
-          </div>
-
-          {!team.is_external && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Coach</label>
-              <p className="border rounded-md px-3 py-2">
-                {team.coach_name || "-"}
-              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Capacity</label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={capacity}
+                  onChange={(e) => setCapacity(parseInt(e.target.value))}
+                  className="bg-background"
+                />
+              </div>
             </div>
-          )}
-        </div>
-        {!team.is_external && roster && (
+          </CardContent>
+        </Card>
+
+        {/* Team Logo Section */}
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <ImageIcon className="h-5 w-5 text-yellow-500" />
+              <h3 className="font-semibold text-lg">Team Logo</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="border-2 border-dashed rounded-lg p-6 text-center bg-background">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setLogoName(file.name);
+                      const reader = new FileReader();
+                      reader.onload = () =>
+                        setLogoPreview(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="hidden"
+                  id="team-logo-edit"
+                />
+                <label
+                  htmlFor="team-logo-edit"
+                  className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {logoPreview ? (
+                    <div className="space-y-2">
+                      <p className="text-foreground font-medium">
+                        {logoName || "Image selected"}
+                      </p>
+                      <p className="text-sm">Click to change file</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p>Click to select an image</p>
+                      <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
+                    </div>
+                  )}
+                </label>
+              </div>
+              {logoPreview && (
+                <div className="flex justify-center">
+                  <img
+                    src={logoPreview}
+                    alt="Preview"
+                    className="max-h-40 rounded"
+                  />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {!team.is_external && (
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <UserCheck className="h-5 w-5 text-yellow-500" />
+                <h3 className="font-semibold text-lg">Coach Assignment</h3>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Coach</label>
+                <p className="border rounded-md px-3 py-2 bg-background">
+                  {team.coach_name || "-"}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {!team.is_external &&
+          roster &&
+          user?.Role !== StaffRoleEnum.COACH && (
           <div>
             <Separator className="my-2" />
             <div className="mt-4 rounded-md border border-yellow-500 p-4 shadow">
@@ -240,20 +271,16 @@ export default function TeamInfoPanel({
             </div>
           </div>
         )}
-        <div className="flex items-center justify-end gap-3">
-          <Button
-            onClick={handleSave}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
-          </Button>
+        <Separator />
+
+        <div className="flex items-center justify-end gap-3 pt-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                variant="destructive"
-                className="bg-red-600 hover:bg-red-700"
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                <TrashIcon className="h-4 w-4 mr-2" /> Delete
+                <TrashIcon className="h-4 w-4 mr-2" /> Delete Team
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -266,12 +293,21 @@ export default function TeamInfoPanel({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
                   Confirm Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          <Button
+            onClick={handleSave}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
+          </Button>
         </div>
       </div>
       <RightDrawer
