@@ -4,6 +4,7 @@ import { Team } from "@/types/team";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const columns: ColumnDef<Team>[] = [
   {
@@ -55,6 +56,25 @@ const columns: ColumnDef<Team>[] = [
     cell: ({ row }) => row.getValue("coach_name") || "-",
     minSize: 180,
     size: 200,
+  },
+  {
+    id: "is_external",
+    accessorKey: "is_external",
+    header: "External",
+    cell: ({ row }) => {
+      const isExternal = row.getValue("is_external") as boolean | undefined;
+      return isExternal ? (
+        <Badge variant="outline" className="rounded-full">
+          External
+        </Badge>
+      ) : (
+        <Badge variant="secondary" className="rounded-full">
+          Internal
+        </Badge>
+      );
+    },
+    minSize: 100,
+    size: 120,
   },
   {
     id: "updated_at",

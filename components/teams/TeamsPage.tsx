@@ -14,8 +14,10 @@ import RightDrawer from "@/components/reusable/RightDrawer";
 import TeamTable from "./table/TeamTable";
 import TeamInfoPanel from "./TeamInfoPanel";
 import AddTeamForm from "./AddTeamForm";
+import AddExternalTeamForm from "./AddExternalTeamForm";
 import { Team } from "@/types/team";
 import { getTeamById } from "@/services/teams";
+import { StaffRoleEnum } from "@/types/user";
 import { VisibilityState } from "@tanstack/react-table";
 import {
   sanitizeTextInput,
@@ -144,7 +146,11 @@ export default function TeamsPage({
       >
         <div className="p-4">
           <h2 className="text-2xl font-bold tracking-tight mb-4">
-            {drawerContent === "details" ? "Team Details" : "Add Team"}
+            {drawerContent === "details"
+              ? "Team Details"
+              : user?.Role === StaffRoleEnum.COACH
+                ? "Add External Team"
+                : "Add Team"}
           </h2>
           {drawerContent === "details" && selectedTeam && (
             <TeamInfoPanel
@@ -154,10 +160,19 @@ export default function TeamsPage({
             />
           )}
           {drawerContent === "add" && (
-            <AddTeamForm
-              onClose={() => setDrawerOpen(false)}
-              onTeamAdded={refreshTeams}
-            />
+            <>
+              {user?.Role === StaffRoleEnum.COACH ? (
+                <AddExternalTeamForm
+                  onClose={() => setDrawerOpen(false)}
+                  onTeamAdded={refreshTeams}
+                />
+              ) : (
+                <AddTeamForm
+                  onClose={() => setDrawerOpen(false)}
+                  onTeamAdded={refreshTeams}
+                />
+              )}
+            </>
           )}
         </div>
       </RightDrawer>

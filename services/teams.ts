@@ -27,6 +27,7 @@ export async function getAllTeams(): Promise<Team[]> {
       coach_id: team.coach?.id!,
       coach_name: team.coach?.name || "",
       logo_url: team.logo_url || "",
+      is_external: team.is_external || false,
     }));
   } catch (error) {
     console.error("Error fetching teams:", error);
@@ -59,6 +60,7 @@ export async function getUserTeams(jwt: string): Promise<Team[]> {
       coach_id: team.coach?.id!,
       coach_name: team.coach?.name || "",
       logo_url: team.logo_url || "",
+      is_external: team.is_external || false,
     }));
   } catch (error) {
     console.error("Error fetching teams:", error);
@@ -92,6 +94,7 @@ export async function getTeamById(id: string, jwt: string): Promise<Team> {
       updated_at: new Date(data.updated_at!),
       logo_url: data.logo_url || "",
       roster: data.roster,
+      is_external: data.is_external || false,
     };
   } catch (error) {
     console.error("Error fetching team:", error);
@@ -257,6 +260,77 @@ export async function deleteTeam(
     return null;
   } catch (error) {
     console.error(`Error deleting team ${teamId}:`, error);
+    throw error;
+  }
+}
+
+// External teams functions for coaches
+export async function getAllExternalTeams(jwt: string): Promise<Team[]> {
+  try {
+    const response = await fetch(`${getValue("API")}teams/external`, {
+      ...addAuthHeader(jwt),
+      cache: "no-store",
+    });
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get external teams: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return (responseJSON as TeamResponse[]).map((team) => ({
+      id: team.id!,
+      name: team.name!,
+      created_at: new Date(team.created_at!),
+      updated_at: new Date(team.updated_at!),
+      capacity: team.capacity!,
+      coach_id: team.coach?.id,
+      coach_name: team.coach?.name || "",
+      logo_url: team.logo_url || "",
+      is_external: team.is_external,
+      roster: team.roster,
+    }));
+  } catch (error) {
+    console.error("Error fetching external teams:", error);
+    throw error;
+  }
+}
+
+export interface ExternalTeamRequestDto {
+  capacity: number;
+  logo_url?: string;
+  name: string;
+}
+
+export async function createExternalTeam(
+  teamData: ExternalTeamRequestDto,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}teams/external`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(teamData),
+    });
+
+    if (!response.ok) {
+      const responseJSON = await response.json().catch(() => ({}));
+      let errorMessage = `Failed to create external team: ${response.statusText}`;
+      if (responseJSON.error) {
+        errorMessage = responseJSON.error.message;
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error creating external team:", error);
     throw error;
   }
 }

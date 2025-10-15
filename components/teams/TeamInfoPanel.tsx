@@ -202,14 +202,16 @@ export default function TeamInfoPanel({
             )}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Coach</label>
-            <p className="border rounded-md px-3 py-2">
-              {team.coach_name || "-"}
-            </p>
-          </div>
+          {!team.is_external && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Coach</label>
+              <p className="border rounded-md px-3 py-2">
+                {team.coach_name || "-"}
+              </p>
+            </div>
+          )}
         </div>
-        {roster && (
+        {!team.is_external && roster && (
           <div>
             <Separator className="my-2" />
             <div className="mt-4 rounded-md border border-yellow-500 p-4 shadow">
