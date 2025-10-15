@@ -2,7 +2,7 @@
 
 import TeamsPage from "@/components/teams/TeamsPage";
 import RoleProtected from "@/components/RoleProtected";
-import { getUserTeams } from "@/services/teams";
+import { getUserTeams, getAllExternalTeams } from "@/services/teams";
 import { StaffRoleEnum } from "@/types/user";
 import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
@@ -15,8 +15,15 @@ export default function Page() {
   const fetchTeams = useCallback(async () => {
     try {
       if (user?.Jwt) {
-        const data = await getUserTeams(user.Jwt);
-        setTeams(data);
+        // Fetch both regular teams and external teams
+        const [regularTeams, externalTeams] = await Promise.all([
+          getUserTeams(user.Jwt),
+          getAllExternalTeams(user.Jwt).catch(() => []), // If external teams fail, return empty array
+        ]);
+
+        // Combine both arrays
+        const allTeams = [...regularTeams, ...externalTeams];
+        setTeams(allTeams);
       }
     } catch (error) {
       console.error("Failed to fetch teams", error);

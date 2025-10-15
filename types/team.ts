@@ -10,4 +10,5 @@ export type Team = {
   created_at: Date;
   updated_at: Date;
   roster?: ApiInternalDomainsTeamDtoRosterMemberInfo[];
+  is_external?: boolean;
 };
