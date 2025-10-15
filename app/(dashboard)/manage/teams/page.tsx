@@ -15,14 +15,8 @@ export default function Page() {
   const fetchTeams = useCallback(async () => {
     try {
       if (user?.Jwt) {
-        // Fetch both regular teams and external teams
-        const [regularTeams, externalTeams] = await Promise.all([
-          getUserTeams(user.Jwt),
-          getAllExternalTeams(user.Jwt).catch(() => []), // If external teams fail, return empty array
-        ]);
-
-        // Combine both arrays
-        const allTeams = [...regularTeams, ...externalTeams];
+        // Fetch teams - getUserTeams already includes external teams
+        const allTeams = await getUserTeams(user.Jwt);
         setTeams(allTeams);
       }
     } catch (error) {

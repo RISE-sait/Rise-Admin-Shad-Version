@@ -112,8 +112,8 @@ export default function RosterEditor({
 
   // Handler for closing the editor: revalidate and call onClose prop
   const handleClose = async () => {
+    onRosterChange?.(members); // Notify parent of roster change first
     await revalidateTeams(); // Refresh server data
-    onRosterChange?.(members); // Notify parent of roster change
     onClose(); // Close the editor
   };
 

@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar, MapPin, Clock, Users } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -30,7 +40,6 @@ export default function AddGameForm({
     court_id: "",
     start_time: "",
     end_time: "",
-    status: "scheduled" as "scheduled" | "completed" | "canceled",
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -87,7 +96,7 @@ export default function AddGameForm({
       court_id: data.court_id ? data.court_id : null,
       start_time: toZonedISOString(new Date(data.start_time)),
       end_time: toZonedISOString(new Date(data.end_time)),
-      status: data.status,
+      status: "scheduled" as const,
     };
 
     const error = await createGame(gameData, user?.Jwt!);
@@ -108,113 +117,159 @@ export default function AddGameForm({
 
   return (
     <div className="space-y-6 pt-3">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Home Team</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.home_team_id}
-            onChange={(e) => updateField("home_team_id", e.target.value)}
-          >
-            <option value="" disabled>
-              Select team
-            </option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Away Team</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.away_team_id}
-            onChange={(e) => updateField("away_team_id", e.target.value)}
-          >
-            <option value="" disabled>
-              Select team
-            </option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Location</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.location_id}
-            onChange={(e) => {
-              updateField("location_id", e.target.value);
-              updateField("court_id", "");
-            }}
-          >
-            <option value="" disabled>
-              Select location
-            </option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Court (optional)</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.court_id}
-            onChange={(e) => updateField("court_id", e.target.value)}
-          >
-            <option value="">Select court</option>
-            {filteredCourts.map((court) => (
-              <option key={court.id} value={court.id}>
-                {court.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Start Time</label>
-          <Input
-            value={data.start_time}
-            onChange={(e) => updateField("start_time", e.target.value)}
-            type="datetime-local"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">End Time</label>
-          <Input
-            value={data.end_time}
-            onChange={(e) => updateField("end_time", e.target.value)}
-            type="datetime-local"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Status</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.status}
-            onChange={(e) =>
-              updateField(
-                "status",
-                e.target.value as "scheduled" | "completed" | "canceled"
-              )
-            }
-          >
-            <option value="scheduled">Scheduled</option>
-            <option value="completed">Completed</option>
-            <option value="canceled">Canceled</option>
-          </select>
-        </div>
+      {/* Teams Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Teams</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Home Team <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.home_team_id}
+                onValueChange={(value) => updateField("home_team_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select home team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Away Team <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.away_team_id}
+                onValueChange={(value) => updateField("away_team_id", value)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select away team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Location Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Venue Details</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Location <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.location_id}
+                onValueChange={(value) => {
+                  updateField("location_id", value);
+                  updateField("court_id", "");
+                }}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Court (Optional)
+              </label>
+              <Select
+                value={data.court_id}
+                onValueChange={(value) => updateField("court_id", value)}
+                disabled={!data.location_id || filteredCourts.length === 0}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder={!data.location_id ? "Select location first" : filteredCourts.length === 0 ? "No courts available" : "Select court"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCourts.map((court) => (
+                    <SelectItem key={court.id} value={court.id}>
+                      {court.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Schedule Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Start Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.start_time}
+                onChange={(e) => updateField("start_time", e.target.value)}
+                type="datetime-local"
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                End Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.end_time}
+                onChange={(e) => updateField("end_time", e.target.value)}
+                type="datetime-local"
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="pt-2">
+        <Button
+          onClick={handleAddGame}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+        >
+          <Calendar className="h-5 w-5 mr-2" />
+          Create Game
+        </Button>
       </div>
-      <Button onClick={handleAddGame} className="w-full">
-        Add Game
-      </Button>
     </div>
   );
 }
