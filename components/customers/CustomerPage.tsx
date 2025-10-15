@@ -168,8 +168,7 @@ export default function CustomersPage({
   const handleExport = async () => {
     if (!user) {
       toast({
-        variant: "destructive",
-        title: "Error",
+        status: "error",
         description: "You must be logged in to export customers",
       });
       return;
@@ -197,7 +196,7 @@ export default function CustomersPage({
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Success",
+        status: "success",
         description: "Customers exported successfully",
       });
     } catch (error) {
@@ -207,8 +206,7 @@ export default function CustomersPage({
         stack: error instanceof Error ? error.stack : undefined,
       });
       toast({
-        variant: "destructive",
-        title: "Export Failed",
+        status: "error",
         description: error instanceof Error ? error.message : "Failed to export customers",
       });
     } finally {
