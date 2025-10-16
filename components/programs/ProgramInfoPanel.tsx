@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DetailsForm from "./infoTabs/Details";
 import ScheduleTab from "./infoTabs/Schedules";
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { uploadProgramPhoto } from "@/services/upload";
 
 interface ProgramInfoPanelProps {
   program: Program;
@@ -37,8 +38,31 @@ export default function ProgramInfoPanel({
 }: ProgramInfoPanelProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
+  const [photoPreview, setPhotoPreview] = useState<string>(
+    program.photo_url || ""
+  );
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoName, setPhotoName] = useState<string>("");
 
   const { user } = useUser();
+
+  useEffect(() => {
+    setPhotoPreview(program.photo_url || "");
+    setPhotoFile(null);
+    setPhotoName("");
+  }, [program.id, program.photo_url]);
+
+  const handlePhotoChange = (file: File | null, previewUrl: string | null) => {
+    if (file && previewUrl) {
+      setPhotoFile(file);
+      setPhotoPreview(previewUrl);
+      setPhotoName(file.name);
+    } else {
+      setPhotoFile(null);
+      setPhotoPreview(program.photo_url || "");
+      setPhotoName("");
+    }
+  };
 
   const handleDeleteProgram = async () => {
     try {
@@ -75,12 +99,40 @@ export default function ProgramInfoPanel({
     capacity: number
   ) {
     try {
+      let photoUrlToPersist = program.photo_url || "";
+
+      if (photoFile) {
+        try {
+          const uploadedUrl = await uploadProgramPhoto(
+            photoFile,
+            program.id,
+            user?.Jwt!
+          );
+          photoUrlToPersist = uploadedUrl;
+          setPhotoPreview(uploadedUrl);
+          setPhotoFile(null);
+          setPhotoName("");
+        } catch (error) {
+          console.error("Error uploading program photo:", error);
+          toast({
+            status: "error",
+            description:
+              error instanceof Error
+                ? `Failed to upload program photo: ${error.message}`
+                : "Failed to upload program photo.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const programData: ProgramRequestDto = {
         name,
         description,
         level,
         type,
         capacity: capacity || 0,
+        photo_url: photoUrlToPersist || undefined,
       };
 
       const error = await updateProgram(program.id, programData, user?.Jwt!);
@@ -130,6 +182,9 @@ export default function ProgramInfoPanel({
             saveAction={handleSaveAll}
             program={program}
             levels={levels}
+            photoUrl={photoPreview}
+            photoName={photoName}
+            onPhotoChange={handlePhotoChange}
             DeleteButton={
               <AlertDialog>
                 <AlertDialogTrigger asChild>

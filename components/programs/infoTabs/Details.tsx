@@ -11,10 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { SaveIcon, FileText, Hash, Layers } from "lucide-react";
+import { SaveIcon, FileText, Layers, ImageIcon } from "lucide-react";
 import { Program } from "@/types/program";
 import { useForm } from "react-hook-form";
-import { JSX } from "react";
+import { JSX, ChangeEvent } from "react";
 import {
   PROGRAM_TEXT_INPUT_MESSAGE,
   PROGRAM_TEXT_INPUT_PATTERN,
@@ -28,6 +28,9 @@ export default function DetailsForm({
   program,
   levels,
   DeleteButton,
+  photoUrl,
+  photoName,
+  onPhotoChange,
 }: {
   saveAction: (
     name: string,
@@ -39,6 +42,9 @@ export default function DetailsForm({
   program: Omit<Program, "id" | "created_at" | "updated_at">;
   levels: string[];
   DeleteButton?: JSX.Element;
+  photoUrl?: string;
+  photoName?: string;
+  onPhotoChange?: (file: File | null, previewUrl: string | null) => void;
 }) {
   const {
     register,
@@ -59,6 +65,26 @@ export default function DetailsForm({
 
   const currentType = watch("type");
   const currentLevel = watch("level");
+
+  const handlePhotoInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!onPhotoChange) {
+      return;
+    }
+
+    const file = event.target.files?.[0] || null;
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        onPhotoChange(file, reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      onPhotoChange(null, null);
+    }
+
+    event.target.value = "";
+  };
 
   const handleSubmit = async () => {
     const isValid = await trigger(["name", "description"]);
@@ -97,7 +123,9 @@ export default function DetailsForm({
                     message: PROGRAM_TEXT_INPUT_MESSAGE,
                   },
                   onChange: (event) => {
-                    const sanitizedValue = sanitizeProgramText(event.target.value);
+                    const sanitizedValue = sanitizeProgramText(
+                      event.target.value
+                    );
                     if (sanitizedValue !== event.target.value) {
                       event.target.value = sanitizedValue;
                     }
@@ -127,9 +155,12 @@ export default function DetailsForm({
                     message: PROGRAM_TEXT_INPUT_MESSAGE,
                   },
                   onChange: (event) => {
-                    const sanitizedValue = sanitizeProgramText(event.target.value, {
-                      allowNewLines: true,
-                    });
+                    const sanitizedValue = sanitizeProgramText(
+                      event.target.value,
+                      {
+                        allowNewLines: true,
+                      }
+                    );
                     if (sanitizedValue !== event.target.value) {
                       event.target.value = sanitizedValue;
                     }
@@ -145,6 +176,53 @@ export default function DetailsForm({
                 </p>
               )}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <ImageIcon className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Program Photo</h3>
+          </div>
+          <div className="space-y-2">
+            <div className="border-2 border-dashed rounded-lg p-6 text-center bg-background">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoInputChange}
+                className="hidden"
+                id="program-photo-upload"
+              />
+              <label
+                htmlFor="program-photo-upload"
+                className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {photoUrl ? (
+                  <div className="space-y-2">
+                    <p className="text-foreground font-medium">
+                      {photoName || "Image selected"}
+                    </p>
+                    <p className="text-sm">Click to change file</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p>Click to select an image</p>
+                    <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
+                  </div>
+                )}
+              </label>
+            </div>
+            {photoUrl && (
+              <div className="flex justify-center">
+                <img
+                  src={photoUrl}
+                  alt="Program photo preview"
+                  className="max-h-40 rounded object-cover"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
