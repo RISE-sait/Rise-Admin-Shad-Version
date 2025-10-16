@@ -1,15 +1,19 @@
 import { Program } from "@/types/program";
 import { addAuthHeader } from "@/lib/auth-header";
 import getValue from "@/configs/constants";
-import { ProgramLevelsResponse, ProgramRequestDto, ProgramResponse } from "@/app/api/Api";
+import {
+  ProgramLevelsResponse,
+  ProgramRequestDto,
+  ProgramResponse,
+} from "@/app/api/Api";
 
 export async function getAllPrograms(type?: string): Promise<Program[]> {
   try {
-    const queryParams = type && type !== "all" ? `?type=${type}` : '';
+    const queryParams = type && type !== "all" ? `?type=${type}` : "";
 
-    const response = await fetch(`${getValue("API")}programs${queryParams}`)
+    const response = await fetch(`${getValue("API")}programs${queryParams}`);
 
-    const responseJSON = await response.json()
+    const responseJSON = await response.json();
 
     if (!response.ok) {
       let errorMessage = `Failed to get programs: ${response.statusText}`;
@@ -19,20 +23,23 @@ export async function getAllPrograms(type?: string): Promise<Program[]> {
       throw new Error(errorMessage);
     }
 
-    const programs: Program[] = (responseJSON as ProgramResponse[]).map((program) => ({
-      id: program.id!,
-      name: program.name!,
-      description: program.description || "",
-      level: program.level || "",
-      type: program.type || "",
-      capacity: program.capacity || 0,
-      created_at: program.created_at || "",
-      updated_at: program.updated_at || "",
-    }))
+    const programs: Program[] = (responseJSON as ProgramResponse[]).map(
+      (program) => ({
+        id: program.id!,
+        name: program.name!,
+        description: program.description || "",
+        level: program.level || "",
+        type: program.type || "",
+        capacity: program.capacity || 0,
+        created_at: program.created_at || "",
+        updated_at: program.updated_at || "",
+        photo_url: program.photo_url || undefined,
+      })
+    );
 
-    return programs
+    return programs;
   } catch (error) {
-    console.error('Error fetching programs:', error);
+    console.error("Error fetching programs:", error);
     throw error;
   }
 }
@@ -42,9 +49,9 @@ export async function getAllPrograms(type?: string): Promise<Program[]> {
  */
 export async function getAllProgramLevels(): Promise<string[]> {
   try {
-    const response = await fetch(`${getValue("API")}programs/levels`)
+    const response = await fetch(`${getValue("API")}programs/levels`);
 
-    const responseJSON = await response.json()
+    const responseJSON = await response.json();
 
     if (!response.ok) {
       let errorMessage = `Failed to get program levels: ${response.statusText}`;
@@ -54,9 +61,9 @@ export async function getAllProgramLevels(): Promise<string[]> {
       throw new Error(errorMessage);
     }
 
-    return (responseJSON as ProgramLevelsResponse).levels!
+    return (responseJSON as ProgramLevelsResponse).levels!;
   } catch (error) {
-    console.error('Error fetching program levels:', error);
+    console.error("Error fetching program levels:", error);
     throw error;
   }
 }
@@ -64,30 +71,50 @@ export async function getAllProgramLevels(): Promise<string[]> {
 /**
  * Create a new program
  */
-export async function createProgram(programData: ProgramRequestDto, jwt: string): Promise<string | null> {
+export async function createProgram(
+  programData: ProgramRequestDto,
+  jwt: string
+): Promise<{ error: string | null; program?: ProgramResponse }> {
   try {
-
     const response = await fetch(`${getValue("API")}programs`, {
-      method: 'POST',
+      method: "POST",
       ...addAuthHeader(jwt),
-      body: JSON.stringify(programData)
+      body: JSON.stringify(programData),
     });
 
+    const responseText = await response.text();
+    let responseJSON: any = undefined;
+
+    if (responseText) {
+      try {
+        responseJSON = JSON.parse(responseText);
+      } catch (parseError) {
+        console.warn(
+          "Unable to parse createProgram response JSON:",
+          parseError
+        );
+      }
+    }
+
     if (!response.ok) {
-      const responseJSON = await response.json();
       let errorMessage = `Failed to create program: ${response.statusText}`;
 
-      if (responseJSON.error) {
+      if (responseJSON?.error) {
         errorMessage = responseJSON.error.message;
       }
 
-      return errorMessage;
+      return { error: errorMessage };
     }
 
-    return null;
+    return {
+      error: null,
+      program: responseJSON as ProgramResponse | undefined,
+    };
   } catch (error) {
-    console.error('Error creating program:', error);
-    return error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("Error creating program:", error);
+    return {
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
   }
 }
 
@@ -96,14 +123,28 @@ export async function createProgram(programData: ProgramRequestDto, jwt: string)
  */
 export async function getProgramById(id: string): Promise<Program | null> {
   try {
-    const response = await fetch(`${getValue("API")}programs/${id}`)
+    const response = await fetch(`${getValue("API")}programs/${id}`);
 
     if (!response.ok) {
-      console.error(`Failed to fetch program: ${response.status} ${response.statusText}`);
+      console.error(
+        `Failed to fetch program: ${response.status} ${response.statusText}`
+      );
       return null;
     }
 
-    return await response.json();
+    const program = (await response.json()) as ProgramResponse;
+
+    return {
+      id: program.id || "",
+      name: program.name || "",
+      description: program.description || "",
+      level: program.level || "",
+      type: program.type || "",
+      capacity: program.capacity || 0,
+      created_at: program.created_at || "",
+      updated_at: program.updated_at || "",
+      photo_url: program.photo_url || undefined,
+    };
   } catch (error) {
     console.error(`Error fetching program ${id}:`, error);
     return null;
@@ -113,12 +154,16 @@ export async function getProgramById(id: string): Promise<Program | null> {
 /**
  * Update a program
  */
-export async function updateProgram(id: string, programData: ProgramRequestDto, jwt: string): Promise<string | null> {
+export async function updateProgram(
+  id: string,
+  programData: ProgramRequestDto,
+  jwt: string
+): Promise<string | null> {
   try {
     const response = await fetch(`${getValue("API")}programs/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       ...addAuthHeader(jwt),
-      body: JSON.stringify(programData)
+      body: JSON.stringify(programData),
     });
 
     if (!response.ok) {
@@ -134,18 +179,21 @@ export async function updateProgram(id: string, programData: ProgramRequestDto, 
 
     return null;
   } catch (error) {
-    console.error('Error updating program:', error);
-    return error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("Error updating program:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
   }
 }
 
 /**
  * Delete a program
  */
-export async function deleteProgram(id: string, jwt: string): Promise<string | null> {
+export async function deleteProgram(
+  id: string,
+  jwt: string
+): Promise<string | null> {
   try {
     const response = await fetch(`${getValue("API")}programs/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       ...addAuthHeader(jwt),
     });
 
@@ -162,7 +210,7 @@ export async function deleteProgram(id: string, jwt: string): Promise<string | n
 
     return null;
   } catch (error) {
-    console.error('Error deleting program:', error);
-    return error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("Error deleting program:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
   }
 }

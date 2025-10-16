@@ -1,4 +1,5 @@
 import { Program } from "@/types/program";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -27,6 +28,37 @@ const getProgramTypeColor = (type: string) => {
 };
 
 const columns: ColumnDef<Program>[] = [
+  {
+    id: "photo_url",
+    accessorKey: "photo_url",
+    header: () => <span className="sr-only">Photo</span>,
+    cell: ({ row }) => {
+      const program = row.original;
+      const photoUrl = row.getValue("photo_url") as string | undefined;
+      const initials = program.name
+        ?.split(" ")
+        .map((part) => part.charAt(0))
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+      return (
+        <div className="flex justify-center">
+          <Avatar className="h-10 w-10">
+            {photoUrl ? (
+              <AvatarImage src={photoUrl} alt={`${program.name} thumbnail`} />
+            ) : (
+              <AvatarFallback>{initials || "P"}</AvatarFallback>
+            )}
+          </Avatar>
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+    minSize: 70,
+    size: 70,
+  },
   {
     id: "name",
     accessorKey: "name",

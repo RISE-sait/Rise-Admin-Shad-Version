@@ -419,6 +419,7 @@ export interface ProgramRequestDto {
   level: string;
   name: string;
   type: string;
+  photo_url?: string;
 }
 
 export interface ProgramResponse {
@@ -428,6 +429,7 @@ export interface ProgramResponse {
   id?: string;
   level?: string;
   name?: string;
+  photo_url?: string;
   type?: string;
   updated_at?: string;
 }
