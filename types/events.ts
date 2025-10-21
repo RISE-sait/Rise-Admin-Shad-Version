@@ -15,6 +15,7 @@ export interface Event {
     name: string;
   };
   capacity: number;
+  required_membership_plan_ids?: string[];
   created_by: Person;
   updated_by: Person;
   start_at: Date;
@@ -79,7 +80,7 @@ export interface EventCreateRequest {
   capacity?: number;
   credit_cost?: number;
   price_id?: string;
-  required_membership_plan_id?: string;
+  required_membership_plan_ids?: string[];
 }
 
 export interface EventRecurrenceCreateRequest {
@@ -95,5 +96,5 @@ export interface EventRecurrenceCreateRequest {
   capacity?: number;
   credit_cost?: number;
   price_id?: string;
-  required_membership_plan_id?: string;
+  required_membership_plan_ids?: string[];
 }

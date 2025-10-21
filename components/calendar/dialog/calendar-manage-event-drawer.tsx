@@ -29,7 +29,7 @@ import {
   CreditCard,
   DollarSign,
   Award,
-  Trophy
+  Trophy,
 } from "lucide-react";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
@@ -65,21 +65,18 @@ export default function CalendarManageEventDrawer() {
   const [membershipPlans, setMembershipPlans] = useState<
     MembershipPlanWithMembershipName[]
   >([]);
-  const [fullEventData, setFullEventData] = useState<EventParticipant[] | null>(null);
+  const [fullEventData, setFullEventData] = useState<EventParticipant[] | null>(
+    null
+  );
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
-  const requiredMembershipPlanLabel = selectedEvent?.required_membership_plan_id
-    ? (() => {
-        const plan = membershipPlans.find(
-          (item) => item.id === selectedEvent.required_membership_plan_id
-        );
-
-        if (!plan) {
-          return undefined;
-        }
-
-        return `${plan.membershipName} – ${plan.name}`;
-      })()
-    : undefined;
+  const membershipPlanDisplayValues =
+    selectedEvent?.required_membership_plan_ids?.map((planId) => {
+      const plan = membershipPlans.find((item) => item.id === planId);
+      return {
+        id: planId,
+        label: plan ? `${plan.membershipName} – ${plan.name}` : planId,
+      };
+    }) ?? [];
 
   const eventType = selectedEvent?.program?.type?.toLowerCase();
   const eventTypeLabel = eventType
@@ -283,12 +280,15 @@ export default function CalendarManageEventDrawer() {
                           <div>
                             <p className="text-sm font-medium">Date</p>
                             <p className="text-sm text-muted-foreground">
-                              {selectedEvent.start_at.toLocaleDateString("en-US", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
+                              {selectedEvent.start_at.toLocaleDateString(
+                                "en-US",
+                                {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
                             </p>
                           </div>
                         </div>
@@ -297,15 +297,21 @@ export default function CalendarManageEventDrawer() {
                           <div>
                             <p className="text-sm font-medium">Time</p>
                             <p className="text-sm text-muted-foreground">
-                              {selectedEvent.start_at.toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}{" "}
+                              {selectedEvent.start_at.toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}{" "}
                               -{" "}
-                              {selectedEvent.end_at.toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {selectedEvent.end_at.toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
                             </p>
                           </div>
                         </div>
@@ -363,19 +369,23 @@ export default function CalendarManageEventDrawer() {
                   {/* Payment & Access Card (if applicable) */}
                   {(selectedEvent.credit_cost != null ||
                     selectedEvent.price_id ||
-                    selectedEvent.required_membership_plan_id) && (
+                    selectedEvent.required_membership_plan_ids?.length) && (
                     <Card className="border-l-4 border-l-yellow-500">
                       <CardContent className="pt-6">
                         <div className="flex items-center gap-2 mb-4">
                           <CreditCard className="h-5 w-5 text-yellow-500" />
-                          <h3 className="font-semibold text-lg">Payment & Access</h3>
+                          <h3 className="font-semibold text-lg">
+                            Payment & Access
+                          </h3>
                         </div>
                         <div className="space-y-3">
                           {selectedEvent.credit_cost != null && (
                             <div className="flex items-start gap-3">
                               <Trophy className="h-4 w-4 text-muted-foreground mt-1" />
                               <div>
-                                <p className="text-sm font-medium">Credit Cost</p>
+                                <p className="text-sm font-medium">
+                                  Credit Cost
+                                </p>
                                 <p className="text-sm text-muted-foreground">
                                   {selectedEvent.credit_cost} credits
                                 </p>
@@ -393,17 +403,21 @@ export default function CalendarManageEventDrawer() {
                               </div>
                             </div>
                           )}
-                          {selectedEvent.required_membership_plan_id && (
+                          {selectedEvent.required_membership_plan_ids
+                            ?.length && (
                             <div className="flex items-start gap-3">
                               <Award className="h-4 w-4 text-muted-foreground mt-1" />
-                              <div>
+                              <div className="space-y-1">
                                 <p className="text-sm font-medium">
-                                  Required Membership
+                                  Required Memberships
                                 </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {requiredMembershipPlanLabel ||
-                                    selectedEvent.required_membership_plan_id}
-                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {membershipPlanDisplayValues.map((plan) => (
+                                    <Badge key={plan.id} variant="secondary">
+                                      {plan.label}
+                                    </Badge>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           )}
@@ -455,7 +469,9 @@ export default function CalendarManageEventDrawer() {
                   <Card className="border-l-4 border-l-yellow-500">
                     <CardContent className="pt-6">
                       <div className="text-center py-12">
-                        <p className="text-sm text-muted-foreground">Loading customers...</p>
+                        <p className="text-sm text-muted-foreground">
+                          Loading customers...
+                        </p>
                       </div>
                     </CardContent>
                   </Card>

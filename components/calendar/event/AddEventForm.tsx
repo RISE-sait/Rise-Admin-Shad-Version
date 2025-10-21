@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -12,9 +13,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Calendar, MapPin, Clock, Users, Trophy, CreditCard, Award, Info } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  Users,
+  Trophy,
+  CreditCard,
+  Award,
+  Info,
+} from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -78,7 +95,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     capacity: 0,
     credit_cost: "",
     price_id: "",
-    required_membership_plan_id: "",
+    required_membership_plan_ids: [] as string[],
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -96,6 +113,24 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
   );
   const [mode, setMode] = useState<"once" | "recurring">("once");
   const [usingCredits, setUsingCredits] = useState(false);
+
+  const selectedMembershipPlanLabels = data.required_membership_plan_ids
+    .map((planId) => membershipPlans.find((plan) => plan.id === planId))
+    .filter(
+      (plan): plan is MembershipPlanWithMembershipName => plan !== undefined
+    )
+    .map((plan) => `${plan.membershipName} – ${plan.name}`);
+
+  const toggleMembershipPlan = (planId: string, shouldAdd: boolean) => {
+    const current = data.required_membership_plan_ids;
+    const next = shouldAdd
+      ? current.includes(planId)
+        ? current
+        : [...current, planId]
+      : current.filter((id) => id !== planId);
+
+    updateField("required_membership_plan_ids", next);
+  };
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -170,8 +205,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
         ...(data.price_id ? { price_id: data.price_id } : {}),
-        ...(data.required_membership_plan_id
-          ? { required_membership_plan_id: data.required_membership_plan_id }
+        ...(data.required_membership_plan_ids.length
+          ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
       };
 
@@ -214,8 +249,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
         ...(data.price_id ? { price_id: data.price_id } : {}),
-        ...(data.required_membership_plan_id
-          ? { required_membership_plan_id: data.required_membership_plan_id }
+        ...(data.required_membership_plan_ids.length
+          ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
       };
 
@@ -249,8 +284,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               : undefined,
 
           price_id: data.price_id || undefined,
-          required_membership_plan_id:
-            data.required_membership_plan_id || undefined,
+          required_membership_plan_ids:
+            data.required_membership_plan_ids.length > 0
+              ? [...data.required_membership_plan_ids]
+              : undefined,
           createdBy: { id: user?.ID || "", firstName, lastName },
           updatedBy: { id: user?.ID || "", firstName, lastName },
           customers: [],
@@ -317,8 +354,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                   : undefined,
 
               price_id: data.price_id || undefined,
-              required_membership_plan_id:
-                data.required_membership_plan_id || undefined,
+              required_membership_plan_ids:
+                data.required_membership_plan_ids.length > 0
+                  ? [...data.required_membership_plan_ids]
+                  : undefined,
               createdBy: { id: user?.ID || "", firstName, lastName },
               updatedBy: { id: user?.ID || "", firstName, lastName },
               customers: [],
@@ -431,8 +470,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                       !data.location_id
                         ? "Select location first"
                         : filteredCourts.length === 0
-                        ? "No courts available"
-                        : "Select court"
+                          ? "No courts available"
+                          : "Select court"
                     }
                   />
                 </SelectTrigger>
@@ -492,7 +531,11 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
                 <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
-                  <strong>How recurring events work:</strong> Select a date range and day of the week. An event will be created for every occurrence of that day within the range. For example, selecting "Monday" from Jan 1-31 will create an event for each Monday in January. Users can book any individual occurrence.
+                  <strong>How recurring events work:</strong> Select a date
+                  range and day of the week. An event will be created for every
+                  occurrence of that day within the range. For example,
+                  selecting "Monday" from Jan 1-31 will create an event for each
+                  Monday in January. Users can book any individual occurrence.
                 </AlertDescription>
               </Alert>
               <div className="space-y-2">
@@ -555,7 +598,9 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                 </label>
                 <Input
                   value={data.event_start_at}
-                  onChange={(e) => updateField("event_start_at", e.target.value)}
+                  onChange={(e) =>
+                    updateField("event_start_at", e.target.value)
+                  }
                   type="time"
                   className="bg-background"
                 />
@@ -605,7 +650,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             </div>
             {usingCredits && (
               <div className="space-y-2">
-                <Label htmlFor="event-credit-cost" className="text-sm font-medium">
+                <Label
+                  htmlFor="event-credit-cost"
+                  className="text-sm font-medium"
+                >
                   Credit Cost <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -619,7 +667,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="event-price-id" className="text-sm font-medium text-muted-foreground">
+              <Label
+                htmlFor="event-price-id"
+                className="text-sm font-medium text-muted-foreground"
+              >
                 Price ID (Optional)
               </Label>
               <Input
@@ -630,29 +681,54 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               />
             </div>
             <div className="space-y-2">
-              <Label
-                htmlFor="event-required-membership-plan-id"
-                className="text-sm font-medium text-muted-foreground"
-              >
-                Required Membership Plan (Optional)
+              <Label className="text-sm font-medium text-muted-foreground">
+                Required Membership Plans (Optional)
               </Label>
-              <Select
-                value={data.required_membership_plan_id}
-                onValueChange={(value) =>
-                  updateField("required_membership_plan_id", value)
-                }
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="No membership requirement" />
-                </SelectTrigger>
-                <SelectContent>
-                  {membershipPlans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {`${plan.membershipName} – ${plan.name}`}
-                    </SelectItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between bg-background"
+                  >
+                    {data.required_membership_plan_ids.length > 0
+                      ? `${data.required_membership_plan_ids.length} plan${
+                          data.required_membership_plan_ids.length > 1
+                            ? "s"
+                            : ""
+                        } selected`
+                      : "No membership requirement"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-64 overflow-y-auto">
+                  <DropdownMenuLabel>Select membership plans</DropdownMenuLabel>
+                  {membershipPlans.map((plan) => {
+                    const label = `${plan.membershipName} – ${plan.name}`;
+                    const checked = data.required_membership_plan_ids.includes(
+                      plan.id
+                    );
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={plan.id}
+                        checked={checked}
+                        onCheckedChange={(isChecked) =>
+                          toggleMembershipPlan(plan.id, isChecked === true)
+                        }
+                      >
+                        {label}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {selectedMembershipPlanLabels.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {selectedMembershipPlanLabels.map((label) => (
+                    <Badge key={label} variant="secondary">
+                      {label}
+                    </Badge>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

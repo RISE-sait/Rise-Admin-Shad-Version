@@ -112,7 +112,13 @@ export async function createEvent(
   jwt: string
 ): Promise<string | null> {
   try {
-    const { court_id, capacity, credit_cost, ...rest } = eventData;
+    const {
+      court_id,
+      capacity,
+      credit_cost,
+      required_membership_plan_ids,
+      ...rest
+    } = eventData;
     const requestData: Record<string, unknown> = {
       ...rest,
       ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
@@ -120,6 +126,9 @@ export async function createEvent(
         credit_cost: Number(credit_cost),
       }),
       court_id: court_id || null,
+      ...(required_membership_plan_ids?.length
+        ? { required_membership_plan_ids }
+        : {}),
     };
 
     const response = await fetch(`${getValue("API")}events/one-time`, {
@@ -152,7 +161,13 @@ export async function createEvents(
   jwt: string
 ) {
   try {
-    const { court_id, capacity, credit_cost, ...rest } = eventsData;
+    const {
+      court_id,
+      capacity,
+      credit_cost,
+      required_membership_plan_ids,
+      ...rest
+    } = eventsData;
     const requestData: Record<string, unknown> = {
       ...rest,
       ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
@@ -160,6 +175,9 @@ export async function createEvents(
         credit_cost: Number(credit_cost),
       }),
       court_id: court_id || null,
+      ...(required_membership_plan_ids?.length
+        ? { required_membership_plan_ids }
+        : {}),
     };
 
     const response = await fetch(`${getValue("API")}events/recurring`, {
@@ -193,7 +211,13 @@ export async function updateEvent(
   jwt: string
 ): Promise<string | null> {
   try {
-    const { court_id, capacity, credit_cost, ...rest } = eventData;
+    const {
+      court_id,
+      capacity,
+      credit_cost,
+      required_membership_plan_ids,
+      ...rest
+    } = eventData;
     const requestData: Record<string, unknown> = {
       ...rest,
       ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
@@ -201,6 +225,9 @@ export async function updateEvent(
         credit_cost: Number(credit_cost),
       }),
       court_id: court_id || null,
+      ...(required_membership_plan_ids?.length
+        ? { required_membership_plan_ids }
+        : {}),
     };
 
     const response = await fetch(`${getValue("API")}events/${eventID}`, {
@@ -235,11 +262,14 @@ export async function updateRecurrence(
 ): Promise<string | null> {
   try {
     // convert capacity to number if it exists in the request data
-    const { court_id, ...rest } = eventData;
+    const { court_id, required_membership_plan_ids, ...rest } = eventData;
     const requestData: Record<string, unknown> = {
       ...rest,
       capacity: Number(eventData.capacity),
       court_id: court_id || null,
+      ...(required_membership_plan_ids?.length
+        ? { required_membership_plan_ids }
+        : {}),
     };
 
     const response = await fetch(
@@ -510,6 +540,14 @@ export async function getEvent(id: string, jwt?: string): Promise<Event> {
         role_name: staffMember.role_name ?? "",
       })) ?? [];
 
+    const requiredMembershipPlanIds = Array.isArray(
+      event.required_membership_plan_ids
+    )
+      ? event.required_membership_plan_ids.filter((planId): planId is string =>
+          Boolean(planId)
+        )
+      : [];
+
     const evt: Event = {
       id: event.id!,
       start_at: new Date(event.start_at!),
@@ -525,6 +563,10 @@ export async function getEvent(id: string, jwt?: string): Promise<Event> {
         type: event.program!.type!,
       },
       capacity: event.capacity!,
+      required_membership_plan_ids:
+        requiredMembershipPlanIds.length > 0
+          ? requiredMembershipPlanIds
+          : undefined,
       created_by: {
         id: event.created_by!.id!,
         first_name: event.created_by!.first_name!,

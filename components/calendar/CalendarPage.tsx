@@ -58,77 +58,85 @@ export default function CalendarPage() {
           );
         });
 
-        const mappedEvents: CalendarEvent[] = filteredEvents.map((event) => ({
-          id: event.id!,
-          color: getColorFromProgramType(event.program?.type),
-          start_at: fromZonedISOString(event.start_at!),
-          end_at: fromZonedISOString(event.end_at!),
-          capacity: event.capacity ?? 0,
-          court: event.court
-            ? {
-                id: event.court.id ?? "",
-                name: event.court.name ?? "",
-              }
-            : undefined,
-          credit_cost:
-            event.credit_cost != null && event.credit_cost !== ""
-              ? Number(event.credit_cost)
-              : undefined,
+        const mappedEvents: CalendarEvent[] = filteredEvents.map((event) => {
+          const membershipPlanIds = Array.isArray(
+            event.required_membership_plan_ids
+          )
+            ? event.required_membership_plan_ids.filter(
+                (planId): planId is string =>
+                  typeof planId === "string" && planId.trim() !== ""
+              )
+            : [];
 
-          price_id:
-            event.price_id != null && event.price_id !== ""
-              ? String(event.price_id)
+          return {
+            id: event.id!,
+            color: getColorFromProgramType(event.program?.type),
+            start_at: fromZonedISOString(event.start_at!),
+            end_at: fromZonedISOString(event.end_at!),
+            capacity: event.capacity ?? 0,
+            court: event.court
+              ? {
+                  id: event.court.id ?? "",
+                  name: event.court.name ?? "",
+                }
               : undefined,
-          required_membership_plan_id:
-            event.required_membership_plan_id != null &&
-            event.required_membership_plan_id !== ""
-              ? String(event.required_membership_plan_id)
-              : undefined,
-          createdBy: {
-            firstName: event.created_by?.first_name ?? "",
-            id: event.created_by?.id ?? "",
-            lastName: event.created_by?.last_name ?? "",
-          },
-          customers:
-            event.customers?.map((customer: any) => ({
-              email: customer.email,
-              firstName: customer.first_name,
-              gender: customer.gender,
-              hasCancelledEnrollment: customer.has_cancelled_enrollment,
-              id: customer.id,
-              lastName: customer.last_name,
-              phone: customer.phone,
-            })) ?? [],
-          location: {
-            address: event.location?.address ?? "",
-            id: event.location?.id ?? "",
-            name: event.location?.name ?? "",
-          },
-          program: {
-            id: event.program?.id ?? "",
-            name: event.program?.name ?? "",
-            type: event.program?.type ?? "",
-          },
-          staff:
-            event.staff?.map((staff: any) => ({
-              email: staff.email as string,
-              firstName: staff.first_name as string,
-              gender: staff.gender as string,
-              id: staff.id as string,
-              lastName: staff.last_name as string,
-              phone: staff.phone as string,
-              roleName: staff.role_name as string,
-            })) ?? [],
-          team: {
-            id: event.team?.id ?? "",
-            name: event.team?.name ?? "",
-          },
-          updatedBy: {
-            firstName: event.updated_by?.first_name ?? "",
-            id: event.updated_by?.id ?? "",
-            lastName: event.updated_by?.last_name ?? "",
-          },
-        }));
+            credit_cost:
+              event.credit_cost != null && event.credit_cost !== ""
+                ? Number(event.credit_cost)
+                : undefined,
+
+            price_id:
+              event.price_id != null && event.price_id !== ""
+                ? String(event.price_id)
+                : undefined,
+            required_membership_plan_ids:
+              membershipPlanIds.length > 0 ? membershipPlanIds : undefined,
+            createdBy: {
+              firstName: event.created_by?.first_name ?? "",
+              id: event.created_by?.id ?? "",
+              lastName: event.created_by?.last_name ?? "",
+            },
+            customers:
+              event.customers?.map((customer: any) => ({
+                email: customer.email,
+                firstName: customer.first_name,
+                gender: customer.gender,
+                hasCancelledEnrollment: customer.has_cancelled_enrollment,
+                id: customer.id,
+                lastName: customer.last_name,
+                phone: customer.phone,
+              })) ?? [],
+            location: {
+              address: event.location?.address ?? "",
+              id: event.location?.id ?? "",
+              name: event.location?.name ?? "",
+            },
+            program: {
+              id: event.program?.id ?? "",
+              name: event.program?.name ?? "",
+              type: event.program?.type ?? "",
+            },
+            staff:
+              event.staff?.map((staff: any) => ({
+                email: staff.email as string,
+                firstName: staff.first_name as string,
+                gender: staff.gender as string,
+                id: staff.id as string,
+                lastName: staff.last_name as string,
+                phone: staff.phone as string,
+                roleName: staff.role_name as string,
+              })) ?? [],
+            team: {
+              id: event.team?.id ?? "",
+              name: event.team?.name ?? "",
+            },
+            updatedBy: {
+              firstName: event.updated_by?.first_name ?? "",
+              id: event.updated_by?.id ?? "",
+              lastName: event.updated_by?.last_name ?? "",
+            },
+          };
+        });
 
         const filteredGames =
           !programType || programType === "game"

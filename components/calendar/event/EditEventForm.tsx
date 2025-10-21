@@ -5,6 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SaveIcon } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -69,13 +77,33 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
     end_at: "",
     credit_cost: "",
     price_id: "",
-    required_membership_plan_id: "",
+    required_membership_plan_ids: [] as string[],
   });
   const [usingCredits, setUsingCredits] = useState(false);
 
   const filteredCourts = courts.filter(
     (c) => c.location_id === data.location_id
   );
+
+  const selectedMembershipPlanLabels = data.required_membership_plan_ids
+    .map((planId) => membershipPlans.find((plan) => plan.id === planId))
+    .filter(
+      (plan): plan is MembershipPlanWithMembershipName => plan !== undefined
+    )
+    .map((plan) => `${plan.membershipName} – ${plan.name}`);
+
+  const toggleMembershipPlan = (planId: string, shouldAdd: boolean) => {
+    setData((prev) => {
+      const current = prev.required_membership_plan_ids;
+      const next = shouldAdd
+        ? current.includes(planId)
+          ? current
+          : [...current, planId]
+        : current.filter((id) => id !== planId);
+
+      return { ...prev, required_membership_plan_ids: next };
+    });
+  };
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -117,8 +145,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
             ? String(selectedEvent.credit_cost)
             : "",
         price_id: selectedEvent.price_id ?? "",
-        required_membership_plan_id:
-          selectedEvent.required_membership_plan_id ?? "",
+        required_membership_plan_ids:
+          selectedEvent.required_membership_plan_ids ?? [],
       });
       setUsingCredits(selectedEvent.credit_cost != null);
     }
@@ -178,8 +206,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       end_at: toZonedISOString(new Date(data.end_at)),
       credit_cost: creditCost,
       ...(data.price_id ? { price_id: data.price_id } : {}),
-      ...(data.required_membership_plan_id
-        ? { required_membership_plan_id: data.required_membership_plan_id }
+      ...(data.required_membership_plan_ids.length
+        ? { required_membership_plan_ids: data.required_membership_plan_ids }
         : {}),
     };
 
@@ -202,8 +230,10 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         end_at: new Date(data.end_at),
         credit_cost: creditCost,
         price_id: data.price_id || undefined,
-        required_membership_plan_id:
-          data.required_membership_plan_id || undefined,
+        required_membership_plan_ids:
+          data.required_membership_plan_ids.length > 0
+            ? [...data.required_membership_plan_ids]
+            : undefined,
         program: {
           id: program?.id || "",
           name: program?.name || "",
@@ -363,30 +393,49 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           />
         </div>
         <div className="space-y-2">
-          <Label
-            htmlFor="event-required-membership-plan-id"
-            className="text-sm font-medium"
-          >
-            Required Membership Plan (optional)
+          <Label className="text-sm font-medium">
+            Required Membership Plans (optional)
           </Label>
-          <select
-            id="event-required-membership-plan-id"
-            className="w-full border rounded-md p-2"
-            value={data.required_membership_plan_id}
-            onChange={(e) =>
-              setData({
-                ...data,
-                required_membership_plan_id: e.target.value,
-              })
-            }
-          >
-            <option value="">No membership requirement</option>
-            {membershipPlans.map((plan) => (
-              <option key={plan.id} value={plan.id}>
-                {`${plan.membershipName} – ${plan.name}`}
-              </option>
-            ))}
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                {data.required_membership_plan_ids.length > 0
+                  ? `${data.required_membership_plan_ids.length} plan${
+                      data.required_membership_plan_ids.length > 1 ? "s" : ""
+                    } selected`
+                  : "No membership requirement"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-64 overflow-y-auto">
+              <DropdownMenuLabel>Select membership plans</DropdownMenuLabel>
+              {membershipPlans.map((plan) => {
+                const label = `${plan.membershipName} – ${plan.name}`;
+                const checked = data.required_membership_plan_ids.includes(
+                  plan.id
+                );
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={plan.id}
+                    checked={checked}
+                    onCheckedChange={(isChecked) =>
+                      toggleMembershipPlan(plan.id, isChecked === true)
+                    }
+                  >
+                    {label}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {selectedMembershipPlanLabels.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {selectedMembershipPlanLabels.map((label) => (
+                <Badge key={label} variant="secondary">
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <Button
