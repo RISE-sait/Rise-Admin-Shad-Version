@@ -372,6 +372,34 @@ export async function unassignStaffFromEvent(
   }
 }
 
+export async function removeCustomerFromEvent(
+  eventId: string,
+  customerId: string,
+  jwt: string
+): Promise<void> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}events/${eventId}/customers/${customerId}`,
+      {
+        method: "DELETE",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (!response.ok) {
+      const responseJSON = await response.json().catch(() => ({}));
+      let errorMessage = `Failed to remove customer from event: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error removing customer from event:", error);
+    throw error;
+  }
+}
+
 export async function getSchedulesOfProgram(
   programID: string
 ): Promise<EventSchedule[]> {

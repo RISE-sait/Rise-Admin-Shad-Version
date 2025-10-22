@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 // import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import {
   CreditCard,
   DollarSign,
   Award,
-  Trophy
+  Trophy,
 } from "lucide-react";
 import RightDrawer from "@/components/reusable/RightDrawer";
 import { useCalendarContext } from "../calendar-context";
@@ -65,7 +65,9 @@ export default function CalendarManageEventDrawer() {
   const [membershipPlans, setMembershipPlans] = useState<
     MembershipPlanWithMembershipName[]
   >([]);
-  const [fullEventData, setFullEventData] = useState<EventParticipant[] | null>(null);
+  const [fullEventData, setFullEventData] = useState<EventParticipant[] | null>(
+    null
+  );
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const requiredMembershipPlanLabel = selectedEvent?.required_membership_plan_id
     ? (() => {
@@ -208,6 +210,47 @@ export default function CalendarManageEventDrawer() {
     );
   };
 
+  const handleCustomerRemoved = useCallback(
+    async (customerId: string) => {
+      setFullEventData((prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        return prev.filter((customer) => customer.id !== customerId);
+      });
+
+      if (!selectedEvent) {
+        await revalidateEvents();
+        return;
+      }
+
+      const updatedEvent: CalendarEvent = {
+        ...selectedEvent,
+        customers: selectedEvent.customers.filter(
+          (customer) => customer.id !== customerId
+        ),
+      };
+
+      setSelectedEvent(updatedEvent);
+      setEvents(
+        events.map((event) =>
+          event.id === updatedEvent.id ? updatedEvent : event
+        )
+      );
+
+      await revalidateEvents();
+    },
+    [
+      events,
+      revalidateEvents,
+      selectedEvent,
+      setEvents,
+      setFullEventData,
+      setSelectedEvent,
+    ]
+  );
+
   return (
     <RightDrawer
       drawerOpen={manageEventDialogOpen}
@@ -283,12 +326,15 @@ export default function CalendarManageEventDrawer() {
                           <div>
                             <p className="text-sm font-medium">Date</p>
                             <p className="text-sm text-muted-foreground">
-                              {selectedEvent.start_at.toLocaleDateString("en-US", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
+                              {selectedEvent.start_at.toLocaleDateString(
+                                "en-US",
+                                {
+                                  weekday: "long",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
                             </p>
                           </div>
                         </div>
@@ -297,15 +343,21 @@ export default function CalendarManageEventDrawer() {
                           <div>
                             <p className="text-sm font-medium">Time</p>
                             <p className="text-sm text-muted-foreground">
-                              {selectedEvent.start_at.toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}{" "}
+                              {selectedEvent.start_at.toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}{" "}
                               -{" "}
-                              {selectedEvent.end_at.toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {selectedEvent.end_at.toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
                             </p>
                           </div>
                         </div>
@@ -368,14 +420,18 @@ export default function CalendarManageEventDrawer() {
                       <CardContent className="pt-6">
                         <div className="flex items-center gap-2 mb-4">
                           <CreditCard className="h-5 w-5 text-yellow-500" />
-                          <h3 className="font-semibold text-lg">Payment & Access</h3>
+                          <h3 className="font-semibold text-lg">
+                            Payment & Access
+                          </h3>
                         </div>
                         <div className="space-y-3">
                           {selectedEvent.credit_cost != null && (
                             <div className="flex items-start gap-3">
                               <Trophy className="h-4 w-4 text-muted-foreground mt-1" />
                               <div>
-                                <p className="text-sm font-medium">Credit Cost</p>
+                                <p className="text-sm font-medium">
+                                  Credit Cost
+                                </p>
                                 <p className="text-sm text-muted-foreground">
                                   {selectedEvent.credit_cost} credits
                                 </p>
@@ -455,12 +511,18 @@ export default function CalendarManageEventDrawer() {
                   <Card className="border-l-4 border-l-yellow-500">
                     <CardContent className="pt-6">
                       <div className="text-center py-12">
-                        <p className="text-sm text-muted-foreground">Loading customers...</p>
+                        <p className="text-sm text-muted-foreground">
+                          Loading customers...
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
                 ) : (
-                  <AttendeesTable data={fullEventData || []} />
+                  <AttendeesTable
+                    eventId={selectedEvent.id}
+                    data={fullEventData || []}
+                    onCustomerRemoved={handleCustomerRemoved}
+                  />
                 )}
               </TabsContent>
             )}
