@@ -1095,6 +1095,12 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Discount code to apply",
+            "name": "discount_code",
+            "in": "query"
           }
         ],
         "responses": {
@@ -1153,6 +1159,12 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Discount code to apply",
+            "name": "discount_code",
+            "in": "query"
           },
           {
             "description": "Payment method request",
@@ -1321,6 +1333,12 @@
             "name": "id",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Discount code to apply",
+            "name": "discount_code",
+            "in": "query"
           }
         ],
         "responses": {
@@ -2618,6 +2636,68 @@
           },
           "404": {
             "description": "Not Found: Events not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/events/{event_id}/customers/{customer_id}": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Completely removes a customer's enrollment from an event (deletes the record).",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["event_enrollment"],
+        "summary": "Remove a customer from an event",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "event_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Customer ID",
+            "name": "customer_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer successfully removed from event",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Enrollment not found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -8124,9 +8204,12 @@
           "type": "string",
           "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
         },
-        "required_membership_plan_id": {
-          "type": "string",
-          "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
+        "required_membership_plan_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["[\"f0e21457-75d4-4de6-b765-5ee13221fd72\"]"]
         },
         "start_at": {
           "type": "string",
@@ -8174,8 +8257,11 @@
         "program": {
           "$ref": "#/definitions/event.ProgramInfo"
         },
-        "required_membership_plan_id": {
-          "type": "string"
+        "required_membership_plan_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "staff": {
           "type": "array",
@@ -8292,9 +8378,12 @@
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
         },
-        "required_membership_plan_id": {
-          "type": "string",
-          "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
+        "required_membership_plan_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["[\"f0e21457-75d4-4de6-b765-5ee13221fd72\"]"]
         },
         "team_id": {
           "type": "string",
