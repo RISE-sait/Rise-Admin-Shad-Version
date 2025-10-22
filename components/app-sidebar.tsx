@@ -23,6 +23,7 @@ import {
   Gamepad2,
   Trophy,
   Dribbble,
+  ClipboardList,
 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -79,6 +80,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Amenities",
             url: "/manage/amenities",
             icon: <Gamepad2 width={15} height={15} />,
+          },
+          {
+            title: "Audit",
+            url: "/audit",
+            icon: <ClipboardList width={15} height={15} />,
           },
         ]
       : role === StaffRoleEnum.COACH

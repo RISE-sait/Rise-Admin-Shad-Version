@@ -2,6 +2,149 @@ import { StaffRequestDto, StaffResponseDto } from "@/app/api/Api";
 import { StaffRole, StaffRoleEnum, User } from "@/types/user";
 import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
+import {
+  StaffActivityLog,
+  StaffActivityLogsParams,
+  StaffActivityLogsResult,
+} from "@/types/staff-activity-log";
+
+export async function getStaffActivityLogs(
+  params: StaffActivityLogsParams = {},
+  jwt?: string
+): Promise<StaffActivityLogsResult> {
+  const searchParams = new URLSearchParams();
+
+  if (params.staffId) {
+    searchParams.set("staff_id", params.staffId);
+  }
+
+  if (params.searchDescription) {
+    searchParams.set("search_description", params.searchDescription);
+  }
+
+  if (typeof params.limit === "number") {
+    searchParams.set("limit", String(params.limit));
+  }
+
+  if (typeof params.offset === "number") {
+    searchParams.set("offset", String(params.offset));
+  }
+
+  const queryString = searchParams.toString();
+  const url = `${getValue("API")}staffs/logs${queryString ? `?${queryString}` : ""}`;
+
+  const resolvedJwt =
+    jwt ??
+    (typeof window !== "undefined"
+      ? (window.localStorage?.getItem("jwt") ?? undefined)
+      : undefined);
+
+  if (!resolvedJwt) {
+    throw new Error("Authorization token is required");
+  }
+
+  const response = await fetch(url, {
+    cache: "no-store",
+    ...addAuthHeader(resolvedJwt),
+  });
+  const responseJson = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    let errorMessage = `Failed to fetch staff activity logs: ${response.statusText}`;
+
+    const extractedError =
+      responseJson?.error?.message ??
+      responseJson?.error ??
+      responseJson?.message ??
+      responseJson?.detail;
+
+    if (
+      typeof extractedError === "string" &&
+      extractedError.trim().length > 0
+    ) {
+      errorMessage = extractedError;
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  const rawLogs = Array.isArray(responseJson?.data)
+    ? responseJson.data
+    : Array.isArray(responseJson?.logs)
+      ? responseJson.logs
+      : Array.isArray(responseJson)
+        ? responseJson
+        : [];
+
+  const logs: StaffActivityLog[] = rawLogs.map((log: any) => {
+    const createdAtValue =
+      log?.created_at ??
+      log?.timestamp ??
+      log?.performed_at ??
+      log?.logged_at ??
+      log?.createdAt ??
+      null;
+
+    const createdAtDate =
+      createdAtValue !== null ? new Date(createdAtValue) : undefined;
+
+    const normalizedCreatedAt =
+      createdAtDate && !Number.isNaN(createdAtDate.valueOf())
+        ? createdAtDate.toISOString()
+        : "";
+
+    const firstName =
+      log?.staff_first_name ??
+      log?.first_name ??
+      log?.staff?.first_name ??
+      log?.staffFirstName ??
+      "";
+    const lastName =
+      log?.staff_last_name ??
+      log?.last_name ??
+      log?.staff?.last_name ??
+      log?.staffLastName ??
+      "";
+
+    const staffName =
+      `${[firstName, lastName].filter(Boolean).join(" ")}`.trim() ||
+      log?.staff_name ||
+      log?.name ||
+      "";
+
+    return {
+      id: String(log?.id ?? ""),
+      staffId: String(
+        log?.staff_id ?? log?.staffId ?? log?.staff?.id ?? log?.user_id ?? ""
+      ),
+      staffName,
+      staffEmail:
+        log?.staff_email ??
+        log?.email ??
+        log?.staff?.email ??
+        log?.staffEmail ??
+        "",
+      description:
+        log?.description ??
+        log?.activity_description ??
+        log?.action ??
+        log?.activity ??
+        "",
+      createdAt: normalizedCreatedAt,
+    } satisfies StaffActivityLog;
+  });
+
+  const total =
+    typeof responseJson?.total === "number"
+      ? responseJson.total
+      : typeof responseJson?.meta?.total === "number"
+        ? responseJson.meta.total
+        : typeof responseJson?.pagination?.total === "number"
+          ? responseJson.pagination.total
+          : logs.length;
+
+  return { logs, total } satisfies StaffActivityLogsResult;
+}
 
 export async function getAllStaffs(roleFilter?: string): Promise<User[]> {
   try {
@@ -196,16 +339,19 @@ export async function updateStaffProfile(
 ): Promise<boolean> {
   try {
     // REAL UPDATE CODE - Backend server required
-    const response = await fetch(`${getValue("API")}staffs/${staffId}/profile`, {
-      method: "PATCH",
-      headers: {
-        'Authorization': `Bearer ${jwt}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        photo_url: photoUrl
-      })
-    });
+    const response = await fetch(
+      `${getValue("API")}staffs/${staffId}/profile`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          photo_url: photoUrl,
+        }),
+      }
+    );
 
     if (response.status === 204) {
       return true;
@@ -213,7 +359,7 @@ export async function updateStaffProfile(
 
     const errorText = await response.text();
     console.error("Profile update error:", errorText);
-    throw new Error('Profile update failed');
+    throw new Error("Profile update failed");
   } catch (error) {
     console.error("Error updating staff profile:", error);
     throw error;
