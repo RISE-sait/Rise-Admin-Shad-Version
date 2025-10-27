@@ -27,7 +27,7 @@ export interface CalendarEvent {
   color?: string;
   credit_cost?: number;
   price_id?: string;
-  required_membership_plan_id?: string;
+  required_membership_plan_ids?: string[];
   createdBy: {
     firstName: string;
     id: string;

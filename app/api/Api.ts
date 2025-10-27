@@ -133,6 +133,9 @@ export interface EventEventRequestDto {
   team_id?: string;
   /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
   court_id?: string;
+  credit_cost?: number;
+  price_id?: string;
+  required_membership_plan_ids?: string[];
 }
 
 export interface EventEventResponseDto {
@@ -150,7 +153,7 @@ export interface EventEventResponseDto {
   team?: EventTeamInfo;
   updated_by?: EventPersonResponseDto;
   price_id?: string | null;
-  required_membership_plan_id?: string | null;
+  required_membership_plan_ids?: string[] | null;
 }
 
 export interface EventLocation {
@@ -204,6 +207,9 @@ export interface EventRecurrenceRequestDto {
   team_id?: string;
   /** @example "0bab3927-50eb-42b3-9d6b-2350dd00a100" */
   court_id?: string;
+  credit_cost?: number;
+  price_id?: string;
+  required_membership_plan_ids?: string[];
 }
 
 export interface EventRecurrenceResponseDto {

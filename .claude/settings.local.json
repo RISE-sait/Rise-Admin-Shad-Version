@@ -7,7 +7,9 @@
       "Bash(git push)",
       "Bash(git pull:*)",
       "Bash(git rebase:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(dir /B \"C:\\RISE\\Rise-Admin-Shad-Version\")",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

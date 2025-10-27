@@ -69,19 +69,16 @@ export default function CalendarManageEventDrawer() {
     null
   );
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
-  const requiredMembershipPlanLabel = selectedEvent?.required_membership_plan_id
-    ? (() => {
-        const plan = membershipPlans.find(
-          (item) => item.id === selectedEvent.required_membership_plan_id
-        );
 
-        if (!plan) {
-          return undefined;
-        }
-
-        return `${plan.membershipName} – ${plan.name}`;
-      })()
-    : undefined;
+  const requiredMembershipPlanLabels = selectedEvent?.required_membership_plan_ids
+    ? selectedEvent.required_membership_plan_ids
+        .map((planId) => {
+          const plan = membershipPlans.find((item) => item.id === planId);
+          if (!plan) return null;
+          return `${plan.membershipName} – ${plan.name}`;
+        })
+        .filter(Boolean) as string[]
+    : [];
 
   const eventType = selectedEvent?.program?.type?.toLowerCase();
   const eventTypeLabel = eventType
@@ -415,7 +412,7 @@ export default function CalendarManageEventDrawer() {
                   {/* Payment & Access Card (if applicable) */}
                   {(selectedEvent.credit_cost != null ||
                     selectedEvent.price_id ||
-                    selectedEvent.required_membership_plan_id) && (
+                    (selectedEvent.required_membership_plan_ids && selectedEvent.required_membership_plan_ids.length > 0)) && (
                     <Card className="border-l-4 border-l-yellow-500">
                       <CardContent className="pt-6">
                         <div className="flex items-center gap-2 mb-4">
@@ -449,17 +446,28 @@ export default function CalendarManageEventDrawer() {
                               </div>
                             </div>
                           )}
-                          {selectedEvent.required_membership_plan_id && (
+                          {selectedEvent.required_membership_plan_ids && selectedEvent.required_membership_plan_ids.length > 0 && (
                             <div className="flex items-start gap-3">
                               <Award className="h-4 w-4 text-muted-foreground mt-1" />
                               <div>
                                 <p className="text-sm font-medium">
-                                  Required Membership
+                                  Required Membership{selectedEvent.required_membership_plan_ids.length > 1 ? 's' : ''}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {requiredMembershipPlanLabel ||
-                                    selectedEvent.required_membership_plan_id}
-                                </p>
+                                <div className="space-y-1">
+                                  {requiredMembershipPlanLabels.length > 0 ? (
+                                    requiredMembershipPlanLabels.map((label, index) => (
+                                      <p key={index} className="text-sm text-muted-foreground">
+                                        {label}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    selectedEvent.required_membership_plan_ids.map((planId, index) => (
+                                      <p key={index} className="text-sm text-muted-foreground">
+                                        {planId}
+                                      </p>
+                                    ))
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )}

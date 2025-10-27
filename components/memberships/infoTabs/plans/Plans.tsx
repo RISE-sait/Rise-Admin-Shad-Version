@@ -359,7 +359,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                         {plan.stripe_price_id || "—"}
                       </h1>
                       <h1 className="text-stone-500 font-semibold text-sm pt-1">
-                        • Every {plan.amt_periods} Months
+                        • Every {plan.amt_periods} Periods
                       </h1>
                     </div>
                     {(plan.credit_allocation != null ||
@@ -536,7 +536,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                         {plan.stripe_price_id || "—"}
                       </h1>
                       <h1 className="text-stone-500 font-semibold text-sm pt-1">
-                        • Every {plan.amt_periods} Months
+                        • Every {plan.amt_periods} Periods
                       </h1>
                     </div>
                     {(plan.credit_allocation != null ||
