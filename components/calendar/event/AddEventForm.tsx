@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Calendar, MapPin, Clock, Users, Trophy, CreditCard, Award, Info } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Trophy, CreditCard, Award, Info, X, ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -78,7 +80,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     capacity: 0,
     credit_cost: "",
     price_id: "",
-    required_membership_plan_id: "",
+    required_membership_plan_ids: [] as string[],
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -170,8 +172,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
         ...(data.price_id ? { price_id: data.price_id } : {}),
-        ...(data.required_membership_plan_id
-          ? { required_membership_plan_id: data.required_membership_plan_id }
+        ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+          ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
       };
 
@@ -214,8 +216,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
         ...(data.price_id ? { price_id: data.price_id } : {}),
-        ...(data.required_membership_plan_id
-          ? { required_membership_plan_id: data.required_membership_plan_id }
+        ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+          ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
       };
 
@@ -249,8 +251,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               : undefined,
 
           price_id: data.price_id || undefined,
-          required_membership_plan_id:
-            data.required_membership_plan_id || undefined,
+          required_membership_plan_ids:
+            data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+              ? data.required_membership_plan_ids
+              : undefined,
           createdBy: { id: user?.ID || "", firstName, lastName },
           updatedBy: { id: user?.ID || "", firstName, lastName },
           customers: [],
@@ -317,8 +321,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                   : undefined,
 
               price_id: data.price_id || undefined,
-              required_membership_plan_id:
-                data.required_membership_plan_id || undefined,
+              required_membership_plan_ids:
+                data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+                  ? data.required_membership_plan_ids
+                  : undefined,
               createdBy: { id: user?.ID || "", firstName, lastName },
               updatedBy: { id: user?.ID || "", firstName, lastName },
               customers: [],
@@ -631,28 +637,77 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
             </div>
             <div className="space-y-2">
               <Label
-                htmlFor="event-required-membership-plan-id"
+                htmlFor="event-required-membership-plan-ids"
                 className="text-sm font-medium text-muted-foreground"
               >
-                Required Membership Plan (Optional)
+                Required Membership Plans (Optional)
               </Label>
-              <Select
-                value={data.required_membership_plan_id}
-                onValueChange={(value) =>
-                  updateField("required_membership_plan_id", value)
-                }
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="No membership requirement" />
-                </SelectTrigger>
-                <SelectContent>
-                  {membershipPlans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {`${plan.membershipName} – ${plan.name}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between bg-background"
+                  >
+                    <span className="truncate">
+                      {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+                        ? `${data.required_membership_plan_ids.length} plan${data.required_membership_plan_ids.length > 1 ? 's' : ''} selected`
+                        : "No membership requirement"}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="max-h-64 overflow-y-auto p-2">
+                    {membershipPlans.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-accent cursor-pointer"
+                        onClick={() => {
+                          const currentIds = data.required_membership_plan_ids || [];
+                          const newIds = currentIds.includes(plan.id)
+                            ? currentIds.filter((id) => id !== plan.id)
+                            : [...currentIds, plan.id];
+                          updateField("required_membership_plan_ids", newIds);
+                        }}
+                      >
+                        <Checkbox
+                          checked={data.required_membership_plan_ids?.includes(plan.id)}
+                          onCheckedChange={() => {}}
+                        />
+                        <label className="text-sm cursor-pointer flex-1">
+                          {`${plan.membershipName} – ${plan.name}`}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {data.required_membership_plan_ids.map((planId) => {
+                    const plan = membershipPlans.find((p) => p.id === planId);
+                    return plan ? (
+                      <Badge
+                        key={planId}
+                        variant="secondary"
+                        className="text-xs flex items-center gap-1"
+                      >
+                        {plan.membershipName} – {plan.name}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => {
+                            const newIds = data.required_membership_plan_ids?.filter(
+                              (id) => id !== planId
+                            ) || [];
+                            updateField("required_membership_plan_ids", newIds);
+                          }}
+                        />
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

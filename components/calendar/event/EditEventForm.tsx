@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { SaveIcon } from "lucide-react";
+import { SaveIcon, X, ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { updateEvent } from "@/services/events";
@@ -69,7 +71,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
     end_at: "",
     credit_cost: "",
     price_id: "",
-    required_membership_plan_id: "",
+    required_membership_plan_ids: [] as string[],
   });
   const [usingCredits, setUsingCredits] = useState(false);
 
@@ -117,8 +119,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
             ? String(selectedEvent.credit_cost)
             : "",
         price_id: selectedEvent.price_id ?? "",
-        required_membership_plan_id:
-          selectedEvent.required_membership_plan_id ?? "",
+        required_membership_plan_ids:
+          selectedEvent.required_membership_plan_ids ?? [],
       });
       setUsingCredits(selectedEvent.credit_cost != null);
     }
@@ -178,8 +180,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       end_at: toZonedISOString(new Date(data.end_at)),
       credit_cost: creditCost,
       ...(data.price_id ? { price_id: data.price_id } : {}),
-      ...(data.required_membership_plan_id
-        ? { required_membership_plan_id: data.required_membership_plan_id }
+      ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+        ? { required_membership_plan_ids: data.required_membership_plan_ids }
         : {}),
     };
 
@@ -202,8 +204,10 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         end_at: new Date(data.end_at),
         credit_cost: creditCost,
         price_id: data.price_id || undefined,
-        required_membership_plan_id:
-          data.required_membership_plan_id || undefined,
+        required_membership_plan_ids:
+          data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+            ? data.required_membership_plan_ids
+            : undefined,
         program: {
           id: program?.id || "",
           name: program?.name || "",
@@ -364,29 +368,77 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         </div>
         <div className="space-y-2">
           <Label
-            htmlFor="event-required-membership-plan-id"
+            htmlFor="event-required-membership-plan-ids"
             className="text-sm font-medium"
           >
-            Required Membership Plan (optional)
+            Required Membership Plans (optional)
           </Label>
-          <select
-            id="event-required-membership-plan-id"
-            className="w-full border rounded-md p-2"
-            value={data.required_membership_plan_id}
-            onChange={(e) =>
-              setData({
-                ...data,
-                required_membership_plan_id: e.target.value,
-              })
-            }
-          >
-            <option value="">No membership requirement</option>
-            {membershipPlans.map((plan) => (
-              <option key={plan.id} value={plan.id}>
-                {`${plan.membershipName} – ${plan.name}`}
-              </option>
-            ))}
-          </select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between"
+              >
+                <span className="truncate">
+                  {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+                    ? `${data.required_membership_plan_ids.length} plan${data.required_membership_plan_ids.length > 1 ? 's' : ''} selected`
+                    : "No membership requirement"}
+                </span>
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+              <div className="max-h-64 overflow-y-auto p-2">
+                {membershipPlans.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-accent cursor-pointer"
+                    onClick={() => {
+                      const currentIds = data.required_membership_plan_ids || [];
+                      const newIds = currentIds.includes(plan.id)
+                        ? currentIds.filter((id) => id !== plan.id)
+                        : [...currentIds, plan.id];
+                      setData({ ...data, required_membership_plan_ids: newIds });
+                    }}
+                  >
+                    <Checkbox
+                      checked={data.required_membership_plan_ids?.includes(plan.id)}
+                      onCheckedChange={() => {}}
+                    />
+                    <label className="text-sm cursor-pointer flex-1">
+                      {`${plan.membershipName} – ${plan.name}`}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {data.required_membership_plan_ids.map((planId) => {
+                const plan = membershipPlans.find((p) => p.id === planId);
+                return plan ? (
+                  <Badge
+                    key={planId}
+                    variant="secondary"
+                    className="text-xs flex items-center gap-1"
+                  >
+                    {plan.membershipName} – {plan.name}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => {
+                        const newIds = data.required_membership_plan_ids?.filter(
+                          (id) => id !== planId
+                        ) || [];
+                        setData({ ...data, required_membership_plan_ids: newIds });
+                      }}
+                    />
+                  </Badge>
+                ) : null;
+              })}
+            </div>
+          )}
         </div>
       </div>
       <Button

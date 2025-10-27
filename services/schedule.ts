@@ -25,14 +25,12 @@ export interface ScheduleResponse {
 export async function getSchedule(): Promise<ScheduleResponse> {
   try {
     const token = localStorage.getItem("jwt");
-    console.log("Schedule API - JWT token from localStorage:", token ? `${token.substring(0, 20)}...` : "NO TOKEN");
 
     const response = await fetch(`${getValue("API")}secure/schedule`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
 
     const resJson = await response.json();
-    console.log("Schedule API response status:", response.status, "Response:", resJson);
 
     if (!response.ok) {
       let errorMessage = `Failed to fetch schedule: ${response.statusText}`;

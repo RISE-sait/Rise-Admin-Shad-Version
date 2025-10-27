@@ -79,10 +79,11 @@ export default function CalendarPage() {
             event.price_id != null && event.price_id !== ""
               ? String(event.price_id)
               : undefined,
-          required_membership_plan_id:
-            event.required_membership_plan_id != null &&
-            event.required_membership_plan_id !== ""
-              ? String(event.required_membership_plan_id)
+          required_membership_plan_ids:
+            event.required_membership_plan_ids != null &&
+            Array.isArray(event.required_membership_plan_ids) &&
+            event.required_membership_plan_ids.length > 0
+              ? event.required_membership_plan_ids
               : undefined,
           createdBy: {
             firstName: event.created_by?.first_name ?? "",

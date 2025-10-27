@@ -79,7 +79,7 @@ export interface EventCreateRequest {
   capacity?: number;
   credit_cost?: number;
   price_id?: string;
-  required_membership_plan_id?: string;
+  required_membership_plan_ids?: string[];
 }
 
 export interface EventRecurrenceCreateRequest {
@@ -95,5 +95,5 @@ export interface EventRecurrenceCreateRequest {
   capacity?: number;
   credit_cost?: number;
   price_id?: string;
-  required_membership_plan_id?: string;
+  required_membership_plan_ids?: string[];
 }
