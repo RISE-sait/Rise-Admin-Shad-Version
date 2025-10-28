@@ -488,6 +488,28 @@ export interface StaffActivityLogsStaffActivityLogResponse {
   staff_id?: string;
 }
 
+export interface SuspendUserRequestDto {
+  /** @example "720h" for 30 days, "8760h" for 1 year, null = indefinite */
+  suspension_duration?: string | null;
+  /** @minLength 10 @maxLength 500 */
+  suspension_reason: string;
+}
+
+export interface SuspensionInfoResponseDto {
+  is_suspended?: boolean;
+  suspended_at?: string;
+  suspended_by?: string;
+  suspension_expires_at?: string | null;
+  suspension_reason?: string;
+}
+
+export interface UnsuspendUserRequestDto {
+  /** whether to create invoice items for missed billing periods */
+  collect_arrears?: boolean;
+  /** whether to extend renewal_date by suspension duration */
+  extend_membership?: boolean;
+}
+
 export interface TeamCoach {
   email?: string;
   id?: string;
@@ -992,6 +1014,84 @@ export class Api<
       this.request<CustomerResponse, void>({
         path: `/customers/id/${id}`,
         method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Suspends a user account, pauses their memberships and Stripe subscriptions. Requires admin role.
+     *
+     * @tags customers
+     * @name SuspendUser
+     * @summary Suspend user account
+     * @request POST:/customers/{id}/suspend
+     * @secure
+     */
+    suspendUser: (id: string, data: SuspendUserRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/customers/${id}/suspend`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Retrieves suspension information for a user including reason, suspended by, and expiration date
+     *
+     * @tags customers
+     * @name GetSuspension
+     * @summary Get user suspension status
+     * @request GET:/customers/{id}/suspension
+     * @secure
+     */
+    getSuspension: (id: string, params: RequestParams = {}) =>
+      this.request<SuspensionInfoResponseDto, Record<string, any>>({
+        path: `/customers/${id}/suspension`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Unsuspends a user account, resumes their memberships and Stripe subscriptions. Optionally extends membership by suspension duration. Requires admin role.
+     *
+     * @tags customers
+     * @name UnsuspendUser
+     * @summary Unsuspend user account
+     * @request POST:/customers/{id}/unsuspend
+     * @secure
+     */
+    unsuspendUser: (id: string, data: UnsuspendUserRequestDto, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/customers/${id}/unsuspend`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Calculates and creates Stripe invoice items for missed billing periods during suspension. Does not unsuspend the user. Requires admin role.
+     *
+     * @tags customers
+     * @name CollectArrears
+     * @summary Manually collect arrears for suspended user
+     * @request POST:/customers/{id}/collect-arrears
+     * @secure
+     */
+    collectArrears: (id: string, params: RequestParams = {}) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/customers/${id}/collect-arrears`,
+        method: "POST",
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,

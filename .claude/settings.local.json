@@ -9,7 +9,10 @@
       "Bash(git rebase:*)",
       "Bash(git reset:*)",
       "Bash(dir /B \"C:\\RISE\\Rise-Admin-Shad-Version\")",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(awk:*)",
+      "Bash(git -C \"C:\\RISE\\Rise-Admin-Shad-Version\" branch --show-current)",
+      "Bash(git -C \"C:\\RISE\\Rise-Admin-Shad-Version\" status --short)"
     ],
     "deny": [],
     "ask": []
