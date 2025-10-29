@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -36,6 +37,7 @@ import {
   Coins,
   FileText,
   SaveIcon,
+  Ban,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,6 +51,9 @@ import {
   updateCustomerNotes,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
+import { Api } from "@/app/api/Api";
+import type { SuspensionInfoResponseDto } from "@/app/api/Api";
+import getValue from "@/configs/constants";
 
 interface MembershipPlan {
   id: string;
@@ -100,6 +105,16 @@ export default function CustomerInfoPanel({
   const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
   const [notesDraft, setNotesDraft] = useState(customer.notes ?? "");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [suspensionData, setSuspensionData] =
+    useState<SuspensionInfoResponseDto | null>(null);
+  const [isSuspensionLoading, setIsSuspensionLoading] = useState(false);
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [unsuspendDialogOpen, setUnsuspendDialogOpen] = useState(false);
+  const [suspensionReason, setSuspensionReason] = useState("");
+  const [suspensionDuration, setSuspensionDuration] = useState("");
+  const [collectArrears, setCollectArrears] = useState(false);
+  const [extendMembership, setExtendMembership] = useState(false);
+  const [isSuspending, setIsSuspending] = useState(false);
 
   const CREDITS_AMOUNT_PATTERN = /^\d*$/;
   const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'-]*$/;
@@ -183,6 +198,36 @@ export default function CustomerInfoPanel({
       }
     },
     [applyCreditsUpdate, toast, user?.Jwt]
+  );
+
+  const loadSuspensionData = useCallback(
+    async (customerId: string) => {
+      if (!customerId || !user?.Jwt) {
+        return;
+      }
+
+      setIsSuspensionLoading(true);
+      try {
+        const apiClient = new Api<{ token: string }>({
+          baseUrl: getValue("API").replace(/\/$/, ""),
+          securityWorker: (securityData) =>
+            securityData?.token
+              ? { headers: { Authorization: `Bearer ${securityData.token}` } }
+              : {},
+        });
+        apiClient.setSecurityData({ token: user.Jwt });
+
+        const resp = await apiClient.customers.getSuspension(customerId);
+        // Api client returns an HttpResponse wrapper; extract the actual data payload
+        setSuspensionData(resp?.data ?? null);
+      } catch (error) {
+        console.error("Error loading suspension data:", error);
+        setSuspensionData(null);
+      } finally {
+        setIsSuspensionLoading(false);
+      }
+    },
+    [user?.Jwt]
   );
 
   const fetchTransactions = useCallback(
@@ -290,6 +335,7 @@ export default function CustomerInfoPanel({
         }
         await Promise.all([
           loadCustomerCredits(refreshedCustomer.id),
+          loadSuspensionData(refreshedCustomer.id),
           fetchTransactions(refreshedCustomer.id, {
             limit: transactionsLimit,
             offset: transactionsOffset,
@@ -393,6 +439,14 @@ export default function CustomerInfoPanel({
 
     loadCustomerCredits(customer.id);
   }, [customer.id, loadCustomerCredits]);
+
+  useEffect(() => {
+    if (!customer.id) {
+      return;
+    }
+
+    loadSuspensionData(customer.id);
+  }, [customer.id, loadSuspensionData]);
 
   useEffect(() => {
     if (!customer.id) {
@@ -558,6 +612,116 @@ export default function CustomerInfoPanel({
     }
   };
 
+  const handleSuspend = async () => {
+    if (!currentCustomer.id || !user?.Jwt) {
+      toast({
+        status: "error",
+        description: "Missing customer ID or authentication",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!suspensionReason.trim() || suspensionReason.trim().length < 10) {
+      toast({
+        status: "error",
+        description:
+          "Please provide a suspension reason (at least 10 characters)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSuspending(true);
+    try {
+      const apiClient = new Api<{ token: string }>({
+        baseUrl: getValue("API").replace(/\/$/, ""),
+        securityWorker: (securityData) =>
+          securityData?.token
+            ? { headers: { Authorization: `Bearer ${securityData.token}` } }
+            : {},
+      });
+      apiClient.setSecurityData({ token: user.Jwt });
+
+      await apiClient.customers.suspendUser(currentCustomer.id, {
+        suspension_reason: suspensionReason.trim(),
+        suspension_duration: suspensionDuration.trim() || null,
+      });
+
+      await loadSuspensionData(currentCustomer.id);
+
+      toast({
+        status: "success",
+        description: "Customer suspended successfully",
+      });
+
+      setSuspendDialogOpen(false);
+      setSuspensionReason("");
+      setSuspensionDuration("");
+    } catch (error) {
+      console.error("Error suspending customer:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error ? error.message : "Failed to suspend customer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
+  const handleUnsuspend = async () => {
+    if (!currentCustomer.id || !user?.Jwt) {
+      toast({
+        status: "error",
+        description: "Missing customer ID or authentication",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSuspending(true);
+    try {
+      const apiClient = new Api<{ token: string }>({
+        baseUrl: getValue("API").replace(/\/$/, ""),
+        securityWorker: (securityData) =>
+          securityData?.token
+            ? { headers: { Authorization: `Bearer ${securityData.token}` } }
+            : {},
+      });
+      apiClient.setSecurityData({ token: user.Jwt });
+
+      await apiClient.customers.unsuspendUser(currentCustomer.id, {
+        collect_arrears: collectArrears,
+        extend_membership: extendMembership,
+      });
+
+      await loadSuspensionData(currentCustomer.id);
+
+      toast({
+        status: "success",
+        description: "Customer unsuspended successfully",
+      });
+
+      setUnsuspendDialogOpen(false);
+      setCollectArrears(false);
+      setExtendMembership(false);
+    } catch (error) {
+      console.error("Error unsuspending customer:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to unsuspend customer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -692,13 +856,107 @@ export default function CustomerInfoPanel({
                     No Membership Information
                   </h3>
                   <p className="text-muted-foreground">
-                    This customer doesn't have any membership plans associated with
-                    their account.
+                    This customer doesn't have any membership plans associated
+                    with their account.
                   </p>
                 </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Suspension Card */}
+          <Card className={`border-l-4 mt-4 ${suspensionData?.is_suspended ? 'border-l-red-500' : 'border-l-yellow-500'}`}>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Ban className={`h-5 w-5 ${suspensionData?.is_suspended ? 'text-red-500' : 'text-yellow-500'}`} />
+                <h3 className="font-semibold text-lg">Suspension Status</h3>
+              </div>
+              {isSuspensionLoading ? (
+                <div className="text-sm text-muted-foreground">
+                  Loading suspension data...
+                </div>
+              ) : suspensionData?.is_suspended ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Status
+                      </label>
+                      <p className="text-sm font-medium text-red-600">
+                        Suspended
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Suspended At
+                      </label>
+                      <p className="text-sm font-medium">
+                        {suspensionData.suspended_at
+                          ? new Date(
+                              suspensionData.suspended_at
+                            ).toLocaleString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Suspended By
+                      </label>
+                      <p className="text-sm font-medium">
+                        {suspensionData.suspended_by || "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Expires At
+                      </label>
+                      <p className="text-sm font-medium">
+                        {suspensionData.suspension_expires_at
+                          ? new Date(
+                              suspensionData.suspension_expires_at
+                            ).toLocaleString()
+                          : "Indefinite"}
+                      </p>
+                    </div>
+                    {suspensionData.suspension_reason && (
+                      <div className="col-span-2 space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Reason
+                        </label>
+                        <p className="text-sm font-medium">
+                          {suspensionData.suspension_reason}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={() => setUnsuspendDialogOpen(true)}
+                      disabled={isSuspending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Unsuspend Customer
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    This customer is not currently suspended.
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={() => setSuspendDialogOpen(true)}
+                      disabled={isSuspending}
+                      variant="destructive"
+                    >
+                      Suspend Customer
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="notes">
@@ -788,8 +1046,8 @@ export default function CustomerInfoPanel({
                   </Button>
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Manage this customer's available credits by adding or deducting
-                  amounts below.
+                  Manage this customer's available credits by adding or
+                  deducting amounts below.
                 </p>
               </CardContent>
             </Card>
@@ -808,54 +1066,56 @@ export default function CustomerInfoPanel({
                   </div>
                   <div className="space-y-3">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <div className="flex-1 space-y-1">
-                      <Label htmlFor="add-credits-amount">Amount</Label>
-                      <Input
-                        id="add-credits-amount"
-                        type="number"
-                        min="1"
-                        step="1"
-                        placeholder="Amount"
-                        value={addCreditsAmount}
+                      <div className="flex-1 space-y-1">
+                        <Label htmlFor="add-credits-amount">Amount</Label>
+                        <Input
+                          id="add-credits-amount"
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="Amount"
+                          value={addCreditsAmount}
+                          onChange={(event) => {
+                            const { value } = event.target;
+                            if (!CREDITS_AMOUNT_PATTERN.test(value)) {
+                              return;
+                            }
+
+                            setAddCreditsAmount(value);
+                          }}
+                          disabled={creditsAction !== null}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                        onClick={() => handleCreditMutation("add")}
+                        disabled={isAddDisabled}
+                      >
+                        {creditsAction === "add" ? "Adding..." : "Add"}
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="add-credits-description">
+                        Description
+                      </Label>
+                      <Textarea
+                        id="add-credits-description"
+                        placeholder="Describe the reason for adding credits"
+                        value={addCreditsDescription}
                         onChange={(event) => {
                           const { value } = event.target;
-                          if (!CREDITS_AMOUNT_PATTERN.test(value)) {
+                          if (!NOTES_INPUT_PATTERN.test(value)) {
                             return;
                           }
 
-                          setAddCreditsAmount(value);
+                          setAddCreditsDescription(value);
                         }}
                         disabled={creditsAction !== null}
+                        rows={3}
+                        className="bg-background"
                       />
                     </div>
-                    <Button
-                      type="button"
-                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
-                      onClick={() => handleCreditMutation("add")}
-                      disabled={isAddDisabled}
-                    >
-                      {creditsAction === "add" ? "Adding..." : "Add"}
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="add-credits-description">Description</Label>
-                    <Textarea
-                      id="add-credits-description"
-                      placeholder="Describe the reason for adding credits"
-                      value={addCreditsDescription}
-                      onChange={(event) => {
-                        const { value } = event.target;
-                        if (!NOTES_INPUT_PATTERN.test(value)) {
-                          return;
-                        }
-
-                        setAddCreditsDescription(value);
-                      }}
-                      disabled={creditsAction !== null}
-                      rows={3}
-                      className="bg-background"
-                    />
-                  </div>
                   </div>
                 </CardContent>
               </Card>
@@ -873,74 +1133,74 @@ export default function CustomerInfoPanel({
                   </div>
                   <div className="space-y-3">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                    <div className="flex-1 space-y-1">
-                      <Label htmlFor="deduct-credits-amount">Amount</Label>
-                      <Input
-                        id="deduct-credits-amount"
-                        type="number"
-                        min="1"
-                        step="1"
-                        placeholder="Amount"
-                        value={deductCreditsAmount}
+                      <div className="flex-1 space-y-1">
+                        <Label htmlFor="deduct-credits-amount">Amount</Label>
+                        <Input
+                          id="deduct-credits-amount"
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="Amount"
+                          value={deductCreditsAmount}
+                          onChange={(event) => {
+                            const { value } = event.target;
+                            if (!CREDITS_AMOUNT_PATTERN.test(value)) {
+                              return;
+                            }
+
+                            setDeductCreditsAmount(value);
+                          }}
+                          disabled={creditsAction !== null}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="w-full sm:w-auto"
+                        onClick={() => handleCreditMutation("deduct")}
+                        disabled={isDeductDisabled}
+                      >
+                        {creditsAction === "deduct" ? "Deducting..." : "Deduct"}
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="deduct-credits-description">
+                        Description
+                      </Label>
+                      <Textarea
+                        id="deduct-credits-description"
+                        placeholder="Describe the reason for deducting credits"
+                        value={deductCreditsDescription}
                         onChange={(event) => {
                           const { value } = event.target;
-                          if (!CREDITS_AMOUNT_PATTERN.test(value)) {
+                          if (!NOTES_INPUT_PATTERN.test(value)) {
                             return;
                           }
 
-                          setDeductCreditsAmount(value);
+                          setDeductCreditsDescription(value);
                         }}
                         disabled={creditsAction !== null}
+                        rows={3}
+                        className="bg-background"
                       />
                     </div>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="w-full sm:w-auto"
-                      onClick={() => handleCreditMutation("deduct")}
-                      disabled={isDeductDisabled}
-                    >
-                      {creditsAction === "deduct" ? "Deducting..." : "Deduct"}
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="deduct-credits-description">
-                      Description
-                    </Label>
-                    <Textarea
-                      id="deduct-credits-description"
-                      placeholder="Describe the reason for deducting credits"
-                      value={deductCreditsDescription}
-                      onChange={(event) => {
-                        const { value } = event.target;
-                        if (!NOTES_INPUT_PATTERN.test(value)) {
-                          return;
-                        }
-
-                        setDeductCreditsDescription(value);
-                      }}
-                      disabled={creditsAction !== null}
-                      rows={3}
-                      className="bg-background"
-                    />
-                  </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
-              <Card className="border-l-4 border-l-yellow-500">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-yellow-500" />
-                      <div>
-                        <h3 className="font-semibold text-lg">Credit History</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Review the most recent credit adjustments applied to this
-                          account.
-                        </p>
-                      </div>
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Credit History</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Review the most recent credit adjustments applied to
+                        this account.
+                      </p>
                     </div>
+                  </div>
                   <div className="flex items-center gap-3">
                     {isTransactionsLoading && (
                       <span className="text-xs text-muted-foreground">
@@ -978,9 +1238,9 @@ export default function CustomerInfoPanel({
                       </select>
                     </div>
                   </div>
-                  </div>
+                </div>
 
-                  <div className="rounded-lg border">
+                <div className="rounded-lg border">
                   {isTransactionsLoading && transactions.length === 0 ? (
                     <div className="p-6 text-center text-sm text-muted-foreground">
                       Loading transactions…
@@ -1088,9 +1348,9 @@ export default function CustomerInfoPanel({
                       </TableBody>
                     </Table>
                   )}
-                  </div>
+                </div>
 
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-sm text-muted-foreground">
                     {transactions.length > 0
                       ? `Showing ${transactionRangeStart}–${transactionRangeEnd} (Page ${transactionPage})`
@@ -1128,9 +1388,9 @@ export default function CustomerInfoPanel({
                       Next
                     </Button>
                   </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
@@ -1226,6 +1486,123 @@ export default function CustomerInfoPanel({
           </div>
         </div>
       </div>
+
+      {/* Suspend Dialog */}
+      <AlertDialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Suspend Customer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Suspending this customer will pause their membership and access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="suspension-reason">
+                Reason <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="suspension-reason"
+                placeholder="Enter the reason for suspension (10-500 characters)"
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                className="min-h-[100px]"
+                maxLength={500}
+                disabled={isSuspending}
+              />
+              <p className="text-xs text-muted-foreground">
+                {suspensionReason.length}/500 characters
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="suspension-duration">Duration (Optional)</Label>
+              <Input
+                id="suspension-duration"
+                placeholder="e.g., 720h (30 days), 168h (1 week), 8760h (1 year)"
+                value={suspensionDuration}
+                onChange={(e) => setSuspensionDuration(e.target.value)}
+                disabled={isSuspending}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter duration in hours (e.g., 24h, 168h, 720h) or leave empty for indefinite
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSuspending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleSuspend}
+              disabled={isSuspending || suspensionReason.trim().length < 10}
+              variant="destructive"
+            >
+              {isSuspending ? "Suspending..." : "Suspend Customer"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unsuspend Dialog */}
+      <AlertDialog
+        open={unsuspendDialogOpen}
+        onOpenChange={setUnsuspendDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsuspend Customer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Reactivate this customer's membership and access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="collect-arrears"
+                checked={collectArrears}
+                onCheckedChange={(checked) =>
+                  setCollectArrears(checked as boolean)
+                }
+                disabled={isSuspending}
+              />
+              <Label
+                htmlFor="collect-arrears"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Collect arrears (charge for suspended period)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="extend-membership"
+                checked={extendMembership}
+                onCheckedChange={(checked) =>
+                  setExtendMembership(checked as boolean)
+                }
+                disabled={isSuspending}
+              />
+              <Label
+                htmlFor="extend-membership"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Extend membership by suspension duration
+              </Label>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSuspending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleUnsuspend}
+              disabled={isSuspending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSuspending ? "Unsuspending..." : "Unsuspend Customer"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

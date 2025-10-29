@@ -2098,6 +2098,73 @@
         }
       }
     },
+    "/customers/{id}/collect-arrears": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Calculates and creates Stripe invoice items for missed billing periods during suspension. Does not unsuspend the user. Requires admin role.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "summary": "Manually collect arrears for suspended user",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to collect arrears for",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arrears collected successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or user not suspended",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: User not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/customers/{id}/memberships": {
       "get": {
         "consumes": ["application/json"],
@@ -2206,6 +2273,141 @@
         }
       }
     },
+    "/customers/{id}/suspend": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Suspends a user account, pauses their memberships and Stripe subscriptions. Requires admin role.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "summary": "Suspend user account",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to suspend",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Suspension details",
+            "name": "suspension_body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/suspension.SuspendUserRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User suspended successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: User not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/suspension": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieves suspension information for a user including reason, suspended by, and expiration date",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "summary": "Get user suspension status",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suspension information",
+            "schema": {
+              "$ref": "#/definitions/suspension.SuspensionInfoResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid user ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: User not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/customers/{id}/unarchive": {
       "post": {
         "consumes": ["application/json"],
@@ -2233,6 +2435,82 @@
           },
           "404": {
             "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/unsuspend": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Unsuspends a user account, resumes their memberships and Stripe subscriptions. Optionally extends membership by suspension duration. Requires admin role.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["customers"],
+        "summary": "Unsuspend user account",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to unsuspend",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Unsuspension options",
+            "name": "unsuspension_body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/suspension.UnsuspendUserRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User unsuspended successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or user not suspended",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: User not found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -8789,6 +9067,12 @@
         "steals": {
           "type": "integer"
         },
+        "team_id": {
+          "type": "string"
+        },
+        "team_logo_url": {
+          "type": "string"
+        },
         "wins": {
           "type": "integer"
         }
@@ -9413,6 +9697,54 @@
         },
         "staff_id": {
           "type": "string"
+        }
+      }
+    },
+    "suspension.SuspendUserRequestDto": {
+      "type": "object",
+      "required": ["suspension_reason"],
+      "properties": {
+        "suspension_duration": {
+          "description": "e.g., \"720h\" (30 days), \"8760h\" (1 year), null = indefinite",
+          "type": "string"
+        },
+        "suspension_reason": {
+          "type": "string",
+          "maxLength": 500,
+          "minLength": 10
+        }
+      }
+    },
+    "suspension.SuspensionInfoResponseDto": {
+      "type": "object",
+      "properties": {
+        "is_suspended": {
+          "type": "boolean"
+        },
+        "suspended_at": {
+          "type": "string"
+        },
+        "suspended_by": {
+          "type": "string"
+        },
+        "suspension_expires_at": {
+          "type": "string"
+        },
+        "suspension_reason": {
+          "type": "string"
+        }
+      }
+    },
+    "suspension.UnsuspendUserRequestDto": {
+      "type": "object",
+      "properties": {
+        "collect_arrears": {
+          "description": "whether to create invoice items for missed billing periods",
+          "type": "boolean"
+        },
+        "extend_membership": {
+          "description": "whether to extend renewal_date by suspension duration",
+          "type": "boolean"
         }
       }
     },
