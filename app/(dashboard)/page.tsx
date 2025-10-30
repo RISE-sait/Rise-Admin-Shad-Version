@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { TodoList } from "@/components/todo-list";
+import SuspendedCustomersCard from "@/components/dashboard/SuspendedCustomersCard";
 import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { getSchedule } from "@/services/schedule";
@@ -334,6 +335,11 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Suspended Customers Section */}
+      <div className="mt-4">
+        <SuspendedCustomersCard />
       </div>
     </div>
   );

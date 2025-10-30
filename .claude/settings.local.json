@@ -12,7 +12,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(awk:*)",
       "Bash(git -C \"C:\\RISE\\Rise-Admin-Shad-Version\" branch --show-current)",
-      "Bash(git -C \"C:\\RISE\\Rise-Admin-Shad-Version\" status --short)"
+      "Bash(git -C \"C:\\RISE\\Rise-Admin-Shad-Version\" status --short)",
+      "Bash(ls:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []
