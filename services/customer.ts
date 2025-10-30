@@ -1067,3 +1067,83 @@ export async function exportArchivedCustomers(jwt: string): Promise<Blob> {
     throw error;
   }
 }
+
+export interface SuspendedCustomer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  suspended_at: string;
+  suspended_by?: string;
+  suspension_expires_at?: string | null;
+  suspension_reason?: string;
+}
+
+/**
+ * Get suspended customers
+ * This function attempts to fetch suspended customers by calling the backend with an is_suspended filter.
+ * If the backend doesn't support this filter yet, this will return an empty array.
+ */
+export async function getSuspendedCustomers(
+  jwt: string,
+  limit: number = 10
+): Promise<SuspendedCustomer[]> {
+  try {
+    // Try fetching with is_suspended filter - this assumes backend supports it
+    // If not supported, the backend should return all customers or an error
+    const params = new URLSearchParams();
+    params.append("is_suspended", "true");
+    params.append("limit", String(limit));
+    params.append("offset", "0");
+
+    const url = `${getValue("API")}customers?${params.toString()}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      ...addAuthHeader(jwt),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch suspended customers: ${response.statusText}`);
+    }
+
+    const json: CustomersPaginatedResponse = await response.json();
+
+    // Map customers to suspended customer format
+    const suspendedCustomers: SuspendedCustomer[] = [];
+
+    // Check suspension status for each customer
+    for (const customerData of json.data.slice(0, limit)) {
+      try {
+        const suspensionUrl = `${getValue("API")}customers/${customerData.user_id}/suspension`;
+        const suspensionResponse = await fetch(suspensionUrl, {
+          method: "GET",
+          ...addAuthHeader(jwt),
+        });
+
+        if (suspensionResponse.ok) {
+          const suspensionData = await suspensionResponse.json();
+          if (suspensionData.is_suspended) {
+            suspendedCustomers.push({
+              id: customerData.user_id,
+              first_name: customerData.first_name,
+              last_name: customerData.last_name,
+              email: customerData.email,
+              suspended_at: suspensionData.suspended_at || "",
+              suspended_by: suspensionData.suspended_by,
+              suspension_expires_at: suspensionData.suspension_expires_at,
+              suspension_reason: suspensionData.suspension_reason,
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`Error checking suspension for customer ${customerData.user_id}:`, error);
+      }
+    }
+
+    return suspendedCustomers;
+  } catch (error) {
+    console.error("Error fetching suspended customers:", error);
+    return [];
+  }
+}
