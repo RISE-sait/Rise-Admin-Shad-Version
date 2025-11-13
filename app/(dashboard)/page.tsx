@@ -98,6 +98,8 @@ export default function DashboardPage() {
             (e) =>
               e.location?.id &&
               locationIds.has(e.location.id) &&
+              e.start_at &&
+              e.end_at &&
               isSameDay(new Date(e.start_at as string), today)
           )
           .map((e) => ({
@@ -108,12 +110,15 @@ export default function DashboardPage() {
             location: e.location?.name ?? "",
             court: e.location?.name ?? "",
             type: e.program?.type ?? "event",
-          }));
+          }))
+          .filter((e) => !isNaN(e.start_at.getTime()) && !isNaN(e.end_at.getTime()));
 
         const games = gamesData
           .filter(
             (g) =>
               locationIds.has(g.location_id) &&
+              g.start_time &&
+              g.end_time &&
               isSameDay(new Date(g.start_time), today)
           )
           .map((g) => ({
@@ -124,12 +129,14 @@ export default function DashboardPage() {
             location: g.location_name!,
             court: g.location_name!,
             type: "game",
-          }));
+          }))
+          .filter((g) => !isNaN(g.start_at.getTime()) && !isNaN(g.end_at.getTime()));
 
         const practices = practicesData
           .filter(
             (p) =>
               locationIds.has(p.location_id) &&
+              p.start_time &&
               isSameDay(new Date(p.start_time), today)
           )
           .map((p) => ({
@@ -140,7 +147,8 @@ export default function DashboardPage() {
             location: p.location_name ?? "",
             court: p.court_name,
             type: "practice",
-          }));
+          }))
+          .filter((p) => !isNaN(p.start_at.getTime()) && !isNaN(p.end_at.getTime()));
 
         const all = [...events, ...games, ...practices];
         all.sort((a, b) => a.start_at.getTime() - b.start_at.getTime());
