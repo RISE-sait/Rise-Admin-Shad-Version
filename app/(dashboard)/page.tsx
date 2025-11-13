@@ -136,7 +136,7 @@ export default function DashboardPage() {
             id: p.id,
             title: p.team_name || "Practice",
             start_at: new Date(p.start_time),
-            end_at: new Date(p.end_time ?? ""),
+            end_at: new Date(p.end_time ?? p.start_time),
             location: p.location_name ?? "",
             court: p.court_name,
             type: "practice",
