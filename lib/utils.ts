@@ -52,7 +52,13 @@ export function toZonedISOString(date: Date): string {
  * without shifting the local time.
  */
 export function fromZonedISOString(isoString: string): Date {
+  if (!isoString || typeof isoString !== 'string' || isoString.trim() === '') {
+    throw new Error('Invalid date string provided to fromZonedISOString');
+  }
   const date = new Date(isoString);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date: ${isoString}`);
+  }
   const offsetMs = date.getTimezoneOffset() * 60 * 0o0;
   return new Date(date.getTime() + offsetMs);
 }

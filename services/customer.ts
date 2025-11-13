@@ -1123,13 +1123,13 @@ export async function getSuspendedCustomers(
 
         if (suspensionResponse.ok) {
           const suspensionData = await suspensionResponse.json();
-          if (suspensionData.is_suspended) {
+          if (suspensionData.is_suspended && suspensionData.suspended_at) {
             suspendedCustomers.push({
               id: customerData.user_id,
               first_name: customerData.first_name,
               last_name: customerData.last_name,
               email: customerData.email,
-              suspended_at: suspensionData.suspended_at || "",
+              suspended_at: suspensionData.suspended_at,
               suspended_by: suspensionData.suspended_by,
               suspension_expires_at: suspensionData.suspension_expires_at,
               suspension_reason: suspensionData.suspension_reason,
