@@ -500,6 +500,338 @@
         }
       }
     },
+    "/admin/payments/export": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Export payment transactions to CSV format (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["text/csv"],
+        "tags": ["Payments - Admin"],
+        "summary": "Export payment transactions",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Start date (RFC3339 format)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (RFC3339 format)",
+            "name": "end_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by transaction type",
+            "name": "transaction_type",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by payment status",
+            "name": "payment_status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV file",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/subsidy-usage": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get aggregated subsidy usage statistics (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments - Admin"],
+        "summary": "Get subsidy usage summary",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Start date (RFC3339 format)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (RFC3339 format)",
+            "name": "end_date",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment transactions retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/summary": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get aggregated payment statistics for a date range (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments - Admin"],
+        "summary": "Get payment summary",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Start date (RFC3339 format)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (RFC3339 format)",
+            "name": "end_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by transaction type",
+            "name": "transaction_type",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by payment status",
+            "name": "payment_status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment transactions retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/summary/by-type": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get payment statistics grouped by transaction type (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments - Admin"],
+        "summary": "Get payment summary by type",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Start date (RFC3339 format)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (RFC3339 format)",
+            "name": "end_date",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment transactions retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/transactions": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get paginated list of payment transactions with optional filters (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments - Admin"],
+        "summary": "List payment transactions",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Filter by customer ID",
+            "name": "customer_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by transaction type (membership_subscription, program_enrollment, event_registration, credit_package)",
+            "name": "transaction_type",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by payment status (pending, completed, failed, refunded, partially_refunded)",
+            "name": "payment_status",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Start date (RFC3339 format)",
+            "name": "start_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (RFC3339 format)",
+            "name": "end_date",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by subsidy ID",
+            "name": "subsidy_id",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 50,
+            "description": "Page size",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "Page offset",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment transactions retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/ai/chat": {
       "post": {
         "consumes": ["application/json"],
@@ -7179,6 +7511,627 @@
         }
       }
     },
+    "/subsidies": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get list of subsidies with optional filters (admin only)",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "List subsidies",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Filter by customer ID",
+            "name": "customer_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by provider ID",
+            "name": "provider_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Filter by status (pending, approved, active, depleted, expired, revoked)",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 1,
+            "description": "Page number",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 50,
+            "description": "Items per page",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Create a new subsidy for a customer (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Create subsidy",
+        "parameters": [
+          {
+            "description": "Subsidy details",
+            "name": "subsidy",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CreateSubsidyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/me": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get list of subsidies for the authenticated customer",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Customer"],
+        "summary": "Get my subsidies",
+        "parameters": [
+          {
+            "type": "integer",
+            "default": 1,
+            "description": "Page number",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 10,
+            "description": "Items per page",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/me/balance": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get current subsidy balance for the authenticated customer",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Customer"],
+        "summary": "Get my balance",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/me/usage": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get subsidy usage history for the authenticated customer",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Customer"],
+        "summary": "Get my usage history",
+        "parameters": [
+          {
+            "type": "integer",
+            "default": 1,
+            "description": "Page number",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 20,
+            "description": "Items per page",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/providers": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get list of all subsidy providers with optional filters (admin only)",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "List subsidy providers",
+        "parameters": [
+          {
+            "type": "boolean",
+            "description": "Filter by active status",
+            "name": "is_active",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Create a new subsidy provider organization (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Create subsidy provider",
+        "parameters": [
+          {
+            "description": "Provider details",
+            "name": "provider",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CreateProviderRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/providers/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get details of a specific subsidy provider (admin only)",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Get subsidy provider",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Provider ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/providers/{id}/stats": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get usage statistics for a specific provider (admin only)",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Get provider statistics",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Provider ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/summary": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get overall subsidy statistics and reports (admin only)",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Get subsidy summary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Get details of a specific subsidy (admin only)",
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Get subsidy",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Subsidy ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/subsidies/{id}/deactivate": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Deactivate/revoke a subsidy (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Subsidies - Admin"],
+        "summary": "Deactivate subsidy",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Subsidy ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Deactivation reason",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.DeactivateSubsidyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/teams": {
       "get": {
         "consumes": ["application/json"],
@@ -8336,6 +9289,63 @@
         "token": {
           "description": "reCAPTCHA token",
           "type": "string"
+        }
+      }
+    },
+    "dto.CreateProviderRequest": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "contact_email": {
+          "type": "string"
+        },
+        "contact_phone": {
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 10
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 2
+        }
+      }
+    },
+    "dto.CreateSubsidyRequest": {
+      "type": "object",
+      "required": ["approved_amount", "customer_id", "provider_id", "reason"],
+      "properties": {
+        "admin_notes": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "approved_amount": {
+          "type": "number"
+        },
+        "customer_id": {
+          "type": "string"
+        },
+        "provider_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 500,
+          "minLength": 5
+        },
+        "valid_until": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.DeactivateSubsidyRequest": {
+      "type": "object",
+      "required": ["reason"],
+      "properties": {
+        "reason": {
+          "type": "string",
+          "maxLength": 500,
+          "minLength": 5
         }
       }
     },
@@ -9767,13 +10777,16 @@
       "required": ["capacity", "name"],
       "properties": {
         "capacity": {
-          "type": "integer"
+          "type": "integer",
+          "maximum": 100
         },
         "logo_url": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 2048
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 100
         }
       }
     },
@@ -9782,17 +10795,20 @@
       "required": ["capacity", "name"],
       "properties": {
         "capacity": {
-          "type": "integer"
+          "type": "integer",
+          "maximum": 100
         },
         "coach_id": {
           "type": "string",
           "example": "faae4b3a-ad9f-463c-ae4b-3aad9fb63c9b"
         },
         "logo_url": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 2048
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 100
         }
       }
     },
