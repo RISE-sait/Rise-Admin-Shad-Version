@@ -144,7 +144,7 @@ export default function CustomerInfoPanel({
   const [isDeactivating, setIsDeactivating] = useState(false);
 
   const CREDITS_AMOUNT_PATTERN = /^\d*$/;
-  const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'-]*$/;
+  const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'\-:;/\\&=?#@%()[\]{}~+]*$/;
 
   const { toast } = useToast();
   const { user } = useUser();

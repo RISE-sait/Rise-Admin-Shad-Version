@@ -1,10 +1,10 @@
-export const TEXT_PATTERN = /^[A-Za-z0-9\s.,'&()\-\/]{1,120}$/;
+export const TEXT_PATTERN = /^[\w\s.,'\"!?\-:;\/\\&=?#@%()[\]{}~+]{1,120}$/;
 export const TEXT_PATTERN_MESSAGE =
-  "Use 1-120 characters with letters, numbers, spaces, and basic punctuation (.,'&()-/).";
+  "Use 1-120 characters including letters, numbers, spaces, URLs, and special characters.";
 
-export const MULTILINE_TEXT_PATTERN = /^[A-Za-z0-9\s.,'&()\-\/;\n]{1,500}$/;
+export const MULTILINE_TEXT_PATTERN = /^[\w\s.,'\"!?\-:;\/\\&=?#@%()[\]{}~+\n]{1,500}$/;
 export const MULTILINE_TEXT_MESSAGE =
-  "Use up to 500 characters with letters, numbers, spaces, new lines, and basic punctuation (including semicolons).";
+  "Use up to 500 characters including letters, numbers, spaces, URLs, and special characters.";
 
 export const NUMBER_PATTERN = /^[0-9]+$/;
 export const NUMBER_PATTERN_MESSAGE = "Enter a whole number using digits only.";
