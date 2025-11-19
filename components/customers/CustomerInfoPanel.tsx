@@ -11,6 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -38,6 +45,9 @@ import {
   FileText,
   SaveIcon,
   Ban,
+  HandCoins,
+  Plus,
+  X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -54,6 +64,8 @@ import { useUser } from "@/contexts/UserContext";
 import { Api } from "@/app/api/Api";
 import type { SuspensionInfoResponseDto } from "@/app/api/Api";
 import getValue from "@/configs/constants";
+import { getCustomerSubsidies, getSubsidyProviders, createSubsidy, deactivateSubsidy } from "@/services/subsidy";
+import { Subsidy, SubsidyProvider } from "@/types/subsidy";
 
 interface MembershipPlan {
   id: string;
@@ -115,9 +127,24 @@ export default function CustomerInfoPanel({
   const [collectArrears, setCollectArrears] = useState(false);
   const [extendMembership, setExtendMembership] = useState(false);
   const [isSuspending, setIsSuspending] = useState(false);
+  const [subsidies, setSubsidies] = useState<Subsidy[]>([]);
+  const [isSubsidiesLoading, setIsSubsidiesLoading] = useState(false);
+  const [createSubsidyDialogOpen, setCreateSubsidyDialogOpen] = useState(false);
+  const [subsidyProviders, setSubsidyProviders] = useState<SubsidyProvider[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(false);
+  const [isCreatingSubsidy, setIsCreatingSubsidy] = useState(false);
+  const [newSubsidyProviderId, setNewSubsidyProviderId] = useState("");
+  const [newSubsidyAmount, setNewSubsidyAmount] = useState("");
+  const [newSubsidyReason, setNewSubsidyReason] = useState("");
+  const [newSubsidyValidUntil, setNewSubsidyValidUntil] = useState("");
+  const [newSubsidyAdminNotes, setNewSubsidyAdminNotes] = useState("");
+  const [deactivateSubsidyDialogOpen, setDeactivateSubsidyDialogOpen] = useState(false);
+  const [subsidyToDeactivate, setSubsidyToDeactivate] = useState<Subsidy | null>(null);
+  const [deactivationReason, setDeactivationReason] = useState("");
+  const [isDeactivating, setIsDeactivating] = useState(false);
 
   const CREDITS_AMOUNT_PATTERN = /^\d*$/;
-  const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'-]*$/;
+  const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'\-:;/\\&=?#@%()[\]{}~+]*$/;
 
   const { toast } = useToast();
   const { user } = useUser();
@@ -230,6 +257,204 @@ export default function CustomerInfoPanel({
     [user?.Jwt]
   );
 
+  const loadSubsidyData = useCallback(
+    async (customerId: string) => {
+      if (!customerId || !user?.Jwt) {
+        return;
+      }
+
+      setIsSubsidiesLoading(true);
+      try {
+        // Load subsidies and providers in parallel
+        const [subsidiesResponse, providers] = await Promise.all([
+          getCustomerSubsidies(customerId, user.Jwt),
+          getSubsidyProviders(user.Jwt).catch(() => []), // Don't fail if providers can't be loaded
+        ]);
+
+        setSubsidies(subsidiesResponse.data || []);
+        setSubsidyProviders(providers);
+      } catch (error) {
+        console.error("Error loading subsidy data:", error);
+        setSubsidies([]);
+      } finally {
+        setIsSubsidiesLoading(false);
+      }
+    },
+    [user?.Jwt]
+  );
+
+  const loadSubsidyProviders = useCallback(async () => {
+    if (!user?.Jwt) {
+      return;
+    }
+
+    setIsLoadingProviders(true);
+    try {
+      const providers = await getSubsidyProviders(user.Jwt, true); // Get only active providers
+      setSubsidyProviders(providers);
+    } catch (error) {
+      console.error("Error loading subsidy providers:", error);
+      setSubsidyProviders([]);
+      toast({
+        status: "error",
+        description: "Failed to load subsidy providers",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingProviders(false);
+    }
+  }, [user?.Jwt, toast]);
+
+  const handleCreateSubsidy = async () => {
+    if (!currentCustomer.id || !user?.Jwt) {
+      toast({
+        status: "error",
+        description: "Missing customer ID or authentication",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newSubsidyProviderId) {
+      toast({
+        status: "error",
+        description: "Please select a provider",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const amount = Number(newSubsidyAmount);
+    if (!newSubsidyAmount || isNaN(amount) || amount <= 0) {
+      toast({
+        status: "error",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newSubsidyReason.trim() || newSubsidyReason.trim().length < 5) {
+      toast({
+        status: "error",
+        description: "Please provide a reason (at least 5 characters)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingSubsidy(true);
+    try {
+      // Convert date to ISO string if provided
+      let validUntilDate = null;
+      if (newSubsidyValidUntil) {
+        // Create date at end of day in local timezone
+        const dateObj = new Date(newSubsidyValidUntil + 'T23:59:59');
+        validUntilDate = dateObj.toISOString();
+      }
+
+      await createSubsidy(
+        {
+          customer_id: currentCustomer.id,
+          provider_id: newSubsidyProviderId,
+          approved_amount: amount,
+          reason: newSubsidyReason.trim(),
+          valid_until: validUntilDate,
+          admin_notes: newSubsidyAdminNotes.trim() || null,
+        },
+        user.Jwt
+      );
+
+      await loadSubsidyData(currentCustomer.id);
+
+      toast({
+        status: "success",
+        description: "Subsidy created successfully",
+      });
+
+      // Reset form
+      setCreateSubsidyDialogOpen(false);
+      setNewSubsidyProviderId("");
+      setNewSubsidyAmount("");
+      setNewSubsidyReason("");
+      setNewSubsidyValidUntil("");
+      setNewSubsidyAdminNotes("");
+    } catch (error) {
+      console.error("Error creating subsidy:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error ? error.message : "Failed to create subsidy",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingSubsidy(false);
+    }
+  };
+
+  const getProviderName = (providerId: string): string => {
+    const provider = subsidyProviders.find(p => p.id === providerId);
+    return provider?.name || "Unknown Provider";
+  };
+
+  const openDeactivateDialog = (subsidy: Subsidy) => {
+    setSubsidyToDeactivate(subsidy);
+    setDeactivationReason("");
+    setDeactivateSubsidyDialogOpen(true);
+  };
+
+  const handleDeactivateSubsidy = async () => {
+    if (!subsidyToDeactivate || !user?.Jwt) {
+      toast({
+        status: "error",
+        description: "Missing subsidy or authentication",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!deactivationReason.trim() || deactivationReason.trim().length < 5) {
+      toast({
+        status: "error",
+        description: "Please provide a reason (at least 5 characters)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeactivating(true);
+    try {
+      await deactivateSubsidy(
+        subsidyToDeactivate.id,
+        {
+          reason: deactivationReason.trim(),
+        },
+        user.Jwt
+      );
+
+      await loadSubsidyData(currentCustomer.id);
+
+      toast({
+        status: "success",
+        description: "Subsidy deactivated successfully",
+      });
+
+      setDeactivateSubsidyDialogOpen(false);
+      setSubsidyToDeactivate(null);
+      setDeactivationReason("");
+    } catch (error) {
+      console.error("Error deactivating subsidy:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error ? error.message : "Failed to deactivate subsidy",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeactivating(false);
+    }
+  };
+
   const fetchTransactions = useCallback(
     async (
       customerId: string,
@@ -336,6 +561,7 @@ export default function CustomerInfoPanel({
         await Promise.all([
           loadCustomerCredits(refreshedCustomer.id),
           loadSuspensionData(refreshedCustomer.id),
+          loadSubsidyData(refreshedCustomer.id),
           fetchTransactions(refreshedCustomer.id, {
             limit: transactionsLimit,
             offset: transactionsOffset,
@@ -453,11 +679,25 @@ export default function CustomerInfoPanel({
       return;
     }
 
+    loadSubsidyData(customer.id);
+  }, [customer.id, loadSubsidyData]);
+
+  useEffect(() => {
+    if (!customer.id) {
+      return;
+    }
+
     void fetchTransactions(customer.id, {
       limit: transactionsLimit,
       offset: transactionsOffset,
     });
   }, [customer.id, fetchTransactions, transactionsLimit, transactionsOffset]);
+
+  useEffect(() => {
+    if (createSubsidyDialogOpen) {
+      loadSubsidyProviders();
+    }
+  }, [createSubsidyDialogOpen, loadSubsidyProviders]);
 
   const handleArchiveToggle = async () => {
     try {
@@ -863,6 +1103,133 @@ export default function CustomerInfoPanel({
               </CardContent>
             </Card>
           )}
+
+          {/* Subsidies Card */}
+          <Card className={`border-l-4 mt-4 ${subsidies.length > 0 && subsidies.some(s => s.status === 'active') ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <HandCoins className={`h-5 w-5 ${subsidies.length > 0 && subsidies.some(s => s.status === 'active') ? 'text-green-500' : 'text-yellow-500'}`} />
+                  <h3 className="font-semibold text-lg">Subsidies</h3>
+                </div>
+                <Button
+                  onClick={() => setCreateSubsidyDialogOpen(true)}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Subsidy
+                </Button>
+              </div>
+              {isSubsidiesLoading ? (
+                <div className="text-sm text-muted-foreground">
+                  Loading subsidy data...
+                </div>
+              ) : subsidies.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    {subsidies.map((subsidy) => (
+                      <div
+                        key={subsidy.id}
+                        className={`p-3 rounded-md border relative ${
+                          subsidy.status === 'active'
+                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                            : subsidy.status === 'depleted'
+                            ? 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950'
+                            : subsidy.status === 'expired' || subsidy.status === 'revoked'
+                            ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                            : 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950'
+                        }`}
+                      >
+                        {/* Deactivate button - only show for active, pending, or approved subsidies */}
+                        {(subsidy.status === 'active' || subsidy.status === 'pending' || subsidy.status === 'approved') && (
+                          <Button
+                            onClick={() => openDeactivateDialog(subsidy)}
+                            size="sm"
+                            variant="outline"
+                            className="absolute top-2 right-2 text-xs border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300"
+                          >
+                            Deactivate
+                          </Button>
+                        )}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Provider
+                            </label>
+                            <p className="text-sm font-medium">
+                              {getProviderName(subsidy.provider_id)}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Status
+                            </label>
+                            <p className="text-sm font-medium capitalize">
+                              {subsidy.status}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Remaining Balance
+                            </label>
+                            <p className="text-sm font-medium">
+                              ${subsidy.remaining_balance.toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Approved Amount
+                            </label>
+                            <p className="text-sm font-medium">
+                              ${subsidy.approved_amount.toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Valid Until
+                            </label>
+                            <p className="text-sm font-medium">
+                              {subsidy.valid_until
+                                ? new Date(subsidy.valid_until).toLocaleDateString()
+                                : "No expiration"}
+                            </p>
+                          </div>
+                          {subsidy.reason && (
+                            <div className="col-span-2 space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Reason
+                              </label>
+                              <p className="text-sm">{subsidy.reason}</p>
+                            </div>
+                          )}
+                          {subsidy.admin_notes && (
+                            <div className="col-span-2 space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Admin Notes
+                              </label>
+                              <p className="text-sm text-muted-foreground italic">
+                                {subsidy.admin_notes}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-2 text-xs text-muted-foreground">
+                    Total active subsidies: {subsidies.filter(s => s.status === 'active').length} of {subsidies.length}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    This customer does not have any subsidies.
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Suspension Card */}
           <Card className={`border-l-4 mt-4 ${suspensionData?.is_suspended ? 'border-l-red-500' : 'border-l-yellow-500'}`}>
@@ -1599,6 +1966,216 @@ export default function CustomerInfoPanel({
               className="bg-green-600 hover:bg-green-700"
             >
               {isSuspending ? "Unsuspending..." : "Unsuspend Customer"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Subsidy Dialog */}
+      <AlertDialog
+        open={createSubsidyDialogOpen}
+        onOpenChange={setCreateSubsidyDialogOpen}
+      >
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add Subsidy</AlertDialogTitle>
+            <AlertDialogDescription>
+              Create a new subsidy for this customer. Subsidies provide financial assistance for services.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="subsidy-provider">
+                Provider <span className="text-destructive">*</span>
+              </Label>
+              {isLoadingProviders ? (
+                <div className="text-sm text-muted-foreground">Loading providers...</div>
+              ) : subsidyProviders.length === 0 ? (
+                <div className="text-sm text-destructive">No active providers available</div>
+              ) : (
+                <Select
+                  value={newSubsidyProviderId}
+                  onValueChange={setNewSubsidyProviderId}
+                  disabled={isCreatingSubsidy}
+                >
+                  <SelectTrigger id="subsidy-provider">
+                    <SelectValue placeholder="Select a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subsidyProviders.map((provider) => (
+                      <SelectItem key={provider.id} value={provider.id}>
+                        {provider.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subsidy-amount">
+                Approved Amount <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="subsidy-amount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Enter amount (e.g., 100.00)"
+                value={newSubsidyAmount}
+                onChange={(e) => setNewSubsidyAmount(e.target.value)}
+                disabled={isCreatingSubsidy}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subsidy-reason">
+                Reason <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="subsidy-reason"
+                placeholder="Enter the reason for this subsidy (5-500 characters)"
+                value={newSubsidyReason}
+                onChange={(e) => setNewSubsidyReason(e.target.value)}
+                className="min-h-[100px]"
+                maxLength={500}
+                disabled={isCreatingSubsidy}
+              />
+              <p className="text-xs text-muted-foreground">
+                {newSubsidyReason.length}/500 characters
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subsidy-valid-until">Valid Until (Optional)</Label>
+              <Input
+                id="subsidy-valid-until"
+                type="date"
+                value={newSubsidyValidUntil}
+                onChange={(e) => setNewSubsidyValidUntil(e.target.value)}
+                disabled={isCreatingSubsidy}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty for no expiration date
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subsidy-admin-notes">Admin Notes (Optional)</Label>
+              <Textarea
+                id="subsidy-admin-notes"
+                placeholder="Internal notes about this subsidy (max 1000 characters)"
+                value={newSubsidyAdminNotes}
+                onChange={(e) => setNewSubsidyAdminNotes(e.target.value)}
+                className="min-h-[80px]"
+                maxLength={1000}
+                disabled={isCreatingSubsidy}
+              />
+              <p className="text-xs text-muted-foreground">
+                {newSubsidyAdminNotes.length}/1000 characters
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCreatingSubsidy}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleCreateSubsidy}
+              disabled={
+                isCreatingSubsidy ||
+                !newSubsidyProviderId ||
+                !newSubsidyAmount ||
+                !newSubsidyReason.trim() ||
+                newSubsidyReason.trim().length < 5
+              }
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isCreatingSubsidy ? "Creating..." : "Create Subsidy"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Deactivate Subsidy Dialog */}
+      <AlertDialog
+        open={deactivateSubsidyDialogOpen}
+        onOpenChange={setDeactivateSubsidyDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Subsidy</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will deactivate the subsidy and prevent further use. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            {subsidyToDeactivate && (
+              <div className="p-3 rounded-md border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="font-medium">Provider:</span>{" "}
+                    {getProviderName(subsidyToDeactivate.provider_id)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Status:</span>{" "}
+                    <span className="capitalize">{subsidyToDeactivate.status}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Balance:</span> $
+                    {subsidyToDeactivate.remaining_balance.toFixed(2)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Amount:</span> $
+                    {subsidyToDeactivate.approved_amount.toFixed(2)}
+                  </div>
+                  <div className="col-span-2">
+                    <span className="font-medium">Reason:</span>{" "}
+                    {subsidyToDeactivate.reason}
+                  </div>
+                  {subsidyToDeactivate.admin_notes && (
+                    <div className="col-span-2">
+                      <span className="font-medium">Admin Notes:</span>{" "}
+                      <span className="italic text-muted-foreground">
+                        {subsidyToDeactivate.admin_notes}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="deactivation-reason">
+                Deactivation Reason <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="deactivation-reason"
+                placeholder="Enter the reason for deactivating this subsidy (5-500 characters)"
+                value={deactivationReason}
+                onChange={(e) => setDeactivationReason(e.target.value)}
+                className="min-h-[100px]"
+                maxLength={500}
+                disabled={isDeactivating}
+              />
+              <p className="text-xs text-muted-foreground">
+                {deactivationReason.length}/500 characters
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeactivating}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleDeactivateSubsidy}
+              disabled={
+                isDeactivating ||
+                !deactivationReason.trim() ||
+                deactivationReason.trim().length < 5
+              }
+              variant="destructive"
+            >
+              {isDeactivating ? "Deactivating..." : "Deactivate Subsidy"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
