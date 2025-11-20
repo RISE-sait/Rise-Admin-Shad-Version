@@ -45,6 +45,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import StaffProfilePictureUpload from "@/components/staff/StaffProfilePictureUpload";
 import { getAllStaffs } from "@/services/staff";
 import type { User } from "@/types/user";
@@ -324,8 +330,17 @@ export default function SettingsPage() {
     <div className="space-y-6 p-6">
       <h1 className="text-2xl font-bold">Settings</h1>
 
-      {/* Profile */}
-      <Card>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="theme">Theme</TabsTrigger>
+          <TabsTrigger value="discounts">Discounts</TabsTrigger>
+        </TabsList>
+
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-4">
+          <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
           <CardDescription>Update your personal information.</CardDescription>
@@ -523,9 +538,11 @@ export default function SettingsPage() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+        </TabsContent>
 
-      {/* Security */}
-      <Card>
+        {/* Security Tab */}
+        <TabsContent value="security" className="space-y-4">
+          <Card>
         <CardHeader>
           <CardTitle>Security</CardTitle>
           <CardDescription>
@@ -596,11 +613,13 @@ export default function SettingsPage() {
           </Dialog>
         </CardContent>
       </Card>
+        </TabsContent>
 
-      {/* Appearance */}
-      <Card>
+        {/* Theme Tab */}
+        <TabsContent value="theme" className="space-y-4">
+          <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
+          <CardTitle>Theme</CardTitle>
           <CardDescription>Choose how Rise looks to you.</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between">
@@ -648,6 +667,25 @@ export default function SettingsPage() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+        </TabsContent>
+
+        {/* Discounts Tab */}
+        <TabsContent value="discounts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Discounts</CardTitle>
+              <CardDescription>
+                Manage discount settings and pricing adjustments.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Discount settings will be configured here.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
