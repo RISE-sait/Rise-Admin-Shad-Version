@@ -7,7 +7,7 @@ export default async function Page() {
   const creditPackages = await getAllCreditPackages();
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}>
       <div className="flex">
         <CreditsPage initialCreditPackages={creditPackages} />
       </div>

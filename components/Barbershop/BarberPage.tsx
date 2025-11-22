@@ -60,6 +60,7 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
   // Pre-compute permission checks once on render
   const isBarber = user?.Role === StaffRoleEnum.BARBER;
   const isSuperAdmin = user?.Role === StaffRoleEnum.SUPERADMIN;
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   useEffect(() => {
     // Skip the effect on first render with a ref check
@@ -209,38 +210,42 @@ export default function BarbershopPage({ staffs }: { staffs: User[] }) {
           title="Barbershop"
           description="Manage appointments and barbers"
         />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add Appointment
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Appointment
+          </Button>
+        )}
       </div>
       <Separator />
 
       {/* Quick Navigation - Fixed Links */}
-      <div className="flex flex-wrap gap-4">
-        {/* <Button variant="outline" asChild>
-          <Link href="/manage/barbershop/appointments">View All Appointments</Link>
-        </Button> */}
-        <Button variant="outline" asChild>
-          <Link href="/manage/barbershop/portfolio">Manage Portfolio</Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link href="/manage/barbershop/barber-services">
-            Manage Barber Services
-          </Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link href="/manage/barbershop/availability">
-            Manage Availability
-          </Link>
-        </Button>
-      </div>
+      {!isReceptionist && (
+        <div className="flex flex-wrap gap-4">
+          {/* <Button variant="outline" asChild>
+            <Link href="/manage/barbershop/appointments">View All Appointments</Link>
+          </Button> */}
+          <Button variant="outline" asChild>
+            <Link href="/manage/barbershop/portfolio">Manage Portfolio</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/manage/barbershop/barber-services">
+              Manage Barber Services
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/manage/barbershop/availability">
+              Manage Availability
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">

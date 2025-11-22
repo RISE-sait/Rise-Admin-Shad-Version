@@ -47,6 +47,7 @@ import {
   getAllMembershipPlans,
   MembershipPlanWithMembershipName,
 } from "@/services/membershipPlan";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function CalendarManageEventDrawer() {
   const {
@@ -59,6 +60,7 @@ export default function CalendarManageEventDrawer() {
   } = useCalendarContext();
   const { user } = useUser();
   const { toast } = useToast();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
@@ -479,37 +481,39 @@ export default function CalendarManageEventDrawer() {
                   <Separator />
 
                   {/* Action Buttons */}
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full h-11"
-                      onClick={() => setShowEditForm(true)}
-                    >
-                      Edit this Event
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full h-11">
-                          Delete Event
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this event? This
-                            action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleDelete}>
-                            Confirm Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+                  {!isReceptionist && (
+                    <div className="space-y-3">
+                      <Button
+                        variant="outline"
+                        className="w-full h-11"
+                        onClick={() => setShowEditForm(true)}
+                      >
+                        Edit this Event
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" className="w-full h-11">
+                            Delete Event
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this event? This
+                              action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete}>
+                              Confirm Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>

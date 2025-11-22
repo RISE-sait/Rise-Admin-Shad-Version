@@ -8,7 +8,7 @@ import { StaffRoleEnum } from "@/types/user";
 
 export default function AppointmentsPageContainer() {
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER, StaffRoleEnum.RECEPTIONIST]}>
       <AppointmentsPage />
     </RoleProtected>
   );

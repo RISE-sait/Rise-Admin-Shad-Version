@@ -29,12 +29,14 @@ interface ProgramInfoPanelProps {
   program: Program;
   levels: string[];
   onClose?: () => void;
+  isReceptionist?: boolean;
 }
 
 export default function ProgramInfoPanel({
   program,
   levels,
   onClose,
+  isReceptionist = false,
 }: ProgramInfoPanelProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("details");
@@ -185,33 +187,36 @@ export default function ProgramInfoPanel({
             photoUrl={photoPreview}
             photoName={photoName}
             onPhotoChange={handlePhotoChange}
+            isReceptionist={isReceptionist}
             DeleteButton={
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    <TrashIcon className="h-4 w-4 mr-2" />
-                    Delete Program
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this program? This action
-                      cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteProgram}>
-                      Confirm Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              !isReceptionist ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <TrashIcon className="h-4 w-4 mr-2" />
+                      Delete Program
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this program? This action
+                        cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteProgram}>
+                        Confirm Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : undefined
             }
           />
         </TabsContent>

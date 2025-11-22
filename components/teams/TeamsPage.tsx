@@ -46,6 +46,7 @@ export default function TeamsPage({
   const [searchQuery, setSearchQuery] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const filteredTeams = searchQuery
     ? teams.filter((team) =>
@@ -75,14 +76,16 @@ export default function TeamsPage({
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
         <Heading title="Teams" description="Manage your teams" />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-2" /> Add Team
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" /> Add Team
+          </Button>
+        )}
       </div>
       <Separator />
 

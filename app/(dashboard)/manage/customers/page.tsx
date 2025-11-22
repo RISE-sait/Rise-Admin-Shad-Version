@@ -26,7 +26,7 @@ export default async function CustomersPage({
   } = await getArchivedCustomers(search, page);
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}>
       <CustomersManager
         search={search}
         customers={customers}

@@ -22,12 +22,17 @@ import { VisibilityState } from "@tanstack/react-table";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { sanitizeTextInput } from "@/utils/inputValidation";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function FacilitiesPage({
   facilities,
 }: {
   facilities: Location[];
 }) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
     null
@@ -66,16 +71,18 @@ export default function FacilitiesPage({
           title="Locations"
           description="Manage your organization's locations"
         />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add Location
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Location
+          </Button>
+        )}
       </div>
       <Separator />
 
@@ -145,6 +152,7 @@ export default function FacilitiesPage({
               facility={selectedFacility}
               onDelete={handleDrawerClose}
               onClose={handleDrawerClose}
+              isReceptionist={isReceptionist}
             />
           )}
           {drawerContent === "add" && (

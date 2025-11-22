@@ -62,7 +62,7 @@ export default function AmenitiesPageContainer() {
 
   return (
     <RoleProtected
-      allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}
+      allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER, StaffRoleEnum.RECEPTIONIST]}
       fallback={<PageSkeleton />}
     >
       {content}

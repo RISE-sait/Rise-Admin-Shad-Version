@@ -21,9 +21,14 @@ import { VisibilityState } from "@tanstack/react-table"; // Type for column visi
 import { Heading } from "@/components/ui/Heading"; // Heading component
 import { Separator } from "@/components/ui/separator"; // Separator line component
 import { sanitizeTextInput } from "@/utils/inputValidation";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 // Main page component to manage courts
 export default function CourtPage({ courts }: { courts: Court[] }) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
   // State for controlling whether the right drawer is open
   const [drawerOpen, setDrawerOpen] = useState(false);
   // State to track which content to show in the drawer: details view or add form
@@ -67,16 +72,18 @@ export default function CourtPage({ courts }: { courts: Court[] }) {
       {/* Header with title and Add Court button */}
       <div className="flex items-center justify-between">
         <Heading title="Courts" description="Manage your courts" />
-        <Button
-          onClick={() => {
-            setDrawerContent("add"); // Switch drawer to add form
-            setDrawerOpen(true); // Open the drawer
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" /> {/* Icon for add button */}
-          Add Court
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add"); // Switch drawer to add form
+              setDrawerOpen(true); // Open the drawer
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" /> {/* Icon for add button */}
+            Add Court
+          </Button>
+        )}
       </div>
       <Separator /> {/* Divider line */}
       {/* Search input and filter dropdown */}

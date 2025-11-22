@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { StaffRoleEnum } from "@/types/user";
 
 interface AppointmentInfoPanelProps {
   appointment: HaircutEventEventResponseDto;
@@ -37,6 +38,7 @@ export default function AppointmentInfoPanel({
   const [isCancelling, setIsCancelling] = useState(false);
   const { toast } = useToast();
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   // Format appointment date
   const getFormattedDate = (dateString?: string) => {
@@ -191,41 +193,43 @@ export default function AppointmentInfoPanel({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <p className="text-sm text-muted-foreground mr-auto">
-          ID: {appointment.id || "New Appointment"}
-        </p>
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <p className="text-sm text-muted-foreground mr-auto">
+            ID: {appointment.id || "New Appointment"}
+          </p>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              disabled={isCancelling}
-              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              {isCancelling ? "Canceling..." : "Cancel Appointment"}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to cancel this appointment?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleCancelAppointment}
-                className="bg-red-600 hover:bg-red-700"
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={isCancelling}
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                Confirm Cancel
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+                <TrashIcon className="h-4 w-4 mr-2" />
+                {isCancelling ? "Canceling..." : "Cancel Appointment"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to cancel this appointment?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleCancelAppointment}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Confirm Cancel
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
     </div>
   );
 }

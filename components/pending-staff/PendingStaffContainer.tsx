@@ -47,7 +47,7 @@ export default function PendingStaffContainer() {
 
   return (
     <RoleProtected
-      allowedRoles={[StaffRoleEnum.ADMIN]}
+      allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}
       fallback={<PageSkeleton />}
     >
       {content}

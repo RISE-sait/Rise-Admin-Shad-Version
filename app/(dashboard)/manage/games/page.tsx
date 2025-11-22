@@ -32,7 +32,7 @@ export default function GamesPageContainer() {
   );
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.COACH]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.COACH, StaffRoleEnum.RECEPTIONIST]}>
       <div className="flex">{content}</div>
     </RoleProtected>
   );

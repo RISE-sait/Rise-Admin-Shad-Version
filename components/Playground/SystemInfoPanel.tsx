@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function SystemInfoPanel({
   system,
@@ -37,6 +38,7 @@ export default function SystemInfoPanel({
   const [name, setName] = useState(system.name);
   const { user } = useUser();
   const { toast } = useToast();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const handleSave = async () => {
     const error = await updatePlaygroundSystem(system.id, { name }, user?.Jwt!);
@@ -97,6 +99,7 @@ export default function SystemInfoPanel({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
           </div>
@@ -105,45 +108,47 @@ export default function SystemInfoPanel({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Delete System
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this system? This action cannot
-                be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700"
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete System
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this system? This action cannot
+                  be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        <Button
-          onClick={handleSave}
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
+          <Button
+            onClick={handleSave}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,6 +31,7 @@ export default function DetailsForm({
   photoUrl,
   photoName,
   onPhotoChange,
+  isReceptionist = false,
 }: {
   saveAction: (
     name: string,
@@ -45,6 +46,7 @@ export default function DetailsForm({
   photoUrl?: string;
   photoName?: string;
   onPhotoChange?: (file: File | null, previewUrl: string | null) => void;
+  isReceptionist?: boolean;
 }) {
   const {
     register,
@@ -136,6 +138,7 @@ export default function DetailsForm({
                 title={PROGRAM_TEXT_INPUT_MESSAGE}
                 aria-invalid={errors.name ? "true" : "false"}
                 className="bg-background"
+                disabled={isReceptionist}
               />
               {errors.name && (
                 <p className="text-sm text-destructive" role="alert">
@@ -169,6 +172,7 @@ export default function DetailsForm({
                 className="min-h-[100px] bg-background"
                 title={PROGRAM_TEXT_INPUT_MESSAGE}
                 aria-invalid={errors.description ? "true" : "false"}
+                disabled={isReceptionist}
               />
               {errors.description && (
                 <p className="text-sm text-destructive" role="alert">
@@ -194,10 +198,11 @@ export default function DetailsForm({
                 onChange={handlePhotoInputChange}
                 className="hidden"
                 id="program-photo-upload"
+                disabled={isReceptionist}
               />
               <label
                 htmlFor="program-photo-upload"
-                className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                className={`block ${!isReceptionist ? 'cursor-pointer' : 'cursor-not-allowed'} text-muted-foreground ${!isReceptionist ? 'hover:text-foreground' : ''} transition-colors`}
               >
                 {photoUrl ? (
                   <div className="space-y-2">
@@ -242,6 +247,7 @@ export default function DetailsForm({
               <Select
                 defaultValue={program.level}
                 onValueChange={(value) => setValue("level", value)}
+                disabled={isReceptionist}
               >
                 <SelectTrigger id="level" className="bg-background">
                   <SelectValue placeholder="Select level" />
@@ -263,6 +269,7 @@ export default function DetailsForm({
               <Select
                 defaultValue={program.type}
                 onValueChange={(value) => setValue("type", value)}
+                disabled={isReceptionist}
               >
                 <SelectTrigger id="type" className="bg-background">
                   <SelectValue placeholder="Select type" />
@@ -286,6 +293,7 @@ export default function DetailsForm({
                 placeholder="NULL"
                 {...register("capacity", { valueAsNumber: true })}
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
           </div>
@@ -294,16 +302,18 @@ export default function DetailsForm({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        {DeleteButton && DeleteButton}
-        <Button
-          onClick={handleSubmit}
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          {DeleteButton && DeleteButton}
+          <Button
+            onClick={handleSubmit}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

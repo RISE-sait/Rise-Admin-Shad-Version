@@ -14,6 +14,8 @@ import BookingInfoPanel from "./BookingInfoPanel";
 import { PlaygroundSession, PlaygroundSystem } from "@/types/playground";
 import { toZonedISOString } from "@/lib/utils";
 import { matchesSearchQuery } from "@/utils/inputValidation";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 interface PlaygroundPageProps {
   sessions: PlaygroundSession[];
@@ -25,6 +27,9 @@ export default function PlaygroundPage({
   sessions,
   systems,
 }: PlaygroundPageProps) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
   // State variables for UI and data
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
   const [availableSystems, setAvailableSystems] =
@@ -96,18 +101,20 @@ export default function PlaygroundPage({
       {/* Header with Add Session / Add System buttons */}
       <div className="flex items-center justify-between">
         <Heading title="Playground" description="Manage game room bookings" />
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              setDrawerContent("add");
-              setDrawerOpen(true);
-            }}
-            className="flex items-center gap-2"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add Session
-          </Button>
-        </div>
+        {!isReceptionist && (
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                setDrawerContent("add");
+                setDrawerOpen(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add Session
+            </Button>
+          </div>
+        )}
       </div>
       <Separator />
 

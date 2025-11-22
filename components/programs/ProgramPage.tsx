@@ -22,6 +22,8 @@ import {
   PROGRAM_TEXT_INPUT_PATTERN,
   sanitizeProgramText,
 } from "@/lib/programValidation";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 type ProgramType =
   | "course"
@@ -40,6 +42,9 @@ export default function ProgramPage({
   programs: initialPrograms,
   programLevels,
 }: ProgramPageProps) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
@@ -96,15 +101,17 @@ export default function ProgramPage({
           </p>
         </div>
 
-        <Button
-          variant="default"
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-        >
-          Add Program
-        </Button>
+        {!isReceptionist && (
+          <Button
+            variant="default"
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+          >
+            Add Program
+          </Button>
+        )}
       </header>
 
       {/* Program type filter cards */}
@@ -202,6 +209,7 @@ export default function ProgramPage({
               program={selectedProgram}
               levels={programLevels}
               onClose={() => setDrawerOpen(false)}
+              isReceptionist={isReceptionist}
             />
           )}
           {drawerContent === "add" && (

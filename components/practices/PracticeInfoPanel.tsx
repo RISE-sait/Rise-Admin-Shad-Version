@@ -44,6 +44,7 @@ import {
   fromZonedISOString,
   toLocalISOString,
 } from "@/lib/utils";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function PracticeInfoPanel({
   practice,
@@ -56,6 +57,9 @@ export default function PracticeInfoPanel({
   onUpdated?: () => void;
   onDeleted?: () => void;
 }) {
+  const { user } = useUser();
+  const { toast } = useToast();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
   const { data, updateField } = useFormData({
     team_id: practice.team_id || "",
     location_id: practice.location_id || "",
@@ -68,8 +72,6 @@ export default function PracticeInfoPanel({
     capacity: practice.capacity,
     status: practice.status as "scheduled" | "completed" | "canceled",
   });
-  const { user } = useUser();
-  const { toast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -190,6 +192,7 @@ export default function PracticeInfoPanel({
               <Select
                 value={data.team_id}
                 onValueChange={(value) => updateField("team_id", value)}
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select team" />
@@ -213,6 +216,7 @@ export default function PracticeInfoPanel({
                   updateField("location_id", value);
                   updateField("court_id", "");
                 }}
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select location" />
@@ -231,6 +235,7 @@ export default function PracticeInfoPanel({
               <Select
                 value={data.court_id}
                 onValueChange={(value) => updateField("court_id", value)}
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select court (optional)" />
@@ -265,6 +270,7 @@ export default function PracticeInfoPanel({
                 onChange={(e) => updateField("start_at", e.target.value)}
                 type="datetime-local"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
             <div className="space-y-2">
@@ -276,6 +282,7 @@ export default function PracticeInfoPanel({
                 onChange={(e) => updateField("end_at", e.target.value)}
                 type="datetime-local"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
             <div className="space-y-2">
@@ -288,6 +295,7 @@ export default function PracticeInfoPanel({
                     value as "scheduled" | "completed" | "canceled"
                   )
                 }
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select status" />
@@ -305,45 +313,47 @@ export default function PracticeInfoPanel({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Delete Practice
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this practice? This action
-                cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700"
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete Practice
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this practice? This action
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        <Button
-          onClick={handleSave}
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
+          <Button
+            onClick={handleSave}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

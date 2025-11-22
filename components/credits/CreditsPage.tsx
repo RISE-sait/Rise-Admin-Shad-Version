@@ -20,6 +20,8 @@ import columns from "./table/columns";
 import CreditPackageInfoPanel from "./CreditPackageInfoPanel";
 import AddCreditPackageForm from "./AddCreditPackageForm";
 import { getAllCreditPackages } from "@/services/creditPackages";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 interface CreditsPageProps {
   initialCreditPackages: CreditPackage[];
@@ -30,6 +32,9 @@ type DrawerContent = "details" | "add" | null;
 export default function CreditsPage({
   initialCreditPackages,
 }: CreditsPageProps) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
   const [creditPackages, setCreditPackages] = useState(initialCreditPackages);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<DrawerContent>(null);
@@ -108,16 +113,18 @@ export default function CreditsPage({
           title="Credit Packages"
           description="Manage credit packages and their availability"
         />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add Credit Package
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Credit Package
+          </Button>
+        )}
       </div>
       <Separator />
 

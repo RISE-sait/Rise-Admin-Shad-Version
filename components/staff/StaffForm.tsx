@@ -71,6 +71,7 @@ export default function StaffForm({
   const { user } = useUser();
   const jwt = user?.Jwt;
   const { toast } = useToast();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const sanitizeNameInput = (value: string) =>
     value.replace(/[^a-zA-Z\s'-]/g, "");
@@ -286,6 +287,7 @@ export default function StaffForm({
                         onChange={handleFirstNameChange}
                         className="bg-background"
                         placeholder="Enter first name"
+                        disabled={isReceptionist}
                       />
                     </div>
                     <div className="space-y-2">
@@ -297,6 +299,7 @@ export default function StaffForm({
                         onChange={handleLastNameChange}
                         className="bg-background"
                         placeholder="Enter last name"
+                        disabled={isReceptionist}
                       />
                     </div>
                   </div>
@@ -323,6 +326,7 @@ export default function StaffForm({
                         onChange={handleEmailChange}
                         className="bg-background"
                         placeholder="Enter email address"
+                        disabled={isReceptionist}
                       />
                     </div>
                     <div className="space-y-2">
@@ -334,6 +338,7 @@ export default function StaffForm({
                         onChange={handlePhoneChange}
                         className="bg-background"
                         placeholder="Enter phone number"
+                        disabled={isReceptionist}
                       />
                     </div>
                   </div>
@@ -354,7 +359,7 @@ export default function StaffForm({
                       <label className="text-sm font-medium">
                         Staff Role <span className="text-red-500">*</span>
                       </label>
-                      <Select value={role} onValueChange={setRole}>
+                      <Select value={role} onValueChange={setRole} disabled={isReceptionist}>
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
@@ -386,6 +391,7 @@ export default function StaffForm({
                         <Switch
                           checked={isActive}
                           onCheckedChange={setIsActive}
+                          disabled={isReceptionist}
                         />
                       </div>
                     </div>
@@ -409,45 +415,47 @@ export default function StaffForm({
       <Separator />
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              Delete Staff
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this staff member? This action
-                cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={DeleteStaff}
-                className="bg-red-600 hover:bg-red-700"
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <Trash className="h-4 w-4 mr-2" />
+                Delete Staff
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this staff member? This action
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={DeleteStaff}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        <Button
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-          onClick={(e) => UpdateStaff()}
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
+          <Button
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+            onClick={(e) => UpdateStaff()}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
