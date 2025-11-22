@@ -2,11 +2,18 @@
 
 // Drawer panel that shows team details and allows basic editing and deletion.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SaveIcon, TrashIcon, Users, Image as ImageIcon, UserCheck } from "lucide-react";
 import {
   AlertDialog,
@@ -24,10 +31,11 @@ import RosterEditor from "./RosterEditor";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { updateTeam, deleteTeam } from "@/services/teams";
+import { getAllStaffs } from "@/services/staff";
 import { revalidateTeams } from "@/actions/serverActions";
 import { Team } from "@/types/team";
 import { TeamRequestDto } from "@/app/api/Api";
-import { StaffRoleEnum } from "@/types/user";
+import { StaffRoleEnum, User as StaffUser } from "@/types/user";
 import {
   sanitizeTextInput,
   TEAM_TEXT_INPUT_PATTERN,
@@ -43,15 +51,39 @@ export default function TeamInfoPanel({
   onClose?: () => void;
   onTeamChanged?: () => void;
 }) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+  const isAdmin = user?.Role === StaffRoleEnum.ADMIN || user?.Role === StaffRoleEnum.SUPERADMIN;
+
   const [name, setName] = useState(() => sanitizeTextInput(team.name));
   const [capacity, setCapacity] = useState<number>(team.capacity);
-  const [coachId] = useState(team.coach_id || "");
+  const [coachId, setCoachId] = useState(team.coach_id || "");
+  const [coaches, setCoaches] = useState<StaffUser[]>([]);
   const [rosterOpen, setRosterOpen] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>(team.logo_url || "");
   const [logoName, setLogoName] = useState<string>("");
   const [roster, setRoster] = useState(team.roster);
-  const { user } = useUser();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      if (!isAdmin || team.is_external) return;
+
+      try {
+        const coachData = await getAllStaffs("COACH");
+        setCoaches(coachData);
+      } catch (error) {
+        toast({
+          status: "error",
+          description:
+            error instanceof Error ? error.message : "Failed to load coaches",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchCoaches();
+  }, [isAdmin, team.is_external, toast]);
 
   // Save any edits made to the team and refresh the table
   const handleSave = async () => {
@@ -151,6 +183,7 @@ export default function TeamInfoPanel({
                   pattern={TEAM_TEXT_INPUT_PATTERN_STRING}
                   title="Only letters, numbers, spaces, commas, periods, apostrophes, and hyphens are allowed."
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
               </div>
               <div className="space-y-2">
@@ -161,6 +194,7 @@ export default function TeamInfoPanel({
                   value={capacity}
                   onChange={(e) => setCapacity(parseInt(e.target.value))}
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
               </div>
             </div>
@@ -191,10 +225,11 @@ export default function TeamInfoPanel({
                   }}
                   className="hidden"
                   id="team-logo-edit"
+                  disabled={isReceptionist}
                 />
                 <label
                   htmlFor="team-logo-edit"
-                  className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                  className={`block ${!isReceptionist ? 'cursor-pointer' : 'cursor-not-allowed'} text-muted-foreground ${!isReceptionist ? 'hover:text-foreground' : ''} transition-colors`}
                 >
                   {logoPreview ? (
                     <div className="space-y-2">
@@ -233,9 +268,29 @@ export default function TeamInfoPanel({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Coach</label>
-                <p className="border rounded-md px-3 py-2 bg-background">
-                  {team.coach_name || "-"}
-                </p>
+                {isAdmin ? (
+                  <Select
+                    value={coachId || undefined}
+                    onValueChange={(id) => setCoachId(id)}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Select Coach">
+                        {coachId ? coaches.find(c => c.ID === coachId)?.Name || team.coach_name : "Select Coach"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {coaches.map((c) => (
+                        <SelectItem key={c.ID} value={c.ID}>
+                          {c.Name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="border rounded-md px-3 py-2 bg-background">
+                    {team.coach_name || "-"}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -262,53 +317,57 @@ export default function TeamInfoPanel({
                   No players on roster, click manage roster to add players
                 </p>
               )}
-              <Button
-                className="mt-4 bg-yellow-500 text-black hover:bg-yellow-600"
-                onClick={() => setRosterOpen(true)}
-              >
-                Manage Roster
-              </Button>
+              {!isReceptionist && (
+                <Button
+                  className="mt-4 bg-yellow-500 text-black hover:bg-yellow-600"
+                  onClick={() => setRosterOpen(true)}
+                >
+                  Manage Roster
+                </Button>
+              )}
             </div>
           </div>
         )}
         <Separator />
 
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-              >
-                <TrashIcon className="h-4 w-4 mr-2" /> Delete Team
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this team? This action cannot
-                  be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700"
+        {!isReceptionist && (
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
                 >
-                  Confirm Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Button
-            onClick={handleSave}
-            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-          >
-            <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
-          </Button>
-        </div>
+                  <TrashIcon className="h-4 w-4 mr-2" /> Delete Team
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this team? This action cannot
+                    be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Confirm Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button
+              onClick={handleSave}
+              className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+            >
+              <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
+            </Button>
+          </div>
+        )}
       </div>
       <RightDrawer
         drawerOpen={rosterOpen}

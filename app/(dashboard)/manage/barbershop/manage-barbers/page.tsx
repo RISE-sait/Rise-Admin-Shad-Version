@@ -6,7 +6,7 @@ import { StaffRoleEnum } from "@/types/user";
 
 export default function ManageBarbersPageContainer() {
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.BARBER]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
       <ManageBarberServicesPage />
     </RoleProtected>
   );

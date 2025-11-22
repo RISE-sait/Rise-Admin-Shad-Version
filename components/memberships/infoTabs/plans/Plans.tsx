@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import getValue from "@/configs/constants";
+import { StaffRoleEnum } from "@/types/user";
 import { MembershipPlan } from "@/types/membership";
 import {
   getPlansForMembership,
@@ -27,6 +28,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   const jwt = user?.Jwt;
   const { toast } = useToast();
   const apiUrl = getValue("API");
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   // states
   const [toggledPlanId, setToggledPlanId] = useState<string | null>(null);
@@ -390,7 +392,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       onCheckedChange={(checked) =>
                         handleVisibilityToggle(plan.id, checked)
                       }
-                      disabled={visibilityLoading === plan.id}
+                      disabled={visibilityLoading === plan.id || isReceptionist}
                       aria-label="Toggle plan visibility"
                     />
                   </div>
@@ -406,6 +408,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       value={editablePlans[plan.id]?.name || ""}
                       placeholder={plan.name}
                       onClick={(e) => e.stopPropagation()}
+                      disabled={isReceptionist}
                     />
                   </div>
                   <div className="w-full pl-1 ">
@@ -422,6 +425,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       value={editablePlans[plan.id]?.stripe_price_id || ""}
                       placeholder={plan.stripe_price_id}
                       onClick={(e) => e.stopPropagation()}
+                      disabled={isReceptionist}
                     />
                   </div>
                 </div>
@@ -442,6 +446,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       }
                       placeholder={plan.stripe_joining_fees_id}
                       onClick={(e) => e.stopPropagation()}
+                      disabled={isReceptionist}
                     />
                   </div>
                   <div className="w-full pl-1 ">
@@ -458,62 +463,65 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       value={editablePlans[plan.id]?.amt_periods || ""}
                       placeholder={plan.amt_periods.toString()}
                       onClick={(e) => e.stopPropagation()}
+                      disabled={isReceptionist}
                     />
                   </div>
                 </div>
 
-                <div className="flex pt-5 gap-3">
-                  <div
-                    className="p-1 pl-5 pr-5 bg-green-600 hover:bg-green-700 rounded cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSave(plan.id);
-                    }}
-                  >
-                    {" "}
-                    Save{" "}
-                  </div>
-                  <div
-                    className="p-1 pl-5 pr-5 bg-yellow-700 hover:bg-yellow-900 rounded cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCancelPlan(plan.id);
-                    }}
-                  >
-                    {" "}
-                    Cancel{" "}
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <div
-                        className="p-1 pl-5 pr-5 bg-red-700 hover:bg-red-900 rounded cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {" "}
-                        Delete{" "}
-                      </div>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this plan? This action
-                          cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            DeletePlan(plan.id);
-                          }}
+                {!isReceptionist && (
+                  <div className="flex pt-5 gap-3">
+                    <div
+                      className="p-1 pl-5 pr-5 bg-green-600 hover:bg-green-700 rounded cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSave(plan.id);
+                      }}
+                    >
+                      {" "}
+                      Save{" "}
+                    </div>
+                    <div
+                      className="p-1 pl-5 pr-5 bg-yellow-700 hover:bg-yellow-900 rounded cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelPlan(plan.id);
+                      }}
+                    >
+                      {" "}
+                      Cancel{" "}
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <div
+                          className="p-1 pl-5 pr-5 bg-red-700 hover:bg-red-900 rounded cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          Confirm Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                          {" "}
+                          Delete{" "}
+                        </div>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this plan? This action
+                            cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              DeletePlan(plan.id);
+                            }}
+                          >
+                            Confirm Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -567,7 +575,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       onCheckedChange={(checked) =>
                         handleVisibilityToggle(plan.id, checked)
                       }
-                      disabled={visibilityLoading === plan.id}
+                      disabled={visibilityLoading === plan.id || isReceptionist}
                       aria-label="Toggle plan visibility"
                     />
                   </div>
@@ -578,85 +586,87 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         }
       })}
 
-      {newPlanToggle ? (
-        <div className="w-full p-3 rounded-lg border-orange-500 border">
-          <div className="p-2">
-            <div className="cursor-pointer" onClick={toggleNewPlan}>
-              <h1> Add a new plan </h1>
-            </div>
-            <div className="pt-2 flex">
-              <div className="w-full pr-5">
-                <Label className="w-full">Name</Label>
-                <Input
-                  className="w-full mt-1"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="name of plan"
-                  onClick={(e) => e.stopPropagation()}
-                />
+      {!isReceptionist && (
+        newPlanToggle ? (
+          <div className="w-full p-3 rounded-lg border-orange-500 border">
+            <div className="p-2">
+              <div className="cursor-pointer" onClick={toggleNewPlan}>
+                <h1> Add a new plan </h1>
               </div>
-              <div className="w-full pl-1 ">
-                <Label className="w-full">Stripe price id</Label>
-                <Input
-                  className="w-full mt-1"
-                  value={newStripePriceId}
-                  onChange={(e) => setNewStripePriceId(e.target.value)}
-                  placeholder="price_..."
-                  onClick={(e) => e.stopPropagation()}
-                />
+              <div className="pt-2 flex">
+                <div className="w-full pr-5">
+                  <Label className="w-full">Name</Label>
+                  <Input
+                    className="w-full mt-1"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="name of plan"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <div className="w-full pl-1 ">
+                  <Label className="w-full">Stripe price id</Label>
+                  <Input
+                    className="w-full mt-1"
+                    value={newStripePriceId}
+                    onChange={(e) => setNewStripePriceId(e.target.value)}
+                    placeholder="price_..."
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="pt-3 flex">
-              <div className="w-full pr-5">
-                <Label className="w-full">Stripe join fee</Label>
-                <Input
-                  className="w-full mt-1"
-                  value={newStripeJoiningFeeId}
-                  onChange={(e) => setNewStripeJoiningFeeId(e.target.value)}
-                  placeholder="price_..."
-                  onClick={(e) => e.stopPropagation()}
-                />
+              <div className="pt-3 flex">
+                <div className="w-full pr-5">
+                  <Label className="w-full">Stripe join fee</Label>
+                  <Input
+                    className="w-full mt-1"
+                    value={newStripeJoiningFeeId}
+                    onChange={(e) => setNewStripeJoiningFeeId(e.target.value)}
+                    placeholder="price_..."
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <div className="w-full pl-1 ">
+                  <Label className="w-full">Period</Label>
+                  <Input
+                    className="w-full mt-1"
+                    value={newPeriod}
+                    placeholder="1"
+                    onChange={(e) => setNewPeriod(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
               </div>
-              <div className="w-full pl-1 ">
-                <Label className="w-full">Period</Label>
-                <Input
-                  className="w-full mt-1"
-                  value={newPeriod}
-                  placeholder="1"
-                  onChange={(e) => setNewPeriod(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            </div>
 
-            <div className="flex pt-5 gap-3">
-              <div
-                className="p-1 pl-5 pr-5 bg-green-600 hover:bg-green-700 rounded cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addNewPlan();
-                }}
-              >
-                {" "}
-                Add plan{" "}
-              </div>
-              <div
-                className="p-1 pl-5 pr-5 bg-red-700 hover:bg-red-900 rounded cursor-pointer"
-                onClick={toggleNewPlan}
-              >
-                {" "}
-                Cancel{" "}
+              <div className="flex pt-5 gap-3">
+                <div
+                  className="p-1 pl-5 pr-5 bg-green-600 hover:bg-green-700 rounded cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addNewPlan();
+                  }}
+                >
+                  {" "}
+                  Add plan{" "}
+                </div>
+                <div
+                  className="p-1 pl-5 pr-5 bg-red-700 hover:bg-red-900 rounded cursor-pointer"
+                  onClick={toggleNewPlan}
+                >
+                  {" "}
+                  Cancel{" "}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div
-          className="p-7 w-full h-12 cursor-pointer hover:text-stone-300 flex items-center justify-center rounded-lg border border-dotted"
-          onClick={toggleNewPlan}
-        >
-          <h1 className="text-sm">Add New Plan + </h1>
-        </div>
+        ) : (
+          <div
+            className="p-7 w-full h-12 cursor-pointer hover:text-stone-300 flex items-center justify-center rounded-lg border border-dotted"
+            onClick={toggleNewPlan}
+          >
+            <h1 className="text-sm">Add New Plan + </h1>
+          </div>
+        )
       )}
     </div>
   );

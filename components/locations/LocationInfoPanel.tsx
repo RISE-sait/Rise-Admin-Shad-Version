@@ -11,10 +11,12 @@ export default function FacilityInfoPanel({
   facility,
   onDelete,
   onClose,
+  isReceptionist = false,
 }: {
   facility: Location;
   onDelete?: () => void;
   onClose?: () => void;
+  isReceptionist?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState("details");
 
@@ -45,6 +47,7 @@ export default function FacilityInfoPanel({
             details={facility}
             onDelete={onDelete}
             onClose={onClose}
+            isReceptionist={isReceptionist}
           />
         </TabsContent>
 

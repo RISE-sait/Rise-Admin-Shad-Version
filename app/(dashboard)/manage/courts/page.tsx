@@ -17,7 +17,7 @@ export default async function Page() {
   }));
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}>
       <div className="flex">
         <CourtPage courts={courtsWithNames} />
       </div>

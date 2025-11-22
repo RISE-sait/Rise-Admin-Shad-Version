@@ -34,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Build nav items based on role
   const manageItems =
-    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN
+    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN || role === StaffRoleEnum.RECEPTIONIST
       ? [
           {
             title: "Customers",

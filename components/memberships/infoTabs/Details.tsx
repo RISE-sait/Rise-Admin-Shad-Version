@@ -25,6 +25,7 @@ import { Membership } from "@/types/membership";
 import { CreditCard, SaveIcon, TrashIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { sanitizeTextInput } from "@/utils/inputValidation";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function DetailsTab({
   details,
@@ -34,6 +35,7 @@ export default function DetailsTab({
   onClose: () => void;
 }) {
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const { register, getValues, setValue, watch } = useForm({
     defaultValues: {
@@ -108,6 +110,7 @@ export default function DetailsTab({
                 }
                 placeholder="Enter membership name"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
 
@@ -124,6 +127,7 @@ export default function DetailsTab({
                 }
                 placeholder="Describe the membership benefits and features"
                 className="bg-background min-h-[150px]"
+                disabled={isReceptionist}
               />
             </div>
           </div>
@@ -132,45 +136,47 @@ export default function DetailsTab({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Delete Membership
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this membership? This action
-                cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDeleteMembership}
-                className="bg-red-600 hover:bg-red-700"
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete Membership
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this membership? This action
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteMembership}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        <Button
-          onClick={handleSaveInfo}
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
+          <Button
+            onClick={handleSaveInfo}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

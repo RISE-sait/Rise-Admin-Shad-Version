@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function GameInfoPanel({
   game,
@@ -52,6 +53,9 @@ export default function GameInfoPanel({
   onClose?: () => void;
   refreshGames?: () => Promise<void>;
 }) {
+  const { user } = useUser();
+  const { toast } = useToast();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
   const { data, updateField } = useFormData({
     home_team_id: game.home_team_id,
     away_team_id: game.away_team_id,
@@ -72,8 +76,6 @@ export default function GameInfoPanel({
     end_time: toLocalISOString(fromZonedISOString(game.end_time)).slice(0, 16),
     status: game.status as "scheduled" | "completed" | "canceled",
   });
-  const { user } = useUser();
-  const { toast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -204,6 +206,7 @@ export default function GameInfoPanel({
               <Select
                 value={data.home_team_id}
                 onValueChange={(value) => updateField("home_team_id", value)}
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select team" />
@@ -227,6 +230,7 @@ export default function GameInfoPanel({
                 type="number"
                 placeholder="0"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
             <div className="space-y-2">
@@ -236,6 +240,7 @@ export default function GameInfoPanel({
               <Select
                 value={data.away_team_id}
                 onValueChange={(value) => updateField("away_team_id", value)}
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select team" />
@@ -259,6 +264,7 @@ export default function GameInfoPanel({
                 type="number"
                 placeholder="0"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
           </div>
@@ -281,6 +287,7 @@ export default function GameInfoPanel({
                   updateField("location_id", value);
                   updateField("court_id", "");
                 }}
+                disabled={isReceptionist}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select location" />
@@ -301,7 +308,7 @@ export default function GameInfoPanel({
               <Select
                 value={data.court_id}
                 onValueChange={(value) => updateField("court_id", value)}
-                disabled={!data.location_id || filteredCourts.length === 0}
+                disabled={isReceptionist || !data.location_id || filteredCourts.length === 0}
               >
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder={!data.location_id ? "Select location first" : filteredCourts.length === 0 ? "No courts available" : "Select court"} />
@@ -334,6 +341,7 @@ export default function GameInfoPanel({
                 onChange={(e) => updateField("start_time", e.target.value)}
                 type="datetime-local"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
             <div className="space-y-2">
@@ -343,6 +351,7 @@ export default function GameInfoPanel({
                 onChange={(e) => updateField("end_time", e.target.value)}
                 type="datetime-local"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
           </div>
@@ -366,6 +375,7 @@ export default function GameInfoPanel({
                   value as "scheduled" | "completed" | "canceled"
                 )
               }
+              disabled={isReceptionist}
             >
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Select status" />
@@ -382,42 +392,44 @@ export default function GameInfoPanel({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <TrashIcon className="h-4 w-4 mr-2" /> Delete Game
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this game? This action cannot be
-                undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700"
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
-                Confirm Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <Button
-          onClick={handleSave}
-          className="bg-yellow-500 text-black hover:bg-yellow-600 h-11 px-6"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
-        </Button>
-      </div>
+                <TrashIcon className="h-4 w-4 mr-2" /> Delete Game
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this game? This action cannot be
+                  undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button
+            onClick={handleSave}
+            className="bg-yellow-500 text-black hover:bg-yellow-600 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" /> Save Changes
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

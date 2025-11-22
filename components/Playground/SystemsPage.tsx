@@ -11,6 +11,8 @@ import SystemInfoPanel from "./SystemInfoPanel";
 import SystemsTable from "./SystemsTable";
 import { PlaygroundSystem } from "@/types/playground";
 import { matchesSearchQuery } from "@/utils/inputValidation";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function SystemsPage({
   systems,
@@ -27,6 +29,8 @@ export default function SystemsPage({
     null
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const trimmedQuery = searchQuery.trim();
   const filteredSystems = trimmedQuery
@@ -43,16 +47,18 @@ export default function SystemsPage({
     <div className="flex-1 space-y-4 p-6 pt-6">
       <div className="flex items-center justify-between">
         <Heading title="Systems" description="Manage playground systems" />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add System
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add System
+          </Button>
+        )}
       </div>
       <Separator />
 

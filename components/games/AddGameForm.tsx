@@ -25,6 +25,7 @@ import { Team } from "@/types/team";
 import { Court } from "@/types/court";
 import { revalidateGames } from "@/actions/serverActions";
 import { toZonedISOString } from "@/lib/utils";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function AddGameForm({
   onClose,
@@ -46,6 +47,12 @@ export default function AddGameForm({
   const [locations, setLocations] = useState<Location[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
+
+  const isCoach = user?.Role === StaffRoleEnum.COACH;
+
+  // Filter teams into coach's teams and other teams
+  const coachTeams = teams.filter((t) => t.coach_id === user?.ID);
+  const otherTeams = teams.filter((t) => t.coach_id !== user?.ID);
 
   const filteredCourts = courts.filter(
     (c) => c.location_id === data.location_id
@@ -89,6 +96,24 @@ export default function AddGameForm({
       return;
     }
 
+    // Coaches must have at least one of their own teams in the game
+    if (user?.Role === StaffRoleEnum.COACH) {
+      const homeTeam = teams.find((t) => t.id === data.home_team_id);
+      const awayTeam = teams.find((t) => t.id === data.away_team_id);
+
+      const isHomeTeamCoach = homeTeam?.coach_id === user?.ID;
+      const isAwayTeamCoach = awayTeam?.coach_id === user?.ID;
+
+      if (!isHomeTeamCoach && !isAwayTeamCoach) {
+        toast({
+          status: "error",
+          description: "You must select at least one of your own teams to create a game",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const gameData = {
       home_team_id: data.home_team_id,
       away_team_id: data.away_team_id,
@@ -125,43 +150,98 @@ export default function AddGameForm({
             <h3 className="font-semibold text-lg">Teams</h3>
           </div>
           <div className="space-y-4">
+            {isCoach && (
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-2">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  Select one of your teams first, then choose the opponent
+                </p>
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Home Team <span className="text-red-500">*</span>
+                {isCoach ? "Your Team" : "Home Team"} <span className="text-red-500">*</span>
               </label>
               <Select
                 value={data.home_team_id}
                 onValueChange={(value) => updateField("home_team_id", value)}
               >
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select home team" />
+                  <SelectValue placeholder={isCoach ? "Select your team" : "Select home team"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
+                  {isCoach ? (
+                    <>
+                      {coachTeams.length > 0 ? (
+                        coachTeams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          No teams assigned to you
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Away Team <span className="text-red-500">*</span>
+                {isCoach ? "Opponent Team" : "Away Team"} <span className="text-red-500">*</span>
               </label>
               <Select
                 value={data.away_team_id}
                 onValueChange={(value) => updateField("away_team_id", value)}
+                disabled={isCoach && !data.home_team_id}
               >
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select away team" />
+                  <SelectValue placeholder={isCoach && !data.home_team_id ? "Select your team first" : isCoach ? "Select opponent" : "Select away team"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
+                  {isCoach ? (
+                    <>
+                      {coachTeams.filter(t => t.id !== data.home_team_id).length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            Your Teams
+                          </div>
+                          {coachTeams
+                            .filter((t) => t.id !== data.home_team_id)
+                            .map((team) => (
+                              <SelectItem key={team.id} value={team.id}>
+                                {team.name}
+                              </SelectItem>
+                            ))}
+                        </>
+                      )}
+                      {otherTeams.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            Other Teams
+                          </div>
+                          {otherTeams.map((team) => (
+                            <SelectItem key={team.id} value={team.id}>
+                              {team.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

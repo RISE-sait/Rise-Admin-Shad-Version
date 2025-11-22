@@ -14,7 +14,7 @@ export default async function PlaygroundPageContainer() {
   const systems = await getPlaygroundSystems();
   return (
     <RoleProtected
-      allowedRoles={[StaffRoleEnum.ADMIN]}
+      allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}
       fallback={<PageSkeleton />}
     >
       <PlaygroundPage sessions={sessions} systems={systems} />

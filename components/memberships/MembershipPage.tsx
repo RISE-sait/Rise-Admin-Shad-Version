@@ -19,12 +19,17 @@ import columns from "./table/columns";
 import { VisibilityState } from "@tanstack/react-table";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 
 export default function MembershipsPage({
   memberships,
 }: {
   memberships: Membership[];
 }) {
+  const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<"details" | "add" | null>(
     null
@@ -59,16 +64,18 @@ export default function MembershipsPage({
           title="Memberships"
           description="Manage your memberships and their details"
         />
-        <Button
-          onClick={() => {
-            setDrawerContent("add");
-            setDrawerOpen(true);
-          }}
-          className="flex items-center gap-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Add Membership
-        </Button>
+        {!isReceptionist && (
+          <Button
+            onClick={() => {
+              setDrawerContent("add");
+              setDrawerOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Membership
+          </Button>
+        )}
       </div>
       <Separator />
 

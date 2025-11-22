@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { SaveIcon, User, Mail } from "lucide-react";
+import { StaffRoleEnum } from "@/types/user";
 
 type FormField = "first_name" | "last_name" | "email" | "phone";
 
@@ -29,6 +30,7 @@ export default function DetailsTab({
 }) {
   const { toast } = useToast();
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -166,6 +168,7 @@ export default function DetailsTab({
                   value={formData.first_name}
                   onChange={(e) => handleChange("first_name", e.target.value)}
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
               </div>
               <div className="space-y-2">
@@ -176,6 +179,7 @@ export default function DetailsTab({
                   value={formData.last_name}
                   onChange={(e) => handleChange("last_name", e.target.value)}
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
               </div>
             </div>
@@ -211,6 +215,7 @@ export default function DetailsTab({
                 onChange={(e) => handleChange("phone", e.target.value)}
                 placeholder="+11234567890"
                 className="bg-background"
+                disabled={isReceptionist}
               />
             </div>
           </div>
@@ -219,16 +224,18 @@ export default function DetailsTab({
 
       <Separator />
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <Button
-          onClick={handleUpdateCustomer}
-          disabled={isLoading}
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-        >
-          <SaveIcon className="h-4 w-4 mr-2" />
-          {isLoading ? "Updating..." : "Save Changes"}
-        </Button>
-      </div>
+      {!isReceptionist && (
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <Button
+            onClick={handleUpdateCustomer}
+            disabled={isLoading}
+            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            {isLoading ? "Updating..." : "Save Changes"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

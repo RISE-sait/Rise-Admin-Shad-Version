@@ -66,6 +66,7 @@ import type { SuspensionInfoResponseDto } from "@/app/api/Api";
 import getValue from "@/configs/constants";
 import { getCustomerSubsidies, getSubsidyProviders, createSubsidy, deactivateSubsidy } from "@/services/subsidy";
 import { Subsidy, SubsidyProvider } from "@/types/subsidy";
+import { StaffRoleEnum } from "@/types/user";
 
 interface MembershipPlan {
   id: string;
@@ -148,6 +149,7 @@ export default function CustomerInfoPanel({
 
   const { toast } = useToast();
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const onCustomerUpdatedRef = useRef(onCustomerUpdated);
 
@@ -1340,15 +1342,17 @@ export default function CustomerInfoPanel({
                       </p>
                     </div>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={handleSaveNotes}
-                    disabled={!hasNotesChanged || isSavingNotes}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-                  >
-                    <SaveIcon className="h-4 w-4 mr-2" />
-                    {isSavingNotes ? "Saving..." : "Save Notes"}
-                  </Button>
+                  {!isReceptionist && (
+                    <Button
+                      type="button"
+                      onClick={handleSaveNotes}
+                      disabled={!hasNotesChanged || isSavingNotes}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+                    >
+                      <SaveIcon className="h-4 w-4 mr-2" />
+                      {isSavingNotes ? "Saving..." : "Save Notes"}
+                    </Button>
+                  )}
                 </div>
                 <Textarea
                   value={notesDraft}
@@ -1362,7 +1366,7 @@ export default function CustomerInfoPanel({
                   placeholder="No notes"
                   className="min-h-[200px] bg-background"
                   maxLength={maxNotesLength}
-                  disabled={isSavingNotes}
+                  disabled={isSavingNotes || isReceptionist}
                 />
                 <div className="text-xs text-muted-foreground text-right">
                   {notesDraft.length}/{maxNotesLength} characters
@@ -1478,7 +1482,7 @@ export default function CustomerInfoPanel({
 
                           setAddCreditsDescription(value);
                         }}
-                        disabled={creditsAction !== null}
+                        disabled={creditsAction !== null || isReceptionist}
                         rows={3}
                         className="bg-background"
                       />
@@ -1546,7 +1550,7 @@ export default function CustomerInfoPanel({
 
                           setDeductCreditsDescription(value);
                         }}
-                        disabled={creditsAction !== null}
+                        disabled={creditsAction !== null || isReceptionist}
                         rows={3}
                         className="bg-background"
                       />
@@ -1816,41 +1820,43 @@ export default function CustomerInfoPanel({
               : "Never"}
           </p>
 
-          <div className="flex items-center gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="border-destructive text-destructive hover:bg-destructive/10"
-                >
-                  <TrashIcon className="h-4 w-4 mr-2" />
-                  {currentCustomer.is_archived ? "Unarchive" : "Archive"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    {currentCustomer.is_archived
-                      ? "Confirm Unarchive"
-                      : "Confirm Archive"}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {currentCustomer.is_archived
-                      ? "Are you sure you want to unarchive this customer?"
-                      : "Are you sure you want to archive this customer?"}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleArchiveToggle}>
-                    {currentCustomer.is_archived
-                      ? "Confirm Unarchive"
-                      : "Confirm Archive"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          {!isReceptionist && (
+            <div className="flex items-center gap-3">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-destructive text-destructive hover:bg-destructive/10"
+                  >
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    {currentCustomer.is_archived ? "Unarchive" : "Archive"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {currentCustomer.is_archived
+                        ? "Confirm Unarchive"
+                        : "Confirm Archive"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {currentCustomer.is_archived
+                        ? "Are you sure you want to unarchive this customer?"
+                        : "Are you sure you want to archive this customer?"}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleArchiveToggle}>
+                      {currentCustomer.is_archived
+                        ? "Confirm Unarchive"
+                        : "Confirm Archive"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </div>
       </div>
 

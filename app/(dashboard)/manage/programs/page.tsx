@@ -11,7 +11,7 @@ export default async function Page() {
   ]);
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}>
       <div className="p-6">
         <ProgramPage
           programs={programs}

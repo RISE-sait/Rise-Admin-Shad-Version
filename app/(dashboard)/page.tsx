@@ -314,15 +314,17 @@ export default function DashboardPage() {
                 <LogIn className="h-4 w-4 mr-2" />
                 Check someone in
               </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                size="sm"
-                onClick={() => router.push("/manage/games")}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule a game
-              </Button>
+              {user?.Role !== StaffRoleEnum.RECEPTIONIST && (
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  size="sm"
+                  onClick={() => router.push("/manage/games")}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule a game
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="w-full justify-start"

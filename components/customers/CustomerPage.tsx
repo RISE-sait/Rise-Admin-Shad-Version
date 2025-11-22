@@ -25,6 +25,7 @@ import { useRouterQuery } from "@/hooks/router-query";
 import { archiveCustomer, unarchiveCustomer, exportCustomers, exportArchivedCustomers } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
+import { StaffRoleEnum } from "@/types/user";
 
 // Define props for the CustomersPage component
 interface CustomerPageProps {

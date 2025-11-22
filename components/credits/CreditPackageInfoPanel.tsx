@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
+import { StaffRoleEnum } from "@/types/user";
 import {
   STRIPE_PRICE_MESSAGE,
   STRIPE_PRICE_PATTERN,
@@ -61,6 +62,7 @@ export default function CreditPackageInfoPanel({
   onSuccess,
 }: CreditPackageInfoPanelProps) {
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const {
     register,
@@ -165,6 +167,7 @@ export default function CreditPackageInfoPanel({
                   })}
                   placeholder="Package name"
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
                 {errors.name && (
                   <p className="text-xs text-red-500">{errors.name.message}</p>
@@ -185,6 +188,7 @@ export default function CreditPackageInfoPanel({
                   })}
                   placeholder="Describe this credit package"
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
                 {errors.description && (
                   <p className="text-xs text-red-500">
@@ -221,6 +225,7 @@ export default function CreditPackageInfoPanel({
                     })}
                     placeholder="0"
                     className="bg-background"
+                    disabled={isReceptionist}
                   />
                   {errors.credit_allocation && (
                     <p className="text-xs text-red-500">
@@ -244,6 +249,7 @@ export default function CreditPackageInfoPanel({
                     })}
                     placeholder="0"
                     className="bg-background"
+                    disabled={isReceptionist}
                   />
                   {errors.weekly_credit_limit && (
                     <p className="text-xs text-red-500">
@@ -268,6 +274,7 @@ export default function CreditPackageInfoPanel({
                   })}
                   placeholder="price_123ABC"
                   className="bg-background"
+                  disabled={isReceptionist}
                 />
                 {errors.stripe_price_id && (
                   <p className="text-xs text-red-500">
@@ -281,46 +288,48 @@ export default function CreditPackageInfoPanel({
 
         <Separator />
 
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-              >
-                <TrashIcon className="h-4 w-4 mr-2" />
-                Delete Package
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete credit package</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this credit package? This
-                  action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700"
+        {!isReceptionist && (
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
                 >
-                  Confirm Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Delete Package
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete credit package</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this credit package? This
+                    action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Confirm Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-          <Button
-            type="submit"
-            disabled={!isDirty || isSubmitting}
-            className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-          >
-            <SaveIcon className="h-4 w-4 mr-2" />
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
+            <Button
+              type="submit"
+              disabled={!isDirty || isSubmitting}
+              className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+            >
+              <SaveIcon className="h-4 w-4 mr-2" />
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        )}
       </form>
 
       <div className="text-xs text-muted-foreground pt-4">

@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { StaffRoleEnum } from "@/types/user";
 
 interface BookingInfoPanelProps {
   booking: RoomBooking;
@@ -40,6 +41,7 @@ export default function BookingInfoPanel({
 
   const { user } = useUser();
   const { toast } = useToast();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const handleDelete = async () => {
     const error = await deletePlaygroundSession(booking.id, user?.Jwt!);
@@ -112,38 +114,40 @@ export default function BookingInfoPanel({
       </Tabs>
 
       {/* Sticky footer with Edit/Cancel */}
-      <div className="sticky bottom-0 bg-background/95 py-4 border-t z-10 mt-8">
-        <div className="flex justify-between items-center px-2">
-          <p className="text-sm text-muted-foreground">ID: {booking.id}</p>
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => onEdit(booking)}>
-              <Pencil className="h-4 w-4 mr-2" /> Edit
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="h-4 w-4 mr-2" /> Cancel
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to cancel this booking? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Cancel Booking
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+      {!isReceptionist && (
+        <div className="sticky bottom-0 bg-background/95 py-4 border-t z-10 mt-8">
+          <div className="flex justify-between items-center px-2">
+            <p className="text-sm text-muted-foreground">ID: {booking.id}</p>
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={() => onEdit(booking)}>
+                <Pencil className="h-4 w-4 mr-2" /> Edit
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" /> Cancel
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Cancellation</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel this booking? This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>
+                      Cancel Booking
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

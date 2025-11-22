@@ -34,6 +34,7 @@ import { CourtRequestDto } from "@/app/api/Api";
 import { revalidateCourts } from "@/actions/serverActions";
 import { Grid3x3, MapPinIcon, SaveIcon, TrashIcon, FileText } from "lucide-react";
 import { sanitizeTextInput } from "@/utils/inputValidation";
+import { StaffRoleEnum } from "@/types/user";
 
 interface CourtInfoPanelProps {
   court: Court;
@@ -46,6 +47,7 @@ export default function CourtInfoPanel({
 }: CourtInfoPanelProps) {
   const { toast } = useToast();
   const { user } = useUser();
+  const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
   const [name, setName] = useState(court.name);
   const [locationId, setLocationId] = useState(court.location_id);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -116,6 +118,7 @@ export default function CourtInfoPanel({
                       onChange={(e) => setName(sanitizeTextInput(e.target.value))}
                       placeholder="Enter court name"
                       className="bg-background"
+                      disabled={isReceptionist}
                     />
                   </div>
 
@@ -123,7 +126,7 @@ export default function CourtInfoPanel({
                     <label className="text-sm font-medium">
                       Location <span className="text-red-500">*</span>
                     </label>
-                    <Select value={locationId} onValueChange={setLocationId}>
+                    <Select value={locationId} onValueChange={setLocationId} disabled={isReceptionist}>
                       <SelectTrigger className="bg-background">
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
@@ -142,45 +145,47 @@ export default function CourtInfoPanel({
 
             <Separator />
 
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-                  >
-                    <TrashIcon className="h-4 w-4 mr-2" />
-                    Delete Court
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this court? This action
-                      cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDelete}
-                      className="bg-red-600 hover:bg-red-700"
+            {!isReceptionist && (
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
                     >
-                      Confirm Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      <TrashIcon className="h-4 w-4 mr-2" />
+                      Delete Court
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this court? This action
+                        cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Confirm Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
 
-              <Button
-                onClick={handleSaveAll}
-                className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
-              >
-                <SaveIcon className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
-            </div>
+                <Button
+                  onClick={handleSaveAll}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-11 px-6"
+                >
+                  <SaveIcon className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>

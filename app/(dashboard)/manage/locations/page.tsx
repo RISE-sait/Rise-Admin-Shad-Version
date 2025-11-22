@@ -7,7 +7,7 @@ export default async function Page() {
   const locations = await getAllLocations();
 
   return (
-    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN]}>
+    <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}>
       <div className="flex">
         <FacilitiesPage facilities={locations} />
       </div>
