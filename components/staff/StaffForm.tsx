@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
 
 // UI Components
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Trash, Save, Mail, Phone, User as UserIcon } from "lucide-react";
+import { FileText, Trash, Save, Mail, Phone, User as UserIcon, Users } from "lucide-react";
 import StaffProfilePictureUpload from "./StaffProfilePictureUpload";
 import { useUser } from "@/contexts/UserContext";
 import {
@@ -38,6 +38,8 @@ import { deleteStaff, updateStaff } from "@/services/staff";
 import { updateUser } from "@/services/user";
 import { StaffRoleEnum, User } from "@/types/user";
 import { cn } from "@/lib/utils";
+import { getTeamsByCoach, removeCoachFromTeam } from "@/services/teams";
+import { Team } from "@/types/team";
 
 const ROLE_OPTIONS = Object.entries(StaffRoleEnum).map(([key, value]) => ({
   label: key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
@@ -67,11 +69,32 @@ export default function StaffForm({
   const [profilePicture, setProfilePicture] = useState(
     StaffData?.PhotoUrl || ""
   );
+  const [assignedTeams, setAssignedTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
 
   const { user } = useUser();
   const jwt = user?.Jwt;
   const { toast } = useToast();
   const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+
+  // Load assigned teams when component mounts
+  useEffect(() => {
+    const loadTeams = async () => {
+      if (!StaffData?.ID || !jwt) return;
+
+      setLoadingTeams(true);
+      try {
+        const teams = await getTeamsByCoach(StaffData.ID, jwt);
+        setAssignedTeams(teams);
+      } catch (error) {
+        console.error("Error loading assigned teams:", error);
+      } finally {
+        setLoadingTeams(false);
+      }
+    };
+
+    loadTeams();
+  }, [StaffData?.ID, jwt]);
 
   const sanitizeNameInput = (value: string) =>
     value.replace(/[^a-zA-Z\s'-]/g, "");
@@ -167,6 +190,57 @@ export default function StaffForm({
 
   const DeleteStaff = async () => {
     try {
+      // Check if they coach any internal teams (cannot be removed)
+      const internalTeams = assignedTeams.filter(team => !team.is_external);
+
+      if (internalTeams.length > 0) {
+        const teamNames = internalTeams.map(t => `"${t.name}"`).join(', ');
+        toast({
+          status: "error",
+          title: "Cannot Delete: Staff Member Coaches Internal Teams",
+          description: (
+            <div className="space-y-2">
+              <p className="font-semibold">
+                {firstName} {lastName} is the coach for {internalTeams.length} internal team{internalTeams.length !== 1 ? 's' : ''}: {teamNames}
+              </p>
+              <p className="text-sm">Internal teams must always have a coach assigned.</p>
+              <div className="mt-3 space-y-1">
+                <p className="font-semibold text-sm">To delete this staff member, choose one of these options:</p>
+                <ol className="list-decimal list-inside space-y-1 text-sm ml-2">
+                  <li>Go to Teams page → Edit each internal team → Assign a new coach</li>
+                  <li>OR mark this staff member as "Inactive" instead of deleting</li>
+                </ol>
+              </div>
+            </div>
+          ),
+          variant: "destructive",
+          duration: 10000,
+        });
+        return;
+      }
+
+      // Remove from external teams (allowed)
+      const externalTeams = assignedTeams.filter(team => team.is_external);
+      if (externalTeams.length > 0) {
+        toast({
+          status: "info",
+          description: `Removing staff from ${externalTeams.length} external team(s)...`,
+        });
+
+        for (const team of externalTeams) {
+          const error = await removeCoachFromTeam(team.id, jwt!);
+          if (error) {
+            toast({
+              status: "error",
+              description: `Failed to remove from team "${team.name}": ${error}`,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+      }
+
+      // Now delete the staff member
       await deleteStaff(StaffData?.ID!, jwt!);
       toast({
         status: "success",
@@ -195,6 +269,18 @@ export default function StaffForm({
             >
               <FileText className="h-4 w-4" />
               Staff Information
+            </TabsTrigger>
+            <TabsTrigger
+              value="teams"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Users className="h-4 w-4" />
+              Assigned Teams
+              {assignedTeams.length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {assignedTeams.length}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -402,6 +488,98 @@ export default function StaffForm({
           </div>
         </TabsContent>
 
+        {/* Teams Tab */}
+        <TabsContent value="teams" className="pt-4">
+          <div className="space-y-6">
+            <Card>
+              <CardContent className="pt-6">
+                {loadingTeams ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    Loading teams...
+                  </div>
+                ) : assignedTeams.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>This staff member is not assigned as a coach to any teams</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Teams Coached</h3>
+                      <Badge variant="secondary">{assignedTeams.length} Team{assignedTeams.length !== 1 ? 's' : ''}</Badge>
+                    </div>
+                    <div className="space-y-3 mb-4">
+                      <p className="text-sm text-muted-foreground">
+                        This staff member is assigned as a coach to the following teams.
+                      </p>
+                      {assignedTeams.some(t => !t.is_external) && (
+                        <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                          <div className="flex items-start gap-2">
+                            <span className="text-lg">⚠️</span>
+                            <div className="flex-1 space-y-2">
+                              <p className="font-semibold text-amber-800 dark:text-amber-200">
+                                Cannot Delete While Coaching Internal Teams
+                              </p>
+                              <p className="text-sm text-amber-700 dark:text-amber-300">
+                                Internal teams (marked in green below) require a coach at all times and cannot be left unassigned.
+                              </p>
+                              <div className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+                                <p className="font-medium">To delete this staff member:</p>
+                                <ol className="list-decimal list-inside ml-2 space-y-0.5">
+                                  <li>Go to Teams page</li>
+                                  <li>Edit each internal team listed below</li>
+                                  <li>Assign a new coach to each team</li>
+                                  <li>Return here to delete</li>
+                                </ol>
+                                <p className="mt-2 italic">OR mark this staff member as "Inactive" instead</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <Separator />
+                    <div className="space-y-3">
+                      {assignedTeams.map((team) => (
+                        <div
+                          key={team.id}
+                          className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Users className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{team.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Capacity: {team.capacity} athletes
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {team.is_external ? (
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                External
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                Internal
+                              </Badge>
+                            )}
+                            <Badge variant="outline">
+                              Coach
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         {/* Activity Tab */}
         <TabsContent value="activity" className="pt-4">
           <div className="space-y-6">
@@ -431,8 +609,73 @@ export default function StaffForm({
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this staff member? This action
-                  cannot be undone.
+                  {(() => {
+                    const internalTeams = assignedTeams.filter(t => !t.is_external);
+                    const externalTeams = assignedTeams.filter(t => t.is_external);
+
+                    if (internalTeams.length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-2">
+                            <span className="text-2xl">⚠️</span>
+                            <div>
+                              <p className="font-bold text-amber-600 dark:text-amber-400">
+                                Cannot Delete: Coaches Internal Teams
+                              </p>
+                              <p className="text-sm mt-1">
+                                {firstName} {lastName} is the coach for {internalTeams.length} internal team{internalTeams.length !== 1 ? 's' : ''}:
+                              </p>
+                              <ul className="list-disc list-inside text-sm mt-1 ml-2">
+                                {internalTeams.map(team => (
+                                  <li key={team.id}>{team.name}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                          <div className="bg-muted p-3 rounded-md text-sm">
+                            <p className="font-semibold mb-2">How to proceed:</p>
+                            <ol className="list-decimal list-inside space-y-1 ml-2">
+                              <li>
+                                <strong>Option 1 (Recommended):</strong> Mark this staff member as "Inactive" in the Staff Information tab instead of deleting
+                              </li>
+                              <li>
+                                <strong>Option 2:</strong> Go to Teams page → Edit each team listed above → Assign a new coach → Then return here to delete
+                              </li>
+                            </ol>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Note: Clicking "Delete" will fail because internal teams require a coach at all times.
+                          </p>
+                        </div>
+                      );
+                    } else if (externalTeams.length > 0) {
+                      return (
+                        <div className="space-y-2">
+                          <p>
+                            This staff member is currently assigned as a coach to {externalTeams.length} external team{externalTeams.length !== 1 ? 's' : ''}:
+                          </p>
+                          <ul className="list-disc list-inside text-sm ml-4">
+                            {externalTeams.map(team => (
+                              <li key={team.id}>{team.name}</li>
+                            ))}
+                          </ul>
+                          <p className="text-sm text-muted-foreground mt-3">
+                            ✓ They will be automatically removed from {externalTeams.length === 1 ? 'this team' : 'these teams'} before deletion.
+                          </p>
+                          <p className="font-semibold mt-3">
+                            Are you sure you want to proceed? This action cannot be undone.
+                          </p>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <>
+                          Are you sure you want to delete this staff member? This action
+                          cannot be undone.
+                        </>
+                      );
+                    }
+                  })()}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
