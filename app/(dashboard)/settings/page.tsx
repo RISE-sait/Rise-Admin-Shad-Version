@@ -56,6 +56,8 @@ import { getAllStaffs } from "@/services/staff";
 import type { User } from "@/types/user";
 import { useTheme } from "next-themes";
 import ReactCountryFlag from "react-country-flag";
+import StaffManagement from "@/components/settings/StaffManagement";
+import { StaffRoleEnum } from "@/types/user";
 type CountryOption = { code: string; name: string };
 
 const countryNames: Record<string, string> = {
@@ -331,11 +333,14 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={`grid w-full ${user?.Role === StaffRoleEnum.SUPERADMIN ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="theme">Theme</TabsTrigger>
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
+          {user?.Role === StaffRoleEnum.SUPERADMIN && (
+            <TabsTrigger value="staff">Staff Management</TabsTrigger>
+          )}
         </TabsList>
 
         {/* Profile Tab */}
@@ -685,6 +690,13 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Staff Management Tab - Only for Super Admins */}
+        {user?.Role === StaffRoleEnum.SUPERADMIN && (
+          <TabsContent value="staff" className="space-y-4">
+            <StaffManagement />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

@@ -242,6 +242,7 @@ export async function deleteTeam(
     });
 
     const text = await response.text();
+
     let responseJSON: any = {};
     if (text) {
       try {
@@ -251,9 +252,29 @@ export async function deleteTeam(
 
     if (!response.ok) {
       let errorMessage = `Failed to delete team: ${response.statusText}`;
-      if (responseJSON.error) {
+
+      if (responseJSON.error?.message) {
         errorMessage = responseJSON.error.message;
+      } else if (responseJSON.error) {
+        errorMessage = String(responseJSON.error);
+      } else if (responseJSON.message) {
+        errorMessage = responseJSON.message;
+      } else if (text) {
+        errorMessage = text;
       }
+
+      // Check for specific constraint violations and provide helpful messages
+      if (errorMessage.includes("games_home_team_id_fkey") ||
+          errorMessage.includes("games_away_team_id_fkey")) {
+        errorMessage = "Cannot delete: This team has associated games. Please remove the team from all games first, or contact an administrator.";
+      } else if (errorMessage.includes("practices_team_id_fkey")) {
+        errorMessage = "Cannot delete: This team has associated practices. Please remove the team from all practices first, or contact an administrator.";
+      } else if (errorMessage.includes("foreign key constraint") || errorMessage.includes("fk_")) {
+        errorMessage = "Cannot delete: This team has associated records (games, practices, etc.). Please remove all associations first, or contact an administrator.";
+      } else if (errorMessage.includes("violates check constraint")) {
+        errorMessage = "Cannot delete: Database constraint violation. This team has required associations. Please remove all associations first.";
+      }
+
       throw new Error(errorMessage);
     }
 
@@ -332,5 +353,60 @@ export async function createExternalTeam(
   } catch (error) {
     console.error("Error creating external team:", error);
     throw error;
+  }
+}
+
+/**
+ * Get all teams where a specific staff member is the coach
+ */
+export async function getTeamsByCoach(coachId: string, jwt: string): Promise<Team[]> {
+  try {
+    const allTeams = await getAllTeams();
+    return allTeams.filter(team => team.coach_id === coachId);
+  } catch (error) {
+    console.error("Error fetching teams by coach:", error);
+    throw error;
+  }
+}
+
+/**
+ * Remove a coach from a team by setting coach_id to null
+ */
+export async function removeCoachFromTeam(teamId: string, jwt: string): Promise<string | null> {
+  try {
+    // First, get the current team data
+    const team = await getTeamById(teamId, jwt);
+
+    // Update the team with coach_id set to null
+    const response = await fetch(`${getValue("API")}teams/${teamId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify({
+        name: team.name,
+        capacity: team.capacity,
+        coach_id: null, // Remove the coach
+        logo_url: team.logo_url,
+      }),
+    });
+
+    const responseJSON = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      let errorMessage = `Failed to remove coach from team: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      } else if (responseJSON.error) {
+        errorMessage = String(responseJSON.error);
+      }
+      return errorMessage;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error removing coach from team:", error);
+    return error instanceof Error ? error.message : "Unknown error occurred";
   }
 }
