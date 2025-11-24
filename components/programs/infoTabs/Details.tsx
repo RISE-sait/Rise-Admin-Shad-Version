@@ -202,32 +202,32 @@ export default function DetailsForm({
               />
               <label
                 htmlFor="program-photo-upload"
-                className={`block ${!isReceptionist ? 'cursor-pointer' : 'cursor-not-allowed'} text-muted-foreground ${!isReceptionist ? 'hover:text-foreground' : ''} transition-colors`}
+                className={`block ${!isReceptionist ? 'cursor-pointer' : 'cursor-not-allowed'} ${!isReceptionist ? 'hover:opacity-80' : ''} transition-opacity`}
               >
                 {photoUrl ? (
-                  <div className="space-y-2">
-                    <p className="text-foreground font-medium">
-                      {photoName || "Image selected"}
+                  <div className="space-y-3">
+                    <div className="flex justify-center">
+                      <img
+                        src={photoUrl}
+                        alt="Program photo preview"
+                        className="max-h-40 rounded object-cover"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Image selected
                     </p>
-                    <p className="text-sm">Click to change file</p>
+                    <p className="text-sm text-muted-foreground">
+                      Click to change
+                    </p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-muted-foreground">
                     <p>Click to select an image</p>
                     <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
                   </div>
                 )}
               </label>
             </div>
-            {photoUrl && (
-              <div className="flex justify-center">
-                <img
-                  src={photoUrl}
-                  alt="Program photo preview"
-                  className="max-h-40 rounded object-cover"
-                />
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
