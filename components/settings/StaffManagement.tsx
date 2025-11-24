@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { registerStaff, getStaffsPaginated } from "@/services/staff";
+import { registerStaff, getAllStaffs } from "@/services/staff";
 import { User, StaffRoleEnum } from "@/types/user";
 import {
   Card,
@@ -77,8 +77,7 @@ export default function StaffManagement() {
   const [registering, setRegistering] = useState(false);
 
   // Staff list state
-  const [staffList, setStaffList] = useState<User[]>([]);
-  const [totalStaff, setTotalStaff] = useState(0);
+  const [allStaff, setAllStaff] = useState<User[]>([]); // All staff from API
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -87,35 +86,45 @@ export default function StaffManagement() {
   const [selectedStaff, setSelectedStaff] = useState<User | null>(null);
   const [staffInfoOpen, setStaffInfoOpen] = useState(false);
 
-  // Load staff list
-  const loadStaffList = async () => {
-    if (!user?.Jwt) return;
-
+  // Load staff list with useCallback to prevent recreation
+  const loadStaffList = useCallback(async () => {
     setLoading(true);
-    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
-    const result = await getStaffsPaginated(user.Jwt, {
-      limit: ITEMS_PER_PAGE,
-      offset,
-      role: roleFilter === "all" ? undefined : roleFilter,
-    });
-
-    if (result.error) {
+    try {
+      const staffs = await getAllStaffs();
+      setAllStaff(staffs);
+    } catch (error) {
+      console.error("Error loading staff:", error);
       toast({
         title: "Error loading staff",
-        description: result.error,
+        description: error instanceof Error ? error.message : "Failed to load staff",
         status: "error",
       });
-    } else {
-      setStaffList(result.staffs);
-      setTotalStaff(result.total);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [toast]);
 
   useEffect(() => {
     loadStaffList();
-  }, [currentPage, roleFilter, user?.Jwt]);
+  }, [loadStaffList]);
+
+  // Filter staff by role and paginate client-side
+  const filteredStaff = roleFilter === "all"
+    ? allStaff
+    : allStaff.filter(staff => staff.StaffInfo?.Role?.toLowerCase() === roleFilter);
+
+  const totalStaff = filteredStaff.length;
+  const totalPages = Math.ceil(totalStaff / ITEMS_PER_PAGE);
+
+  // Get current page's staff
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const staffList = filteredStaff.slice(startIndex, endIndex);
+
+  // Reset to page 1 when role filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [roleFilter]);
 
   const handleRegisterStaff = async () => {
     if (!user?.Jwt) {
@@ -240,8 +249,6 @@ export default function StaffManagement() {
 
     setRegistering(false);
   };
-
-  const totalPages = Math.ceil(totalStaff / ITEMS_PER_PAGE);
 
   const getRoleBadgeColor = (role?: string) => {
     switch (role) {
