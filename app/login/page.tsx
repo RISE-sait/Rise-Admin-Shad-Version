@@ -66,6 +66,9 @@ export default function Login() {
         }
 
         localStorage.setItem("jwt", user.Jwt); // Store JWT in localStorage
+        // Also store in cookie for server-side access (Secure flag for HTTPS in production)
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `jwt=${user.Jwt}; path=/; max-age=${60 * 60 * 24 * 15}; SameSite=Lax${isSecure ? '; Secure' : ''}`; // 15 days
 
         // Update user context
         setUser(user);
@@ -104,6 +107,9 @@ export default function Login() {
         }
 
         localStorage.setItem("jwt", user.Jwt); // Store JWT in localStorage
+        // Also store in cookie for server-side access (Secure flag for HTTPS in production)
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `jwt=${user.Jwt}; path=/; max-age=${60 * 60 * 24 * 15}; SameSite=Lax${isSecure ? '; Secure' : ''}`; // 15 days
 
         // Update user context
         setUser(user);
