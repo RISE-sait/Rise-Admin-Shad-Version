@@ -605,7 +605,8 @@ export async function getCustomerCreditTransactions(
 export async function getCustomers(
   search?: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  jwt?: string
 ): Promise<{
   customers: Customer[];
   page: number;
@@ -621,8 +622,20 @@ export async function getCustomers(
 
     const url = `${getValue("API")}customers?${params.toString()}`;
 
+    const resolvedJwt =
+      jwt ??
+      (typeof window !== "undefined"
+        ? (window.localStorage?.getItem("jwt") ?? undefined)
+        : undefined);
+
+    if (!resolvedJwt) {
+      throw new Error("Authorization token is required");
+    }
+
     console.log(`🔍 Fetching customers from: ${url}`);
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      ...addAuthHeader(resolvedJwt),
+    });
 
     console.log(`📡 Response status: ${response.status} ${response.statusText}`);
 
@@ -656,13 +669,25 @@ export async function getCustomers(
  * Get customer by ID
  */
 export async function getCustomerById(
-  customerId: string
+  customerId: string,
+  jwt?: string
 ): Promise<Customer | null> {
   try {
     const url = `${getValue("API")}customers/id/${customerId}`;
 
+    const resolvedJwt =
+      jwt ??
+      (typeof window !== "undefined"
+        ? (window.localStorage?.getItem("jwt") ?? undefined)
+        : undefined);
+
+    if (!resolvedJwt) {
+      throw new Error("Authorization token is required");
+    }
+
     const response = await fetch(url, {
       method: "GET",
+      ...addAuthHeader(resolvedJwt),
     });
 
     if (response.status === 404) {
@@ -687,13 +712,25 @@ export async function getCustomerById(
  * Check in a customer and return membership information
  */
 export async function checkInCustomer(
-  id: string
+  id: string,
+  jwt?: string
 ): Promise<CustomerMembershipResponseDto | null> {
   try {
     const url = `${getValue("API")}customers/checkin/${id}`;
 
+    const resolvedJwt =
+      jwt ??
+      (typeof window !== "undefined"
+        ? (window.localStorage?.getItem("jwt") ?? undefined)
+        : undefined);
+
+    if (!resolvedJwt) {
+      throw new Error("Authorization token is required");
+    }
+
     const response = await fetch(url, {
       method: "GET",
+      ...addAuthHeader(resolvedJwt),
     });
 
     if (response.status === 404) {
@@ -791,7 +828,8 @@ export async function updateCustomerNotes(
 export async function getArchivedCustomers(
   search?: string,
   page: number = 1,
-  limit: number = 20
+  limit: number = 20,
+  jwt?: string
 ): Promise<{
   customers: Customer[];
   page: number;
@@ -807,7 +845,19 @@ export async function getArchivedCustomers(
 
     const url = `${getValue("API")}customers/archived?${params.toString()}`;
 
-    const response = await fetch(url);
+    const resolvedJwt =
+      jwt ??
+      (typeof window !== "undefined"
+        ? (window.localStorage?.getItem("jwt") ?? undefined)
+        : undefined);
+
+    if (!resolvedJwt) {
+      throw new Error("Authorization token is required");
+    }
+
+    const response = await fetch(url, {
+      ...addAuthHeader(resolvedJwt),
+    });
 
     if (!response.ok) {
       throw new Error(
