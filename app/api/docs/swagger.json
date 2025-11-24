@@ -2858,6 +2858,295 @@
         }
       }
     },
+    "/discounts": {
+      "get": {
+        "description": "Retrieves a list of all discount codes (both active and inactive)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["discounts"],
+        "summary": "List all discount codes",
+        "responses": {
+          "200": {
+            "description": "List of discounts retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/discount.ResponseDto"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Creates a new discount code with Stripe coupon integration. Supports percentage and fixed amount discounts for subscriptions, one-time payments, or both.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["discounts"],
+        "summary": "Create a new discount code",
+        "parameters": [
+          {
+            "description": "Discount details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/discount.RequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Discount created successfully",
+            "schema": {
+              "$ref": "#/definitions/discount.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or validation error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error: Failed to create discount or Stripe coupon",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/discounts/apply": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Validates a discount code for the current customer and records usage. Checks usage limits, membership plan restrictions, and validity dates.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["discounts"],
+        "summary": "Validate and apply a discount code",
+        "parameters": [
+          {
+            "description": "Discount code to apply",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/discount.ApplyRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discount applied successfully",
+            "schema": {
+              "$ref": "#/definitions/discount.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Usage limit reached or not valid for membership plan",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Discount code not found or inactive",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/discounts/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific discount code",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["discounts"],
+        "summary": "Get discount by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Discount ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discount retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/discount.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid discount ID format",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Discount not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates an existing discount code. Note: Stripe coupon is not updated, only local database values.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["discounts"],
+        "summary": "Update a discount code",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Discount ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated discount details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/discount.RequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discount updated successfully",
+            "schema": {
+              "$ref": "#/definitions/discount.ResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or validation error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Discount not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Deletes a discount code from the database. Note: Associated Stripe coupon is not deleted.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["discounts"],
+        "summary": "Delete a discount code",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Discount ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Discount deleted successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid discount ID format",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Discount not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/events": {
       "get": {
         "consumes": ["application/json"],
@@ -6321,6 +6610,73 @@
         }
       }
     },
+    "/register/staff/reject/{id}": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Deletes a pending staff member's application from the system",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["registration"],
+        "summary": "Delete/Reject a pending staff member",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of staff member to delete",
+            "name": "staff_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff deleted successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized: Invalid or missing authentication token",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: User does not have admin privileges",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Pending staff member not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error: Failed to delete staff",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/secure/credits": {
       "get": {
         "security": [
@@ -9238,6 +9594,142 @@
           "type": "boolean"
         },
         "waiver_url": {
+          "type": "string"
+        }
+      }
+    },
+    "discount.ApplyRequestDto": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "membership_plan_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "discount.RequestDto": {
+      "type": "object",
+      "required": [
+        "applies_to",
+        "discount_type",
+        "duration_type",
+        "name",
+        "valid_from"
+      ],
+      "properties": {
+        "applies_to": {
+          "type": "string",
+          "enum": ["subscription", "one_time", "both"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "discount_amount": {
+          "type": "number"
+        },
+        "discount_percent": {
+          "type": "integer",
+          "maximum": 100,
+          "minimum": 0
+        },
+        "discount_type": {
+          "type": "string",
+          "enum": ["percentage", "fixed_amount"]
+        },
+        "duration_months": {
+          "type": "integer"
+        },
+        "duration_type": {
+          "type": "string",
+          "enum": ["once", "repeating", "forever"]
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "is_use_unlimited": {
+          "type": "boolean"
+        },
+        "max_redemptions": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "use_per_client": {
+          "type": "integer"
+        },
+        "valid_from": {
+          "type": "string"
+        },
+        "valid_to": {
+          "type": "string"
+        }
+      }
+    },
+    "discount.ResponseDto": {
+      "type": "object",
+      "properties": {
+        "applies_to": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "discount_amount": {
+          "type": "number"
+        },
+        "discount_percent": {
+          "type": "integer"
+        },
+        "discount_type": {
+          "type": "string"
+        },
+        "duration_months": {
+          "type": "integer"
+        },
+        "duration_type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "is_use_unlimited": {
+          "type": "boolean"
+        },
+        "max_redemptions": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "stripe_coupon_id": {
+          "type": "string"
+        },
+        "stripe_promotion_code_id": {
+          "type": "string"
+        },
+        "times_redeemed": {
+          "type": "integer"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "use_per_client": {
+          "type": "integer"
+        },
+        "valid_from": {
+          "type": "string"
+        },
+        "valid_to": {
           "type": "string"
         }
       }
