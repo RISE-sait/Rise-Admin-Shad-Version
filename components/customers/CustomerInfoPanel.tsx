@@ -64,7 +64,12 @@ import { useUser } from "@/contexts/UserContext";
 import { Api } from "@/app/api/Api";
 import type { SuspensionInfoResponseDto } from "@/app/api/Api";
 import getValue from "@/configs/constants";
-import { getCustomerSubsidies, getSubsidyProviders, createSubsidy, deactivateSubsidy } from "@/services/subsidy";
+import {
+  getCustomerSubsidies,
+  getSubsidyProviders,
+  createSubsidy,
+  deactivateSubsidy,
+} from "@/services/subsidy";
 import { Subsidy, SubsidyProvider } from "@/types/subsidy";
 import { StaffRoleEnum } from "@/types/user";
 import { MembershipPlan } from "@/types/membership";
@@ -86,7 +91,9 @@ export default function CustomerInfoPanel({
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
-  const [membershipPlan, setMembershipPlan] = useState<MembershipPlan | null>(null);
+  const [membershipPlan, setMembershipPlan] = useState<MembershipPlan | null>(
+    null
+  );
   const [isMembershipLoading, setIsMembershipLoading] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [isCreditsLoading, setIsCreditsLoading] = useState(false);
@@ -126,7 +133,9 @@ export default function CustomerInfoPanel({
   const [subsidies, setSubsidies] = useState<Subsidy[]>([]);
   const [isSubsidiesLoading, setIsSubsidiesLoading] = useState(false);
   const [createSubsidyDialogOpen, setCreateSubsidyDialogOpen] = useState(false);
-  const [subsidyProviders, setSubsidyProviders] = useState<SubsidyProvider[]>([]);
+  const [subsidyProviders, setSubsidyProviders] = useState<SubsidyProvider[]>(
+    []
+  );
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
   const [isCreatingSubsidy, setIsCreatingSubsidy] = useState(false);
   const [newSubsidyProviderId, setNewSubsidyProviderId] = useState("");
@@ -134,8 +143,10 @@ export default function CustomerInfoPanel({
   const [newSubsidyReason, setNewSubsidyReason] = useState("");
   const [newSubsidyValidUntil, setNewSubsidyValidUntil] = useState("");
   const [newSubsidyAdminNotes, setNewSubsidyAdminNotes] = useState("");
-  const [deactivateSubsidyDialogOpen, setDeactivateSubsidyDialogOpen] = useState(false);
-  const [subsidyToDeactivate, setSubsidyToDeactivate] = useState<Subsidy | null>(null);
+  const [deactivateSubsidyDialogOpen, setDeactivateSubsidyDialogOpen] =
+    useState(false);
+  const [subsidyToDeactivate, setSubsidyToDeactivate] =
+    useState<Subsidy | null>(null);
   const [deactivationReason, setDeactivationReason] = useState("");
   const [isDeactivating, setIsDeactivating] = useState(false);
 
@@ -280,27 +291,24 @@ export default function CustomerInfoPanel({
     [user?.Jwt]
   );
 
-  const loadMembershipPlanDetails = useCallback(
-    async (planId: string) => {
-      if (!planId) {
-        setMembershipPlan(null);
-        return;
-      }
+  const loadMembershipPlanDetails = useCallback(async (planId: string) => {
+    if (!planId) {
+      setMembershipPlan(null);
+      return;
+    }
 
-      setIsMembershipLoading(true);
-      try {
-        const allPlans = await getAllMembershipPlans();
-        const plan = allPlans.find(p => p.id === planId);
-        setMembershipPlan(plan || null);
-      } catch (error) {
-        console.error("Error loading membership plan details:", error);
-        setMembershipPlan(null);
-      } finally {
-        setIsMembershipLoading(false);
-      }
-    },
-    []
-  );
+    setIsMembershipLoading(true);
+    try {
+      const allPlans = await getAllMembershipPlans();
+      const plan = allPlans.find((p) => p.id === planId);
+      setMembershipPlan(plan || null);
+    } catch (error) {
+      console.error("Error loading membership plan details:", error);
+      setMembershipPlan(null);
+    } finally {
+      setIsMembershipLoading(false);
+    }
+  }, []);
 
   const loadSubsidyProviders = useCallback(async () => {
     if (!user?.Jwt) {
@@ -368,7 +376,7 @@ export default function CustomerInfoPanel({
       let validUntilDate = null;
       if (newSubsidyValidUntil) {
         // Create date at end of day in local timezone
-        const dateObj = new Date(newSubsidyValidUntil + 'T23:59:59');
+        const dateObj = new Date(newSubsidyValidUntil + "T23:59:59");
         validUntilDate = dateObj.toISOString();
       }
 
@@ -418,7 +426,9 @@ export default function CustomerInfoPanel({
     }
     // Fallback to looking up from providers list (for compatibility)
     if (subsidy.provider?.id) {
-      const provider = subsidyProviders.find(p => p.id === subsidy.provider?.id);
+      const provider = subsidyProviders.find(
+        (p) => p.id === subsidy.provider?.id
+      );
       return provider?.name || "Unknown Provider";
     }
     return "Unknown Provider";
@@ -474,7 +484,9 @@ export default function CustomerInfoPanel({
       toast({
         status: "error",
         description:
-          error instanceof Error ? error.message : "Failed to deactivate subsidy",
+          error instanceof Error
+            ? error.message
+            : "Failed to deactivate subsidy",
         variant: "destructive",
       });
     } finally {
@@ -1093,7 +1105,9 @@ export default function CustomerInfoPanel({
                       </label>
                       <p className="text-sm font-medium">
                         {currentCustomer.membership_start_date
-                          ? new Date(currentCustomer.membership_start_date).toLocaleDateString()
+                          ? new Date(
+                              currentCustomer.membership_start_date
+                            ).toLocaleDateString()
                           : "N/A"}
                       </p>
                     </div>
@@ -1103,7 +1117,9 @@ export default function CustomerInfoPanel({
                       </label>
                       <p className="text-sm font-medium">
                         {currentCustomer.membership_renewal_date
-                          ? new Date(currentCustomer.membership_renewal_date).toLocaleDateString()
+                          ? new Date(
+                              currentCustomer.membership_renewal_date
+                            ).toLocaleDateString()
                           : "N/A"}
                       </p>
                     </div>
@@ -1112,35 +1128,38 @@ export default function CustomerInfoPanel({
                         Billing Period
                       </label>
                       <p className="text-sm font-medium">
-                        {membershipPlan.amt_periods} month{membershipPlan.amt_periods !== 1 ? 's' : ''}
+                        {membershipPlan.amt_periods} month
+                        {membershipPlan.amt_periods !== 1 ? "s" : ""}
                       </p>
                     </div>
-                    {membershipPlan.credit_allocation !== null && membershipPlan.credit_allocation !== undefined && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Credit Allocation
-                        </label>
-                        <p className="text-sm font-medium">
-                          {membershipPlan.credit_allocation} credits
-                        </p>
-                      </div>
-                    )}
-                    {membershipPlan.weekly_credit_limit !== null && membershipPlan.weekly_credit_limit !== undefined && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Weekly Credit Limit
-                        </label>
-                        <p className="text-sm font-medium">
-                          {membershipPlan.weekly_credit_limit} credits/week
-                        </p>
-                      </div>
-                    )}
+                    {membershipPlan.credit_allocation !== null &&
+                      membershipPlan.credit_allocation !== undefined && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Credit Allocation
+                          </label>
+                          <p className="text-sm font-medium">
+                            {membershipPlan.credit_allocation} credits
+                          </p>
+                        </div>
+                      )}
+                    {membershipPlan.weekly_credit_limit !== null &&
+                      membershipPlan.weekly_credit_limit !== undefined && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Weekly Credit Limit
+                          </label>
+                          <p className="text-sm font-medium">
+                            {membershipPlan.weekly_credit_limit} credits/week
+                          </p>
+                        </div>
+                      )}
                     {membershipPlan.stripe_price_id && (
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
                           Stripe Price ID
                         </label>
-                        <p className="text-sm font-medium text-xs">
+                        <p className="font-medium text-xs">
                           {membershipPlan.stripe_price_id}
                         </p>
                       </div>
@@ -1169,11 +1188,15 @@ export default function CustomerInfoPanel({
           )}
 
           {/* Subsidies Card */}
-          <Card className={`border-l-4 mt-4 ${subsidies.length > 0 && subsidies.some(s => s.status === 'active') ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
+          <Card
+            className={`border-l-4 mt-4 ${subsidies.length > 0 && subsidies.some((s) => s.status === "active") ? "border-l-green-500" : "border-l-yellow-500"}`}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <HandCoins className={`h-5 w-5 ${subsidies.length > 0 && subsidies.some(s => s.status === 'active') ? 'text-green-500' : 'text-yellow-500'}`} />
+                  <HandCoins
+                    className={`h-5 w-5 ${subsidies.length > 0 && subsidies.some((s) => s.status === "active") ? "text-green-500" : "text-yellow-500"}`}
+                  />
                   <h3 className="font-semibold text-lg">Subsidies</h3>
                 </div>
                 <Button
@@ -1196,17 +1219,20 @@ export default function CustomerInfoPanel({
                       <div
                         key={subsidy.id}
                         className={`p-3 rounded-md border relative ${
-                          subsidy.status === 'active'
-                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
-                            : subsidy.status === 'depleted'
-                            ? 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950'
-                            : subsidy.status === 'expired' || subsidy.status === 'revoked'
-                            ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
-                            : 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950'
+                          subsidy.status === "active"
+                            ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
+                            : subsidy.status === "depleted"
+                              ? "border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950"
+                              : subsidy.status === "expired" ||
+                                  subsidy.status === "revoked"
+                                ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950"
+                                : "border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
                         }`}
                       >
                         {/* Deactivate button - only show for active, pending, or approved subsidies */}
-                        {(subsidy.status === 'active' || subsidy.status === 'pending' || subsidy.status === 'approved') && (
+                        {(subsidy.status === "active" ||
+                          subsidy.status === "pending" ||
+                          subsidy.status === "approved") && (
                           <Button
                             onClick={() => openDeactivateDialog(subsidy)}
                             size="sm"
@@ -1263,7 +1289,9 @@ export default function CustomerInfoPanel({
                             </label>
                             <p className="text-sm font-medium">
                               {subsidy.valid_from
-                                ? new Date(subsidy.valid_from).toLocaleDateString()
+                                ? new Date(
+                                    subsidy.valid_from
+                                  ).toLocaleDateString()
                                 : "N/A"}
                             </p>
                           </div>
@@ -1273,7 +1301,9 @@ export default function CustomerInfoPanel({
                             </label>
                             <p className="text-sm font-medium">
                               {subsidy.valid_until
-                                ? new Date(subsidy.valid_until).toLocaleDateString()
+                                ? new Date(
+                                    subsidy.valid_until
+                                  ).toLocaleDateString()
                                 : "No expiration"}
                             </p>
                           </div>
@@ -1293,7 +1323,9 @@ export default function CustomerInfoPanel({
                                 Approved At
                               </label>
                               <p className="text-sm font-medium">
-                                {new Date(subsidy.approved_at).toLocaleDateString()}
+                                {new Date(
+                                  subsidy.approved_at
+                                ).toLocaleDateString()}
                               </p>
                             </div>
                           )}
@@ -1320,7 +1352,9 @@ export default function CustomerInfoPanel({
                     ))}
                   </div>
                   <div className="pt-2 text-xs text-muted-foreground">
-                    Total active subsidies: {subsidies.filter(s => s.status === 'active').length} of {subsidies.length}
+                    Total active subsidies:{" "}
+                    {subsidies.filter((s) => s.status === "active").length} of{" "}
+                    {subsidies.length}
                   </div>
                 </div>
               ) : (
@@ -1334,10 +1368,14 @@ export default function CustomerInfoPanel({
           </Card>
 
           {/* Suspension Card */}
-          <Card className={`border-l-4 mt-4 ${suspensionData?.is_suspended ? 'border-l-red-500' : 'border-l-yellow-500'}`}>
+          <Card
+            className={`border-l-4 mt-4 ${suspensionData?.is_suspended ? "border-l-red-500" : "border-l-yellow-500"}`}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-4">
-                <Ban className={`h-5 w-5 ${suspensionData?.is_suspended ? 'text-red-500' : 'text-yellow-500'}`} />
+                <Ban
+                  className={`h-5 w-5 ${suspensionData?.is_suspended ? "text-red-500" : "text-yellow-500"}`}
+                />
                 <h3 className="font-semibold text-lg">Suspension Status</h3>
               </div>
               {isSuspensionLoading ? (
@@ -1997,7 +2035,8 @@ export default function CustomerInfoPanel({
                 disabled={isSuspending}
               />
               <p className="text-xs text-muted-foreground">
-                Enter duration in hours (e.g., 24h, 168h, 720h) or leave empty for indefinite
+                Enter duration in hours (e.g., 24h, 168h, 720h) or leave empty
+                for indefinite
               </p>
             </div>
           </div>
@@ -2086,7 +2125,8 @@ export default function CustomerInfoPanel({
           <AlertDialogHeader>
             <AlertDialogTitle>Add Subsidy</AlertDialogTitle>
             <AlertDialogDescription>
-              Create a new subsidy for this customer. Subsidies provide financial assistance for services.
+              Create a new subsidy for this customer. Subsidies provide
+              financial assistance for services.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -2095,9 +2135,13 @@ export default function CustomerInfoPanel({
                 Provider <span className="text-destructive">*</span>
               </Label>
               {isLoadingProviders ? (
-                <div className="text-sm text-muted-foreground">Loading providers...</div>
+                <div className="text-sm text-muted-foreground">
+                  Loading providers...
+                </div>
               ) : subsidyProviders.length === 0 ? (
-                <div className="text-sm text-destructive">No active providers available</div>
+                <div className="text-sm text-destructive">
+                  No active providers available
+                </div>
               ) : (
                 <Select
                   value={newSubsidyProviderId}
@@ -2153,7 +2197,9 @@ export default function CustomerInfoPanel({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subsidy-valid-until">Valid Until (Optional)</Label>
+              <Label htmlFor="subsidy-valid-until">
+                Valid Until (Optional)
+              </Label>
               <Input
                 id="subsidy-valid-until"
                 type="date"
@@ -2167,7 +2213,9 @@ export default function CustomerInfoPanel({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subsidy-admin-notes">Admin Notes (Optional)</Label>
+              <Label htmlFor="subsidy-admin-notes">
+                Admin Notes (Optional)
+              </Label>
               <Textarea
                 id="subsidy-admin-notes"
                 placeholder="Internal notes about this subsidy (max 1000 characters)"
@@ -2212,7 +2260,8 @@ export default function CustomerInfoPanel({
           <AlertDialogHeader>
             <AlertDialogTitle>Deactivate Subsidy</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deactivate the subsidy and prevent further use. This action cannot be undone.
+              This will deactivate the subsidy and prevent further use. This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -2225,7 +2274,9 @@ export default function CustomerInfoPanel({
                   </div>
                   <div>
                     <span className="font-medium">Status:</span>{" "}
-                    <span className="capitalize">{subsidyToDeactivate.status}</span>
+                    <span className="capitalize">
+                      {subsidyToDeactivate.status}
+                    </span>
                   </div>
                   <div>
                     <span className="font-medium">Balance:</span> $

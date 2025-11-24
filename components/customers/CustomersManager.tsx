@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface CustomersManagerProps {
   search: string;
+  archivedSearch: string;
   customers: Customer[];
   archivedCustomers: Customer[];
   currentPage: number;
@@ -23,6 +24,7 @@ interface CustomersManagerProps {
 
 export default function CustomersManager({
   search,
+  archivedSearch,
   customers,
   archivedCustomers,
   currentPage,
@@ -150,7 +152,7 @@ export default function CustomersManager({
       <CustomerPage
         title="Archived Customers"
         isArchivedList
-        searchTerm={search}
+        searchTerm={archivedSearch}
         customers={archivedList}
         currentPage={archivedCurrentPage}
         totalPages={archivedPages}

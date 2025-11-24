@@ -1,7 +1,7 @@
 "use client";
 
 // React and utility imports
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
@@ -22,7 +22,12 @@ import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { useRouterQuery } from "@/hooks/router-query";
-import { archiveCustomer, unarchiveCustomer, exportCustomers, exportArchivedCustomers } from "@/services/customer";
+import {
+  archiveCustomer,
+  unarchiveCustomer,
+  exportCustomers,
+  exportArchivedCustomers,
+} from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { StaffRoleEnum } from "@/types/user";
@@ -87,14 +92,38 @@ export default function CustomersPage({
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Use different search param names for active vs archived to prevent interference
+  const searchParamName = isArchivedList ? "archivedSearch" : "search";
+  const pageParamName = isArchivedList ? "archivedPage" : "page";
+
   // Custom hook to sync URL query parameters for search & pagination
   const { replace, val } = useRouterQuery<{
-    search: string;
-    page: string;
+    [key: string]: string;
   }>({
-    search: searchTerm,
-    page: String(currentPage), // <- 👈 Keep page synced
+    [searchParamName]: searchTerm,
+    [pageParamName]: String(currentPage),
   });
+
+  // Create a stable debounced search handler
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      // Clear any existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Update local state immediately
+      setSearchQuery(value);
+
+      // Debounce the URL update
+      debounceTimerRef.current = setTimeout(() => {
+        replace({ [searchParamName]: value });
+      }, 300);
+    },
+    [replace, searchParamName]
+  );
 
   // Handler to open drawer with customer details
   const handleCustomerSelect = (customer: Customer) => {
@@ -183,8 +212,8 @@ export default function CustomersPage({
       const link = document.createElement("a");
       link.href = url;
       const fileName = isArchivedList
-        ? `archived-customers-export-${new Date().toISOString().split('T')[0]}.csv`
-        : `customers-export-${new Date().toISOString().split('T')[0]}.csv`;
+        ? `archived-customers-export-${new Date().toISOString().split("T")[0]}.csv`
+        : `customers-export-${new Date().toISOString().split("T")[0]}.csv`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
@@ -203,7 +232,8 @@ export default function CustomersPage({
       });
       toast({
         status: "error",
-        description: error instanceof Error ? error.message : "Failed to export customers",
+        description:
+          error instanceof Error ? error.message : "Failed to export customers",
       });
     } finally {
       setIsExporting(false);
@@ -231,14 +261,7 @@ export default function CustomersPage({
             className="pl-8"
             value={searchQuery}
             onChange={(event) => {
-              const { value } = event.target;
-              if (!SEARCH_INPUT_PATTERN.test(value)) {
-                return;
-              }
-
-              setSearchQuery(value);
-              // Debounce URL update for smoother UX
-              debounce(() => replace({ search: value }), 30)();
+              handleSearchChange(event.target.value);
             }}
           />
         </div>
@@ -322,7 +345,12 @@ export default function CustomersPage({
             <>
               <Button
                 variant="ghost"
-                onClick={() => replace({ search: searchTerm, page: "1" })}
+                onClick={() =>
+                  replace({
+                    [searchParamName]: searchTerm,
+                    [pageParamName]: "1",
+                  })
+                }
               >
                 1
               </Button>
@@ -345,7 +373,10 @@ export default function CustomersPage({
                 key={page}
                 variant={page === currentPage ? "default" : "outline"}
                 onClick={() =>
-                  replace({ search: searchTerm, page: String(page) })
+                  replace({
+                    [searchParamName]: searchTerm,
+                    [pageParamName]: String(page),
+                  })
                 }
               >
                 {page}
@@ -361,7 +392,10 @@ export default function CustomersPage({
               <Button
                 variant="ghost"
                 onClick={() =>
-                  replace({ search: searchTerm, page: String(totalPages) })
+                  replace({
+                    [searchParamName]: searchTerm,
+                    [pageParamName]: String(totalPages),
+                  })
                 }
               >
                 {totalPages}
@@ -374,7 +408,10 @@ export default function CustomersPage({
             variant="outline"
             disabled={currentPage === 1}
             onClick={() =>
-              replace({ search: searchTerm, page: String(currentPage - 1) })
+              replace({
+                [searchParamName]: searchTerm,
+                [pageParamName]: String(currentPage - 1),
+              })
             }
           >
             Prev
@@ -383,7 +420,10 @@ export default function CustomersPage({
             variant="outline"
             disabled={currentPage === totalPages}
             onClick={() =>
-              replace({ search: searchTerm, page: String(currentPage + 1) })
+              replace({
+                [searchParamName]: searchTerm,
+                [pageParamName]: String(currentPage + 1),
+              })
             }
           >
             Next

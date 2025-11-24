@@ -10,11 +10,18 @@ export const revalidate = 0;
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; page?: string }>;
+  searchParams: Promise<{
+    search?: string;
+    page?: string;
+    archivedSearch?: string;
+    archivedPage?: string;
+  }>;
 }) {
   const resolved = await searchParams;
   const search = resolved.search || "";
   const page = parseInt(resolved.page || "1", 10);
+  const archivedSearch = resolved.archivedSearch || "";
+  const archivedPage = parseInt(resolved.archivedPage || "1", 10);
 
   const jwtToken =
     (await cookies()).get("jwt")?.value ??
@@ -39,7 +46,7 @@ export default async function CustomersPage({
     }
 
     try {
-      const archivedResult = await getArchivedCustomers(search, page, 20, jwtToken);
+      const archivedResult = await getArchivedCustomers(archivedSearch, archivedPage, 20, jwtToken);
       archivedCustomers = archivedResult.customers;
       archivedCurrentPage = archivedResult.page;
       archivedPages = archivedResult.pages;
@@ -52,6 +59,7 @@ export default async function CustomersPage({
     <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST, StaffRoleEnum.SUPERADMIN]}>
       <CustomersManager
         search={search}
+        archivedSearch={archivedSearch}
         customers={customers}
         archivedCustomers={archivedCustomers}
         currentPage={currentPage}
