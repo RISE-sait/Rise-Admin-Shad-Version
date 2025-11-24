@@ -235,14 +235,14 @@ export default function Login() {
             )}
           </Button>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        {/* <CardFooter className="flex justify-center">
           <div className="text-sm text-muted-foreground">
             Don't have an account?{" "}
             <a href="/register" className="text-primary hover:underline">
               Sign up
             </a>
           </div>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     </div>
   );
