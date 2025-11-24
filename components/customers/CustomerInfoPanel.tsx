@@ -67,14 +67,8 @@ import getValue from "@/configs/constants";
 import { getCustomerSubsidies, getSubsidyProviders, createSubsidy, deactivateSubsidy } from "@/services/subsidy";
 import { Subsidy, SubsidyProvider } from "@/types/subsidy";
 import { StaffRoleEnum } from "@/types/user";
-
-interface MembershipPlan {
-  id: string;
-  membership_name: string;
-  status: string;
-  start_date: Date | null;
-  renewal_date: string;
-}
+import { MembershipPlan } from "@/types/membership";
+import { getAllMembershipPlans } from "@/services/membershipPlan";
 
 interface CustomerInfoPanelProps {
   customer: Customer;
@@ -92,7 +86,8 @@ export default function CustomerInfoPanel({
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
-  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
+  const [membershipPlan, setMembershipPlan] = useState<MembershipPlan | null>(null);
+  const [isMembershipLoading, setIsMembershipLoading] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [isCreditsLoading, setIsCreditsLoading] = useState(false);
   const [creditsAction, setCreditsAction] = useState<"add" | "deduct" | null>(
@@ -283,6 +278,28 @@ export default function CustomerInfoPanel({
       }
     },
     [user?.Jwt]
+  );
+
+  const loadMembershipPlanDetails = useCallback(
+    async (planId: string) => {
+      if (!planId) {
+        setMembershipPlan(null);
+        return;
+      }
+
+      setIsMembershipLoading(true);
+      try {
+        const allPlans = await getAllMembershipPlans();
+        const plan = allPlans.find(p => p.id === planId);
+        setMembershipPlan(plan || null);
+      } catch (error) {
+        console.error("Error loading membership plan details:", error);
+        setMembershipPlan(null);
+      } finally {
+        setIsMembershipLoading(false);
+      }
+    },
+    []
   );
 
   const loadSubsidyProviders = useCallback(async () => {
@@ -528,20 +545,13 @@ export default function CustomerInfoPanel({
     setCurrentCustomer(customer);
     setNotesDraft(customer.notes ?? "");
 
-    // Initialize membership plans from the provided customer data
+    // Load full membership plan details if customer has a membership
     if (customer.membership_plan_id) {
-      const plan: MembershipPlan = {
-        id: customer.membership_plan_id,
-        membership_name: customer.membership_name || "Membership Plan",
-        status: "Active",
-        start_date: customer.membership_start_date,
-        renewal_date: customer.membership_renewal_date,
-      };
-      setMembershipPlans([plan]);
+      loadMembershipPlanDetails(customer.membership_plan_id);
     } else {
-      setMembershipPlans([]);
+      setMembershipPlan(null);
     }
-  }, [customer]);
+  }, [customer, loadMembershipPlanDetails]);
 
   const refreshCustomerData = async () => {
     if (!customer.id) return;
@@ -554,19 +564,11 @@ export default function CustomerInfoPanel({
         setCurrentCustomer(refreshedCustomer);
         setNotesDraft(refreshedCustomer.notes ?? "");
 
-        // Create a membership plan object from the customer data if available
+        // Load membership plan details if available
         if (refreshedCustomer.membership_plan_id) {
-          const membershipPlan: MembershipPlan = {
-            id: refreshedCustomer.membership_plan_id,
-            membership_name:
-              refreshedCustomer.membership_name || "Membership Plan",
-            status: "Active", // Assuming active if it exists
-            start_date: refreshedCustomer.membership_start_date,
-            renewal_date: refreshedCustomer.membership_renewal_date,
-          };
-          setMembershipPlans([membershipPlan]);
+          await loadMembershipPlanDetails(refreshedCustomer.membership_plan_id);
         } else {
-          setMembershipPlans([]);
+          setMembershipPlan(null);
         }
         await Promise.all([
           loadCustomerCredits(refreshedCustomer.id),
@@ -1052,48 +1054,100 @@ export default function CustomerInfoPanel({
         </TabsContent>
 
         <TabsContent value="membership">
-          {membershipPlans && membershipPlans.length > 0 ? (
+          {isMembershipLoading ? (
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground">
+                  Loading membership details...
+                </div>
+              </CardContent>
+            </Card>
+          ) : membershipPlan ? (
             <div className="space-y-4">
-              {membershipPlans.map((plan) => (
-                <Card key={plan.id} className="border-l-4 border-l-yellow-500">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CreditCard className="h-5 w-5 text-yellow-500" />
-                      <h3 className="font-semibold text-lg">
-                        {plan.membership_name}
-                      </h3>
+              <Card className="border-l-4 border-l-yellow-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CreditCard className="h-5 w-5 text-yellow-500" />
+                    <h3 className="font-semibold text-lg">
+                      {membershipPlan.name}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Membership Type
+                      </label>
+                      <p className="text-sm font-medium">
+                        {currentCustomer.membership_name || "N/A"}
+                      </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Status
+                      </label>
+                      <p className="text-sm font-medium">Active</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Started
+                      </label>
+                      <p className="text-sm font-medium">
+                        {currentCustomer.membership_start_date
+                          ? new Date(currentCustomer.membership_start_date).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Renewal
+                      </label>
+                      <p className="text-sm font-medium">
+                        {currentCustomer.membership_renewal_date
+                          ? new Date(currentCustomer.membership_renewal_date).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Billing Period
+                      </label>
+                      <p className="text-sm font-medium">
+                        {membershipPlan.amt_periods} month{membershipPlan.amt_periods !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    {membershipPlan.credit_allocation !== null && membershipPlan.credit_allocation !== undefined && (
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Status
-                        </label>
-                        <p className="text-sm font-medium">{plan.status}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Started
+                          Credit Allocation
                         </label>
                         <p className="text-sm font-medium">
-                          {plan.start_date
-                            ? new Date(plan.start_date).toLocaleDateString()
-                            : "N/A"}
+                          {membershipPlan.credit_allocation} credits
                         </p>
                       </div>
+                    )}
+                    {membershipPlan.weekly_credit_limit !== null && membershipPlan.weekly_credit_limit !== undefined && (
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Renewal
+                          Weekly Credit Limit
                         </label>
                         <p className="text-sm font-medium">
-                          {plan.renewal_date
-                            ? new Date(plan.renewal_date).toLocaleDateString()
-                            : "N/A"}
+                          {membershipPlan.weekly_credit_limit} credits/week
                         </p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    )}
+                    {membershipPlan.stripe_price_id && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Stripe Price ID
+                        </label>
+                        <p className="text-sm font-medium text-xs">
+                          {membershipPlan.stripe_price_id}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <Card className="border-l-4 border-l-yellow-500">
