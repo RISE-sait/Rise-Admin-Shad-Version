@@ -7,21 +7,35 @@ export type SubsidyStatus =
   | "expired"
   | "revoked";
 
+// Summary objects returned by API
+export interface CustomerSummary {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface ProviderSummary {
+  id: string;
+  name: string;
+}
+
 // Main subsidy interface
 export interface Subsidy {
   id: string;
-  customer_id: string;
-  provider_id: string;
+  customer?: CustomerSummary;
+  provider?: ProviderSummary;
   approved_amount: number;
+  total_amount_used: number;
   remaining_balance: number;
   reason: string;
+  valid_from: string;
   valid_until?: string | null;
   admin_notes?: string | null;
   status: SubsidyStatus;
+  approved_by?: string | null;
+  approved_at?: string | null;
   created_at: string;
   updated_at: string;
-  deactivated_at?: string | null;
-  deactivation_reason?: string | null;
 }
 
 // Subsidy provider interface

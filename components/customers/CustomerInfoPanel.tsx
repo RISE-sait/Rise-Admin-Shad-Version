@@ -394,9 +394,17 @@ export default function CustomerInfoPanel({
     }
   };
 
-  const getProviderName = (providerId: string): string => {
-    const provider = subsidyProviders.find(p => p.id === providerId);
-    return provider?.name || "Unknown Provider";
+  const getProviderName = (subsidy: Subsidy): string => {
+    // Use the provider from the subsidy object if available (new structure)
+    if (subsidy.provider?.name) {
+      return subsidy.provider.name;
+    }
+    // Fallback to looking up from providers list (for compatibility)
+    if (subsidy.provider?.id) {
+      const provider = subsidyProviders.find(p => p.id === subsidy.provider?.id);
+      return provider?.name || "Unknown Provider";
+    }
+    return "Unknown Provider";
   };
 
   const openDeactivateDialog = (subsidy: Subsidy) => {
@@ -1160,7 +1168,7 @@ export default function CustomerInfoPanel({
                               Provider
                             </label>
                             <p className="text-sm font-medium">
-                              {getProviderName(subsidy.provider_id)}
+                              {getProviderName(subsidy)}
                             </p>
                           </div>
                           <div className="space-y-1">
@@ -1189,6 +1197,24 @@ export default function CustomerInfoPanel({
                           </div>
                           <div className="space-y-1">
                             <label className="text-xs font-medium text-muted-foreground">
+                              Total Used
+                            </label>
+                            <p className="text-sm font-medium">
+                              ${subsidy.total_amount_used?.toFixed(2) || "0.00"}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Valid From
+                            </label>
+                            <p className="text-sm font-medium">
+                              {subsidy.valid_from
+                                ? new Date(subsidy.valid_from).toLocaleDateString()
+                                : "N/A"}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
                               Valid Until
                             </label>
                             <p className="text-sm font-medium">
@@ -1197,6 +1223,26 @@ export default function CustomerInfoPanel({
                                 : "No expiration"}
                             </p>
                           </div>
+                          {subsidy.approved_by && (
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Approved By
+                              </label>
+                              <p className="text-sm font-medium">
+                                {subsidy.approved_by}
+                              </p>
+                            </div>
+                          )}
+                          {subsidy.approved_at && (
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Approved At
+                              </label>
+                              <p className="text-sm font-medium">
+                                {new Date(subsidy.approved_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
                           {subsidy.reason && (
                             <div className="col-span-2 space-y-1">
                               <label className="text-xs font-medium text-muted-foreground">
@@ -2121,7 +2167,7 @@ export default function CustomerInfoPanel({
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="font-medium">Provider:</span>{" "}
-                    {getProviderName(subsidyToDeactivate.provider_id)}
+                    {getProviderName(subsidyToDeactivate)}
                   </div>
                   <div>
                     <span className="font-medium">Status:</span>{" "}
