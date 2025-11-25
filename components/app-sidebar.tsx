@@ -33,7 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const role = user?.Role;
 
   // Build nav items based on role
-  const manageItems =
+  const baseManageItems =
     role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN || role === StaffRoleEnum.RECEPTIONIST
       ? [
           {
@@ -81,11 +81,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/manage/amenities",
             icon: <Gamepad2 width={15} height={15} />,
           },
-          {
-            title: "Audit",
-            url: "/audit",
-            icon: <ClipboardList width={15} height={15} />,
-          },
         ]
       : role === StaffRoleEnum.COACH
         ? [
@@ -106,6 +101,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
           ]
         : [];
+
+  // Add Audit link only for ADMIN and SUPERADMIN (not RECEPTIONIST)
+  const manageItems =
+    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN
+      ? [
+          ...baseManageItems,
+          {
+            title: "Audit",
+            url: "/audit",
+            icon: <ClipboardList width={15} height={15} />,
+          },
+        ]
+      : baseManageItems;
 
   const navMain =
     role === StaffRoleEnum.COACH

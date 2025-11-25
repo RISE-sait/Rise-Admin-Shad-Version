@@ -422,7 +422,6 @@ export interface ProgramLevelsResponse {
 export interface ProgramRequestDto {
   capacity?: number;
   description?: string;
-  level: string;
   name: string;
   type: string;
   photo_url?: string;
