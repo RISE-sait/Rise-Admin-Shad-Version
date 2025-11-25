@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { SaveIcon, X, ChevronDown } from "lucide-react";
+import { SaveIcon, X, ChevronDown, Calendar, MapPin, Clock, CreditCard, Users } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { updateEvent } from "@/services/events";
@@ -237,216 +239,289 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="space-y-6 pt-3">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Program</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.program_id}
-            onChange={(e) => setData({ ...data, program_id: e.target.value })}
-          >
-            <option value="" disabled>
-              Select program
-            </option>
-            {programs.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Team (optional)</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.team_id}
-            onChange={(e) => setData({ ...data, team_id: e.target.value })}
-          >
-            <option value="">Select team</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Location</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.location_id}
-            onChange={(e) => {
-              setData({ ...data, location_id: e.target.value, court_id: "" });
-            }}
-          >
-            <option value="" disabled>
-              Select location
-            </option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Court (optional)</label>
-          <select
-            className="w-full border rounded-md p-2"
-            value={data.court_id}
-            onChange={(e) => setData({ ...data, court_id: e.target.value })}
-          >
-            <option value="">Select Court</option>
-            {filteredCourts.map((court) => (
-              <option key={court.id} value={court.id}>
-                {court.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Start Time</label>
-          <Input
-            value={data.start_at}
-            onChange={(e) => setData({ ...data, start_at: e.target.value })}
-            type="datetime-local"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">End Time</label>
-          <Input
-            value={data.end_at}
-            onChange={(e) => setData({ ...data, end_at: e.target.value })}
-            type="datetime-local"
-          />
-        </div>
-
-        <div className="flex items-center space-x-2 pt-2">
-          <Checkbox
-            id="event-using-credits"
-            checked={usingCredits}
-            onCheckedChange={(checked) => {
-              const isChecked = checked === true;
-              setUsingCredits(isChecked);
-              if (!isChecked) {
-                setData((prev) => ({ ...prev, credit_cost: "" }));
-              }
-            }}
-          />
-          <Label
-            htmlFor="event-using-credits"
-            className="text-sm font-medium cursor-pointer"
-          >
-            Use credits
-          </Label>
-        </div>
-        {usingCredits && (
-          <div className="space-y-2">
-            <Label htmlFor="event-credit-cost" className="text-sm font-medium">
-              Credit cost
-            </Label>
-            <Input
-              id="event-credit-cost"
-              type="number"
-              min="1"
-              value={data.credit_cost}
-              onChange={(e) =>
-                setData({ ...data, credit_cost: e.target.value })
-              }
-            />
+      {/* Event Details Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Event Details</h3>
           </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="event-price-id" className="text-sm font-medium">
-            Price ID (optional)
-          </Label>
-          <Input
-            id="event-price-id"
-            value={data.price_id}
-            onChange={(e) => setData({ ...data, price_id: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label
-            htmlFor="event-required-membership-plan-ids"
-            className="text-sm font-medium"
-          >
-            Required Membership Plans (optional)
-          </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                className="w-full justify-between"
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Program <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="w-full border rounded-md p-2 bg-background"
+                value={data.program_id}
+                onChange={(e) => setData({ ...data, program_id: e.target.value })}
               >
-                <span className="truncate">
-                  {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
-                    ? `${data.required_membership_plan_ids.length} plan${data.required_membership_plan_ids.length > 1 ? 's' : ''} selected`
-                    : "No membership requirement"}
-                </span>
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0" align="start">
-              <div className="max-h-64 overflow-y-auto p-2">
-                {membershipPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-accent cursor-pointer"
-                    onClick={() => {
-                      const currentIds = data.required_membership_plan_ids || [];
-                      const newIds = currentIds.includes(plan.id)
-                        ? currentIds.filter((id) => id !== plan.id)
-                        : [...currentIds, plan.id];
-                      setData({ ...data, required_membership_plan_ids: newIds });
-                    }}
-                  >
-                    <Checkbox
-                      checked={data.required_membership_plan_ids?.includes(plan.id)}
-                      onCheckedChange={() => {}}
-                    />
-                    <label className="text-sm cursor-pointer flex-1">
-                      {`${plan.membershipName} – ${plan.name}`}
-                    </label>
-                  </div>
+                <option value="" disabled>
+                  Select program
+                </option>
+                {programs.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
                 ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-          {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {data.required_membership_plan_ids.map((planId) => {
-                const plan = membershipPlans.find((p) => p.id === planId);
-                return plan ? (
-                  <Badge
-                    key={planId}
-                    variant="secondary"
-                    className="text-xs flex items-center gap-1"
-                  >
-                    {plan.membershipName} – {plan.name}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => {
-                        const newIds = data.required_membership_plan_ids?.filter(
-                          (id) => id !== planId
-                        ) || [];
-                        setData({ ...data, required_membership_plan_ids: newIds });
-                      }}
-                    />
-                  </Badge>
-                ) : null;
-              })}
+              </select>
             </div>
-          )}
-        </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Team (optional)</label>
+              <select
+                className="w-full border rounded-md p-2 bg-background"
+                value={data.team_id}
+                onChange={(e) => setData({ ...data, team_id: e.target.value })}
+              >
+                <option value="">Select team</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Location Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Location</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Location <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="w-full border rounded-md p-2 bg-background"
+                value={data.location_id}
+                onChange={(e) => {
+                  setData({ ...data, location_id: e.target.value, court_id: "" });
+                }}
+              >
+                <option value="" disabled>
+                  Select location
+                </option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Court (optional)</label>
+              <select
+                className="w-full border rounded-md p-2 bg-background"
+                value={data.court_id}
+                onChange={(e) => setData({ ...data, court_id: e.target.value })}
+              >
+                <option value="">Select Court</option>
+                {filteredCourts.map((court) => (
+                  <option key={court.id} value={court.id}>
+                    {court.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Schedule Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Schedule</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Start Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.start_at}
+                onChange={(e) => setData({ ...data, start_at: e.target.value })}
+                type="datetime-local"
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                End Time <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={data.end_at}
+                onChange={(e) => setData({ ...data, end_at: e.target.value })}
+                type="datetime-local"
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment & Credits Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Payment & Credits</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="event-using-credits"
+                checked={usingCredits}
+                onCheckedChange={(checked) => {
+                  const isChecked = checked === true;
+                  setUsingCredits(isChecked);
+                  if (!isChecked) {
+                    setData((prev) => ({ ...prev, credit_cost: "" }));
+                  }
+                }}
+              />
+              <Label
+                htmlFor="event-using-credits"
+                className="text-sm font-medium cursor-pointer"
+              >
+                Use credits
+              </Label>
+            </div>
+            {usingCredits && (
+              <div className="space-y-2">
+                <Label htmlFor="event-credit-cost" className="text-sm font-medium">
+                  Credit cost
+                </Label>
+                <Input
+                  id="event-credit-cost"
+                  type="number"
+                  min="1"
+                  value={data.credit_cost}
+                  onChange={(e) =>
+                    setData({ ...data, credit_cost: e.target.value })
+                  }
+                  className="bg-background"
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="event-price-id" className="text-sm font-medium">
+                Price ID (optional)
+              </Label>
+              <Input
+                id="event-price-id"
+                value={data.price_id}
+                onChange={(e) => setData({ ...data, price_id: e.target.value })}
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Membership Requirements Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Membership Requirements</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="event-required-membership-plan-ids"
+                className="text-sm font-medium"
+              >
+                Required Membership Plans (optional)
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between bg-background"
+                  >
+                    <span className="truncate">
+                      {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
+                        ? `${data.required_membership_plan_ids.length} plan${data.required_membership_plan_ids.length > 1 ? 's' : ''} selected`
+                        : "No membership requirement"}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="max-h-64 overflow-y-auto p-2">
+                    {membershipPlans.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-accent cursor-pointer"
+                        onClick={() => {
+                          const currentIds = data.required_membership_plan_ids || [];
+                          const newIds = currentIds.includes(plan.id)
+                            ? currentIds.filter((id) => id !== plan.id)
+                            : [...currentIds, plan.id];
+                          setData({ ...data, required_membership_plan_ids: newIds });
+                        }}
+                      >
+                        <Checkbox
+                          checked={data.required_membership_plan_ids?.includes(plan.id)}
+                          onCheckedChange={() => {}}
+                        />
+                        <label className="text-sm cursor-pointer flex-1">
+                          {`${plan.membershipName} – ${plan.name}`}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {data.required_membership_plan_ids.map((planId) => {
+                    const plan = membershipPlans.find((p) => p.id === planId);
+                    return plan ? (
+                      <Badge
+                        key={planId}
+                        variant="secondary"
+                        className="text-xs flex items-center gap-1"
+                      >
+                        {plan.membershipName} – {plan.name}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => {
+                            const newIds = data.required_membership_plan_ids?.filter(
+                              (id) => id !== planId
+                            ) || [];
+                            setData({ ...data, required_membership_plan_ids: newIds });
+                          }}
+                        />
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <Button
+          onClick={handleUpdate}
+          className="bg-green-600 hover:bg-green-700 h-11 px-6"
+        >
+          <SaveIcon className="h-4 w-4 mr-2" /> Save Event
+        </Button>
       </div>
-      <Button
-        onClick={handleUpdate}
-        className="w-full bg-green-600 hover:bg-green-700"
-      >
-        <SaveIcon className="h-4 w-4 mr-2" /> Save Event
-      </Button>
     </div>
   );
 }

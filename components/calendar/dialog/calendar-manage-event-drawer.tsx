@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 // import * as React from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +61,7 @@ export default function CalendarManageEventDrawer() {
   } = useCalendarContext();
   const { user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
   const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const [showEditForm, setShowEditForm] = useState(false);
@@ -483,13 +485,31 @@ export default function CalendarManageEventDrawer() {
                   {/* Action Buttons */}
                   {!isReceptionist && (
                     <div className="space-y-3">
-                      <Button
-                        variant="outline"
-                        className="w-full h-11"
-                        onClick={() => setShowEditForm(true)}
-                      >
-                        Edit this Event
-                      </Button>
+                      {eventType === "game" ? (
+                        <Button
+                          variant="outline"
+                          className="w-full h-11"
+                          onClick={() => router.push("/manage/games")}
+                        >
+                          Edit Game on Games Page
+                        </Button>
+                      ) : eventType === "practice" ? (
+                        <Button
+                          variant="outline"
+                          className="w-full h-11"
+                          onClick={() => router.push("/manage/practices")}
+                        >
+                          Edit Practice on Practices Page
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="w-full h-11"
+                          onClick={() => setShowEditForm(true)}
+                        >
+                          Edit this Event
+                        </Button>
+                      )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" className="w-full h-11">

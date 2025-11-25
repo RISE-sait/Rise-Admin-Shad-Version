@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { Customer } from "@/types/customer";
 import { UserUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
-import { SaveIcon, User, Mail } from "lucide-react";
+import { SaveIcon, User, Mail, Phone, UserCircle } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 type FormField = "first_name" | "last_name" | "email" | "phone";
@@ -151,6 +153,71 @@ export default function DetailsTab({
 
   return (
     <div className="space-y-6">
+      {/* Customer Overview Card */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="flex flex-col gap-6 pt-6 md:flex-row md:items-start">
+          <div className="flex-shrink-0">
+            <Avatar className="h-24 w-24 border-2 border-yellow-500/20">
+              <AvatarImage src={customer.profilePicture} alt={`${customer.first_name} ${customer.last_name}`} />
+              <AvatarFallback className="bg-yellow-500/10 text-yellow-700 text-2xl">
+                {customer.first_name?.charAt(0)}{customer.last_name?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          <div className="flex-1 space-y-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                  {customer.first_name} {customer.last_name}
+                </h2>
+                {customer.membership_name ? (
+                  <p className="text-sm text-muted-foreground">
+                    {customer.membership_name}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    No active membership
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {customer.membership_name ? (
+                  <Badge className="border-yellow-500/20 bg-yellow-500/10 text-yellow-700">
+                    Member
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="border-gray-300 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                    No Membership
+                  </Badge>
+                )}
+                {customer.is_archived ? (
+                  <Badge variant="secondary" className="bg-rose-500/15 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border-transparent">
+                    Archived
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-transparent">
+                    Active
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{customer.email || "No email provided"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{customer.phone || "No phone provided"}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Personal Information Section */}
       <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">

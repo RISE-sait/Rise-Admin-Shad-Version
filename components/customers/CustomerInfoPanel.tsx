@@ -64,17 +64,16 @@ import { useUser } from "@/contexts/UserContext";
 import { Api } from "@/app/api/Api";
 import type { SuspensionInfoResponseDto } from "@/app/api/Api";
 import getValue from "@/configs/constants";
-import { getCustomerSubsidies, getSubsidyProviders, createSubsidy, deactivateSubsidy } from "@/services/subsidy";
+import {
+  getCustomerSubsidies,
+  getSubsidyProviders,
+  createSubsidy,
+  deactivateSubsidy,
+} from "@/services/subsidy";
 import { Subsidy, SubsidyProvider } from "@/types/subsidy";
 import { StaffRoleEnum } from "@/types/user";
-
-interface MembershipPlan {
-  id: string;
-  membership_name: string;
-  status: string;
-  start_date: Date | null;
-  renewal_date: string;
-}
+import { MembershipPlan } from "@/types/membership";
+import { getAllMembershipPlans } from "@/services/membershipPlan";
 
 interface CustomerInfoPanelProps {
   customer: Customer;
@@ -92,7 +91,10 @@ export default function CustomerInfoPanel({
   const [tabValue, setTabValue] = useState("details");
   const [isLoading, setIsLoading] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(customer);
-  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
+  const [membershipPlan, setMembershipPlan] = useState<MembershipPlan | null>(
+    null
+  );
+  const [isMembershipLoading, setIsMembershipLoading] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [isCreditsLoading, setIsCreditsLoading] = useState(false);
   const [creditsAction, setCreditsAction] = useState<"add" | "deduct" | null>(
@@ -131,7 +133,9 @@ export default function CustomerInfoPanel({
   const [subsidies, setSubsidies] = useState<Subsidy[]>([]);
   const [isSubsidiesLoading, setIsSubsidiesLoading] = useState(false);
   const [createSubsidyDialogOpen, setCreateSubsidyDialogOpen] = useState(false);
-  const [subsidyProviders, setSubsidyProviders] = useState<SubsidyProvider[]>([]);
+  const [subsidyProviders, setSubsidyProviders] = useState<SubsidyProvider[]>(
+    []
+  );
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
   const [isCreatingSubsidy, setIsCreatingSubsidy] = useState(false);
   const [newSubsidyProviderId, setNewSubsidyProviderId] = useState("");
@@ -139,8 +143,10 @@ export default function CustomerInfoPanel({
   const [newSubsidyReason, setNewSubsidyReason] = useState("");
   const [newSubsidyValidUntil, setNewSubsidyValidUntil] = useState("");
   const [newSubsidyAdminNotes, setNewSubsidyAdminNotes] = useState("");
-  const [deactivateSubsidyDialogOpen, setDeactivateSubsidyDialogOpen] = useState(false);
-  const [subsidyToDeactivate, setSubsidyToDeactivate] = useState<Subsidy | null>(null);
+  const [deactivateSubsidyDialogOpen, setDeactivateSubsidyDialogOpen] =
+    useState(false);
+  const [subsidyToDeactivate, setSubsidyToDeactivate] =
+    useState<Subsidy | null>(null);
   const [deactivationReason, setDeactivationReason] = useState("");
   const [isDeactivating, setIsDeactivating] = useState(false);
 
@@ -285,6 +291,25 @@ export default function CustomerInfoPanel({
     [user?.Jwt]
   );
 
+  const loadMembershipPlanDetails = useCallback(async (planId: string) => {
+    if (!planId) {
+      setMembershipPlan(null);
+      return;
+    }
+
+    setIsMembershipLoading(true);
+    try {
+      const allPlans = await getAllMembershipPlans();
+      const plan = allPlans.find((p) => p.id === planId);
+      setMembershipPlan(plan || null);
+    } catch (error) {
+      console.error("Error loading membership plan details:", error);
+      setMembershipPlan(null);
+    } finally {
+      setIsMembershipLoading(false);
+    }
+  }, []);
+
   const loadSubsidyProviders = useCallback(async () => {
     if (!user?.Jwt) {
       return;
@@ -351,7 +376,7 @@ export default function CustomerInfoPanel({
       let validUntilDate = null;
       if (newSubsidyValidUntil) {
         // Create date at end of day in local timezone
-        const dateObj = new Date(newSubsidyValidUntil + 'T23:59:59');
+        const dateObj = new Date(newSubsidyValidUntil + "T23:59:59");
         validUntilDate = dateObj.toISOString();
       }
 
@@ -394,9 +419,19 @@ export default function CustomerInfoPanel({
     }
   };
 
-  const getProviderName = (providerId: string): string => {
-    const provider = subsidyProviders.find(p => p.id === providerId);
-    return provider?.name || "Unknown Provider";
+  const getProviderName = (subsidy: Subsidy): string => {
+    // Use the provider from the subsidy object if available (new structure)
+    if (subsidy.provider?.name) {
+      return subsidy.provider.name;
+    }
+    // Fallback to looking up from providers list (for compatibility)
+    if (subsidy.provider?.id) {
+      const provider = subsidyProviders.find(
+        (p) => p.id === subsidy.provider?.id
+      );
+      return provider?.name || "Unknown Provider";
+    }
+    return "Unknown Provider";
   };
 
   const openDeactivateDialog = (subsidy: Subsidy) => {
@@ -449,7 +484,9 @@ export default function CustomerInfoPanel({
       toast({
         status: "error",
         description:
-          error instanceof Error ? error.message : "Failed to deactivate subsidy",
+          error instanceof Error
+            ? error.message
+            : "Failed to deactivate subsidy",
         variant: "destructive",
       });
     } finally {
@@ -520,20 +557,13 @@ export default function CustomerInfoPanel({
     setCurrentCustomer(customer);
     setNotesDraft(customer.notes ?? "");
 
-    // Initialize membership plans from the provided customer data
+    // Load full membership plan details if customer has a membership
     if (customer.membership_plan_id) {
-      const plan: MembershipPlan = {
-        id: customer.membership_plan_id,
-        membership_name: customer.membership_name || "Membership Plan",
-        status: "Active",
-        start_date: customer.membership_start_date,
-        renewal_date: customer.membership_renewal_date,
-      };
-      setMembershipPlans([plan]);
+      loadMembershipPlanDetails(customer.membership_plan_id);
     } else {
-      setMembershipPlans([]);
+      setMembershipPlan(null);
     }
-  }, [customer]);
+  }, [customer, loadMembershipPlanDetails]);
 
   const refreshCustomerData = async () => {
     if (!customer.id) return;
@@ -546,19 +576,11 @@ export default function CustomerInfoPanel({
         setCurrentCustomer(refreshedCustomer);
         setNotesDraft(refreshedCustomer.notes ?? "");
 
-        // Create a membership plan object from the customer data if available
+        // Load membership plan details if available
         if (refreshedCustomer.membership_plan_id) {
-          const membershipPlan: MembershipPlan = {
-            id: refreshedCustomer.membership_plan_id,
-            membership_name:
-              refreshedCustomer.membership_name || "Membership Plan",
-            status: "Active", // Assuming active if it exists
-            start_date: refreshedCustomer.membership_start_date,
-            renewal_date: refreshedCustomer.membership_renewal_date,
-          };
-          setMembershipPlans([membershipPlan]);
+          await loadMembershipPlanDetails(refreshedCustomer.membership_plan_id);
         } else {
-          setMembershipPlans([]);
+          setMembershipPlan(null);
         }
         await Promise.all([
           loadCustomerCredits(refreshedCustomer.id),
@@ -1044,48 +1066,107 @@ export default function CustomerInfoPanel({
         </TabsContent>
 
         <TabsContent value="membership">
-          {membershipPlans && membershipPlans.length > 0 ? (
+          {isMembershipLoading ? (
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground">
+                  Loading membership details...
+                </div>
+              </CardContent>
+            </Card>
+          ) : membershipPlan ? (
             <div className="space-y-4">
-              {membershipPlans.map((plan) => (
-                <Card key={plan.id} className="border-l-4 border-l-yellow-500">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CreditCard className="h-5 w-5 text-yellow-500" />
-                      <h3 className="font-semibold text-lg">
-                        {plan.membership_name}
-                      </h3>
+              <Card className="border-l-4 border-l-yellow-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CreditCard className="h-5 w-5 text-yellow-500" />
+                    <h3 className="font-semibold text-lg">
+                      {membershipPlan.name}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Membership Type
+                      </label>
+                      <p className="text-sm font-medium">
+                        {currentCustomer.membership_name || "N/A"}
+                      </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Status
+                      </label>
+                      <p className="text-sm font-medium">Active</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Started
+                      </label>
+                      <p className="text-sm font-medium">
+                        {currentCustomer.membership_start_date
+                          ? new Date(
+                              currentCustomer.membership_start_date
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Renewal
+                      </label>
+                      <p className="text-sm font-medium">
+                        {currentCustomer.membership_renewal_date
+                          ? new Date(
+                              currentCustomer.membership_renewal_date
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Billing Period
+                      </label>
+                      <p className="text-sm font-medium">
+                        {membershipPlan.amt_periods} month
+                        {membershipPlan.amt_periods !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    {membershipPlan.credit_allocation !== null &&
+                      membershipPlan.credit_allocation !== undefined && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Credit Allocation
+                          </label>
+                          <p className="text-sm font-medium">
+                            {membershipPlan.credit_allocation} credits
+                          </p>
+                        </div>
+                      )}
+                    {membershipPlan.weekly_credit_limit !== null &&
+                      membershipPlan.weekly_credit_limit !== undefined && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Weekly Credit Limit
+                          </label>
+                          <p className="text-sm font-medium">
+                            {membershipPlan.weekly_credit_limit} credits/week
+                          </p>
+                        </div>
+                      )}
+                    {membershipPlan.stripe_price_id && (
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Status
+                          Stripe Price ID
                         </label>
-                        <p className="text-sm font-medium">{plan.status}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Started
-                        </label>
-                        <p className="text-sm font-medium">
-                          {plan.start_date
-                            ? new Date(plan.start_date).toLocaleDateString()
-                            : "N/A"}
+                        <p className="font-medium text-xs">
+                          {membershipPlan.stripe_price_id}
                         </p>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Renewal
-                        </label>
-                        <p className="text-sm font-medium">
-                          {plan.renewal_date
-                            ? new Date(plan.renewal_date).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <Card className="border-l-4 border-l-yellow-500">
@@ -1107,11 +1188,15 @@ export default function CustomerInfoPanel({
           )}
 
           {/* Subsidies Card */}
-          <Card className={`border-l-4 mt-4 ${subsidies.length > 0 && subsidies.some(s => s.status === 'active') ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
+          <Card
+            className={`border-l-4 mt-4 ${subsidies.length > 0 && subsidies.some((s) => s.status === "active") ? "border-l-green-500" : "border-l-yellow-500"}`}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <HandCoins className={`h-5 w-5 ${subsidies.length > 0 && subsidies.some(s => s.status === 'active') ? 'text-green-500' : 'text-yellow-500'}`} />
+                  <HandCoins
+                    className={`h-5 w-5 ${subsidies.length > 0 && subsidies.some((s) => s.status === "active") ? "text-green-500" : "text-yellow-500"}`}
+                  />
                   <h3 className="font-semibold text-lg">Subsidies</h3>
                 </div>
                 <Button
@@ -1134,17 +1219,20 @@ export default function CustomerInfoPanel({
                       <div
                         key={subsidy.id}
                         className={`p-3 rounded-md border relative ${
-                          subsidy.status === 'active'
-                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
-                            : subsidy.status === 'depleted'
-                            ? 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950'
-                            : subsidy.status === 'expired' || subsidy.status === 'revoked'
-                            ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
-                            : 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950'
+                          subsidy.status === "active"
+                            ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
+                            : subsidy.status === "depleted"
+                              ? "border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950"
+                              : subsidy.status === "expired" ||
+                                  subsidy.status === "revoked"
+                                ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950"
+                                : "border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950"
                         }`}
                       >
                         {/* Deactivate button - only show for active, pending, or approved subsidies */}
-                        {(subsidy.status === 'active' || subsidy.status === 'pending' || subsidy.status === 'approved') && (
+                        {(subsidy.status === "active" ||
+                          subsidy.status === "pending" ||
+                          subsidy.status === "approved") && (
                           <Button
                             onClick={() => openDeactivateDialog(subsidy)}
                             size="sm"
@@ -1160,7 +1248,7 @@ export default function CustomerInfoPanel({
                               Provider
                             </label>
                             <p className="text-sm font-medium">
-                              {getProviderName(subsidy.provider_id)}
+                              {getProviderName(subsidy)}
                             </p>
                           </div>
                           <div className="space-y-1">
@@ -1189,14 +1277,58 @@ export default function CustomerInfoPanel({
                           </div>
                           <div className="space-y-1">
                             <label className="text-xs font-medium text-muted-foreground">
+                              Total Used
+                            </label>
+                            <p className="text-sm font-medium">
+                              ${subsidy.total_amount_used?.toFixed(2) || "0.00"}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Valid From
+                            </label>
+                            <p className="text-sm font-medium">
+                              {subsidy.valid_from
+                                ? new Date(
+                                    subsidy.valid_from
+                                  ).toLocaleDateString()
+                                : "N/A"}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-muted-foreground">
                               Valid Until
                             </label>
                             <p className="text-sm font-medium">
                               {subsidy.valid_until
-                                ? new Date(subsidy.valid_until).toLocaleDateString()
+                                ? new Date(
+                                    subsidy.valid_until
+                                  ).toLocaleDateString()
                                 : "No expiration"}
                             </p>
                           </div>
+                          {subsidy.approved_by && (
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Approved By
+                              </label>
+                              <p className="text-sm font-medium">
+                                {subsidy.approved_by}
+                              </p>
+                            </div>
+                          )}
+                          {subsidy.approved_at && (
+                            <div className="space-y-1">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Approved At
+                              </label>
+                              <p className="text-sm font-medium">
+                                {new Date(
+                                  subsidy.approved_at
+                                ).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
                           {subsidy.reason && (
                             <div className="col-span-2 space-y-1">
                               <label className="text-xs font-medium text-muted-foreground">
@@ -1220,7 +1352,9 @@ export default function CustomerInfoPanel({
                     ))}
                   </div>
                   <div className="pt-2 text-xs text-muted-foreground">
-                    Total active subsidies: {subsidies.filter(s => s.status === 'active').length} of {subsidies.length}
+                    Total active subsidies:{" "}
+                    {subsidies.filter((s) => s.status === "active").length} of{" "}
+                    {subsidies.length}
                   </div>
                 </div>
               ) : (
@@ -1234,10 +1368,14 @@ export default function CustomerInfoPanel({
           </Card>
 
           {/* Suspension Card */}
-          <Card className={`border-l-4 mt-4 ${suspensionData?.is_suspended ? 'border-l-red-500' : 'border-l-yellow-500'}`}>
+          <Card
+            className={`border-l-4 mt-4 ${suspensionData?.is_suspended ? "border-l-red-500" : "border-l-yellow-500"}`}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-4">
-                <Ban className={`h-5 w-5 ${suspensionData?.is_suspended ? 'text-red-500' : 'text-yellow-500'}`} />
+                <Ban
+                  className={`h-5 w-5 ${suspensionData?.is_suspended ? "text-red-500" : "text-yellow-500"}`}
+                />
                 <h3 className="font-semibold text-lg">Suspension Status</h3>
               </div>
               {isSuspensionLoading ? (
@@ -1897,7 +2035,8 @@ export default function CustomerInfoPanel({
                 disabled={isSuspending}
               />
               <p className="text-xs text-muted-foreground">
-                Enter duration in hours (e.g., 24h, 168h, 720h) or leave empty for indefinite
+                Enter duration in hours (e.g., 24h, 168h, 720h) or leave empty
+                for indefinite
               </p>
             </div>
           </div>
@@ -1986,7 +2125,8 @@ export default function CustomerInfoPanel({
           <AlertDialogHeader>
             <AlertDialogTitle>Add Subsidy</AlertDialogTitle>
             <AlertDialogDescription>
-              Create a new subsidy for this customer. Subsidies provide financial assistance for services.
+              Create a new subsidy for this customer. Subsidies provide
+              financial assistance for services.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -1995,9 +2135,13 @@ export default function CustomerInfoPanel({
                 Provider <span className="text-destructive">*</span>
               </Label>
               {isLoadingProviders ? (
-                <div className="text-sm text-muted-foreground">Loading providers...</div>
+                <div className="text-sm text-muted-foreground">
+                  Loading providers...
+                </div>
               ) : subsidyProviders.length === 0 ? (
-                <div className="text-sm text-destructive">No active providers available</div>
+                <div className="text-sm text-destructive">
+                  No active providers available
+                </div>
               ) : (
                 <Select
                   value={newSubsidyProviderId}
@@ -2053,7 +2197,9 @@ export default function CustomerInfoPanel({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subsidy-valid-until">Valid Until (Optional)</Label>
+              <Label htmlFor="subsidy-valid-until">
+                Valid Until (Optional)
+              </Label>
               <Input
                 id="subsidy-valid-until"
                 type="date"
@@ -2067,7 +2213,9 @@ export default function CustomerInfoPanel({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subsidy-admin-notes">Admin Notes (Optional)</Label>
+              <Label htmlFor="subsidy-admin-notes">
+                Admin Notes (Optional)
+              </Label>
               <Textarea
                 id="subsidy-admin-notes"
                 placeholder="Internal notes about this subsidy (max 1000 characters)"
@@ -2112,7 +2260,8 @@ export default function CustomerInfoPanel({
           <AlertDialogHeader>
             <AlertDialogTitle>Deactivate Subsidy</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deactivate the subsidy and prevent further use. This action cannot be undone.
+              This will deactivate the subsidy and prevent further use. This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -2121,11 +2270,13 @@ export default function CustomerInfoPanel({
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="font-medium">Provider:</span>{" "}
-                    {getProviderName(subsidyToDeactivate.provider_id)}
+                    {getProviderName(subsidyToDeactivate)}
                   </div>
                   <div>
                     <span className="font-medium">Status:</span>{" "}
-                    <span className="capitalize">{subsidyToDeactivate.status}</span>
+                    <span className="capitalize">
+                      {subsidyToDeactivate.status}
+                    </span>
                   </div>
                   <div>
                     <span className="font-medium">Balance:</span> $

@@ -365,6 +365,47 @@ export async function approveStaff(id: string, jwt: string): Promise<void> {
   }
 }
 
+export async function rejectStaff(id: string, jwt: string): Promise<void> {
+  try {
+    const url = `${getValue("API")}register/staff/reject/${id}`;
+    console.log("Reject URL:", url); // Debug log
+
+    const response = await fetch(url, {
+      method: "DELETE",
+      ...addAuthHeader(jwt),
+    });
+
+    console.log("Response status:", response.status); // Debug log
+    const text = await response.text();
+
+    let data: any = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // Response is not JSON
+      }
+    }
+
+    if (!response.ok) {
+      let errorMessage = `Failed to reject staff: ${response.statusText}`;
+      if (data.error?.message) {
+        errorMessage = data.error.message;
+      } else if (data.error) {
+        errorMessage = String(data.error);
+      } else if (data.message) {
+        errorMessage = data.message;
+      } else if (text) {
+        errorMessage = text;
+      }
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error("Error rejecting staff:", error);
+    throw error;
+  }
+}
+
 export async function updateStaff(
   id: string,
   staffData: StaffRequestDto,
