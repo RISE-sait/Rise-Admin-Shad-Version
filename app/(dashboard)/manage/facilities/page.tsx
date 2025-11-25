@@ -5,6 +5,8 @@ import { getAllLocations } from "@/services/location";
 import { getAllCourts } from "@/services/court";
 import { StaffRoleEnum } from "@/types/user";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Page() {
   const [locations, courts] = await Promise.all([
     getAllLocations(),
