@@ -2,7 +2,6 @@ import { Program } from "@/types/program";
 import { addAuthHeader } from "@/lib/auth-header";
 import getValue from "@/configs/constants";
 import {
-  ProgramLevelsResponse,
   ProgramRequestDto,
   ProgramResponse,
 } from "@/app/api/Api";
@@ -28,7 +27,6 @@ export async function getAllPrograms(type?: string): Promise<Program[]> {
         id: program.id!,
         name: program.name!,
         description: program.description || "",
-        level: program.level || "",
         type: program.type || "",
         capacity: program.capacity || 0,
         created_at: program.created_at || "",
@@ -40,30 +38,6 @@ export async function getAllPrograms(type?: string): Promise<Program[]> {
     return programs;
   } catch (error) {
     console.error("Error fetching programs:", error);
-    throw error;
-  }
-}
-
-/**
- * Get all program levels
- */
-export async function getAllProgramLevels(): Promise<string[]> {
-  try {
-    const response = await fetch(`${getValue("API")}programs/levels`);
-
-    const responseJSON = await response.json();
-
-    if (!response.ok) {
-      let errorMessage = `Failed to get program levels: ${response.statusText}`;
-      if (responseJSON.error) {
-        errorMessage = responseJSON.error.message;
-      }
-      throw new Error(errorMessage);
-    }
-
-    return (responseJSON as ProgramLevelsResponse).levels!;
-  } catch (error) {
-    console.error("Error fetching program levels:", error);
     throw error;
   }
 }
@@ -138,7 +112,6 @@ export async function getProgramById(id: string): Promise<Program | null> {
       id: program.id || "",
       name: program.name || "",
       description: program.description || "",
-      level: program.level || "",
       type: program.type || "",
       capacity: program.capacity || 0,
       created_at: program.created_at || "",

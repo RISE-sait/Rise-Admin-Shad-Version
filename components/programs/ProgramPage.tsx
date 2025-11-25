@@ -35,12 +35,10 @@ type ProgramType =
 
 interface ProgramPageProps {
   programs: Program[];
-  programLevels: string[];
 }
 
 export default function ProgramPage({
   programs: initialPrograms,
-  programLevels,
 }: ProgramPageProps) {
   const { user } = useUser();
   const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
@@ -207,14 +205,12 @@ export default function ProgramPage({
           {drawerContent === "details" && selectedProgram && (
             <ProgramInfoPanel
               program={selectedProgram}
-              levels={programLevels}
               onClose={() => setDrawerOpen(false)}
               isReceptionist={isReceptionist}
             />
           )}
           {drawerContent === "add" && (
             <AddProgramForm
-              levels={programLevels}
               onSuccess={() => setDrawerOpen(false)}
             />
           )}

@@ -8,10 +8,8 @@ import { revalidatePrograms } from "@/actions/serverActions";
 import { uploadProgramPhoto } from "@/services/upload";
 
 export default function AddProgramForm({
-  levels,
   onSuccess,
 }: {
-  levels: string[];
   onSuccess?: () => void;
 }) {
   const { user } = useUser();
@@ -35,7 +33,6 @@ export default function AddProgramForm({
   async function handleSaveAll(
     name: string,
     description: string,
-    level: string,
     type: string,
     capacity: number
   ) {
@@ -43,7 +40,6 @@ export default function AddProgramForm({
       const programData: ProgramRequestDto = {
         name,
         description,
-        level,
         type,
         capacity: capacity || 0,
       };
@@ -136,13 +132,11 @@ export default function AddProgramForm({
         program={{
           name: "",
           description: "",
-          level: "",
           type: "",
           capacity: 0,
           photo_url: "",
         }}
         saveAction={handleSaveAll}
-        levels={levels}
         photoUrl={photoPreview}
         photoName={photoName}
         onPhotoChange={handlePhotoChange}

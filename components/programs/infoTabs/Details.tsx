@@ -26,7 +26,6 @@ import {
 export default function DetailsForm({
   saveAction,
   program,
-  levels,
   DeleteButton,
   photoUrl,
   photoName,
@@ -36,12 +35,10 @@ export default function DetailsForm({
   saveAction: (
     name: string,
     description: string,
-    level: string,
     type: string,
     capacity: number
   ) => Promise<void>;
   program: Omit<Program, "id" | "created_at" | "updated_at">;
-  levels: string[];
   DeleteButton?: JSX.Element;
   photoUrl?: string;
   photoName?: string;
@@ -66,7 +63,6 @@ export default function DetailsForm({
   });
 
   const currentType = watch("type");
-  const currentLevel = watch("level");
 
   const handlePhotoInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!onPhotoChange) {
@@ -96,11 +92,10 @@ export default function DetailsForm({
     }
     const name = getValues("name");
     const description = getValues("description");
-    const level = getValues("level");
     const type = getValues("type");
     const capacity = getValues("capacity") || 0;
 
-    await saveAction(name, description, level, type, capacity);
+    await saveAction(name, description, type, capacity);
   };
 
   return (
@@ -240,28 +235,6 @@ export default function DetailsForm({
             <h3 className="font-semibold text-lg">Program Configuration</h3>
           </div>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="level">
-                Level <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                defaultValue={program.level}
-                onValueChange={(value) => setValue("level", value)}
-                disabled={isReceptionist}
-              >
-                <SelectTrigger id="level" className="bg-background">
-                  <SelectValue placeholder="Select level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {levels.map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="type">
                 Program Type <span className="text-red-500">*</span>

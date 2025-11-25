@@ -27,14 +27,12 @@ import { uploadProgramPhoto } from "@/services/upload";
 
 interface ProgramInfoPanelProps {
   program: Program;
-  levels: string[];
   onClose?: () => void;
   isReceptionist?: boolean;
 }
 
 export default function ProgramInfoPanel({
   program,
-  levels,
   onClose,
   isReceptionist = false,
 }: ProgramInfoPanelProps) {
@@ -96,7 +94,6 @@ export default function ProgramInfoPanel({
   async function handleSaveAll(
     name: string,
     description: string,
-    level: string,
     type: string,
     capacity: number
   ) {
@@ -131,7 +128,6 @@ export default function ProgramInfoPanel({
       const programData: ProgramRequestDto = {
         name,
         description,
-        level,
         type,
         capacity: capacity || 0,
         photo_url: photoUrlToPersist || undefined,
@@ -183,7 +179,6 @@ export default function ProgramInfoPanel({
           <DetailsForm
             saveAction={handleSaveAll}
             program={program}
-            levels={levels}
             photoUrl={photoPreview}
             photoName={photoName}
             onPhotoChange={handlePhotoChange}
