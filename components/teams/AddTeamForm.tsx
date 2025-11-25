@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
 import { createTeam } from "@/services/teams";
 import { getAllStaffs } from "@/services/staff";
+import { uploadTeamLogo } from "@/services/upload";
 import { TeamRequestDto } from "@/app/api/Api";
 import { revalidateTeams } from "@/actions/serverActions";
 import { User } from "@/types/user";
@@ -47,8 +48,8 @@ export default function AddTeamForm({
   const { user } = useUser();
   const { toast } = useToast();
   const [coaches, setCoaches] = useState<User[]>([]);
-  const [logoData, setLogoData] = useState<string>("");
-  const [logoName, setLogoName] = useState<string>("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -101,22 +102,37 @@ export default function AddTeamForm({
       return;
     }
 
-    const teamData: TeamRequestDto = {
-      name: trimmedName,
-      capacity: data.capacity || 0,
-      coach_id: data.coach_id,
-    };
-    if (logoData) {
-      teamData.logo_url = logoData;
-    }
-
     try {
+      const teamData: TeamRequestDto = {
+        name: trimmedName,
+        capacity: data.capacity || 0,
+        coach_id: data.coach_id,
+      };
+
+      // Upload logo first if provided
+      if (logoFile && user?.Jwt) {
+        try {
+          const logoUrl = await uploadTeamLogo(logoFile, user.Jwt);
+          teamData.logo_url = logoUrl;
+        } catch (uploadError) {
+          toast({
+            status: "error",
+            description:
+              uploadError instanceof Error
+                ? uploadError.message
+                : "Failed to upload team logo",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const error = await createTeam(teamData, user?.Jwt!);
       if (error === null) {
         toast({ status: "success", description: "Team created successfully" });
         resetData();
-        setLogoData("");
-        setLogoName("");
+        setLogoFile(null);
+        setLogoPreview("");
         await revalidateTeams();
         onTeamAdded?.();
         if (onClose) onClose();
@@ -194,39 +210,49 @@ export default function AddTeamForm({
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    setLogoName(file.name);
+                    setLogoFile(file);
                     const reader = new FileReader();
                     reader.onload = () => {
-                      setLogoData(reader.result as string);
+                      setLogoPreview(reader.result as string);
                     };
                     reader.readAsDataURL(file);
+                  } else {
+                    setLogoFile(null);
+                    setLogoPreview("");
                   }
+                  e.target.value = "";
                 }}
                 className="hidden"
                 id="team-logo-upload"
               />
               <label
                 htmlFor="team-logo-upload"
-                className="block cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                className="block cursor-pointer hover:opacity-80 transition-opacity"
               >
-                {logoData ? (
-                  <div className="space-y-2">
-                    <p className="text-foreground font-medium">{logoName}</p>
-                    <p className="text-sm">Click to change file</p>
+                {logoPreview ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-center">
+                      <img
+                        src={logoPreview}
+                        alt="Team logo preview"
+                        className="max-h-40 rounded object-cover"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Image selected
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Click to change
+                    </p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-muted-foreground">
                     <p>Click to select an image</p>
                     <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
                   </div>
                 )}
               </label>
             </div>
-            {logoData && (
-              <div className="flex justify-center">
-                <img src={logoData} alt="Preview" className="max-h-40 rounded" />
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

@@ -32,6 +32,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { updateTeam, deleteTeam } from "@/services/teams";
 import { getAllStaffs } from "@/services/staff";
+import { uploadTeamLogo } from "@/services/upload";
 import { revalidateTeams } from "@/actions/serverActions";
 import { Team } from "@/types/team";
 import { TeamRequestDto } from "@/app/api/Api";
@@ -61,7 +62,7 @@ export default function TeamInfoPanel({
   const [coaches, setCoaches] = useState<StaffUser[]>([]);
   const [rosterOpen, setRosterOpen] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>(team.logo_url || "");
-  const [logoName, setLogoName] = useState<string>("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [roster, setRoster] = useState(team.roster);
   const { toast } = useToast();
 
@@ -107,15 +108,38 @@ export default function TeamInfoPanel({
       });
       return;
     }
-    const teamData: TeamRequestDto = {
-      name: trimmedName,
-      capacity: capacity || 0,
-      coach_id: coachId || undefined,
-    };
-    if (logoPreview) {
-      teamData.logo_url = logoPreview;
-    }
+
     try {
+      const teamData: TeamRequestDto = {
+        name: trimmedName,
+        capacity: capacity || 0,
+        coach_id: coachId || undefined,
+      };
+
+      // Upload new logo if one was selected
+      if (logoFile && user?.Jwt) {
+        try {
+          const logoUrl = await uploadTeamLogo(logoFile, user.Jwt, team.id);
+          teamData.logo_url = logoUrl;
+        } catch (uploadError) {
+          toast({
+            status: "error",
+            description:
+              uploadError instanceof Error
+                ? uploadError.message
+                : "Failed to upload team logo",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (logoPreview && logoPreview !== team.logo_url) {
+        // If logoPreview changed but no new file, keep the preview (shouldn't happen but just in case)
+        teamData.logo_url = logoPreview;
+      } else if (team.logo_url) {
+        // Keep existing logo URL
+        teamData.logo_url = team.logo_url;
+      }
+
       const error = await updateTeam(team.id, teamData, user?.Jwt!);
       if (error === null) {
         toast({ status: "success", description: "Team updated successfully" });
@@ -216,12 +240,15 @@ export default function TeamInfoPanel({
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      setLogoName(file.name);
+                      setLogoFile(file);
                       const reader = new FileReader();
                       reader.onload = () =>
                         setLogoPreview(reader.result as string);
                       reader.readAsDataURL(file);
+                    } else {
+                      setLogoFile(null);
                     }
+                    e.target.value = "";
                   }}
                   className="hidden"
                   id="team-logo-edit"
@@ -229,32 +256,32 @@ export default function TeamInfoPanel({
                 />
                 <label
                   htmlFor="team-logo-edit"
-                  className={`block ${!isReceptionist ? 'cursor-pointer' : 'cursor-not-allowed'} text-muted-foreground ${!isReceptionist ? 'hover:text-foreground' : ''} transition-colors`}
+                  className={`block ${!isReceptionist ? 'cursor-pointer' : 'cursor-not-allowed'} ${!isReceptionist ? 'hover:opacity-80' : ''} transition-opacity`}
                 >
                   {logoPreview ? (
-                    <div className="space-y-2">
-                      <p className="text-foreground font-medium">
-                        {logoName || "Image selected"}
+                    <div className="space-y-3">
+                      <div className="flex justify-center">
+                        <img
+                          src={logoPreview}
+                          alt="Team logo preview"
+                          className="max-h-40 rounded object-cover"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Image selected
                       </p>
-                      <p className="text-sm">Click to change file</p>
+                      <p className="text-sm text-muted-foreground">
+                        Click to change
+                      </p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-muted-foreground">
                       <p>Click to select an image</p>
                       <p className="text-sm">(JPG, PNG, WebP formats accepted)</p>
                     </div>
                   )}
                 </label>
               </div>
-              {logoPreview && (
-                <div className="flex justify-center">
-                  <img
-                    src={logoPreview}
-                    alt="Preview"
-                    className="max-h-40 rounded"
-                  />
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

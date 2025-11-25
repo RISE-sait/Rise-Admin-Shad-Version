@@ -115,6 +115,60 @@ export async function uploadProgramPhoto(
   }
 }
 
+export async function uploadTeamLogo(
+  imageFile: File,
+  jwt: string,
+  teamId?: string
+): Promise<string> {
+  try {
+    validateImageFile(imageFile);
+
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    let uploadUrl = `${getValue("API")}upload/image?folder=teams`;
+    if (teamId) {
+      uploadUrl += `&team_id=${teamId}`;
+    }
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Team logo upload error response:", errorText);
+
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(
+          `Image upload failed: ${errorJson.error?.message || response.statusText}`
+        );
+      } catch (e) {
+        throw new Error(
+          `Image upload failed: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+    }
+
+    const result = await response.json();
+
+    if (result.url) {
+      return result.url;
+    } else {
+      console.error("❌ No URL in team logo upload response:", result);
+      throw new Error("Upload response missing URL");
+    }
+  } catch (error) {
+    console.error("Error uploading team logo:", error);
+    throw error;
+  }
+}
+
 export function validateImageFile(file: File): void {
   const allowedTypes = [
     "image/jpeg",
