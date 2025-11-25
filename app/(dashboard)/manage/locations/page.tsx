@@ -3,6 +3,8 @@ import RoleProtected from "@/components/RoleProtected";
 import { getAllLocations } from "@/services/location";
 import { StaffRoleEnum } from "@/types/user";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Page() {
   const locations = await getAllLocations();
 

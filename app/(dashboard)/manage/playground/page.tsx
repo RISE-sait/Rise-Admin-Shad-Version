@@ -8,6 +8,8 @@ import {
   getPlaygroundSystems,
 } from "@/services/playground";
 
+export const dynamic = 'force-dynamic';
+
 // Component that wraps the Playground page in role protection
 export default async function PlaygroundPageContainer() {
   const sessions = await getPlaygroundSessions();

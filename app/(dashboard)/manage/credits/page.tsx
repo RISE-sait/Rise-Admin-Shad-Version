@@ -3,6 +3,8 @@ import CreditsPage from "@/components/credits/CreditsPage";
 import { StaffRoleEnum } from "@/types/user";
 import { getAllCreditPackages } from "@/services/creditPackages";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Page() {
   const creditPackages = await getAllCreditPackages();
 
