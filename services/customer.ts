@@ -1,4 +1,4 @@
-import { Customer, CustomerCreditTransaction } from "@/types/customer";
+import { Customer, CustomerCreditTransaction, WaiverUpload } from "@/types/customer";
 import getValue from "@/configs/constants";
 import {
   CustomerMembershipResponseDto,
@@ -35,6 +35,10 @@ interface CustomerApiResponse {
   notes?: string | null;
   phone: string;
   user_id: string;
+  // Emergency contact info
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_relationship?: string | null;
 }
 
 // Helper function to map API response to Customer type
@@ -72,6 +76,11 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     notes: typeof response.notes === "string" ? response.notes : null,
     updated_at: new Date(), // Default to current date
     create_at: new Date(), // Default to current date
+
+    // Emergency contact info
+    emergency_contact_name: response.emergency_contact_name ?? null,
+    emergency_contact_phone: response.emergency_contact_phone ?? null,
+    emergency_contact_relationship: response.emergency_contact_relationship ?? null,
   };
 
   return customer;
@@ -1195,5 +1204,110 @@ export async function getSuspendedCustomers(
   } catch (error) {
     console.error("Error fetching suspended customers:", error);
     return [];
+  }
+}
+
+// ============ Waiver Functions ============
+
+/**
+ * Get all waiver uploads for a user
+ */
+export async function getCustomerWaivers(
+  customerId: string,
+  jwt: string
+): Promise<WaiverUpload[]> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}waivers/user/${customerId}`,
+      {
+        method: "GET",
+        ...addAuthHeader(jwt),
+      }
+    );
+
+    if (response.status === 404) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch waivers: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error(`Error fetching waivers for customer ${customerId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Upload a waiver for a user
+ */
+export async function uploadCustomerWaiver(
+  customerId: string,
+  file: File,
+  notes: string | undefined,
+  jwt: string
+): Promise<WaiverUpload> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const params = new URLSearchParams();
+    params.append("user_id", customerId);
+    if (notes) {
+      params.append("notes", notes);
+    }
+
+    const response = await fetch(
+      `${getValue("API")}waivers/upload?${params.toString()}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to upload waiver: ${response.statusText}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error uploading waiver for customer ${customerId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a waiver upload
+ */
+export async function deleteCustomerWaiver(
+  waiverId: string,
+  jwt: string
+): Promise<void> {
+  try {
+    const response = await fetch(`${getValue("API")}waivers/${waiverId}`, {
+      method: "DELETE",
+      ...addAuthHeader(jwt),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to delete waiver: ${response.statusText}`
+      );
+    }
+  } catch (error) {
+    console.error(`Error deleting waiver ${waiverId}:`, error);
+    throw error;
   }
 }

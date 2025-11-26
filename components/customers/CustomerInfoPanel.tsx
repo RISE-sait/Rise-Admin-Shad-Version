@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Customer, CustomerCreditTransaction } from "@/types/customer";
+import { Customer, CustomerCreditTransaction, WaiverUpload } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,9 @@ import {
   HandCoins,
   Plus,
   X,
+  Upload,
+  File,
+  ExternalLink,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -59,6 +62,9 @@ import {
   getCustomerCredits,
   getCustomerCreditTransactions,
   updateCustomerNotes,
+  getCustomerWaivers,
+  uploadCustomerWaiver,
+  deleteCustomerWaiver,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { Api } from "@/app/api/Api";
@@ -149,6 +155,18 @@ export default function CustomerInfoPanel({
     useState<Subsidy | null>(null);
   const [deactivationReason, setDeactivationReason] = useState("");
   const [isDeactivating, setIsDeactivating] = useState(false);
+
+  // Waiver state
+  const [waivers, setWaivers] = useState<WaiverUpload[]>([]);
+  const [isWaiversLoading, setIsWaiversLoading] = useState(false);
+  const [uploadWaiverDialogOpen, setUploadWaiverDialogOpen] = useState(false);
+  const [selectedWaiverFile, setSelectedWaiverFile] = useState<File | null>(null);
+  const [waiverNotes, setWaiverNotes] = useState("");
+  const [isUploadingWaiver, setIsUploadingWaiver] = useState(false);
+  const [deleteWaiverDialogOpen, setDeleteWaiverDialogOpen] = useState(false);
+  const [waiverToDelete, setWaiverToDelete] = useState<WaiverUpload | null>(null);
+  const [isDeletingWaiver, setIsDeletingWaiver] = useState(false);
+  const waiverFileInputRef = useRef<HTMLInputElement>(null);
 
   const CREDITS_AMOUNT_PATTERN = /^\d*$/;
   const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'\-:;/\\&=?#@%()[\]{}~+]*$/;
@@ -290,6 +308,116 @@ export default function CustomerInfoPanel({
     },
     [user?.Jwt]
   );
+
+  const loadWaiverData = useCallback(
+    async (customerId: string) => {
+      if (!customerId || !user?.Jwt) {
+        return;
+      }
+
+      setIsWaiversLoading(true);
+      try {
+        const waiversData = await getCustomerWaivers(customerId, user.Jwt);
+        setWaivers(waiversData);
+      } catch (error) {
+        console.error("Error loading waiver data:", error);
+        setWaivers([]);
+      } finally {
+        setIsWaiversLoading(false);
+      }
+    },
+    [user?.Jwt]
+  );
+
+  const handleUploadWaiver = async () => {
+    if (!currentCustomer.id || !user?.Jwt) {
+      toast({
+        status: "error",
+        description: "Missing customer ID or authentication",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedWaiverFile) {
+      toast({
+        status: "error",
+        description: "Please select a file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingWaiver(true);
+    try {
+      await uploadCustomerWaiver(
+        currentCustomer.id,
+        selectedWaiverFile,
+        waiverNotes.trim() || undefined,
+        user.Jwt
+      );
+
+      await loadWaiverData(currentCustomer.id);
+
+      toast({
+        status: "success",
+        description: "Waiver uploaded successfully",
+      });
+
+      setUploadWaiverDialogOpen(false);
+      setSelectedWaiverFile(null);
+      setWaiverNotes("");
+      if (waiverFileInputRef.current) {
+        waiverFileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error uploading waiver:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error ? error.message : "Failed to upload waiver",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingWaiver(false);
+    }
+  };
+
+  const handleDeleteWaiver = async () => {
+    if (!waiverToDelete || !user?.Jwt) {
+      toast({
+        status: "error",
+        description: "Missing waiver or authentication",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeletingWaiver(true);
+    try {
+      await deleteCustomerWaiver(waiverToDelete.id, user.Jwt);
+
+      await loadWaiverData(currentCustomer.id);
+
+      toast({
+        status: "success",
+        description: "Waiver deleted successfully",
+      });
+
+      setDeleteWaiverDialogOpen(false);
+      setWaiverToDelete(null);
+    } catch (error) {
+      console.error("Error deleting waiver:", error);
+      toast({
+        status: "error",
+        description:
+          error instanceof Error ? error.message : "Failed to delete waiver",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingWaiver(false);
+    }
+  };
 
   const loadMembershipPlanDetails = useCallback(async (planId: string) => {
     if (!planId) {
@@ -586,6 +714,7 @@ export default function CustomerInfoPanel({
           loadCustomerCredits(refreshedCustomer.id),
           loadSuspensionData(refreshedCustomer.id),
           loadSubsidyData(refreshedCustomer.id),
+          loadWaiverData(refreshedCustomer.id),
           fetchTransactions(refreshedCustomer.id, {
             limit: transactionsLimit,
             offset: transactionsOffset,
@@ -705,6 +834,14 @@ export default function CustomerInfoPanel({
 
     loadSubsidyData(customer.id);
   }, [customer.id, loadSubsidyData]);
+
+  useEffect(() => {
+    if (!customer.id) {
+      return;
+    }
+
+    loadWaiverData(customer.id);
+  }, [customer.id, loadWaiverData]);
 
   useEffect(() => {
     if (!customer.id) {
@@ -1032,6 +1169,13 @@ export default function CustomerInfoPanel({
             >
               <FileText className="h-4 w-4" />
               Notes
+            </TabsTrigger>
+            <TabsTrigger
+              value="waivers"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <File className="h-4 w-4" />
+              Waivers
             </TabsTrigger>
             {/* <TabsTrigger
               value="stats"
@@ -1510,6 +1654,101 @@ export default function CustomerInfoPanel({
                   {notesDraft.length}/{maxNotesLength} characters
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="waivers">
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <File className="h-5 w-5 text-yellow-500" />
+                  <div>
+                    <h3 className="font-semibold text-lg">Waiver Documents</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manage waiver and consent documents for this customer.
+                    </p>
+                  </div>
+                </div>
+                {!isReceptionist && (
+                  <Button
+                    onClick={() => setUploadWaiverDialogOpen(true)}
+                    size="sm"
+                    className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Waiver
+                  </Button>
+                )}
+              </div>
+              {isWaiversLoading ? (
+                <div className="text-sm text-muted-foreground">
+                  Loading waivers...
+                </div>
+              ) : waivers.length > 0 ? (
+                <div className="space-y-3">
+                  {waivers.map((waiver) => (
+                    <div
+                      key={waiver.id}
+                      className="flex items-center justify-between p-3 rounded-md border bg-muted/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <File className="h-8 w-8 text-yellow-500" />
+                        <div>
+                          <p className="font-medium text-sm">
+                            {waiver.file_name || "Waiver Document"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Uploaded: {new Date(waiver.uploaded_at).toLocaleDateString()}
+                            {waiver.file_size && ` • ${(waiver.file_size / 1024).toFixed(1)} KB`}
+                          </p>
+                          {waiver.notes && (
+                            <p className="text-xs text-muted-foreground italic mt-1">
+                              {waiver.notes}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {waiver.file_url && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(waiver.file_url, "_blank")}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        )}
+                        {!isReceptionist && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-destructive text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              setWaiverToDelete(waiver);
+                              setDeleteWaiverDialogOpen(true);
+                            }}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center">
+                  <div className="mb-4">
+                    <File className="h-12 w-12 mx-auto text-muted-foreground/40" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">No Waivers Uploaded</h3>
+                  <p className="text-muted-foreground">
+                    This customer doesn't have any waiver documents uploaded yet.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -2333,6 +2572,114 @@ export default function CustomerInfoPanel({
               variant="destructive"
             >
               {isDeactivating ? "Deactivating..." : "Deactivate Subsidy"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Upload Waiver Dialog */}
+      <AlertDialog
+        open={uploadWaiverDialogOpen}
+        onOpenChange={setUploadWaiverDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upload Waiver</AlertDialogTitle>
+            <AlertDialogDescription>
+              Upload a signed waiver or consent document for this customer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="waiver-file">
+                File <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="waiver-file"
+                type="file"
+                ref={waiverFileInputRef}
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setSelectedWaiverFile(file);
+                }}
+                disabled={isUploadingWaiver}
+              />
+              <p className="text-xs text-muted-foreground">
+                Accepted formats: PDF, JPG, PNG, DOC, DOCX
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="waiver-notes">Notes (Optional)</Label>
+              <Textarea
+                id="waiver-notes"
+                placeholder="Add any notes about this waiver"
+                value={waiverNotes}
+                onChange={(e) => setWaiverNotes(e.target.value)}
+                className="min-h-[80px]"
+                maxLength={500}
+                disabled={isUploadingWaiver}
+              />
+              <p className="text-xs text-muted-foreground">
+                {waiverNotes.length}/500 characters
+              </p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUploadingWaiver}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleUploadWaiver}
+              disabled={isUploadingWaiver || !selectedWaiverFile}
+              className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+            >
+              {isUploadingWaiver ? "Uploading..." : "Upload Waiver"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Waiver Dialog */}
+      <AlertDialog
+        open={deleteWaiverDialogOpen}
+        onOpenChange={setDeleteWaiverDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Waiver</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this waiver? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {waiverToDelete && (
+            <div className="py-4">
+              <div className="p-3 rounded-md border bg-muted/30">
+                <p className="font-medium text-sm">
+                  {waiverToDelete.file_name || "Waiver Document"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Uploaded: {new Date(waiverToDelete.uploaded_at).toLocaleDateString()}
+                </p>
+                {waiverToDelete.notes && (
+                  <p className="text-xs text-muted-foreground italic mt-1">
+                    {waiverToDelete.notes}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingWaiver}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={handleDeleteWaiver}
+              disabled={isDeletingWaiver}
+              variant="destructive"
+            >
+              {isDeletingWaiver ? "Deleting..." : "Delete Waiver"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

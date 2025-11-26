@@ -12,10 +12,10 @@ import { UserUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
-import { SaveIcon, User, Mail, Phone, UserCircle } from "lucide-react";
+import { SaveIcon, User, Mail, Phone, UserCircle, AlertCircle } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
-type FormField = "first_name" | "last_name" | "email" | "phone";
+type FormField = "first_name" | "last_name" | "email" | "phone" | "emergency_contact_name" | "emergency_contact_phone" | "emergency_contact_relationship";
 
 const NAME_INPUT_PATTERN = /^[a-zA-Z\s'-]*$/;
 const EMAIL_INPUT_PATTERN = /^[a-zA-Z0-9@._+-]*$/;
@@ -45,14 +45,20 @@ export default function DetailsTab({
       if (!phone) return "+1";
       return phone.startsWith("+") ? phone : `+1${phone.replace(/\D/g, "")}`;
     })(),
+    emergency_contact_name: customer.emergency_contact_name || "",
+    emergency_contact_phone: customer.emergency_contact_phone || "",
+    emergency_contact_relationship: customer.emergency_contact_relationship || "",
   });
 
   const handleChange = (field: FormField, value: string) => {
-    const fieldPatterns: Record<FormField, RegExp> = {
+    const fieldPatterns: Record<FormField, RegExp | null> = {
       first_name: NAME_INPUT_PATTERN,
       last_name: NAME_INPUT_PATTERN,
       email: EMAIL_INPUT_PATTERN,
       phone: PHONE_INPUT_PATTERN,
+      emergency_contact_name: NAME_INPUT_PATTERN,
+      emergency_contact_phone: PHONE_INPUT_PATTERN,
+      emergency_contact_relationship: null, // Allow any text for relationship
     };
 
     const pattern = fieldPatterns[field];
@@ -106,7 +112,11 @@ export default function DetailsTab({
         ? `+${digits}`
         : `+1${digits}`;
 
-      const updateData: UserUpdateRequestDto = {
+      const updateData: UserUpdateRequestDto & {
+        emergency_contact_name?: string;
+        emergency_contact_phone?: string;
+        emergency_contact_relationship?: string;
+      } = {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
@@ -115,6 +125,9 @@ export default function DetailsTab({
         dob: "2000-01-01",
         has_marketing_email_consent: false,
         has_sms_consent: false,
+        emergency_contact_name: formData.emergency_contact_name || undefined,
+        emergency_contact_phone: formData.emergency_contact_phone || undefined,
+        emergency_contact_relationship: formData.emergency_contact_relationship || undefined,
       };
 
       const error = await updateCustomer(customer.id, updateData, user.Jwt);
@@ -130,6 +143,9 @@ export default function DetailsTab({
             last_name: formData.last_name,
             email: formData.email,
             phone: formattedPhone,
+            emergency_contact_name: formData.emergency_contact_name || null,
+            emergency_contact_phone: formData.emergency_contact_phone || null,
+            emergency_contact_relationship: formData.emergency_contact_relationship || null,
           });
         onClose?.();
       } else {
@@ -280,6 +296,51 @@ export default function DetailsTab({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
+                placeholder="+11234567890"
+                className="bg-background"
+                disabled={isReceptionist}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Emergency Contact Section */}
+      <Card className="border-l-4 border-l-red-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <h3 className="font-semibold text-lg">Emergency Contact</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <Input
+                  value={formData.emergency_contact_name}
+                  onChange={(e) => handleChange("emergency_contact_name", e.target.value)}
+                  placeholder="Emergency contact name"
+                  className="bg-background"
+                  disabled={isReceptionist}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Relationship</label>
+                <Input
+                  value={formData.emergency_contact_relationship}
+                  onChange={(e) => handleChange("emergency_contact_relationship", e.target.value)}
+                  placeholder="e.g., Parent, Spouse, Sibling"
+                  className="bg-background"
+                  disabled={isReceptionist}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone</label>
+              <Input
+                type="tel"
+                value={formData.emergency_contact_phone}
+                onChange={(e) => handleChange("emergency_contact_phone", e.target.value)}
                 placeholder="+11234567890"
                 className="bg-background"
                 disabled={isReceptionist}
