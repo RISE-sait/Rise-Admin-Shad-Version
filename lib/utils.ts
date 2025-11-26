@@ -43,7 +43,7 @@ export function formatDate(
  * @returns ISO string with the same local time.
  */
 export function toZonedISOString(date: Date): string {
-  const offsetMs = date.getTimezoneOffset() * 60 * 0o0;
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.getTime() - offsetMs).toISOString();
 }
 
@@ -53,7 +53,7 @@ export function toZonedISOString(date: Date): string {
  */
 export function fromZonedISOString(isoString: string): Date {
   const date = new Date(isoString);
-  const offsetMs = date.getTimezoneOffset() * 60 * 0o0;
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.getTime() + offsetMs);
 }
 
