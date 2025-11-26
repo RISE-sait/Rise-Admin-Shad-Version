@@ -24,6 +24,11 @@ export interface Customer {
   wins: number;
   credits?: number;
   notes?: string | null;
+
+  // Emergency contact info
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_relationship?: string | null;
 }
 
 export interface CustomerCreditTransaction {
@@ -33,4 +38,15 @@ export interface CustomerCreditTransaction {
   balanceAfter?: number | null;
   description?: string | null;
   type?: string | null;
+}
+
+export interface WaiverUpload {
+  id: string;
+  file_url: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  notes?: string;
+  uploaded_by?: string;
+  uploaded_at: string;
 }
