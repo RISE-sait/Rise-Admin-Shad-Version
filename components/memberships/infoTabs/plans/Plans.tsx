@@ -714,6 +714,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
+                  <Label className="w-full">Billing Periods</Label>
                   <Input
                     className="w-full mt-1"
                     type="number"
