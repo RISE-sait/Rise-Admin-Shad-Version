@@ -13,6 +13,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/contexts/UserContext";
 import getValue from "@/configs/constants";
@@ -657,6 +664,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <option value="month">Monthly</option>
+                    <option value="biweekly">Biweekly</option>
                     <option value="year">Yearly</option>
                     <option value="week">Weekly</option>
                     <option value="day">Daily</option>
@@ -690,7 +698,22 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                   />
                 </div>
                 <div className="w-full pl-1">
-                  <Label className="w-full">Billing Periods</Label>
+                  <div className="flex items-center gap-1">
+                    <Label>Billing Periods</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs bg-background border text-foreground">
+                          <p>Number of billing cycles before the membership ends.</p>
+                          <p className="mt-1 text-muted-foreground">
+                            Examples: 12 monthly = 1 year, 26 biweekly = 1 year, 52 weekly = 1 year
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Input
                     className="w-full mt-1"
                     type="number"
