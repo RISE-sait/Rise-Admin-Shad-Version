@@ -16,15 +16,12 @@ import {
   MULTILINE_TEXT_PATTERN,
   NUMBER_PATTERN,
   NUMBER_PATTERN_MESSAGE,
-  STRIPE_PRICE_MESSAGE,
-  STRIPE_PRICE_PATTERN,
   TEXT_PATTERN,
   TEXT_PATTERN_MESSAGE,
   sanitizeMultilineInput,
   sanitizeSingleLineInput,
-  sanitizeStripePriceId,
 } from "@/lib/creditPackageValidation";
-import { Coins, DollarSign } from "lucide-react";
+import { Coins } from "lucide-react";
 
 interface AddCreditPackageFormProps {
   onSuccess?: () => Promise<void> | void;
@@ -35,7 +32,8 @@ type AddCreditPackageFormValues = {
   description?: string;
   credit_allocation: number;
   weekly_credit_limit: number;
-  stripe_price_id: string;
+  unit_amount: string;
+  currency: string;
 };
 
 export default function AddCreditPackageForm({
@@ -54,7 +52,8 @@ export default function AddCreditPackageForm({
       description: "",
       credit_allocation: 0,
       weekly_credit_limit: 0,
-      stripe_price_id: "",
+      unit_amount: "",
+      currency: "cad",
     },
   });
 
@@ -64,6 +63,9 @@ export default function AddCreditPackageForm({
       return;
     }
 
+    // Convert dollars to cents for the API
+    const unitAmountInCents = Math.round(parseFloat(values.unit_amount) * 100);
+
     const payload: CreditPackageRequest = {
       name: sanitizeSingleLineInput(values.name),
       description: values.description
@@ -71,7 +73,8 @@ export default function AddCreditPackageForm({
         : undefined,
       credit_allocation: values.credit_allocation,
       weekly_credit_limit: values.weekly_credit_limit,
-      stripe_price_id: sanitizeStripePriceId(values.stripe_price_id),
+      unit_amount: unitAmountInCents,
+      currency: values.currency,
     };
 
     try {
@@ -82,7 +85,8 @@ export default function AddCreditPackageForm({
         description: "",
         credit_allocation: 0,
         weekly_credit_limit: 0,
-        stripe_price_id: "",
+        unit_amount: "",
+        currency: "cad",
       });
       await revalidateCreditPackages();
       await onSuccess?.();
@@ -205,27 +209,53 @@ export default function AddCreditPackageForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Stripe Price ID <span className="text-red-500">*</span>
-              </label>
-              <Input
-                {...register("stripe_price_id", {
-                  required: "Stripe price ID is required.",
-                  pattern: {
-                    value: STRIPE_PRICE_PATTERN,
-                    message: STRIPE_PRICE_MESSAGE,
-                  },
-                  setValueAs: sanitizeStripePriceId,
-                })}
-                placeholder="price_123ABC"
-                className="bg-background"
-              />
-              {errors.stripe_price_id && (
-                <p className="text-xs text-red-500">
-                  {errors.stripe_price_id.message as string}
-                </p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Price ($) <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register("unit_amount", {
+                    required: "Price is required.",
+                    validate: (value) => {
+                      const num = parseFloat(value);
+                      if (isNaN(num) || num <= 0) {
+                        return "Price must be greater than 0.";
+                      }
+                      return true;
+                    },
+                  })}
+                  placeholder="50.00"
+                  className="bg-background"
+                />
+                {errors.unit_amount && (
+                  <p className="text-xs text-red-500">
+                    {errors.unit_amount.message as string}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Currency <span className="text-red-500">*</span>
+                </label>
+                <select
+                  {...register("currency", {
+                    required: "Currency is required.",
+                  })}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                >
+                  <option value="cad">CAD</option>
+                  <option value="usd">USD</option>
+                </select>
+                {errors.currency && (
+                  <p className="text-xs text-red-500">
+                    {errors.currency.message as string}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
