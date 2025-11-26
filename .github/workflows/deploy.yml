@@ -22,18 +22,18 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker to use gcloud
-        run: gcloud auth configure-docker us-west2-docker.pkg.dev
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA .
-          docker push us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA
+          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA .
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy rise-web \
-            --image us-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA \
-            --region us-west2 \
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/rise-web:$GITHUB_SHA \
+            --region us-central1 \
             --platform managed \
             --allow-unauthenticated
         
