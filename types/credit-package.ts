@@ -25,5 +25,7 @@ export interface CreditPackageRequest {
   description?: string;
   credit_allocation: number;
   weekly_credit_limit: number;
-  stripe_price_id: string;
+  stripe_price_id?: string;
+  unit_amount?: number;
+  currency?: string;
 }
