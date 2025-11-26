@@ -37,9 +37,10 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
   >({});
   const [newPeriod, setNewPeriod] = useState<string>("");
   const [newName, setNewName] = useState<string>("");
-  const [newStripePriceId, setNewStripePriceId] = useState<string>("");
-  const [newStripeJoiningFeeId, setNewStripeJoiningFeeId] =
-    useState<string>("");
+  const [newUnitAmount, setNewUnitAmount] = useState<string>("");
+  const [newCurrency, setNewCurrency] = useState<string>("cad");
+  const [newBillingInterval, setNewBillingInterval] = useState<string>("month");
+  const [newJoiningFeeAmount, setNewJoiningFeeAmount] = useState<string>("");
   const [newPlanToggle, setNewPlanToggle] = useState(false);
 
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
@@ -183,8 +184,10 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
     setNewPlanToggle((prev) => {
       if (prev) {
         setNewName("");
-        setNewStripePriceId("");
-        setNewStripeJoiningFeeId("");
+        setNewUnitAmount("");
+        setNewCurrency("cad");
+        setNewBillingInterval("month");
+        setNewJoiningFeeAmount("");
         setNewPeriod("");
       }
       return !prev;
@@ -193,12 +196,12 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
 
   // add new plan
   const addNewPlan = async () => {
-    // verify no null enters
-    if (!newName || !newStripePriceId || !newPeriod) {
+    // verify required fields
+    if (!newName || !newUnitAmount || !newBillingInterval || !newPeriod) {
       toast({
         status: "error",
         description:
-          "Please fill in all required fields before adding a new plan.",
+          "Please fill in all required fields (name, price, interval, periods).",
         variant: "destructive",
       });
       return;
@@ -206,7 +209,6 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
 
     // ensure period is a number
     const parsedPeriod = parseInt(newPeriod, 10);
-
     if (isNaN(parsedPeriod) || parsedPeriod <= 0) {
       toast({
         status: "error",
@@ -214,6 +216,31 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         variant: "destructive",
       });
       return;
+    }
+
+    // convert dollar amount to cents
+    const parsedUnitAmount = Math.round(parseFloat(newUnitAmount) * 100);
+    if (isNaN(parsedUnitAmount) || parsedUnitAmount <= 0) {
+      toast({
+        status: "error",
+        description: "Price must be a valid positive number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // parse joining fee if provided
+    let parsedJoiningFee: number | undefined;
+    if (newJoiningFeeAmount) {
+      parsedJoiningFee = Math.round(parseFloat(newJoiningFeeAmount) * 100);
+      if (isNaN(parsedJoiningFee) || parsedJoiningFee < 0) {
+        toast({
+          status: "error",
+          description: "Joining fee must be a valid number.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -226,30 +253,32 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
         body: JSON.stringify({
           membership_id: membershipId,
           name: newName,
-          stripe_price_id: newStripePriceId,
-          stripe_joining_fees_id: newStripeJoiningFeeId
-            ? newStripeJoiningFeeId
-            : undefined,
+          unit_amount: parsedUnitAmount,
+          currency: newCurrency,
+          billing_interval: newBillingInterval,
+          joining_fee_amount: parsedJoiningFee || undefined,
           amt_periods: parsedPeriod,
         }),
       });
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         toast({
           status: "error",
-          description: "Plan failed to create successfully",
+          description: errorData.message || "Plan failed to create successfully",
           variant: "destructive",
         });
       } else {
         toast({
           status: "success",
-          description: "Plan created successfully",
+          description: "Plan created successfully (Stripe product auto-created)",
         });
         refreshPlans();
         setNewName("");
-        setNewStripePriceId("");
-        setNewStripeJoiningFeeId("");
+        setNewUnitAmount("");
+        setNewCurrency("cad");
+        setNewBillingInterval("month");
+        setNewJoiningFeeAmount("");
         setNewPeriod("");
-
         setNewPlanToggle(false);
       }
     } catch (err) {
@@ -600,38 +629,74 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     className="w-full mt-1"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="name of plan"
+                    placeholder="e.g. Monthly Gold Plan"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
-                <div className="w-full pl-1 ">
-                  <Label className="w-full">Stripe price id</Label>
+                <div className="w-full pl-1">
+                  <Label className="w-full">Price ($)</Label>
                   <Input
                     className="w-full mt-1"
-                    value={newStripePriceId}
-                    onChange={(e) => setNewStripePriceId(e.target.value)}
-                    placeholder="price_..."
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={newUnitAmount}
+                    onChange={(e) => setNewUnitAmount(e.target.value)}
+                    placeholder="50.00"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </div>
               <div className="pt-3 flex">
                 <div className="w-full pr-5">
-                  <Label className="w-full">Stripe join fee</Label>
+                  <Label className="w-full">Billing Interval</Label>
+                  <select
+                    className="w-full mt-1 h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    value={newBillingInterval}
+                    onChange={(e) => setNewBillingInterval(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="month">Monthly</option>
+                    <option value="year">Yearly</option>
+                    <option value="week">Weekly</option>
+                    <option value="day">Daily</option>
+                  </select>
+                </div>
+                <div className="w-full pl-1">
+                  <Label className="w-full">Currency</Label>
+                  <select
+                    className="w-full mt-1 h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    value={newCurrency}
+                    onChange={(e) => setNewCurrency(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="cad">CAD</option>
+                    <option value="usd">USD</option>
+                  </select>
+                </div>
+              </div>
+              <div className="pt-3 flex">
+                <div className="w-full pr-5">
+                  <Label className="w-full">Joining Fee ($) (optional)</Label>
                   <Input
                     className="w-full mt-1"
-                    value={newStripeJoiningFeeId}
-                    onChange={(e) => setNewStripeJoiningFeeId(e.target.value)}
-                    placeholder="price_..."
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={newJoiningFeeAmount}
+                    onChange={(e) => setNewJoiningFeeAmount(e.target.value)}
+                    placeholder="0.00"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
-                <div className="w-full pl-1 ">
-                  <Label className="w-full">Period</Label>
+                <div className="w-full pl-1">
+                  <Label className="w-full">Billing Periods</Label>
                   <Input
                     className="w-full mt-1"
+                    type="number"
+                    min="1"
                     value={newPeriod}
-                    placeholder="1"
+                    placeholder="12"
                     onChange={(e) => setNewPeriod(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                   />
