@@ -3,7 +3,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Customer, CustomerCreditTransaction, WaiverUpload } from "@/types/customer";
+import {
+  Customer,
+  CustomerCreditTransaction,
+  WaiverUpload,
+} from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,11 +164,15 @@ export default function CustomerInfoPanel({
   const [waivers, setWaivers] = useState<WaiverUpload[]>([]);
   const [isWaiversLoading, setIsWaiversLoading] = useState(false);
   const [uploadWaiverDialogOpen, setUploadWaiverDialogOpen] = useState(false);
-  const [selectedWaiverFile, setSelectedWaiverFile] = useState<File | null>(null);
+  const [selectedWaiverFile, setSelectedWaiverFile] = useState<File | null>(
+    null
+  );
   const [waiverNotes, setWaiverNotes] = useState("");
   const [isUploadingWaiver, setIsUploadingWaiver] = useState(false);
   const [deleteWaiverDialogOpen, setDeleteWaiverDialogOpen] = useState(false);
-  const [waiverToDelete, setWaiverToDelete] = useState<WaiverUpload | null>(null);
+  const [waiverToDelete, setWaiverToDelete] = useState<WaiverUpload | null>(
+    null
+  );
   const [isDeletingWaiver, setIsDeletingWaiver] = useState(false);
   const waiverFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1700,8 +1708,10 @@ export default function CustomerInfoPanel({
                             {waiver.file_name || "Waiver Document"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Uploaded: {new Date(waiver.uploaded_at).toLocaleDateString()}
-                            {waiver.file_size && ` • ${(waiver.file_size / 1024).toFixed(1)} KB`}
+                            Uploaded:{" "}
+                            {new Date(waiver.uploaded_at).toLocaleDateString()}
+                            {waiver.file_size &&
+                              ` • ${(waiver.file_size / 1024).toFixed(1)} KB`}
                           </p>
                           {waiver.notes && (
                             <p className="text-xs text-muted-foreground italic mt-1">
@@ -1715,7 +1725,9 @@ export default function CustomerInfoPanel({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(waiver.file_url, "_blank")}
+                            onClick={() =>
+                              window.open(waiver.file_url, "_blank")
+                            }
                           >
                             <ExternalLink className="h-4 w-4 mr-1" />
                             View
@@ -1743,9 +1755,12 @@ export default function CustomerInfoPanel({
                   <div className="mb-4">
                     <File className="h-12 w-12 mx-auto text-muted-foreground/40" />
                   </div>
-                  <h3 className="text-lg font-medium mb-2">No Waivers Uploaded</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    No Waivers Uploaded
+                  </h3>
                   <p className="text-muted-foreground">
-                    This customer doesn't have any waiver documents uploaded yet.
+                    This customer doesn't have any waiver documents uploaded
+                    yet.
                   </p>
                 </div>
               )}
@@ -2188,7 +2203,7 @@ export default function CustomerInfoPanel({
         </TabsContent>*/}
       </Tabs>
 
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur py-4 border-t z-10 mt-8">
+      <div className="sticky -bottom-10 bg-background pt-4 pb-14 border-t z-10 mt-8 -mx-10 px-10">
         <div className="max-w-full mx-auto px-2 flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
             Last updated:{" "}
@@ -2660,7 +2675,8 @@ export default function CustomerInfoPanel({
                   {waiverToDelete.file_name || "Waiver Document"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Uploaded: {new Date(waiverToDelete.uploaded_at).toLocaleDateString()}
+                  Uploaded:{" "}
+                  {new Date(waiverToDelete.uploaded_at).toLocaleDateString()}
                 </p>
                 {waiverToDelete.notes && (
                   <p className="text-xs text-muted-foreground italic mt-1">
