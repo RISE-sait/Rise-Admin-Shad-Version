@@ -48,5 +48,5 @@ export interface WaiverUpload {
   file_size: number;
   notes?: string;
   uploaded_by?: string;
-  uploaded_at: string;
+  uploaded_at: string | { Time: string; Valid: boolean };
 }
