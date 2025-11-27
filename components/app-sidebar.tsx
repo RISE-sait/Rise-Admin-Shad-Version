@@ -24,6 +24,7 @@ import {
   Trophy,
   Dribbble,
   ClipboardList,
+  Globe,
 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -102,11 +103,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ]
         : [];
 
-  // Add Audit link only for ADMIN and SUPERADMIN (not RECEPTIONIST)
+  // Add Audit and Website Content links only for ADMIN and SUPERADMIN (not RECEPTIONIST)
   const manageItems =
     role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN
       ? [
           ...baseManageItems,
+          {
+            title: "Website Content",
+            url: "/manage/website-content",
+            icon: <Globe width={15} height={15} />,
+          },
           {
             title: "Audit",
             url: "/audit",
