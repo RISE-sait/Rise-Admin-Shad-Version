@@ -59,13 +59,12 @@ export function toZonedISOString(date: Date): string {
 }
 
 /**
- * Parse an ISO string produced by {@link toZonedISOString} into a Date
- * without shifting the local time.
+ * Parse an ISO string into a Date.
+ * Now that the API returns proper ISO 8601 with timezone offset,
+ * we can simply use the native Date parser.
  */
 export function fromZonedISOString(isoString: string): Date {
-  const date = new Date(isoString);
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() + offsetMs);
+  return new Date(isoString);
 }
 
 /**
