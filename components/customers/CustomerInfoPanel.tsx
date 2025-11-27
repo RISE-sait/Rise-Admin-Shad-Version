@@ -1709,7 +1709,14 @@ export default function CustomerInfoPanel({
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Uploaded:{" "}
-                            {new Date(waiver.uploaded_at).toLocaleDateString()}
+                            {(() => {
+                              const timestamp: string | undefined = typeof waiver.uploaded_at === 'object' && waiver.uploaded_at?.Time
+                                ? waiver.uploaded_at.Time
+                                : typeof waiver.uploaded_at === 'string' ? waiver.uploaded_at : undefined;
+                              return timestamp && !isNaN(new Date(timestamp).getTime())
+                                ? new Date(timestamp).toLocaleDateString()
+                                : "Recently";
+                            })()}
                             {waiver.file_size &&
                               ` • ${(waiver.file_size / 1024).toFixed(1)} KB`}
                           </p>
@@ -2676,7 +2683,14 @@ export default function CustomerInfoPanel({
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Uploaded:{" "}
-                  {new Date(waiverToDelete.uploaded_at).toLocaleDateString()}
+                  {(() => {
+                    const timestamp: string | undefined = typeof waiverToDelete.uploaded_at === 'object' && waiverToDelete.uploaded_at?.Time
+                      ? waiverToDelete.uploaded_at.Time
+                      : typeof waiverToDelete.uploaded_at === 'string' ? waiverToDelete.uploaded_at : undefined;
+                    return timestamp && !isNaN(new Date(timestamp).getTime())
+                      ? new Date(timestamp).toLocaleDateString()
+                      : "Recently";
+                  })()}
                 </p>
                 {waiverToDelete.notes && (
                   <p className="text-xs text-muted-foreground italic mt-1">
