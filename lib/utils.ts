@@ -32,19 +32,30 @@ export function formatDate(
 }
 
 /**
- * Convert a Date to an ISO string preserving the local time.
+ * Convert a Date to an ISO string with the local timezone offset.
  *
- * `Date.prototype.toISOString` converts the date to UTC, which shifts the time
- * based on the user's timezone. This helper subtracts the timezone offset
- * before calling `toISOString` so the returned string represents the original
- * local time.
+ * `Date.prototype.toISOString` converts the date to UTC with 'Z' suffix.
+ * This helper outputs the local time with the correct timezone offset
+ * (e.g., "2025-10-24T09:00:00-07:00" for MST).
  *
  * @param date - The date to convert.
- * @returns ISO string with the same local time.
+ * @returns ISO string with timezone offset (e.g., "2025-10-24T09:00:00-07:00").
  */
 export function toZonedISOString(date: Date): string {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString();
+  const offsetMinutes = date.getTimezoneOffset();
+  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+  const offsetMins = Math.abs(offsetMinutes) % 60;
+  const offsetSign = offsetMinutes <= 0 ? '+' : '-';
+  const offsetStr = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetStr}`;
 }
 
 /**
@@ -58,17 +69,22 @@ export function fromZonedISOString(isoString: string): Date {
 }
 
 /**
- * Convert a Date to an ISO string adjusted to the local timezone.
+ * Convert a Date to an ISO string for datetime-local inputs.
  *
  * Useful for pre-filling `datetime-local` input values without shifting
- * the visible time.
+ * the visible time. Returns format "YYYY-MM-DDTHH:mm" without timezone.
  *
  * @param date - The date to convert.
- * @returns ISO string representing the same wall-clock time.
+ * @returns ISO string without timezone for datetime-local inputs.
  */
 export function toLocalISOString(date: Date): string {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 /**
