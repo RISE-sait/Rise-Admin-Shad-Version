@@ -39,9 +39,10 @@ import EventStaffTab from "../event/EventStaffTab";
 import AttendeesTable from "./manage/AttendeesTable";
 import { deleteEvent, getEvent } from "@/services/events";
 import { deletePractice } from "@/services/practices";
+import { deleteGame } from "@/services/games";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { revalidateEvents, revalidatePractices } from "@/actions/serverActions";
+import { revalidateEvents, revalidatePractices, revalidateGames } from "@/actions/serverActions";
 import { CalendarEvent } from "@/types/calendar";
 import { EventParticipant } from "@/types/events";
 import {
@@ -153,33 +154,46 @@ export default function CalendarManageEventDrawer() {
   async function handleDelete() {
     if (!selectedEvent) return;
     try {
-      const isPractice = selectedEvent.program.type === "practice";
-      const error = isPractice
-        ? await deletePractice(selectedEvent.id, user?.Jwt!)
-        : await deleteEvent(selectedEvent.id, user?.Jwt!);
+      const eventType = selectedEvent.program.type;
+      const isPractice = eventType === "practice";
+      const isGame = eventType === "game";
+
+      let error: string | null = null;
+
+      if (isGame) {
+        error = await deleteGame(selectedEvent.id, user?.Jwt!);
+      } else if (isPractice) {
+        error = await deletePractice(selectedEvent.id, user?.Jwt!);
+      } else {
+        error = await deleteEvent(selectedEvent.id, user?.Jwt!);
+      }
 
       if (error === null) {
+        const typeLabel = isGame ? "Game" : isPractice ? "Practice" : "Event";
         toast({
           status: "success",
-          description: `${isPractice ? "Practice" : "Event"} deleted successfully`,
+          description: `${typeLabel} deleted successfully`,
         });
         setEvents(events.filter((event) => event.id !== selectedEvent.id));
         await revalidateEvents();
         if (isPractice) {
           await revalidatePractices();
         }
+        if (isGame) {
+          await revalidateGames();
+        }
         handleClose();
       } else {
         toast({
           status: "error",
-          description: `Failed to delete event: ${error}`,
+          description: `Failed to delete: ${error}`,
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         status: "error",
-        description: "Failed to delete event",
+        description: "Failed to delete",
         variant: "destructive",
       });
     }
@@ -513,14 +527,14 @@ export default function CalendarManageEventDrawer() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" className="w-full h-11">
-                            Delete Event
+                            Delete {eventType === "game" ? "Game" : eventType === "practice" ? "Practice" : "Event"}
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this event? This
+                              Are you sure you want to delete this {eventType === "game" ? "game" : eventType === "practice" ? "practice" : "event"}? This
                               action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
