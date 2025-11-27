@@ -29,7 +29,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUpDown, MoreHorizontal, FolderSearch } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, FolderSearch, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import {
   AlertDialog,
@@ -113,6 +120,34 @@ export const columns: ColumnDef<Customer>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
+    cell: ({ row }) => {
+      const customer = row.original;
+      const hasPendingDeletion = !!customer.deleted_at;
+      const scheduledDate = customer.scheduled_deletion_at
+        ? new Date(customer.scheduled_deletion_at).toLocaleDateString()
+        : null;
+
+      return (
+        <div className="flex items-center gap-2">
+          <span>{`${customer.first_name} ${customer.last_name}`}</span>
+          {hasPendingDeletion && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Deletion Pending
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Account will be deleted on {scheduledDate || "N/A"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      );
+    },
     minSize: 180,
     size: 200,
   },

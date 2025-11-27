@@ -79,7 +79,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     day: "MONDAY",
     capacity: 0,
     credit_cost: "",
-    price_id: "",
+    price_amount: "", // Dollar amount (e.g., "25.00")
+    currency: "cad",
     required_membership_plan_ids: [] as string[],
   });
   const { user } = useUser();
@@ -162,6 +163,11 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         return;
       }
 
+      // Convert price_amount (dollars) to unit_amount (cents)
+      const unitAmount = data.price_amount
+        ? Math.round(parseFloat(data.price_amount) * 100)
+        : undefined;
+
       const eventData: EventCreateRequest = {
         program_id: data.program_id,
         team_id: data.team_id || undefined,
@@ -171,7 +177,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         end_at: toZonedISOString(new Date(data.end_at)),
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
-        ...(data.price_id ? { price_id: data.price_id } : {}),
+        ...(unitAmount ? { unit_amount: unitAmount, currency: data.currency } : {}),
         ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
           ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
@@ -203,6 +209,11 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
       const endDate = new Date(data.recurrence_end_at);
       endDate.setHours(23, 59, 59, 999);
 
+      // Convert price_amount (dollars) to unit_amount (cents) for recurring events
+      const unitAmountRecurring = data.price_amount
+        ? Math.round(parseFloat(data.price_amount) * 100)
+        : undefined;
+
       const eventData: EventRecurrenceCreateRequest = {
         program_id: data.program_id,
         team_id: data.team_id || undefined,
@@ -215,7 +226,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         day: data.day,
         capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
-        ...(data.price_id ? { price_id: data.price_id } : {}),
+        ...(unitAmountRecurring ? { unit_amount: unitAmountRecurring, currency: data.currency } : {}),
         ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
           ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
@@ -239,6 +250,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         const nameParts = (user?.Name || " ").split(" ");
         const firstName = nameParts.shift() || "";
         const lastName = nameParts.join(" ");
+        // Recalculate unit_amount for local event object
+        const localUnitAmount = data.price_amount
+          ? Math.round(parseFloat(data.price_amount) * 100)
+          : undefined;
         const newEvent = {
           id: crypto.randomUUID(),
           color: getColorFromProgramType(program?.type),
@@ -250,7 +265,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               ? Number(data.credit_cost)
               : undefined,
 
-          price_id: data.price_id || undefined,
+          unit_amount: localUnitAmount,
+          currency: data.currency || undefined,
           required_membership_plan_ids:
             data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
               ? data.required_membership_plan_ids
@@ -284,6 +300,10 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         const nameParts = (user?.Name || " ").split(" ");
         const firstName = nameParts.shift() || "";
         const lastName = nameParts.join(" ");
+        // Recalculate unit_amount for local event objects
+        const localUnitAmountRecurring = data.price_amount
+          ? Math.round(parseFloat(data.price_amount) * 100)
+          : undefined;
 
         const startDate = new Date(data.recurrence_start_at);
         const endDate = new Date(data.recurrence_end_at);
@@ -320,7 +340,8 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                   ? Number(data.credit_cost)
                   : undefined,
 
-              price_id: data.price_id || undefined,
+              unit_amount: localUnitAmountRecurring,
+              currency: data.currency || undefined,
               required_membership_plan_ids:
                 data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
                   ? data.required_membership_plan_ids
@@ -625,15 +646,36 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="event-price-id" className="text-sm font-medium text-muted-foreground">
-                Price ID (Optional)
+              <Label htmlFor="event-price-amount" className="text-sm font-medium text-muted-foreground">
+                Price (Optional)
               </Label>
-              <Input
-                id="event-price-id"
-                value={data.price_id}
-                onChange={(e) => updateField("price_id", e.target.value)}
-                className="bg-background"
-              />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="event-price-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={data.price_amount}
+                    onChange={(e) => updateField("price_amount", e.target.value)}
+                    className="bg-background pl-7"
+                  />
+                </div>
+                <Select
+                  value={data.currency}
+                  onValueChange={(value) => updateField("currency", value)}
+                >
+                  <SelectTrigger className="w-24 bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cad">CAD</SelectItem>
+                    <SelectItem value="usd">USD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label

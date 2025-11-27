@@ -29,6 +29,10 @@ export interface Customer {
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
   emergency_contact_relationship?: string | null;
+
+  // Account deletion status
+  deleted_at?: string | null;
+  scheduled_deletion_at?: string | null;
 }
 
 export interface CustomerCreditTransaction {
