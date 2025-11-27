@@ -127,7 +127,7 @@ export default function WebsiteContentPage() {
   };
 
   return (
-    <div className="flex-1 space-y-4 p-6 pt-6">
+    <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between">
         <Heading
           title="Website Content"
@@ -164,7 +164,7 @@ export default function WebsiteContentPage() {
                 setDrawerContent("hero-add");
                 setDrawerOpen(true);
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900"
             >
               <PlusIcon className="h-4 w-4" />
               Add Hero Promo
@@ -177,7 +177,7 @@ export default function WebsiteContentPage() {
                 setDrawerContent("feature-add");
                 setDrawerOpen(true);
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900"
             >
               <PlusIcon className="h-4 w-4" />
               Add Feature Card

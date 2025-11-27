@@ -144,10 +144,10 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
   return (
     <form className="space-y-6 pt-3" onSubmit={onSubmit}>
       {/* Basic Information */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
-            <Image className="h-5 w-5 text-blue-500" />
+            <Image className="h-5 w-5 text-yellow-500" />
             <h3 className="font-semibold text-lg">Basic Information</h3>
           </div>
           <div className="space-y-4">
@@ -188,10 +188,10 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       </Card>
 
       {/* Image Upload */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
-            <Upload className="h-5 w-5 text-blue-500" />
+            <Upload className="h-5 w-5 text-yellow-500" />
             <h3 className="font-semibold text-lg">Image</h3>
           </div>
           <div className="space-y-4">
@@ -248,7 +248,7 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       </Card>
 
       {/* Button Configuration */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">
           <h3 className="font-semibold text-lg mb-4">Button (Optional)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -273,7 +273,7 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       </Card>
 
       {/* Display Settings */}
-      <Card className="border-l-4 border-l-blue-500">
+      <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">
           <h3 className="font-semibold text-lg mb-4">Display Settings</h3>
           <div className="space-y-4">
@@ -357,7 +357,7 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
         <Button
           type="submit"
           disabled={isSubmitting || isUploading}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
           <Image className="h-5 w-5 mr-2" />
           {isSubmitting ? "Saving..." : isEditing ? "Update Hero Promo" : "Create Hero Promo"}
