@@ -334,12 +334,12 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid w-full ${user?.Role === StaffRoleEnum.SUPERADMIN ? 'grid-cols-6' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) ? 'grid-cols-6' : 'grid-cols-4'}`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="theme">Theme</TabsTrigger>
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
-          {user?.Role === StaffRoleEnum.SUPERADMIN && (
+          {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) && (
             <>
               <TabsTrigger value="website">Website Content</TabsTrigger>
               <TabsTrigger value="staff">Staff Management</TabsTrigger>
@@ -695,15 +695,15 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Website Content Tab - Only for Super Admins */}
-        {user?.Role === StaffRoleEnum.SUPERADMIN && (
+        {/* Website Content Tab - Only for Super Admins and IT */}
+        {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) && (
           <TabsContent value="website" className="space-y-4">
             <WebsiteContentPage />
           </TabsContent>
         )}
 
-        {/* Staff Management Tab - Only for Super Admins */}
-        {user?.Role === StaffRoleEnum.SUPERADMIN && (
+        {/* Staff Management Tab - Only for Super Admins and IT */}
+        {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) && (
           <TabsContent value="staff" className="space-y-4">
             <StaffManagement />
           </TabsContent>
