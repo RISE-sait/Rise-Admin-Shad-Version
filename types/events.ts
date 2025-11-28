@@ -79,6 +79,8 @@ export interface EventCreateRequest {
   capacity?: number;
   credit_cost?: number;
   price_id?: string;
+  unit_amount?: number; // Price in cents (e.g., 2500 for $25.00)
+  currency?: string; // e.g., "cad" or "usd"
   required_membership_plan_ids?: string[];
 }
 
@@ -95,5 +97,7 @@ export interface EventRecurrenceCreateRequest {
   capacity?: number;
   credit_cost?: number;
   price_id?: string;
+  unit_amount?: number; // Price in cents (e.g., 2500 for $25.00)
+  currency?: string; // e.g., "cad" or "usd"
   required_membership_plan_ids?: string[];
 }

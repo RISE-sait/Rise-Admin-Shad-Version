@@ -72,7 +72,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
     start_at: "",
     end_at: "",
     credit_cost: "",
-    price_id: "",
+    price_amount: "", // Dollar amount (e.g., "25.00")
+    currency: "cad",
     required_membership_plan_ids: [] as string[],
   });
   const [usingCredits, setUsingCredits] = useState(false);
@@ -106,6 +107,10 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
 
   useEffect(() => {
     if (selectedEvent) {
+      // Convert unit_amount (cents) to price_amount (dollars) if available
+      const priceAmount = selectedEvent.unit_amount
+        ? (selectedEvent.unit_amount / 100).toFixed(2)
+        : "";
       setData({
         program_id: selectedEvent.program.id,
         team_id: selectedEvent.team?.id || "",
@@ -120,7 +125,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           selectedEvent.credit_cost != null
             ? String(selectedEvent.credit_cost)
             : "",
-        price_id: selectedEvent.price_id ?? "",
+        price_amount: priceAmount,
+        currency: selectedEvent.currency ?? "cad",
         required_membership_plan_ids:
           selectedEvent.required_membership_plan_ids ?? [],
       });
@@ -173,6 +179,11 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       creditCost = parsedCreditCost;
     }
 
+    // Convert price_amount (dollars) to unit_amount (cents)
+    const unitAmount = data.price_amount
+      ? Math.round(parseFloat(data.price_amount) * 100)
+      : undefined;
+
     const eventData: EventCreateRequest = {
       program_id: data.program_id,
       team_id: data.team_id || undefined,
@@ -181,7 +192,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       start_at: toZonedISOString(new Date(data.start_at)),
       end_at: toZonedISOString(new Date(data.end_at)),
       credit_cost: creditCost,
-      ...(data.price_id ? { price_id: data.price_id } : {}),
+      ...(unitAmount ? { unit_amount: unitAmount, currency: data.currency } : {}),
       ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
         ? { required_membership_plan_ids: data.required_membership_plan_ids }
         : {}),
@@ -205,7 +216,8 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         start_at: new Date(data.start_at),
         end_at: new Date(data.end_at),
         credit_cost: creditCost,
-        price_id: data.price_id || undefined,
+        unit_amount: unitAmount,
+        currency: data.currency || undefined,
         required_membership_plan_ids:
           data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
             ? data.required_membership_plan_ids
@@ -412,15 +424,32 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="event-price-id" className="text-sm font-medium">
-                Price ID (optional)
+              <Label htmlFor="event-price-amount" className="text-sm font-medium">
+                Price (optional)
               </Label>
-              <Input
-                id="event-price-id"
-                value={data.price_id}
-                onChange={(e) => setData({ ...data, price_id: e.target.value })}
-                className="bg-background"
-              />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="event-price-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={data.price_amount}
+                    onChange={(e) => setData({ ...data, price_amount: e.target.value })}
+                    className="bg-background pl-7"
+                  />
+                </div>
+                <select
+                  className="w-24 border rounded-md p-2 bg-background"
+                  value={data.currency}
+                  onChange={(e) => setData({ ...data, currency: e.target.value })}
+                >
+                  <option value="cad">CAD</option>
+                  <option value="usd">USD</option>
+                </select>
+              </div>
             </div>
           </div>
         </CardContent>

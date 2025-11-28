@@ -55,7 +55,9 @@ import {
   Upload,
   File,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import {
   getCustomerById,
@@ -1133,6 +1135,27 @@ export default function CustomerInfoPanel({
 
   return (
     <div className="space-y-6">
+      {/* Account Deletion Warning Banner */}
+      {currentCustomer.deleted_at && (
+        <Alert variant="destructive" className="border-red-500 bg-red-50 dark:bg-red-950">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Account Deletion Requested</AlertTitle>
+          <AlertDescription>
+            <p>This customer has requested account deletion.</p>
+            <p className="mt-1">
+              <strong>Deleted:</strong>{" "}
+              {new Date(currentCustomer.deleted_at).toLocaleString()}
+            </p>
+            {currentCustomer.scheduled_deletion_at && (
+              <p>
+                <strong>Permanent deletion scheduled:</strong>{" "}
+                {new Date(currentCustomer.scheduled_deletion_at).toLocaleString()}
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex justify-between items-center">
         <Button
           variant="outline"
