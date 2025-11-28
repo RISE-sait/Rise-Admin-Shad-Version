@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HeroPromo } from "@/types/website-promo";
+import { PromoVideo } from "@/types/website-promo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,23 +19,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useUser } from "@/contexts/UserContext";
-import { deleteHeroPromo } from "@/services/website-promo";
+import { deletePromoVideo } from "@/services/website-promo";
 import { toast } from "sonner";
-import { Pencil, Trash2, Eye, Info, Calendar, Link as LinkIcon, Video, ImageIcon } from "lucide-react";
+import { Pencil, Trash2, Eye, Info, Calendar, Video, Play } from "lucide-react";
 import { format } from "date-fns";
-import HeroPromoForm from "./HeroPromoForm";
+import PromoVideoForm from "./PromoVideoForm";
 
-interface HeroPromoInfoPanelProps {
-  heroPromo: HeroPromo;
+interface PromoVideoInfoPanelProps {
+  promoVideo: PromoVideo;
   onClose: () => void;
   onSuccess: () => Promise<void>;
 }
 
-export default function HeroPromoInfoPanel({
-  heroPromo,
+export default function PromoVideoInfoPanel({
+  promoVideo,
   onClose,
   onSuccess,
-}: HeroPromoInfoPanelProps) {
+}: PromoVideoInfoPanelProps) {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("details");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -50,10 +50,10 @@ export default function HeroPromoInfoPanel({
   };
 
   const isCurrentlyActive = () => {
-    if (!heroPromo.is_active) return false;
+    if (!promoVideo.is_active) return false;
     const now = new Date();
-    if (heroPromo.start_date && new Date(heroPromo.start_date) > now) return false;
-    if (heroPromo.end_date && new Date(heroPromo.end_date) < now) return false;
+    if (promoVideo.start_date && new Date(promoVideo.start_date) > now) return false;
+    if (promoVideo.end_date && new Date(promoVideo.end_date) < now) return false;
     return true;
   };
 
@@ -61,13 +61,13 @@ export default function HeroPromoInfoPanel({
     if (!user?.Jwt) return;
     setIsDeleting(true);
     try {
-      await deleteHeroPromo(heroPromo.id, user.Jwt);
-      toast.success("Hero promo deleted successfully");
+      await deletePromoVideo(promoVideo.id, user.Jwt);
+      toast.success("Promo video deleted successfully");
       await onSuccess();
       onClose();
     } catch (error) {
-      console.error("Failed to delete hero promo:", error);
-      toast.error("Failed to delete hero promo");
+      console.error("Failed to delete promo video:", error);
+      toast.error("Failed to delete promo video");
     } finally {
       setIsDeleting(false);
     }
@@ -96,80 +96,41 @@ export default function HeroPromoInfoPanel({
           <div className="flex items-center gap-2">
             {isCurrentlyActive() ? (
               <Badge className="bg-green-500">Currently Active</Badge>
-            ) : heroPromo.is_active ? (
+            ) : promoVideo.is_active ? (
               <Badge variant="outline" className="text-yellow-600 border-yellow-600">
                 Scheduled
               </Badge>
             ) : (
               <Badge variant="secondary">Inactive</Badge>
             )}
-            <Badge variant="outline" className="flex items-center gap-1">
-              {heroPromo.media_type === "video" ? (
-                <>
-                  <Video className="h-3 w-3" /> Video
-                </>
-              ) : (
-                <>
-                  <ImageIcon className="h-3 w-3" /> Image
-                </>
-              )}
-            </Badge>
+            {promoVideo.category && (
+              <Badge variant="outline" className="capitalize">
+                {promoVideo.category}
+              </Badge>
+            )}
           </div>
 
-          {/* Media Preview */}
+          {/* Video Preview */}
           <Card>
             <CardContent className="p-4">
-              {heroPromo.media_type === "video" ? (
-                <video
-                  src={heroPromo.media_url}
-                  poster={heroPromo.thumbnail_url || undefined}
-                  className="w-full h-48 object-cover rounded-lg"
-                  controls
-                />
-              ) : (
-                <img
-                  src={heroPromo.media_url}
-                  alt={heroPromo.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-              )}
+              <video
+                src={promoVideo.video_url}
+                poster={promoVideo.thumbnail_url}
+                className="w-full h-48 object-cover rounded-lg"
+                controls
+              />
             </CardContent>
           </Card>
 
           {/* Basic Info */}
           <Card>
             <CardContent className="p-4 space-y-3">
-              <h3 className="font-semibold text-lg">{heroPromo.title}</h3>
-              {heroPromo.subtitle && (
-                <p className="text-muted-foreground">{heroPromo.subtitle}</p>
-              )}
-              {heroPromo.description && (
-                <p className="text-sm">{heroPromo.description}</p>
+              <h3 className="font-semibold text-lg">{promoVideo.title}</h3>
+              {promoVideo.description && (
+                <p className="text-sm text-muted-foreground">{promoVideo.description}</p>
               )}
             </CardContent>
           </Card>
-
-          {/* Button Info */}
-          {(heroPromo.button_text || heroPromo.button_link) && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <LinkIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Button</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Text:</span>{" "}
-                    {heroPromo.button_text || "-"}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Link:</span>{" "}
-                    {heroPromo.button_link || "-"}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Display Settings */}
           <Card>
@@ -181,19 +142,19 @@ export default function HeroPromoInfoPanel({
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Display Order:</span>{" "}
-                  {heroPromo.display_order}
+                  {promoVideo.display_order}
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Duration:</span>{" "}
-                  {heroPromo.duration_seconds} seconds
+                  <span className="text-muted-foreground">Category:</span>{" "}
+                  {promoVideo.category || "highlight"}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Start Date:</span>{" "}
-                  {formatDate(heroPromo.start_date)}
+                  {formatDate(promoVideo.start_date)}
                 </div>
                 <div>
                   <span className="text-muted-foreground">End Date:</span>{" "}
-                  {formatDate(heroPromo.end_date)}
+                  {formatDate(promoVideo.end_date)}
                 </div>
               </div>
             </CardContent>
@@ -202,8 +163,8 @@ export default function HeroPromoInfoPanel({
           {/* Timestamps */}
           <Card>
             <CardContent className="p-4 text-sm text-muted-foreground">
-              <div>Created: {formatDate(heroPromo.created_at)}</div>
-              <div>Updated: {formatDate(heroPromo.updated_at)}</div>
+              <div>Created: {formatDate(promoVideo.created_at)}</div>
+              <div>Updated: {formatDate(promoVideo.updated_at)}</div>
             </CardContent>
           </Card>
 
@@ -214,14 +175,14 @@ export default function HeroPromoInfoPanel({
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full" disabled={isDeleting}>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete Hero Promo
+                Delete Promo Video
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the hero promo &quot;{heroPromo.title}&quot;.
+                  This will permanently delete the promo video &quot;{promoVideo.title}&quot;.
                   This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -239,55 +200,38 @@ export default function HeroPromoInfoPanel({
         </TabsContent>
 
         <TabsContent value="preview" className="mt-4">
-          {/* Hero Banner Preview */}
+          {/* Video Card Preview */}
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              <div className="relative w-full aspect-[16/6] bg-black">
-                {heroPromo.media_type === "video" ? (
-                  <video
-                    src={heroPromo.media_url}
-                    poster={heroPromo.thumbnail_url || undefined}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                  />
-                ) : (
-                  <img
-                    src={heroPromo.media_url}
-                    alt={heroPromo.title}
-                    className="w-full h-full object-cover"
-                  />
+              <div className="relative aspect-video bg-black">
+                <video
+                  src={promoVideo.video_url}
+                  poster={promoVideo.thumbnail_url}
+                  className="w-full h-full object-cover"
+                  controls
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-lg">{promoVideo.title}</h3>
+                {promoVideo.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{promoVideo.description}</p>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
-                <div className="absolute inset-0 flex flex-col justify-center p-8 text-white">
-                  <h1 className="text-3xl font-bold mb-2">{heroPromo.title}</h1>
-                  {heroPromo.subtitle && (
-                    <p className="text-xl mb-2">{heroPromo.subtitle}</p>
-                  )}
-                  {heroPromo.description && (
-                    <p className="text-sm opacity-90 max-w-md mb-4">
-                      {heroPromo.description}
-                    </p>
-                  )}
-                  {heroPromo.button_text && (
-                    <Button className="w-fit">
-                      {heroPromo.button_text}
-                    </Button>
-                  )}
-                </div>
+                {promoVideo.category && (
+                  <Badge variant="outline" className="mt-2 capitalize">
+                    {promoVideo.category}
+                  </Badge>
+                )}
               </div>
             </CardContent>
           </Card>
           <p className="text-sm text-muted-foreground mt-2 text-center">
-            This is a preview of how the hero banner will appear on the website.
+            This is a preview of how the video card will appear on the website.
           </p>
         </TabsContent>
 
         <TabsContent value="edit" className="mt-4">
-          <HeroPromoForm
-            heroPromo={heroPromo}
+          <PromoVideoForm
+            promoVideo={promoVideo}
             onSuccess={async () => {
               await onSuccess();
               setActiveTab("details");

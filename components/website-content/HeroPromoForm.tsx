@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useUser } from "@/contexts/UserContext";
 import { CreateHeroPromoRequest, HeroPromo } from "@/types/website-promo";
-import { createHeroPromo, updateHeroPromo, uploadPromoImage } from "@/services/website-promo";
-import { Image, Upload, Loader2 } from "lucide-react";
+import { createHeroPromo, updateHeroPromo, uploadPromoImage, uploadPromoVideo } from "@/services/website-promo";
+import { Image, Upload, Loader2, Video, ImageIcon } from "lucide-react";
 import { useState, useRef } from "react";
 
 interface HeroPromoFormProps {
@@ -24,7 +25,9 @@ type HeroPromoFormValues = {
   title: string;
   subtitle?: string;
   description?: string;
-  image_url: string;
+  media_url: string;
+  media_type: "image" | "video";
+  thumbnail_url?: string;
   button_text?: string;
   button_link?: string;
   display_order: number;
@@ -36,9 +39,12 @@ type HeroPromoFormValues = {
 
 export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormProps) {
   const { user } = useUser();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string>(heroPromo?.image_url || "");
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string>(heroPromo?.media_url || "");
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string>(heroPromo?.thumbnail_url || "");
 
   const isEditing = !!heroPromo;
 
@@ -53,7 +59,9 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       title: heroPromo?.title || "",
       subtitle: heroPromo?.subtitle || "",
       description: heroPromo?.description || "",
-      image_url: heroPromo?.image_url || "",
+      media_url: heroPromo?.media_url || "",
+      media_type: heroPromo?.media_type || "image",
+      thumbnail_url: heroPromo?.thumbnail_url || "",
       button_text: heroPromo?.button_text || "",
       button_link: heroPromo?.button_link || "",
       display_order: heroPromo?.display_order || 1,
@@ -65,35 +73,99 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
   });
 
   const isActive = watch("is_active");
+  const mediaType = watch("media_type");
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user?.Jwt) return;
 
-    // Validate file type
+    if (mediaType === "image") {
+      // Validate image type
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type. Please upload a JPG, PNG, GIF, or WebP image.");
+        return;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error("File size exceeds 20MB limit.");
+        return;
+      }
+
+      setIsUploadingMedia(true);
+      try {
+        const url = await uploadPromoImage(file, "hero", user.Jwt);
+        setValue("media_url", url);
+        setMediaPreviewUrl(url);
+        toast.success("Image uploaded successfully");
+      } catch (error) {
+        console.error("Failed to upload image:", error);
+        toast.error("Failed to upload image. Please try again.");
+      } finally {
+        setIsUploadingMedia(false);
+      }
+    } else {
+      // Validate video type
+      const validTypes = ["video/mp4", "video/webm", "video/quicktime"];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type. Please upload an MP4, WebM, or MOV video.");
+        return;
+      }
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error("File size exceeds 100MB limit.");
+        return;
+      }
+
+      setIsUploadingMedia(true);
+      try {
+        const url = await uploadPromoVideo(file, "hero", user.Jwt);
+        setValue("media_url", url);
+        setMediaPreviewUrl(url);
+        toast.success("Video uploaded successfully");
+      } catch (error) {
+        console.error("Failed to upload video:", error);
+        toast.error("Failed to upload video. Please try again.");
+      } finally {
+        setIsUploadingMedia(false);
+      }
+    }
+  };
+
+  const handleThumbnailFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.Jwt) return;
+
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) {
       toast.error("Invalid file type. Please upload a JPG, PNG, GIF, or WebP image.");
       return;
     }
-
-    // Validate file size (20MB)
     if (file.size > 20 * 1024 * 1024) {
       toast.error("File size exceeds 20MB limit.");
       return;
     }
 
-    setIsUploading(true);
+    setIsUploadingThumbnail(true);
     try {
       const url = await uploadPromoImage(file, "hero", user.Jwt);
-      setValue("image_url", url);
-      setPreviewUrl(url);
-      toast.success("Image uploaded successfully");
+      setValue("thumbnail_url", url);
+      setThumbnailPreviewUrl(url);
+      toast.success("Thumbnail uploaded successfully");
     } catch (error) {
-      console.error("Failed to upload image:", error);
-      toast.error("Failed to upload image. Please try again.");
+      console.error("Failed to upload thumbnail:", error);
+      toast.error("Failed to upload thumbnail. Please try again.");
     } finally {
-      setIsUploading(false);
+      setIsUploadingThumbnail(false);
+    }
+  };
+
+  const handleMediaTypeChange = (value: "image" | "video") => {
+    setValue("media_type", value);
+    // Clear media when switching types
+    setValue("media_url", "");
+    setMediaPreviewUrl("");
+    if (value === "image") {
+      setValue("thumbnail_url", "");
+      setThumbnailPreviewUrl("");
     }
   };
 
@@ -103,10 +175,12 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       return;
     }
 
-    if (!values.image_url) {
-      toast.error("Please upload an image.");
+    if (!values.media_url) {
+      toast.error(`Please upload ${values.media_type === "video" ? "a video" : "an image"}.`);
       return;
     }
+
+    // Thumbnail is optional for hero videos
 
     // Convert date strings to ISO format or undefined
     const startDate = values.start_date ? new Date(values.start_date).toISOString() : undefined;
@@ -116,7 +190,9 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       title: values.title,
       subtitle: values.subtitle || undefined,
       description: values.description || undefined,
-      image_url: values.image_url,
+      media_url: values.media_url,
+      media_type: values.media_type,
+      thumbnail_url: values.media_type === "video" ? values.thumbnail_url : undefined,
       button_text: values.button_text || undefined,
       button_link: values.button_link || undefined,
       display_order: values.display_order,
@@ -187,37 +263,72 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
         </CardContent>
       </Card>
 
-      {/* Image Upload */}
+      {/* Media Type Selection */}
       <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
             <Upload className="h-5 w-5 text-yellow-500" />
-            <h3 className="font-semibold text-lg">Image</h3>
+            <h3 className="font-semibold text-lg">Media</h3>
           </div>
           <div className="space-y-4">
+            {/* Media Type Radio */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Media Type</label>
+              <RadioGroup
+                value={mediaType}
+                onValueChange={(v) => handleMediaTypeChange(v as "image" | "video")}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="image" id="media-image" />
+                  <Label htmlFor="media-image" className="flex items-center gap-1 cursor-pointer">
+                    <ImageIcon className="h-4 w-4" />
+                    Image
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="video" id="media-video" />
+                  <Label htmlFor="media-video" className="flex items-center gap-1 cursor-pointer">
+                    <Video className="h-4 w-4" />
+                    Video
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <input
               type="hidden"
-              {...register("image_url", { required: "Image is required." })}
+              {...register("media_url", { required: `${mediaType === "video" ? "Video" : "Image"} is required.` })}
             />
 
-            {previewUrl && (
+            {/* Media Preview */}
+            {mediaPreviewUrl && (
               <div className="relative">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded-lg border"
-                />
+                {mediaType === "video" ? (
+                  <video
+                    src={mediaPreviewUrl}
+                    className="w-full h-48 object-cover rounded-lg border"
+                    controls
+                  />
+                ) : (
+                  <img
+                    src={mediaPreviewUrl}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg border"
+                  />
+                )}
               </div>
             )}
 
+            {/* Media Upload Button */}
             <div className="flex items-center gap-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                onClick={() => mediaInputRef.current?.click()}
+                disabled={isUploadingMedia}
               >
-                {isUploading ? (
+                {isUploadingMedia ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Uploading...
@@ -225,24 +336,30 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    {previewUrl ? "Change Image" : "Upload Image"}
+                    {mediaPreviewUrl ? `Change ${mediaType === "video" ? "Video" : "Image"}` : `Upload ${mediaType === "video" ? "Video" : "Image"}`}
                   </>
                 )}
               </Button>
               <input
-                ref={fileInputRef}
+                ref={mediaInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={handleFileSelect}
+                accept={mediaType === "video" ? "video/mp4,video/webm,video/quicktime" : "image/jpeg,image/jpg,image/png,image/gif,image/webp"}
+                onChange={handleMediaFileSelect}
                 className="hidden"
               />
               <span className="text-sm text-muted-foreground">
-                JPG, PNG, GIF, WebP (max 20MB)
+                {mediaType === "video" ? "MP4, WebM, MOV (max 100MB)" : "JPG, PNG, GIF, WebP (max 20MB)"}
               </span>
             </div>
-            {errors.image_url && (
-              <p className="text-xs text-red-500">{errors.image_url.message}</p>
+            {errors.media_url && (
+              <p className="text-xs text-red-500">{errors.media_url.message}</p>
             )}
+
+            {/* Thumbnail field - hidden, not needed for hero videos */}
+            <input
+              type="hidden"
+              {...register("thumbnail_url")}
+            />
           </div>
         </CardContent>
       </Card>
@@ -356,7 +473,7 @@ export default function HeroPromoForm({ heroPromo, onSuccess }: HeroPromoFormPro
       <div className="pt-2">
         <Button
           type="submit"
-          disabled={isSubmitting || isUploading}
+          disabled={isSubmitting || isUploadingMedia || isUploadingThumbnail}
           className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-200"
         >
           <Image className="h-5 w-5 mr-2" />

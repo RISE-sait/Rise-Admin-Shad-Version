@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { HeroPromo } from "@/types/website-promo";
+import { PromoVideo } from "@/types/website-promo";
 import {
   Table,
   TableBody,
@@ -11,22 +11,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FolderSearch, Video, ImageIcon } from "lucide-react";
+import { Loader2, FolderSearch, Video, Play } from "lucide-react";
 import { format } from "date-fns";
 
-interface HeroPromoTableProps {
-  heroPromos: HeroPromo[];
-  onSelect: (promo: HeroPromo) => void;
+interface PromoVideoTableProps {
+  promoVideos: PromoVideo[];
+  onSelect: (video: PromoVideo) => void;
   isLoading: boolean;
 }
 
-export default function HeroPromoTable({
-  heroPromos,
+export default function PromoVideoTable({
+  promoVideos,
   onSelect,
   isLoading,
-}: HeroPromoTableProps) {
+}: PromoVideoTableProps) {
   // Sort by display_order
-  const sortedPromos = [...heroPromos].sort((a, b) => a.display_order - b.display_order);
+  const sortedVideos = [...promoVideos].sort((a, b) => a.display_order - b.display_order);
 
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return "-";
@@ -37,11 +37,11 @@ export default function HeroPromoTable({
     }
   };
 
-  const isCurrentlyActive = (promo: HeroPromo) => {
-    if (!promo.is_active) return false;
+  const isCurrentlyActive = (video: PromoVideo) => {
+    if (!video.is_active) return false;
     const now = new Date();
-    if (promo.start_date && new Date(promo.start_date) > now) return false;
-    if (promo.end_date && new Date(promo.end_date) < now) return false;
+    if (video.start_date && new Date(video.start_date) > now) return false;
+    if (video.end_date && new Date(video.end_date) < now) return false;
     return true;
   };
 
@@ -54,16 +54,13 @@ export default function HeroPromoTable({
               Order
             </TableHead>
             <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider">
-              Media
+              Thumbnail
             </TableHead>
             <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider">
               Title
             </TableHead>
             <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider">
-              Type
-            </TableHead>
-            <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider">
-              Duration
+              Category
             </TableHead>
             <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider">
               Start Date
@@ -79,77 +76,60 @@ export default function HeroPromoTable({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center py-8 text-muted-foreground">
+              <TableCell colSpan={7} className="h-24 text-center py-8 text-muted-foreground">
                 <div className="flex flex-col items-center space-y-2">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
-                  <span>Loading hero promos...</span>
+                  <span>Loading promo videos...</span>
                 </div>
               </TableCell>
             </TableRow>
-          ) : sortedPromos.length > 0 ? (
-            sortedPromos.map((promo) => (
+          ) : sortedVideos.length > 0 ? (
+            sortedVideos.map((video) => (
               <TableRow
-                key={promo.id}
-                onClick={() => onSelect(promo)}
+                key={video.id}
+                onClick={() => onSelect(video)}
                 className="border-b hover:bg-muted/100 transition-colors duration-150 ease-in-out even:bg-muted/50 cursor-pointer"
               >
                 <TableCell className="px-6 py-4 text-sm font-medium">
-                  {promo.display_order}
+                  {video.display_order}
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  {promo.media_type === "video" ? (
-                    <div className="relative h-12 w-20 rounded overflow-hidden bg-muted">
-                      <img
-                        src={promo.thumbnail_url || promo.media_url}
-                        alt={promo.title}
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <Video className="h-4 w-4 text-white" />
-                      </div>
-                    </div>
-                  ) : (
+                  <div className="relative h-12 w-20 rounded overflow-hidden bg-muted">
                     <img
-                      src={promo.media_url}
-                      alt={promo.title}
-                      className="h-12 w-20 object-cover rounded"
+                      src={video.thumbnail_url}
+                      alt={video.title}
+                      className="h-full w-full object-cover"
                     />
-                  )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Play className="h-4 w-4 text-white" fill="white" />
+                    </div>
+                  </div>
                 </TableCell>
                 <TableCell className="px-6 py-4 text-sm font-medium">
                   <div>
-                    <div className="font-semibold">{promo.title}</div>
-                    {promo.subtitle && (
-                      <div className="text-xs text-muted-foreground">{promo.subtitle}</div>
+                    <div className="font-semibold">{video.title}</div>
+                    {video.description && (
+                      <div className="text-xs text-muted-foreground line-clamp-1">
+                        {video.description}
+                      </div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                    {promo.media_type === "video" ? (
-                      <>
-                        <Video className="h-3 w-3" /> Video
-                      </>
-                    ) : (
-                      <>
-                        <ImageIcon className="h-3 w-3" /> Image
-                      </>
-                    )}
+                  <Badge variant="outline" className="capitalize">
+                    {video.category || "highlight"}
                   </Badge>
                 </TableCell>
                 <TableCell className="px-6 py-4 text-sm">
-                  {promo.duration_seconds}s
+                  {formatDate(video.start_date)}
                 </TableCell>
                 <TableCell className="px-6 py-4 text-sm">
-                  {formatDate(promo.start_date)}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-sm">
-                  {formatDate(promo.end_date)}
+                  {formatDate(video.end_date)}
                 </TableCell>
                 <TableCell className="px-6 py-4">
-                  {isCurrentlyActive(promo) ? (
+                  {isCurrentlyActive(video) ? (
                     <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>
-                  ) : promo.is_active ? (
+                  ) : video.is_active ? (
                     <Badge variant="outline" className="text-yellow-600 border-yellow-600">
                       Scheduled
                     </Badge>
@@ -161,10 +141,10 @@ export default function HeroPromoTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center py-8 text-muted-foreground">
+              <TableCell colSpan={7} className="h-24 text-center py-8 text-muted-foreground">
                 <div className="flex flex-col items-center space-y-2">
                   <FolderSearch className="h-8 w-8 text-muted-foreground/70" />
-                  <span>No hero promos found</span>
+                  <span>No promo videos found</span>
                 </div>
               </TableCell>
             </TableRow>
