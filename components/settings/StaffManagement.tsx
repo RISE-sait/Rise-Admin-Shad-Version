@@ -53,7 +53,6 @@ const ROLE_OPTIONS = [
   { label: "Coach", value: "coach" },
   { label: "Receptionist", value: "receptionist" },
   { label: "Admin", value: "admin" },
-  { label: "Super Admin", value: "superadmin" },
 ];
 
 const ITEMS_PER_PAGE = 10;
@@ -254,6 +253,8 @@ export default function StaffManagement() {
     switch (role) {
       case StaffRoleEnum.SUPERADMIN:
         return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+      case StaffRoleEnum.IT:
+        return "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200";
       case StaffRoleEnum.ADMIN:
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
       case StaffRoleEnum.COACH:

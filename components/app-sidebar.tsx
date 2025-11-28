@@ -34,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Build nav items based on role
   const baseManageItems =
-    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN || role === StaffRoleEnum.RECEPTIONIST
+    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN || role === StaffRoleEnum.IT || role === StaffRoleEnum.RECEPTIONIST
       ? [
           {
             title: "Customers",
@@ -102,9 +102,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ]
         : [];
 
-  // Add Audit link only for ADMIN and SUPERADMIN (not RECEPTIONIST)
+  // Add Audit link only for ADMIN, SUPERADMIN, and IT (not RECEPTIONIST)
   const manageItems =
-    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN
+    role === StaffRoleEnum.ADMIN || role === StaffRoleEnum.SUPERADMIN || role === StaffRoleEnum.IT
       ? [
           ...baseManageItems,
           {

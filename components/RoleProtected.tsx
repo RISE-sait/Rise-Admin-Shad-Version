@@ -12,8 +12,8 @@ interface RoleProtectedProps {
 
 /**
  * A component that restricts access to content based on user roles.
- * SUPERADMIN users are always granted access regardless of the allowedRoles.
- * 
+ * SUPERADMIN and IT users are always granted access regardless of the allowedRoles.
+ *
  * @param {Object} props
  * @param {StaffRoleEnum[]} [props.allowedRoles=[]] - Array of roles that are allowed to access the content
  * @param {ReactNode} props.children - The content to be protected
@@ -46,7 +46,7 @@ function isUserAuthorized(user: LoggedInUser | null, allowedRoles: StaffRoleEnum
 
   if (userRole === null) return false
 
-  if (userRole === StaffRoleEnum.SUPERADMIN) return true
+  if (userRole === StaffRoleEnum.SUPERADMIN || userRole === StaffRoleEnum.IT) return true
 
   return allowedRoles.some((role) => role === userRole)
 }
