@@ -154,6 +154,7 @@ export interface EventEventResponseDto {
   updated_by?: EventPersonResponseDto;
   price_id?: string | null;
   required_membership_plan_ids?: string[] | null;
+  registration_required?: boolean;
 }
 
 export interface EventLocation {

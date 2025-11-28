@@ -82,6 +82,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
     price_amount: "", // Dollar amount (e.g., "25.00")
     currency: "cad",
     required_membership_plan_ids: [] as string[],
+    registration_required: true,
   });
   const { user } = useUser();
   const { toast } = useToast();
@@ -181,6 +182,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
           ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
+        registration_required: data.registration_required,
       };
 
       error = await createEvent(eventData, user?.Jwt!);
@@ -230,6 +232,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
           ? { required_membership_plan_ids: data.required_membership_plan_ids }
           : {}),
+        registration_required: data.registration_required,
       };
 
       error = await createEvents(eventData, user?.Jwt!);
@@ -750,6 +753,17 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
                   })}
                 </div>
               )}
+            </div>
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="event-registration-required"
+                checked={data.registration_required}
+                onCheckedChange={(checked) => updateField("registration_required", !!checked)}
+              />
+              <Label htmlFor="event-registration-required" className="text-sm font-medium cursor-pointer">
+                Registration Required
+              </Label>
+              <span className="text-sm text-muted-foreground">(uncheck for drop-in events)</span>
             </div>
           </div>
         </CardContent>

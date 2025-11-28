@@ -553,6 +553,7 @@ export async function getEvent(id: string, jwt?: string): Promise<Event> {
         type: event.program!.type!,
       },
       capacity: event.capacity!,
+      registration_required: event.registration_required ?? true,
       created_by: {
         id: event.created_by!.id!,
         first_name: event.created_by!.first_name!,

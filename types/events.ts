@@ -21,6 +21,7 @@ export interface Event {
   end_at: Date;
   staff?: EventStaffMember[];
   customers: EventParticipant[];
+  registration_required: boolean;
 }
 
 export interface EventParticipant extends Person {
@@ -82,6 +83,7 @@ export interface EventCreateRequest {
   unit_amount?: number; // Price in cents (e.g., 2500 for $25.00)
   currency?: string; // e.g., "cad" or "usd"
   required_membership_plan_ids?: string[];
+  registration_required?: boolean; // When false, users cannot enroll in this event
 }
 
 export interface EventRecurrenceCreateRequest {
@@ -100,4 +102,5 @@ export interface EventRecurrenceCreateRequest {
   unit_amount?: number; // Price in cents (e.g., 2500 for $25.00)
   currency?: string; // e.g., "cad" or "usd"
   required_membership_plan_ids?: string[];
+  registration_required?: boolean; // When false, users cannot enroll in this event
 }
