@@ -75,6 +75,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
     price_amount: "", // Dollar amount (e.g., "25.00")
     currency: "cad",
     required_membership_plan_ids: [] as string[],
+    registration_required: true,
   });
   const [usingCredits, setUsingCredits] = useState(false);
 
@@ -129,6 +130,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
         currency: selectedEvent.currency ?? "cad",
         required_membership_plan_ids:
           selectedEvent.required_membership_plan_ids ?? [],
+        registration_required: selectedEvent.registration_required ?? true,
       });
       setUsingCredits(selectedEvent.credit_cost != null);
     }
@@ -196,6 +198,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
         ? { required_membership_plan_ids: data.required_membership_plan_ids }
         : {}),
+      registration_required: data.registration_required,
     };
 
     const error = await updateEvent(selectedEvent.id, eventData, user?.Jwt!);
@@ -536,6 +539,17 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                   })}
                 </div>
               )}
+            </div>
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="event-registration-required"
+                checked={data.registration_required}
+                onCheckedChange={(checked) => setData({ ...data, registration_required: !!checked })}
+              />
+              <Label htmlFor="event-registration-required" className="text-sm font-medium cursor-pointer">
+                Registration Required
+              </Label>
+              <span className="text-sm text-muted-foreground">(uncheck for drop-in events)</span>
             </div>
           </div>
         </CardContent>

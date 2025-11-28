@@ -30,6 +30,7 @@ export interface CalendarEvent {
   unit_amount?: number; // Price in cents (e.g., 2500 for $25.00)
   currency?: string; // e.g., "cad" or "usd"
   required_membership_plan_ids?: string[];
+  registration_required?: boolean; // When false, users cannot enroll in this event
   createdBy: {
     firstName: string;
     id: string;

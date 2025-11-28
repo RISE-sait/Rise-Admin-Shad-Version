@@ -430,6 +430,7 @@ export default function CalendarManageEventDrawer() {
                   {/* Payment & Access Card (if applicable) */}
                   {(selectedEvent.credit_cost != null ||
                     selectedEvent.price_id ||
+                    selectedEvent.registration_required !== undefined ||
                     (selectedEvent.required_membership_plan_ids && selectedEvent.required_membership_plan_ids.length > 0)) && (
                     <Card className="border-l-4 border-l-yellow-500">
                       <CardContent className="pt-6">
@@ -440,6 +441,14 @@ export default function CalendarManageEventDrawer() {
                           </h3>
                         </div>
                         <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">Registration:</span>
+                            {selectedEvent.registration_required !== false ? (
+                              <Badge variant="default">Required</Badge>
+                            ) : (
+                              <Badge variant="secondary">Drop-in (No Registration)</Badge>
+                            )}
+                          </div>
                           {selectedEvent.credit_cost != null && (
                             <div className="flex items-start gap-3">
                               <Trophy className="h-4 w-4 text-muted-foreground mt-1" />
