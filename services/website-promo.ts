@@ -1,10 +1,13 @@
 import {
   HeroPromo,
   FeatureCard,
+  PromoVideo,
   CreateHeroPromoRequest,
   UpdateHeroPromoRequest,
   CreateFeatureCardRequest,
   UpdateFeatureCardRequest,
+  CreatePromoVideoRequest,
+  UpdatePromoVideoRequest,
 } from "@/types/website-promo";
 import getValue from "@/configs/constants";
 import { addAuthHeader } from "@/lib/auth-header";
@@ -205,11 +208,112 @@ export async function deleteFeatureCard(id: string, jwt: string): Promise<void> 
   }
 }
 
-// ============ Image Upload ============
+// ============ Promo Videos ============
+
+export async function getAllPromoVideos(jwt: string): Promise<PromoVideo[]> {
+  const response = await fetch(`${API_BASE}website/promo-videos/`, {
+    method: "GET",
+    ...addAuthHeader(jwt),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch promo videos: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data || [];
+}
+
+export async function getActivePromoVideos(category?: string): Promise<PromoVideo[]> {
+  const url = category
+    ? `${API_BASE}website/promo-videos/active?category=${encodeURIComponent(category)}`
+    : `${API_BASE}website/promo-videos/active`;
+
+  const response = await fetch(url, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch active promo videos: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data || [];
+}
+
+export async function getPromoVideoById(id: string, jwt: string): Promise<PromoVideo> {
+  const response = await fetch(`${API_BASE}website/promo-videos/${id}`, {
+    method: "GET",
+    ...addAuthHeader(jwt),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch promo video: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function createPromoVideo(
+  video: CreatePromoVideoRequest,
+  jwt: string
+): Promise<PromoVideo> {
+  const response = await fetch(`${API_BASE}website/promo-videos/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify(video),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `Failed to create promo video: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function updatePromoVideo(
+  id: string,
+  video: UpdatePromoVideoRequest,
+  jwt: string
+): Promise<PromoVideo> {
+  const response = await fetch(`${API_BASE}website/promo-videos/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify(video),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `Failed to update promo video: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function deletePromoVideo(id: string, jwt: string): Promise<void> {
+  const response = await fetch(`${API_BASE}website/promo-videos/${id}`, {
+    method: "DELETE",
+    ...addAuthHeader(jwt),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `Failed to delete promo video: ${response.statusText}`);
+  }
+}
+
+// ============ Media Upload ============
 
 export async function uploadPromoImage(
   file: File,
-  type: "hero" | "feature",
+  type: "hero" | "feature" | "video",
   jwt: string
 ): Promise<string> {
   const formData = new FormData();
@@ -226,6 +330,31 @@ export async function uploadPromoImage(
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || `Failed to upload image: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.url;
+}
+
+export async function uploadPromoVideo(
+  file: File,
+  type: "hero" | "video",
+  jwt: string
+): Promise<string> {
+  const formData = new FormData();
+  formData.append("video", file);
+
+  const response = await fetch(`${API_BASE}upload/promo-video?type=${type}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `Failed to upload video: ${response.statusText}`);
   }
 
   const data = await response.json();

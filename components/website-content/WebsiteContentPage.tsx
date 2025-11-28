@@ -1,24 +1,34 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { HeroPromo, FeatureCard } from "@/types/website-promo";
+import { HeroPromo, FeatureCard, PromoVideo } from "@/types/website-promo";
 import { Button } from "@/components/ui/button";
 import RightDrawer from "@/components/reusable/RightDrawer";
-import { PlusIcon, Image, LayoutGrid, RefreshCw } from "lucide-react";
+import { PlusIcon, Image, LayoutGrid, RefreshCw, Video } from "lucide-react";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/contexts/UserContext";
-import { getAllHeroPromos, getAllFeatureCards } from "@/services/website-promo";
+import { getAllHeroPromos, getAllFeatureCards, getAllPromoVideos } from "@/services/website-promo";
 import HeroPromoTable from "./HeroPromoTable";
 import FeatureCardTable from "./FeatureCardTable";
+import PromoVideoTable from "./PromoVideoTable";
 import HeroPromoForm from "./HeroPromoForm";
 import FeatureCardForm from "./FeatureCardForm";
+import PromoVideoForm from "./PromoVideoForm";
 import HeroPromoInfoPanel from "./HeroPromoInfoPanel";
 import FeatureCardInfoPanel from "./FeatureCardInfoPanel";
+import PromoVideoInfoPanel from "./PromoVideoInfoPanel";
 import { toast } from "sonner";
 
-type DrawerContent = "hero-details" | "hero-add" | "feature-details" | "feature-add" | null;
+type DrawerContent =
+  | "hero-details"
+  | "hero-add"
+  | "feature-details"
+  | "feature-add"
+  | "video-details"
+  | "video-add"
+  | null;
 
 export default function WebsiteContentPage() {
   const { user } = useUser();
@@ -32,6 +42,10 @@ export default function WebsiteContentPage() {
   const [featureCards, setFeatureCards] = useState<FeatureCard[]>([]);
   const [selectedFeatureCard, setSelectedFeatureCard] = useState<FeatureCard | null>(null);
 
+  // Promo Videos state
+  const [promoVideos, setPromoVideos] = useState<PromoVideo[]>([]);
+  const [selectedPromoVideo, setSelectedPromoVideo] = useState<PromoVideo | null>(null);
+
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerContent, setDrawerContent] = useState<DrawerContent>(null);
@@ -39,6 +53,7 @@ export default function WebsiteContentPage() {
   // Loading states
   const [isLoadingHero, setIsLoadingHero] = useState(true);
   const [isLoadingFeature, setIsLoadingFeature] = useState(true);
+  const [isLoadingVideo, setIsLoadingVideo] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch hero promos
@@ -69,14 +84,29 @@ export default function WebsiteContentPage() {
     }
   }, [user?.Jwt]);
 
+  // Fetch promo videos
+  const fetchPromoVideos = useCallback(async () => {
+    if (!user?.Jwt) return;
+    try {
+      const data = await getAllPromoVideos(user.Jwt);
+      setPromoVideos(data);
+    } catch (error) {
+      console.error("Failed to fetch promo videos:", error);
+      toast.error("Failed to load promo videos");
+    } finally {
+      setIsLoadingVideo(false);
+    }
+  }, [user?.Jwt]);
+
   useEffect(() => {
     fetchHeroPromos();
     fetchFeatureCards();
-  }, [fetchHeroPromos, fetchFeatureCards]);
+    fetchPromoVideos();
+  }, [fetchHeroPromos, fetchFeatureCards, fetchPromoVideos]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([fetchHeroPromos(), fetchFeatureCards()]);
+    await Promise.all([fetchHeroPromos(), fetchFeatureCards(), fetchPromoVideos()]);
     setIsRefreshing(false);
     toast.success("Content refreshed");
   };
@@ -93,19 +123,26 @@ export default function WebsiteContentPage() {
     setDrawerOpen(true);
   }, []);
 
+  const handlePromoVideoSelect = useCallback((video: PromoVideo) => {
+    setSelectedPromoVideo(video);
+    setDrawerContent("video-details");
+    setDrawerOpen(true);
+  }, []);
+
   const handleDrawerClose = useCallback(() => {
     setDrawerOpen(false);
     setDrawerContent(null);
     setSelectedHeroPromo(null);
     setSelectedFeatureCard(null);
+    setSelectedPromoVideo(null);
   }, []);
 
   const handleAfterMutation = useCallback(async () => {
-    await Promise.all([fetchHeroPromos(), fetchFeatureCards()]);
-  }, [fetchHeroPromos, fetchFeatureCards]);
+    await Promise.all([fetchHeroPromos(), fetchFeatureCards(), fetchPromoVideos()]);
+  }, [fetchHeroPromos, fetchFeatureCards, fetchPromoVideos]);
 
   const getDrawerWidth = () => {
-    if (drawerContent === "hero-details" || drawerContent === "feature-details") {
+    if (drawerContent === "hero-details" || drawerContent === "feature-details" || drawerContent === "video-details") {
       return "w-[60%]";
     }
     return "w-[40%]";
@@ -121,6 +158,10 @@ export default function WebsiteContentPage() {
         return "Feature Card Details";
       case "feature-add":
         return "Add Feature Card";
+      case "video-details":
+        return "Promo Video Details";
+      case "video-add":
+        return "Add Promo Video";
       default:
         return "";
     }
@@ -131,7 +172,7 @@ export default function WebsiteContentPage() {
       <div className="flex items-center justify-between">
         <Heading
           title="Website Content"
-          description="Manage hero banners and feature cards displayed on the website"
+          description="Manage hero banners, feature cards, and promo videos displayed on the website"
         />
         <Button
           variant="outline"
@@ -155,6 +196,10 @@ export default function WebsiteContentPage() {
             <TabsTrigger value="feature-cards" className="flex items-center gap-2">
               <LayoutGrid className="h-4 w-4" />
               Feature Cards
+            </TabsTrigger>
+            <TabsTrigger value="promo-videos" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Promo Videos
             </TabsTrigger>
           </TabsList>
 
@@ -183,6 +228,19 @@ export default function WebsiteContentPage() {
               Add Feature Card
             </Button>
           )}
+
+          {activeTab === "promo-videos" && (
+            <Button
+              onClick={() => {
+                setDrawerContent("video-add");
+                setDrawerOpen(true);
+              }}
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add Promo Video
+            </Button>
+          )}
         </div>
 
         <TabsContent value="hero-promos" className="mt-4">
@@ -198,6 +256,14 @@ export default function WebsiteContentPage() {
             featureCards={featureCards}
             onSelect={handleFeatureCardSelect}
             isLoading={isLoadingFeature}
+          />
+        </TabsContent>
+
+        <TabsContent value="promo-videos" className="mt-4">
+          <PromoVideoTable
+            promoVideos={promoVideos}
+            onSelect={handlePromoVideoSelect}
+            isLoading={isLoadingVideo}
           />
         </TabsContent>
       </Tabs>
@@ -241,6 +307,23 @@ export default function WebsiteContentPage() {
           {drawerContent === "feature-details" && selectedFeatureCard && (
             <FeatureCardInfoPanel
               featureCard={selectedFeatureCard}
+              onClose={handleDrawerClose}
+              onSuccess={handleAfterMutation}
+            />
+          )}
+
+          {drawerContent === "video-add" && (
+            <PromoVideoForm
+              onSuccess={async () => {
+                await handleAfterMutation();
+                handleDrawerClose();
+              }}
+            />
+          )}
+
+          {drawerContent === "video-details" && selectedPromoVideo && (
+            <PromoVideoInfoPanel
+              promoVideo={selectedPromoVideo}
               onClose={handleDrawerClose}
               onSuccess={handleAfterMutation}
             />
