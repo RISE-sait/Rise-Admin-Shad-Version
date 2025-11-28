@@ -5,7 +5,7 @@ import CheckInPage from "@/components/checkin/CheckInPage";
 export default function Page() {
   return (
     <RoleProtected
-      allowedRoles={[StaffRoleEnum.SUPERADMIN, StaffRoleEnum.RECEPTIONIST]}
+      allowedRoles={[StaffRoleEnum.SUPERADMIN, StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}
     >
       <CheckInPage />
     </RoleProtected>
