@@ -25,6 +25,7 @@ import {
   EventCreateRequest,
   EventRecurrenceCreateRequest,
 } from "@/types/events";
+import { EventEventResponseDto } from "@/app/api/Api";
 import { getAllPrograms } from "@/services/program";
 import { getAllTeams } from "@/services/teams";
 import { getAllLocations } from "@/services/location";
@@ -134,7 +135,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
       return;
     }
 
-    let error: string | null = null;
+    let result: EventEventResponseDto | string | null = null;
     let creditCost: number | undefined;
 
     if (usingCredits) {
@@ -185,7 +186,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         registration_required: data.registration_required,
       };
 
-      error = await createEvent(eventData, user?.Jwt!);
+      result = await createEvent(eventData, user?.Jwt!);
     } else {
       if (
         !data.recurrence_start_at ||
@@ -235,9 +236,73 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         registration_required: data.registration_required,
       };
 
-      error = await createEvents(eventData, user?.Jwt!);
+      try {
+        const createdEvents = await createEvents(eventData, user?.Jwt!);
+        // Map the returned events to CalendarEvents using real IDs
+        const newEvents: CalendarEvent[] = createdEvents.map((event) => ({
+          id: event.id!,
+          color: getColorFromProgramType(event.program?.type),
+          start_at: new Date(event.start_at!),
+          end_at: new Date(event.end_at!),
+          capacity: event.capacity ?? 0,
+          credit_cost: event.credit_cost ?? undefined,
+          price_id: event.price_id ?? undefined,
+          required_membership_plan_ids: event.required_membership_plan_ids ?? undefined,
+          registration_required: event.registration_required ?? true,
+          createdBy: {
+            id: event.created_by?.id ?? "",
+            firstName: event.created_by?.first_name ?? "",
+            lastName: event.created_by?.last_name ?? "",
+          },
+          updatedBy: {
+            id: event.updated_by?.id ?? "",
+            firstName: event.updated_by?.first_name ?? "",
+            lastName: event.updated_by?.last_name ?? "",
+          },
+          customers: [],
+          staff: [],
+          program: {
+            id: event.program?.id ?? "",
+            name: event.program?.name ?? "",
+            type: event.program?.type ?? "",
+          },
+          location: {
+            id: event.location?.id ?? "",
+            name: event.location?.name ?? "",
+            address: event.location?.address ?? "",
+          },
+          court: event.court
+            ? { id: event.court.id ?? "", name: event.court.name ?? "" }
+            : undefined,
+          team: {
+            id: event.team?.id ?? "",
+            name: event.team?.name ?? "",
+          },
+        }));
+
+        toast({
+          status: "success",
+          description: "Events created successfully",
+        });
+        resetData();
+        setUsingCredits(false);
+        await revalidateEvents();
+        setEvents([...events, ...newEvents]);
+        if (onClose) onClose();
+      } catch (error) {
+        toast({
+          status: "error",
+          description: `Failed to create events: ${error instanceof Error ? error.message : "Unknown error"}`,
+          variant: "destructive",
+        });
+      }
+      return;
     }
-    if (error === null) {
+
+    // Handle one-time event result
+    const isError = typeof result === "string";
+
+    if (!isError && result !== null) {
       toast({
         status: "success",
         description: "Event created successfully",
@@ -245,139 +310,55 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
       resetData();
       setUsingCredits(false);
       await revalidateEvents();
-      if (mode === "once") {
-        const program = programs.find((p) => p.id === data.program_id);
-        const location = locations.find((l) => l.id === data.location_id);
-        const team = teams.find((t) => t.id === data.team_id);
-        const court = courts.find((c) => c.id === data.court_id);
-        const nameParts = (user?.Name || " ").split(" ");
-        const firstName = nameParts.shift() || "";
-        const lastName = nameParts.join(" ");
-        // Recalculate unit_amount for local event object
-        const localUnitAmount = data.price_amount
-          ? Math.round(parseFloat(data.price_amount) * 100)
-          : undefined;
-        const newEvent = {
-          id: crypto.randomUUID(),
-          color: getColorFromProgramType(program?.type),
-          start_at: new Date(data.start_at),
-          end_at: new Date(data.end_at),
-          capacity: data.capacity ? Number(data.capacity) : 0,
-          credit_cost:
-            usingCredits && data.credit_cost
-              ? Number(data.credit_cost)
-              : undefined,
 
-          unit_amount: localUnitAmount,
-          currency: data.currency || undefined,
-          required_membership_plan_ids:
-            data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
-              ? data.required_membership_plan_ids
-              : undefined,
-          createdBy: { id: user?.ID || "", firstName, lastName },
-          updatedBy: { id: user?.ID || "", firstName, lastName },
-          customers: [],
-          staff: [],
-          program: {
-            id: program?.id || "",
-            name: program?.name || "",
-            type: program?.type || "",
-          },
-          location: {
-            id: location?.id || "",
-            name: location?.name || "",
-            address: location?.address || "",
-          },
-          court: {
-            id: data.court_id || "",
-            name: court?.name || "",
-          },
-          team: { id: team?.id || "", name: team?.name || "" },
-        } as CalendarEvent;
-        setEvents([...events, newEvent]);
-      } else {
-        const program = programs.find((p) => p.id === data.program_id);
-        const location = locations.find((l) => l.id === data.location_id);
-        const team = teams.find((t) => t.id === data.team_id);
-        const court = courts.find((c) => c.id === data.court_id);
-        const nameParts = (user?.Name || " ").split(" ");
-        const firstName = nameParts.shift() || "";
-        const lastName = nameParts.join(" ");
-        // Recalculate unit_amount for local event objects
-        const localUnitAmountRecurring = data.price_amount
-          ? Math.round(parseFloat(data.price_amount) * 100)
-          : undefined;
-
-        const startDate = new Date(data.recurrence_start_at);
-        const endDate = new Date(data.recurrence_end_at);
-        const dayIndex = [
-          "SUNDAY",
-          "MONDAY",
-          "TUESDAY",
-          "WEDNESDAY",
-          "THURSDAY",
-          "FRIDAY",
-          "SATURDAY",
-        ].indexOf(data.day);
-        const [startH, startM] = data.event_start_at.split(":");
-        const [endH, endM] = data.event_end_at.split(":");
-        const newEvents: CalendarEvent[] = [];
-        for (
-          let d = new Date(startDate);
-          d <= endDate;
-          d.setDate(d.getDate() + 1)
-        ) {
-          if (d.getDay() === dayIndex) {
-            const eventStart = new Date(d);
-            eventStart.setHours(parseInt(startH), parseInt(startM), 0, 0);
-            const eventEnd = new Date(d);
-            eventEnd.setHours(parseInt(endH), parseInt(endM), 0, 0);
-            newEvents.push({
-              id: crypto.randomUUID(),
-              color: getColorFromProgramType(program?.type),
-              start_at: eventStart,
-              end_at: eventEnd,
-              capacity: data.capacity ? Number(data.capacity) : 0,
-              credit_cost:
-                usingCredits && data.credit_cost
-                  ? Number(data.credit_cost)
-                  : undefined,
-
-              unit_amount: localUnitAmountRecurring,
-              currency: data.currency || undefined,
-              required_membership_plan_ids:
-                data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
-                  ? data.required_membership_plan_ids
-                  : undefined,
-              createdBy: { id: user?.ID || "", firstName, lastName },
-              updatedBy: { id: user?.ID || "", firstName, lastName },
-              customers: [],
-              staff: [],
-              program: {
-                id: program?.id || "",
-                name: program?.name || "",
-                type: program?.type || "",
-              },
-              location: {
-                id: location?.id || "",
-                name: location?.name || "",
-                address: location?.address || "",
-              },
-              court: {
-                id: data.court_id || "",
-                name: court?.name || "",
-              },
-              team: { id: team?.id || "", name: team?.name || "" },
-            } as CalendarEvent);
-          }
-        }
-        setEvents([...events, ...newEvents]);
-      }
+      // Use the real event data returned from the API
+      const createdEvent = result as EventEventResponseDto;
+      const newEvent: CalendarEvent = {
+        id: createdEvent.id!,
+        color: getColorFromProgramType(createdEvent.program?.type),
+        start_at: new Date(createdEvent.start_at!),
+        end_at: new Date(createdEvent.end_at!),
+        capacity: createdEvent.capacity ?? 0,
+        credit_cost: createdEvent.credit_cost ?? undefined,
+        price_id: createdEvent.price_id ?? undefined,
+        required_membership_plan_ids: createdEvent.required_membership_plan_ids ?? undefined,
+        registration_required: createdEvent.registration_required ?? true,
+        createdBy: {
+          id: createdEvent.created_by?.id ?? "",
+          firstName: createdEvent.created_by?.first_name ?? "",
+          lastName: createdEvent.created_by?.last_name ?? "",
+        },
+        updatedBy: {
+          id: createdEvent.updated_by?.id ?? "",
+          firstName: createdEvent.updated_by?.first_name ?? "",
+          lastName: createdEvent.updated_by?.last_name ?? "",
+        },
+        customers: [],
+        staff: [],
+        program: {
+          id: createdEvent.program?.id ?? "",
+          name: createdEvent.program?.name ?? "",
+          type: createdEvent.program?.type ?? "",
+        },
+        location: {
+          id: createdEvent.location?.id ?? "",
+          name: createdEvent.location?.name ?? "",
+          address: createdEvent.location?.address ?? "",
+        },
+        court: createdEvent.court
+          ? { id: createdEvent.court.id ?? "", name: createdEvent.court.name ?? "" }
+          : undefined,
+        team: {
+          id: createdEvent.team?.id ?? "",
+          name: createdEvent.team?.name ?? "",
+        },
+      };
+      setEvents([...events, newEvent]);
       if (onClose) onClose();
     } else {
       toast({
         status: "error",
-        description: `Failed to create event: ${error}`,
+        description: `Failed to create event: ${result}`,
         variant: "destructive",
       });
     }
