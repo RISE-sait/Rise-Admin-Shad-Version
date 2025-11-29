@@ -129,6 +129,7 @@ export default function CalendarPage() {
             id: event.updated_by?.id ?? "",
             lastName: event.updated_by?.last_name ?? "",
           },
+          registration_required: event.registration_required ?? true,
         }));
 
         const filteredGames =
