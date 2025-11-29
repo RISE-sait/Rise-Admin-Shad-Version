@@ -106,11 +106,12 @@ export async function getEvents(query: {
 
 /**
  * Create a one-time event
+ * Returns the created event on success, or an error string on failure
  */
 export async function createEvent(
   eventData: EventCreateRequest,
   jwt: string
-): Promise<string | null> {
+): Promise<EventEventResponseDto | string> {
   try {
     const { court_id, capacity, credit_cost, ...rest } = eventData;
     const requestData: Record<string, unknown> = {
@@ -128,8 +129,9 @@ export async function createEvent(
       body: JSON.stringify(requestData),
     });
 
+    const responseJSON = await response.json();
+
     if (!response.ok) {
-      const responseJSON = await response.json();
       let errorMessage = `Failed to create event: ${response.statusText}`;
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
@@ -137,7 +139,7 @@ export async function createEvent(
       return errorMessage;
     }
 
-    return null;
+    return responseJSON as EventEventResponseDto;
   } catch (error) {
     console.error("Error creating event:", error);
     return error instanceof Error ? error.message : "Unknown error occurred";
@@ -145,12 +147,13 @@ export async function createEvent(
 }
 
 /**
- * Create new events
+ * Create new recurring events
+ * Returns the created events on success, or throws an error on failure
  */
 export async function createEvents(
   eventsData: EventRecurrenceCreateRequest,
   jwt: string
-) {
+): Promise<EventEventResponseDto[]> {
   try {
     const { court_id, capacity, credit_cost, ...rest } = eventsData;
     const requestData: Record<string, unknown> = {
@@ -168,8 +171,9 @@ export async function createEvents(
       body: JSON.stringify(requestData),
     });
 
+    const responseJSON = await response.json();
+
     if (!response.ok) {
-      const responseJSON = await response.json();
       let errorMessage = `Failed to create events: ${response.statusText}`;
       if (responseJSON.error) {
         errorMessage = responseJSON.error.message;
@@ -177,7 +181,7 @@ export async function createEvents(
       throw new Error(errorMessage);
     }
 
-    return null;
+    return responseJSON as EventEventResponseDto[];
   } catch (error) {
     console.error("Error creating events:", error);
     throw error;
