@@ -28,6 +28,7 @@ export async function getSchedule(): Promise<ScheduleResponse> {
 
     const response = await fetch(`${getValue("API")}secure/schedule`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      cache: "no-store",
     });
 
     const resJson = await response.json();
