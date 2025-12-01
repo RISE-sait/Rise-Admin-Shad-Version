@@ -61,12 +61,14 @@ import { removeCustomerFromEvent } from "@/services/events";
 interface AttendeesTableProps {
   eventId: string;
   data: EventParticipant[];
+  capacity?: number;
   onCustomerRemoved: (customerId: string) => Promise<void>;
 }
 
 export default function AttendeesTable({
   eventId,
   data,
+  capacity,
   onCustomerRemoved,
 }: AttendeesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -241,9 +243,21 @@ export default function AttendeesTable({
   return (
     <Card className="border-l-4 border-l-yellow-500">
       <CardContent className="pt-6">
-        <div className="flex items-center gap-2 mb-4">
-          <UserPlus className="h-5 w-5 text-yellow-500" />
-          <h3 className="font-semibold text-lg">Event Attendees</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Event Attendees</h3>
+          </div>
+          {capacity !== undefined && capacity > 0 && (
+            <div className="text-sm font-medium">
+              <span className={data.length >= capacity ? "text-red-500" : "text-muted-foreground"}>
+                {data.length} / {capacity}
+              </span>
+              <span className="text-muted-foreground ml-2">
+                ({capacity - data.length} spots remaining)
+              </span>
+            </div>
+          )}
         </div>
         <p className="text-sm text-muted-foreground mb-4">
           View and manage customers registered for this event.
