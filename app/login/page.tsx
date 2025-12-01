@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   useSignInWithEmailAndPassword,
   useSignInWithGoogle,
+  useSendPasswordResetEmail,
 } from "react-firebase-hooks/auth";
 import { auth } from "@/configs/firebase";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,13 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +37,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isEmailPwdLoading, setIsEmailPwdLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const { toast } = useToast();
 
   const router = useRouter();
@@ -37,8 +47,37 @@ export default function Login() {
     useSignInWithEmailAndPassword(auth);
   const [signInWithGoogle, , googleLoading, googleError] =
     useSignInWithGoogle(auth);
+  const [sendPasswordResetEmail, sendingReset] = useSendPasswordResetEmail(auth);
 
   const { setUser } = useUser();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!resetEmail) {
+      toast({
+        status: "error",
+        description: "Please enter your email address.",
+      });
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(resetEmail);
+      toast({
+        status: "success",
+        description: "Password reset email sent! Check your inbox and spam folder.",
+      });
+      setForgotPasswordOpen(false);
+      setResetEmail("");
+    } catch (err) {
+      toast({
+        status: "error",
+        description: "Failed to send reset email. Please try again.",
+      });
+      console.error(err);
+    }
+  };
 
   const handleEmailPasswordLogin = async (
     event: React.FormEvent<HTMLFormElement>
@@ -143,7 +182,7 @@ export default function Login() {
   };
 
   const isSubmitButtonDisabled =
-    isEmailPwdLoading || emailLoading || googleLoading;
+    isEmailPwdLoading || emailLoading || googleLoading || sendingReset;
 
   return (
     <div
@@ -175,12 +214,13 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <a
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => setForgotPasswordOpen(true)}
                   className="text-sm text-muted-foreground hover:underline"
                 >
                   Forgot Password?
-                </a>
+                </button>
               </div>
               <Input
                 id="password"
@@ -250,6 +290,40 @@ export default function Login() {
           </div>
         </CardFooter> */}
       </Card>
+
+      <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+        <DialogContent className="h-auto max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                disabled={sendingReset}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={sendingReset}>
+              {sendingReset ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Reset Link"
+              )}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
