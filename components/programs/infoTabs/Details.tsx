@@ -179,6 +179,52 @@ export default function DetailsForm({
         </CardContent>
       </Card>
 
+      {/* Program Configuration Section */}
+      <Card className="border-l-4 border-l-yellow-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Layers className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold text-lg">Program Configuration</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="type">
+                Program Type <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                defaultValue={program.type}
+                onValueChange={(value) => setValue("type", value)}
+                disabled={isReceptionist}
+              >
+                <SelectTrigger id="type" className="bg-background">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="course">Course</SelectItem>
+                  <SelectItem value="tournament">Tournament</SelectItem>
+                  <SelectItem value="tryouts">Tryouts</SelectItem>
+                  <SelectItem value="event">Event</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="capacity">Default Capacity</Label>
+              <Input
+                id="capacity"
+                type="number"
+                min={1}
+                placeholder="NULL"
+                {...register("capacity", { valueAsNumber: true })}
+                className="bg-background"
+                disabled={isReceptionist}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-l-4 border-l-yellow-500">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
@@ -222,52 +268,6 @@ export default function DetailsForm({
                   </div>
                 )}
               </label>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Program Configuration Section */}
-      <Card className="border-l-4 border-l-yellow-500">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Layers className="h-5 w-5 text-yellow-500" />
-            <h3 className="font-semibold text-lg">Program Configuration</h3>
-          </div>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="type">
-                Program Type <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                defaultValue={program.type}
-                onValueChange={(value) => setValue("type", value)}
-                disabled={isReceptionist}
-              >
-                <SelectTrigger id="type" className="bg-background">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="course">Course</SelectItem>
-                  <SelectItem value="tournament">Tournament</SelectItem>
-                  <SelectItem value="tryouts">Tryouts</SelectItem>
-                  <SelectItem value="event">Event</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="capacity">Default Capacity</Label>
-              <Input
-                id="capacity"
-                type="number"
-                min={1}
-                placeholder="NULL"
-                {...register("capacity", { valueAsNumber: true })}
-                className="bg-background"
-                disabled={isReceptionist}
-              />
             </div>
           </div>
         </CardContent>
