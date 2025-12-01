@@ -8,7 +8,11 @@ import { useUser } from "@/contexts/UserContext";
 import { getPendingStaffs } from "@/services/staff";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PendingStaffContainer() {
+interface PendingStaffContainerProps {
+  onStaffApproved?: () => void;
+}
+
+export default function PendingStaffContainer({ onStaffApproved }: PendingStaffContainerProps) {
   const { user } = useUser();
   const jwt = user?.Jwt;
   const [staffs, setStaffs] = useState<User[]>([]);
@@ -37,6 +41,7 @@ export default function PendingStaffContainer() {
     } catch (err) {
       console.error("Failed to refresh pending staff", err);
     }
+    onStaffApproved?.();
   };
 
   const content = loading ? (
