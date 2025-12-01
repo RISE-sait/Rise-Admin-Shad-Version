@@ -576,6 +576,7 @@ export default function CalendarManageEventDrawer() {
                   <AttendeesTable
                     eventId={selectedEvent.id}
                     data={fullEventData || []}
+                    capacity={selectedEvent.capacity}
                     onCustomerRemoved={handleCustomerRemoved}
                   />
                 )}

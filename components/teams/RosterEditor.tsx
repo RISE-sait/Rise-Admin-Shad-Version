@@ -169,7 +169,7 @@ export default function RosterEditor({
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => handleRemove(m.id!)} // Remove on click
+                  onClick={() => handleRemove(m.id!)}
                 >
                   Remove
                 </Button>

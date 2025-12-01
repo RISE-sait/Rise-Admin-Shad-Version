@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getAllStaffs } from "@/services/staff";
 import StaffPage from "@/components/staff/StaffPage";
 import PendingStaffContainer from "@/components/pending-staff/PendingStaffContainer";
@@ -14,19 +14,20 @@ export default function Page() {
   const [staffs, setStaffs] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStaffs = async () => {
-      try {
-        const data = await getAllStaffs();
-        setStaffs(data);
-      } catch (error) {
-        console.error("Failed to fetch staffs", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStaffs();
+  const fetchStaffs = useCallback(async () => {
+    try {
+      const data = await getAllStaffs();
+      setStaffs(data);
+    } catch (error) {
+      console.error("Failed to fetch staffs", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStaffs();
+  }, [fetchStaffs]);
 
   const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
@@ -42,7 +43,7 @@ export default function Page() {
     <RoleProtected allowedRoles={[StaffRoleEnum.ADMIN, StaffRoleEnum.RECEPTIONIST]}>
       <div className="flex flex-col">
         <StaffPage staffs={staffs} />
-        {!isReceptionist && <PendingStaffContainer />}
+        {!isReceptionist && <PendingStaffContainer onStaffApproved={fetchStaffs} />}
       </div>
     </RoleProtected>
   );

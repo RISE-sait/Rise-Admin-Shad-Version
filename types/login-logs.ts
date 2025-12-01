@@ -3,4 +3,5 @@ export interface LoginLog {
   name: string;
   email: string;
   loginTime: string;
+  membership: string | null;
 }

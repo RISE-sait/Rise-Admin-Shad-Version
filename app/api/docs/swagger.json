@@ -6106,31 +6106,6 @@
         }
       }
     },
-    "/programs/levels": {
-      "get": {
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["programs"],
-        "responses": {
-          "200": {
-            "description": "Get program levels retrieved successfully",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/program.LevelsResponse"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "schema": {
-              "type": "object",
-              "additionalProperties": true
-            }
-          }
-        }
-      }
-    },
     "/programs/{id}": {
       "get": {
         "consumes": ["application/json"],
@@ -8970,6 +8945,140 @@
         }
       }
     },
+    "/upload/promo-image": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Accepts an image file and uploads it to Google Cloud Storage in the website-promos folder",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "tags": ["upload"],
+        "summary": "Upload promo image to cloud storage",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Image file to upload (jpg, jpeg, png, gif, webp)",
+            "name": "image",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo type: hero, feature, or video",
+            "name": "type",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid file or file type",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "413": {
+            "description": "Payload Too Large: File size exceeds limit",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/upload/promo-video": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Accepts a video file and uploads it to Google Cloud Storage in the website-promos folder",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "tags": ["upload"],
+        "summary": "Upload promo video to cloud storage",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Video file to upload (mp4, webm, mov)",
+            "name": "video",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo type: hero or video",
+            "name": "type",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Video uploaded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid file or file type",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "413": {
+            "description": "Payload Too Large: File size exceeds limit",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/users/{id}": {
       "put": {
         "security": [
@@ -9015,6 +9124,199 @@
           },
           "403": {
             "description": "Forbidden: Unauthorized access",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/waivers/upload": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Accepts a signed waiver document (PDF or image) and uploads it to Google Cloud Storage",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "tags": ["waivers"],
+        "summary": "Upload signed waiver document",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Waiver file to upload (pdf, jpg, jpeg, png)",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Target user ID (required for admin uploads, optional for self-upload)",
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Optional notes about the waiver",
+            "name": "notes",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Waiver uploaded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid file or file type",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "413": {
+            "description": "Payload Too Large: File size exceeds limit",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/waivers/user/{user_id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Retrieves all waiver documents uploaded for a specific user",
+        "produces": ["application/json"],
+        "tags": ["waivers"],
+        "summary": "Get user's uploaded waivers",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID",
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of waiver uploads",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid user ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/waivers/{id}": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Deletes a waiver document (admin only)",
+        "produces": ["application/json"],
+        "tags": ["waivers"],
+        "summary": "Delete a waiver upload",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Waiver upload ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Waiver deleted successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -9259,27 +9561,48 @@
       }
     },
     "credit_package.CreateCreditPackageRequest": {
+      "description": "Request body for creating a credit package",
       "type": "object",
-      "required": ["credit_allocation", "name", "stripe_price_id"],
+      "required": ["credit_allocation", "name"],
       "properties": {
         "credit_allocation": {
+          "description": "Number of credits included in this package (required, min 1)",
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "example": 10
+        },
+        "currency": {
+          "description": "Currency code (defaults to \"cad\" if not provided)",
+          "type": "string",
+          "example": "cad"
         },
         "description": {
-          "type": "string"
+          "description": "Description of the package",
+          "type": "string",
+          "example": "Get 10 credits for facility access"
         },
         "name": {
+          "description": "Name of the credit package (required, 3-150 characters)",
           "type": "string",
           "maxLength": 150,
-          "minLength": 3
+          "minLength": 3,
+          "example": "10 Credit Pack"
         },
         "stripe_price_id": {
-          "type": "string"
+          "description": "Existing Stripe price ID (optional if pricing details provided)",
+          "type": "string",
+          "example": "price_1234567890"
+        },
+        "unit_amount": {
+          "description": "Price in cents (required if stripe_price_id not provided)",
+          "type": "integer",
+          "example": 2999
         },
         "weekly_credit_limit": {
+          "description": "Weekly limit on credit usage (0 = unlimited)",
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "example": 5
         }
       }
     },
@@ -9321,27 +9644,38 @@
       }
     },
     "credit_package.UpdateCreditPackageRequest": {
+      "description": "Request body for updating a credit package",
       "type": "object",
       "required": ["credit_allocation", "name", "stripe_price_id"],
       "properties": {
         "credit_allocation": {
+          "description": "Number of credits included in this package (required, min 1)",
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "example": 10
         },
         "description": {
-          "type": "string"
+          "description": "Description of the package",
+          "type": "string",
+          "example": "Get 10 credits for facility access"
         },
         "name": {
+          "description": "Name of the credit package (required, 3-150 characters)",
           "type": "string",
           "maxLength": 150,
-          "minLength": 3
+          "minLength": 3,
+          "example": "10 Credit Pack"
         },
         "stripe_price_id": {
-          "type": "string"
+          "description": "Stripe price ID (required for updates)",
+          "type": "string",
+          "example": "price_1234567890"
         },
         "weekly_credit_limit": {
+          "description": "Weekly limit on credit usage (0 = unlimited)",
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "example": 5
         }
       }
     },
@@ -9373,6 +9707,18 @@
         "dob": {
           "type": "string",
           "example": "2000-01-01"
+        },
+        "emergency_contact_name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "emergency_contact_phone": {
+          "type": "string",
+          "maxLength": 25
+        },
+        "emergency_contact_relationship": {
+          "type": "string",
+          "maxLength": 50
         },
         "first_name": {
           "type": "string"
@@ -9531,10 +9877,22 @@
         "country_code": {
           "type": "string"
         },
+        "deleted_at": {
+          "type": "string"
+        },
         "dob": {
           "type": "string"
         },
         "email": {
+          "type": "string"
+        },
+        "emergency_contact_name": {
+          "type": "string"
+        },
+        "emergency_contact_phone": {
+          "type": "string"
+        },
+        "emergency_contact_relationship": {
           "type": "string"
         },
         "first_name": {
@@ -9556,6 +9914,9 @@
           "type": "string"
         },
         "phone": {
+          "type": "string"
+        },
+        "scheduled_deletion_at": {
           "type": "string"
         },
         "user_id": {
@@ -9968,6 +10329,11 @@
           "minimum": 0,
           "example": 5
         },
+        "currency": {
+          "description": "\"cad\" or \"usd\", defaults to \"cad\"",
+          "type": "string",
+          "example": "cad"
+        },
         "end_at": {
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
@@ -9984,6 +10350,11 @@
           "type": "string",
           "example": "f0e21457-75d4-4de6-b765-5ee13221fd72"
         },
+        "registration_required": {
+          "description": "Defaults to true if not provided",
+          "type": "boolean",
+          "example": true
+        },
         "required_membership_plan_ids": {
           "type": "array",
           "items": {
@@ -9998,6 +10369,11 @@
         "team_id": {
           "type": "string",
           "example": "0bab3927-50eb-42b3-9d6b-2350dd00a100"
+        },
+        "unit_amount": {
+          "description": "Fields for Stripe auto-creation (when PriceID is not provided)",
+          "type": "integer",
+          "example": 2500
         }
       }
     },
@@ -10036,6 +10412,9 @@
         },
         "program": {
           "$ref": "#/definitions/event.ProgramInfo"
+        },
+        "registration_required": {
+          "type": "boolean"
         },
         "required_membership_plan_ids": {
           "type": "array",
@@ -10126,6 +10505,11 @@
           "minimum": 0,
           "example": 5
         },
+        "currency": {
+          "description": "\"cad\" or \"usd\", defaults to \"cad\"",
+          "type": "string",
+          "example": "cad"
+        },
         "day": {
           "type": "string",
           "example": "THURSDAY"
@@ -10158,6 +10542,11 @@
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
         },
+        "registration_required": {
+          "description": "Defaults to true if not provided",
+          "type": "boolean",
+          "example": true
+        },
         "required_membership_plan_ids": {
           "type": "array",
           "items": {
@@ -10168,6 +10557,11 @@
         "team_id": {
           "type": "string",
           "example": "0bab3927-50eb-42b3-9d6b-2350dd00a100"
+        },
+        "unit_amount": {
+          "description": "Fields for Stripe auto-creation (when PriceID is not provided)",
+          "type": "integer",
+          "example": 2500
         }
       }
     },
@@ -10711,31 +11105,65 @@
       }
     },
     "membership_plan.PlanRequestDto": {
+      "description": "Membership plan creation request. Provide either stripe_price_id OR (unit_amount + billing_interval) to auto-create Stripe product.",
       "type": "object",
-      "required": ["membership_id", "stripe_price_id"],
+      "required": ["membership_id"],
       "properties": {
         "amt_periods": {
-          "type": "integer"
+          "type": "integer",
+          "example": 12
+        },
+        "billing_interval": {
+          "description": "\"month\", \"year\", \"week\", \"day\"",
+          "type": "string",
+          "example": "month"
         },
         "credit_allocation": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "example": 100
+        },
+        "currency": {
+          "description": "\"cad\" or \"usd\", defaults to \"cad\"",
+          "type": "string",
+          "example": "cad"
+        },
+        "interval_count": {
+          "description": "defaults to 1",
+          "type": "integer",
+          "example": 1
+        },
+        "joining_fee_amount": {
+          "description": "Optional one-time fee in cents (e.g., 15000 = $150.00)",
+          "type": "integer",
+          "example": 15000
         },
         "membership_id": {
-          "type": "string"
+          "type": "string",
+          "example": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "example": "Monthly Gold Plan"
         },
         "stripe_joining_fees_id": {
-          "type": "string"
+          "type": "string",
+          "example": "price_1XYZ789..."
         },
         "stripe_price_id": {
-          "type": "string"
+          "description": "Option 1: Provide existing Stripe Price ID (legacy/manual way)",
+          "type": "string",
+          "example": "price_1ABC123..."
+        },
+        "unit_amount": {
+          "description": "Option 2: Provide pricing details to auto-create in Stripe (new way)",
+          "type": "integer",
+          "example": 5000
         },
         "weekly_credit_limit": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "example": 10
         }
       }
     },
@@ -10814,6 +11242,9 @@
         },
         "membership_plan_id": {
           "type": "string"
+        },
+        "registration_required": {
+          "type": "boolean"
         },
         "stripe_price_id": {
           "type": "string"
@@ -10940,28 +11371,14 @@
         }
       }
     },
-    "program.LevelsResponse": {
-      "type": "object",
-      "properties": {
-        "levels": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "program.RequestDto": {
       "type": "object",
-      "required": ["level", "name", "type"],
+      "required": ["name", "type"],
       "properties": {
         "capacity": {
           "type": "integer"
         },
         "description": {
-          "type": "string"
-        },
-        "level": {
           "type": "string"
         },
         "name": {
@@ -10988,9 +11405,6 @@
           "type": "string"
         },
         "id": {
-          "type": "string"
-        },
-        "level": {
           "type": "string"
         },
         "name": {
@@ -11274,7 +11688,7 @@
         },
         "logo_url": {
           "type": "string",
-          "maxLength": 2048
+          "maxLength": 5000
         },
         "name": {
           "type": "string",
@@ -11296,7 +11710,7 @@
         },
         "logo_url": {
           "type": "string",
-          "maxLength": 2048
+          "maxLength": 5000
         },
         "name": {
           "type": "string",
@@ -11360,6 +11774,18 @@
         },
         "email": {
           "type": "string"
+        },
+        "emergency_contact_name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "emergency_contact_phone": {
+          "type": "string",
+          "maxLength": 25
+        },
+        "emergency_contact_relationship": {
+          "type": "string",
+          "maxLength": 50
         },
         "first_name": {
           "type": "string"

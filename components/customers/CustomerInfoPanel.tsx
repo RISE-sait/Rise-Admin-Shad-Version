@@ -1298,15 +1298,6 @@ export default function CustomerInfoPanel({
                           : "N/A"}
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Billing Period
-                      </label>
-                      <p className="text-sm font-medium">
-                        {membershipPlan.amt_periods} month
-                        {membershipPlan.amt_periods !== 1 ? "s" : ""}
-                      </p>
-                    </div>
                     {membershipPlan.credit_allocation !== null &&
                       membershipPlan.credit_allocation !== undefined && (
                         <div className="space-y-2">
