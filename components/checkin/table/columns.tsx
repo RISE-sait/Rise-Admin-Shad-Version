@@ -26,6 +26,19 @@ const columns: ColumnDef<LoginLog>[] = [
     size: 250,
   },
   {
+    accessorKey: "membership",
+    header: "Membership",
+    cell: ({ row }) => {
+      const membership = row.getValue("membership") as string | null;
+      if (!membership) {
+        return <span className="text-red-500 font-medium">No Membership</span>;
+      }
+      return membership;
+    },
+    minSize: 150,
+    size: 200,
+  },
+  {
     accessorKey: "loginTime",
     header: ({ column }) => (
       <Button

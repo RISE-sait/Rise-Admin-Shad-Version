@@ -79,6 +79,7 @@ export default function CheckInPage() {
               name: `${customerData.first_name} ${customerData.last_name}`,
               email: customerData.email,
               loginTime: new Date().toISOString(),
+              membership: membership?.membership_name || membership?.membership_plan_name || null,
             },
             ...prev,
           ];
@@ -175,10 +176,12 @@ export default function CheckInPage() {
         open={showNoMembershipAlert}
         onOpenChange={setShowNoMembershipAlert}
       >
-        <AlertDialogContent className="max-w-xl">
+        <AlertDialogContent className="max-w-xl border-red-500 border-2 bg-red-50 dark:bg-red-950">
           <AlertDialogHeader>
-            <AlertDialogTitle>No active membership</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-red-600 dark:text-red-400 text-2xl">
+              No active membership
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-red-600 dark:text-red-400 text-lg">
               This customer does not have an active membership.
             </AlertDialogDescription>
           </AlertDialogHeader>
