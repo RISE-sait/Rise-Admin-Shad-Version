@@ -5,6 +5,8 @@ export interface CreditPackageResponse {
   credit_allocation: number;
   weekly_credit_limit: number;
   stripe_price_id: string;
+  price?: number;
+  currency?: string;
   created_at: string;
   updated_at: string;
 }
@@ -16,6 +18,8 @@ export interface CreditPackage {
   credit_allocation: number;
   weekly_credit_limit: number;
   stripe_price_id: string;
+  price?: number;
+  currency?: string;
   created_at: Date;
   updated_at: Date;
 }

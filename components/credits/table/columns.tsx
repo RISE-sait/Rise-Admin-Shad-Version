@@ -69,11 +69,22 @@ export const columns: ColumnDef<CreditPackage>[] = [
     size: 180,
   },
   {
-    id: "stripe_price_id",
-    accessorKey: "stripe_price_id",
-    header: "Stripe Price ID",
-    minSize: 200,
-    size: 260,
+    id: "price",
+    accessorKey: "price",
+    header: "Price",
+    cell: ({ row }) => {
+      const price = row.getValue("price") as number | undefined;
+      const currency = row.original.currency || "USD";
+      if (price === undefined || price === null) {
+        return "-";
+      }
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+      }).format(price);
+    },
+    minSize: 100,
+    size: 120,
   },
   {
     id: "actions",
