@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SaveIcon, TrashIcon, Users, Image as ImageIcon, UserCheck } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SaveIcon, TrashIcon, Users, Image as ImageIcon, UserCheck, Info, ClipboardList } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -189,8 +190,27 @@ export default function TeamInfoPanel({
 
   // Render form fields along with roster info and action buttons
   return (
-    <>
-      <div className="space-y-6">
+    <Tabs defaultValue="details" className="w-full">
+      <TabsList className="w-full h-auto p-0 bg-transparent flex gap-1 rounded-none border-b border-border">
+        <TabsTrigger
+          value="details"
+          className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+        >
+          <Info className="h-4 w-4" />
+          Details
+        </TabsTrigger>
+        {!team.is_external && user?.Role !== StaffRoleEnum.COACH && (
+          <TabsTrigger
+            value="roster"
+            className="flex items-center gap-2 px-6 py-3 rounded-none bg-transparent hover:bg-muted/50 transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
+            <ClipboardList className="h-4 w-4" />
+            Roster
+          </TabsTrigger>
+        )}
+      </TabsList>
+
+      <TabsContent value="details" className="space-y-6 mt-4">
         {/* Team Details Section */}
         <Card className="border-l-4 border-l-yellow-500">
           <CardContent className="pt-6">
@@ -322,39 +342,7 @@ export default function TeamInfoPanel({
             </CardContent>
           </Card>
         )}
-        {!team.is_external &&
-          roster &&
-          user?.Role !== StaffRoleEnum.COACH && (
-          <div>
-            <Separator className="my-2" />
-            <div className="mt-4 rounded-md border border-yellow-500 p-4 shadow">
-              <h3 className="mb-2 text-xl font-semibold">
-                Current Roster ({roster.length})
-              </h3>
-              {roster.length > 0 ? (
-                <ul className="divide-y rounded-md border">
-                  {roster.map((member, index) => (
-                    <li key={member.id} className="p-2 even:bg-secondary">
-                      {index + 1}. {member.name}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="rounded-md border p-2 text-sm text-gray-500">
-                  No players on roster, click manage roster to add players
-                </p>
-              )}
-              {!isReceptionist && (
-                <Button
-                  className="mt-4 bg-yellow-500 text-black hover:bg-yellow-600"
-                  onClick={() => setRosterOpen(true)}
-                >
-                  Manage Roster
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
+
         <Separator />
 
         {!isReceptionist && (
@@ -395,7 +383,38 @@ export default function TeamInfoPanel({
             </Button>
           </div>
         )}
-      </div>
+      </TabsContent>
+
+      {!team.is_external && user?.Role !== StaffRoleEnum.COACH && (
+        <TabsContent value="roster" className="mt-4">
+          <div className="rounded-md border border-yellow-500 p-4 shadow">
+            <h3 className="mb-2 text-xl font-semibold">
+              Current Roster ({roster?.length || 0})
+            </h3>
+            {roster && roster.length > 0 ? (
+              <ul className="divide-y rounded-md border">
+                {roster.map((member, index) => (
+                  <li key={member.id} className="p-2 even:bg-secondary">
+                    {index + 1}. {member.name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-md border p-2 text-sm text-gray-500">
+                No players on roster, click manage roster to add players
+              </p>
+            )}
+            {!isReceptionist && (
+              <Button
+                className="mt-4 bg-yellow-500 text-black hover:bg-yellow-600"
+                onClick={() => setRosterOpen(true)}
+              >
+                Manage Roster
+              </Button>
+            )}
+          </div>
+        </TabsContent>
+      )}
       <RightDrawer
         drawerOpen={rosterOpen}
         handleDrawerClose={() => setRosterOpen(false)}
@@ -407,6 +426,6 @@ export default function TeamInfoPanel({
           onRosterChange={setRoster}
         />
       </RightDrawer>
-    </>
+    </Tabs>
   );
 }
