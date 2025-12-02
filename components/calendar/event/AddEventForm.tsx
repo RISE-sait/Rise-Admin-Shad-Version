@@ -227,7 +227,6 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         event_start_at: formatTime(data.event_start_at),
         event_end_at: formatTime(data.event_end_at),
         day: data.day,
-        capacity: data.capacity ? Number(data.capacity) : undefined,
         credit_cost: creditCost,
         ...(unitAmountRecurring ? { unit_amount: unitAmountRecurring, currency: data.currency } : {}),
         ...(data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0

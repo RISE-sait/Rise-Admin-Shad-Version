@@ -225,6 +225,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
           data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0
             ? data.required_membership_plan_ids
             : undefined,
+        registration_required: data.registration_required,
         program: {
           id: program?.id || "",
           name: program?.name || "",
