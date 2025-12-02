@@ -16,6 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Monitor } from "lucide-react";
 
 const CUSTOMER_ID_REGEX = /^[A-Za-z0-9-]*$/;
 
@@ -28,9 +30,15 @@ export default function CheckInPage() {
   const [showNoMembershipAlert, setShowNoMembershipAlert] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    // Initialize broadcast channel for customer display
+    broadcastChannelRef.current = new BroadcastChannel("checkin-display");
+    return () => {
+      broadcastChannelRef.current?.close();
+    };
   }, []);
 
   useEffect(() => {
@@ -86,6 +94,21 @@ export default function CheckInPage() {
           saveLogs(updated);
           return updated;
         });
+
+        // Broadcast to customer display
+        broadcastChannelRef.current?.postMessage({
+          type: "CHECKIN",
+          payload: {
+            customer: {
+              id: customerData.id,
+              first_name: customerData.first_name,
+              last_name: customerData.last_name,
+              profilePicture: customerData.profilePicture,
+            },
+            membership: membership,
+            timestamp: Date.now(),
+          },
+        });
       } else {
         setCustomer(null);
       }
@@ -100,9 +123,20 @@ export default function CheckInPage() {
     }
   };
 
+  const openCustomerDisplay = () => {
+    window.open("/customer-display", "customer-display", "noopener,noreferrer");
+  };
+
   return (
     <>
       <div className="space-y-4 p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-semibold">Check-In</h1>
+          <Button onClick={openCustomerDisplay} variant="outline">
+            <Monitor className="h-4 w-4 mr-2" />
+            Open Customer Display
+          </Button>
+        </div>
         <form onSubmit={handleSubmit}>
           <input
             ref={inputRef}
