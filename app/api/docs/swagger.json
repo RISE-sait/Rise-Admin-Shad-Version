@@ -6085,8 +6085,7 @@
           "201": {
             "description": "Program created successfully",
             "schema": {
-              "type": "object",
-              "additionalProperties": true
+              "$ref": "#/definitions/program.Response"
             }
           },
           "400": {
@@ -9465,6 +9464,9 @@
         "name": {
           "type": "string"
         },
+        "photo_url": {
+          "type": "string"
+        },
         "points": {
           "type": "integer"
         },
@@ -9914,6 +9916,9 @@
           "type": "string"
         },
         "phone": {
+          "type": "string"
+        },
+        "photo_url": {
           "type": "string"
         },
         "scheduled_deletion_at": {
