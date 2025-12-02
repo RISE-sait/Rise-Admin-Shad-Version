@@ -155,10 +155,9 @@ export async function createEvents(
   jwt: string
 ): Promise<EventEventResponseDto[]> {
   try {
-    const { court_id, capacity, credit_cost, ...rest } = eventsData;
+    const { court_id, credit_cost, ...rest } = eventsData;
     const requestData: Record<string, unknown> = {
       ...rest,
-      ...(typeof capacity !== "undefined" && { capacity: Number(capacity) }),
       ...(typeof credit_cost !== "undefined" && {
         credit_cost: Number(credit_cost),
       }),
