@@ -135,6 +135,22 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
       return;
     }
 
+    // If registration is required, at least one payment/access option must be set
+    if (data.registration_required) {
+      const hasCredits = usingCredits && data.credit_cost && Number(data.credit_cost) > 0;
+      const hasPrice = data.price_amount && parseFloat(data.price_amount) > 0;
+      const hasMembership = data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0;
+
+      if (!hasCredits && !hasPrice && !hasMembership) {
+        toast({
+          status: "error",
+          description: "Registration required events must have at least one of: credits, price, or membership plan",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     let result: EventEventResponseDto | string | null = null;
     let creditCost: number | undefined;
 
@@ -208,9 +224,12 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         return `${h}:${m}:00+00:00`;
       };
 
-      const startDate = new Date(data.recurrence_start_at);
-      const endDate = new Date(data.recurrence_end_at);
-      endDate.setHours(23, 59, 59, 999);
+      // Parse date strings as local time (not UTC) by appending T00:00:00
+      const [startYear, startMonth, startDay] = data.recurrence_start_at.split('-').map(Number);
+      const startDate = new Date(startYear, startMonth - 1, startDay);
+
+      const [endYear, endMonth, endDay] = data.recurrence_end_at.split('-').map(Number);
+      const endDate = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
 
       // Convert price_amount (dollars) to unit_amount (cents) for recurring events
       const unitAmountRecurring = data.price_amount
@@ -246,7 +265,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
           capacity: event.capacity ?? 0,
           credit_cost: event.credit_cost ?? undefined,
           price_id: event.price_id ?? undefined,
-          required_membership_plan_ids: event.required_membership_plan_ids ?? undefined,
+          required_membership_plan_ids: event.required_membership_plan_ids ?? data.required_membership_plan_ids ?? undefined,
           registration_required: event.registration_required ?? true,
           createdBy: {
             id: event.created_by?.id ?? "",
@@ -320,7 +339,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         capacity: createdEvent.capacity ?? 0,
         credit_cost: createdEvent.credit_cost ?? undefined,
         price_id: createdEvent.price_id ?? undefined,
-        required_membership_plan_ids: createdEvent.required_membership_plan_ids ?? undefined,
+        required_membership_plan_ids: createdEvent.required_membership_plan_ids ?? data.required_membership_plan_ids ?? undefined,
         registration_required: createdEvent.registration_required ?? true,
         createdBy: {
           id: createdEvent.created_by?.id ?? "",
