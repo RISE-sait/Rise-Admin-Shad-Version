@@ -123,8 +123,7 @@ export default function CreditPackageInfoPanel({
       toast.success("Credit package updated successfully");
       await revalidateCreditPackages();
       await onSuccess();
-    } catch (error) {
-      console.error("Failed to update credit package", error);
+    } catch {
       toast.error("Failed to update credit package. Please try again.");
     }
   });
@@ -141,8 +140,7 @@ export default function CreditPackageInfoPanel({
       await revalidateCreditPackages();
       await onSuccess();
       onClose();
-    } catch (error) {
-      console.error("Failed to delete credit package", error);
+    } catch {
       toast.error("Failed to delete credit package. Please try again.");
     }
   };

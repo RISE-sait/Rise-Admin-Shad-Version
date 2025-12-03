@@ -59,8 +59,7 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
     try {
       const plansData = await getPlansForMembership(membershipId);
       setPlans(plansData);
-    } catch (error) {
-      console.error("Error fetching plans:", error);
+    } catch {
       toast({
         status: "error",
         description: "Error loading membership plans",

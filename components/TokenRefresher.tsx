@@ -29,8 +29,8 @@ export default function TokenRefresher() {
             };
           });
         }
-      } catch (err) {
-        console.error("Failed to refresh JWT", err);
+      } catch {
+        // Failed to refresh JWT
       }
     };
 

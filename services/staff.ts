@@ -368,7 +368,6 @@ export async function approveStaff(id: string, jwt: string): Promise<void> {
 export async function rejectStaff(id: string, jwt: string): Promise<void> {
   try {
     const url = `${getValue("API")}register/staff/reject/${id}`;
-    console.log("Reject URL:", url); // Debug log
 
     const response = await fetch(url, {
       method: "DELETE",

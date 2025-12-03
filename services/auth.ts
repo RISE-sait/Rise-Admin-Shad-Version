@@ -40,8 +40,6 @@ export const loginWithFirebaseToken = async (
       : "";
     const jwtToken = authHeader.replace("Bearer ", "");
 
-    console.log("JWT Token:", jwtToken);
-
     // Get response body
     const data: IdentityUserAuthenticationResponseDto = await response.json();
 
