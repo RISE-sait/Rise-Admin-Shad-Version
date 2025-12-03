@@ -64,11 +64,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
               backendUser.Role === StaffRoleEnum.COACH ? "/calendar" : "/"
             );
           }
-        } else {
-          console.error("Backend authentication failed, user is null");
         }
-      } catch (error) {
-        console.error("Error during authentication:", error);
+      } catch {
+        // Authentication failed
       } finally {
         setIsLoading(false); // Finished loading regardless of outcome
       }

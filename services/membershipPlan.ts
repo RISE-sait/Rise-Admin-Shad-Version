@@ -43,8 +43,6 @@ export async function getPlansForMembership(
     );
 
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ Failed to fetch plans:`, res.status, errorText);
       throw new Error("Could not load membership plans");
     }
 
@@ -52,7 +50,6 @@ export async function getPlansForMembership(
 
     return data.map(mapMembershipPlan);
   } catch (err) {
-    console.error("🔥 Error loading membership plans:", err);
     throw err;
   }
 }
@@ -83,12 +80,6 @@ export async function updatePlanVisibility(
   const res = await patchPlanVisibility(url, visibility, jwt);
 
   if (!res.ok) {
-    const errorText = await res.text();
-    console.error(
-      "❌ Failed to update membership plan visibility:",
-      res.status,
-      errorText
-    );
     throw new Error("Failed to update membership plan visibility");
   }
 
@@ -102,11 +93,8 @@ export async function updatePlanVisibility(
   try {
     const updatedPlan: MembershipPlanResponseLike = await res.json();
     mapMembershipPlan(updatedPlan);
-  } catch (error) {
-    console.warn(
-      "⚠️ Membership plan visibility updated but response was empty or invalid.",
-      error
-    );
+  } catch {
+    // Response was empty or invalid, but update succeeded
   }
 }
 

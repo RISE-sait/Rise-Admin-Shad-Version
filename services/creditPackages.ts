@@ -54,7 +54,6 @@ export async function getAllCreditPackages(): Promise<CreditPackage[]> {
     const creditPackages: CreditPackageResponse[] = await response.json();
     return creditPackages.map(mapCreditPackageResponse);
   } catch (error) {
-    console.error("Error fetching credit packages:", error);
     throw error;
   }
 }
@@ -70,7 +69,6 @@ export async function getCreditPackage(id: string): Promise<CreditPackage> {
     const creditPackage: CreditPackageResponse = await response.json();
     return mapCreditPackageResponse(creditPackage);
   } catch (error) {
-    console.error("Error fetching credit package:", error);
     throw error;
   }
 }

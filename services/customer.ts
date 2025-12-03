@@ -641,26 +641,15 @@ export async function getCustomers(
       throw new Error("Authorization token is required");
     }
 
-    console.log(`🔍 Fetching customers from: ${url}`);
     const response = await fetch(url, {
       ...addAuthHeader(resolvedJwt),
     });
 
-    console.log(`📡 Response status: ${response.status} ${response.statusText}`);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        "Failed to fetch customers:",
-        response.status,
-        response.statusText,
-        errorText
-      );
       throw new Error(`Failed to fetch customers: ${response.statusText}`);
     }
 
     const json: CustomersPaginatedResponse = await response.json();
-    console.log(`✅ Fetched ${json.data.length} customers from page ${json.page}`);
 
     return {
       customers: json.data.map(mapApiResponseToCustomer),
@@ -669,7 +658,6 @@ export async function getCustomers(
       total: json.total,
     };
   } catch (error) {
-    console.error("Error fetching customers:", error);
     throw error;
   }
 }
@@ -977,23 +965,17 @@ export async function unarchiveCustomer(
 
 export async function exportCustomers(jwt: string): Promise<Blob> {
   try {
-    console.log("📊 Fetching customers for export...");
-
     // Fetch all customers by paginating through all pages (max 20 per page)
     let allCustomers: Customer[] = [];
-    let currentPage = 1;
     let totalPages = 1;
 
     // Fetch first page to get total pages
-    console.log("📄 Fetching page 1...");
     const firstPageResult = await getCustomers("", 1, 20);
     allCustomers = firstPageResult.customers;
     totalPages = firstPageResult.pages;
-    console.log(`✅ Page 1 fetched: ${firstPageResult.customers.length} customers, ${totalPages} total pages`);
 
     // Fetch remaining pages if any
     if (totalPages > 1) {
-      console.log(`📄 Fetching remaining ${totalPages - 1} pages...`);
       const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
       const remainingResults = await Promise.all(
         remainingPages.map(page => getCustomers("", page, 20))
@@ -1002,10 +984,7 @@ export async function exportCustomers(jwt: string): Promise<Blob> {
       remainingResults.forEach(result => {
         allCustomers = allCustomers.concat(result.customers);
       });
-      console.log(`✅ All pages fetched: ${allCustomers.length} total customers`);
     }
-
-    console.log("📝 Converting to CSV...");
 
     // Convert to CSV
     const csvHeaders = [
@@ -1053,23 +1032,17 @@ export async function exportCustomers(jwt: string): Promise<Blob> {
 
 export async function exportArchivedCustomers(jwt: string): Promise<Blob> {
   try {
-    console.log("📊 Fetching archived customers for export...");
-
     // Fetch all archived customers by paginating through all pages (max 20 per page)
     let allCustomers: Customer[] = [];
-    let currentPage = 1;
     let totalPages = 1;
 
     // Fetch first page to get total pages
-    console.log("📄 Fetching page 1...");
     const firstPageResult = await getArchivedCustomers("", 1, 20);
     allCustomers = firstPageResult.customers;
     totalPages = firstPageResult.pages;
-    console.log(`✅ Page 1 fetched: ${firstPageResult.customers.length} archived customers, ${totalPages} total pages`);
 
     // Fetch remaining pages if any
     if (totalPages > 1) {
-      console.log(`📄 Fetching remaining ${totalPages - 1} pages...`);
       const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
       const remainingResults = await Promise.all(
         remainingPages.map(page => getArchivedCustomers("", page, 20))
@@ -1078,10 +1051,7 @@ export async function exportArchivedCustomers(jwt: string): Promise<Blob> {
       remainingResults.forEach(result => {
         allCustomers = allCustomers.concat(result.customers);
       });
-      console.log(`✅ All pages fetched: ${allCustomers.length} total archived customers`);
     }
-
-    console.log("📝 Converting to CSV...");
 
     // Convert to CSV
     const csvHeaders = [
