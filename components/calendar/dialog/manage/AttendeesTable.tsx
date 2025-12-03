@@ -248,16 +248,22 @@ export default function AttendeesTable({
             <UserPlus className="h-5 w-5 text-yellow-500" />
             <h3 className="font-semibold text-lg">Event Attendees</h3>
           </div>
-          {capacity !== undefined && capacity > 0 && (
-            <div className="text-sm font-medium">
-              <span className={data.length >= capacity ? "text-red-500" : "text-muted-foreground"}>
-                {data.length} / {capacity}
+          <div className="text-sm font-medium">
+            {capacity !== undefined && capacity > 0 ? (
+              <>
+                <span className={data.length >= capacity ? "text-red-500" : "text-muted-foreground"}>
+                  {data.length} / {capacity}
+                </span>
+                <span className="text-muted-foreground ml-2">
+                  ({capacity - data.length} spots remaining)
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">
+                {data.length} registered
               </span>
-              <span className="text-muted-foreground ml-2">
-                ({capacity - data.length} spots remaining)
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
           View and manage customers registered for this event.
