@@ -48,7 +48,7 @@ import {
   SheetContent,
 } from "@/components/ui/sheet";
 
-const ROLE_OPTIONS = [
+const BASE_ROLE_OPTIONS = [
   { label: "Barber", value: "barber" },
   { label: "Coach", value: "coach" },
   { label: "Receptionist", value: "receptionist" },
@@ -60,6 +60,11 @@ const ITEMS_PER_PAGE = 10;
 export default function StaffManagement() {
   const { user } = useUser();
   const { toast } = useToast();
+
+  // Only super admins can create other super admins
+  const ROLE_OPTIONS = user?.Role === StaffRoleEnum.SUPERADMIN
+    ? [...BASE_ROLE_OPTIONS, { label: "Super Admin", value: "superadmin" }]
+    : BASE_ROLE_OPTIONS;
 
   // Registration form state
   const [firstName, setFirstName] = useState("");
