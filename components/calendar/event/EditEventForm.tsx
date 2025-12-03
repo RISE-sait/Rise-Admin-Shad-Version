@@ -155,6 +155,22 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
       return;
     }
 
+    // If registration is required, at least one payment/access option must be set
+    if (data.registration_required) {
+      const hasCredits = usingCredits && data.credit_cost && Number(data.credit_cost) > 0;
+      const hasPrice = data.price_amount && parseFloat(data.price_amount) > 0;
+      const hasMembership = data.required_membership_plan_ids && data.required_membership_plan_ids.length > 0;
+
+      if (!hasCredits && !hasPrice && !hasMembership) {
+        toast({
+          status: "error",
+          description: "Registration required events must have at least one of: credits, price, or membership plan",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     let creditCost: number | undefined;
 
     if (usingCredits) {
