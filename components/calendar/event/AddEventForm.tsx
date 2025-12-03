@@ -208,9 +208,12 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         return `${h}:${m}:00+00:00`;
       };
 
-      const startDate = new Date(data.recurrence_start_at);
-      const endDate = new Date(data.recurrence_end_at);
-      endDate.setHours(23, 59, 59, 999);
+      // Parse date strings as local time (not UTC) by appending T00:00:00
+      const [startYear, startMonth, startDay] = data.recurrence_start_at.split('-').map(Number);
+      const startDate = new Date(startYear, startMonth - 1, startDay);
+
+      const [endYear, endMonth, endDay] = data.recurrence_end_at.split('-').map(Number);
+      const endDate = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
 
       // Convert price_amount (dollars) to unit_amount (cents) for recurring events
       const unitAmountRecurring = data.price_amount
