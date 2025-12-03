@@ -249,7 +249,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
           capacity: event.capacity ?? 0,
           credit_cost: event.credit_cost ?? undefined,
           price_id: event.price_id ?? undefined,
-          required_membership_plan_ids: event.required_membership_plan_ids ?? undefined,
+          required_membership_plan_ids: event.required_membership_plan_ids ?? data.required_membership_plan_ids ?? undefined,
           registration_required: event.registration_required ?? true,
           createdBy: {
             id: event.created_by?.id ?? "",
@@ -323,7 +323,7 @@ export default function AddEventForm({ onClose }: { onClose?: () => void }) {
         capacity: createdEvent.capacity ?? 0,
         credit_cost: createdEvent.credit_cost ?? undefined,
         price_id: createdEvent.price_id ?? undefined,
-        required_membership_plan_ids: createdEvent.required_membership_plan_ids ?? undefined,
+        required_membership_plan_ids: createdEvent.required_membership_plan_ids ?? data.required_membership_plan_ids ?? undefined,
         registration_required: createdEvent.registration_required ?? true,
         createdBy: {
           id: createdEvent.created_by?.id ?? "",
