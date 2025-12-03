@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Users, Image as ImageIcon, UserCheck, Hash } from "lucide-react";
+import { Users, Image as ImageIcon, Hash } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFormData } from "@/hooks/form-data";
@@ -191,6 +191,27 @@ export default function AddTeamForm({
                 className="bg-background"
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Coach Assignment <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={data.coach_id}
+                onValueChange={(id) => updateField("coach_id", id)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Select Coach" />
+                </SelectTrigger>
+                <SelectContent>
+                  {coaches.map((c) => (
+                    <SelectItem key={c.ID} value={c.ID}>
+                      {c.Name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -253,36 +274,6 @@ export default function AddTeamForm({
                 )}
               </label>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Coach Assignment Section */}
-      <Card className="border-l-4 border-l-yellow-500">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <UserCheck className="h-5 w-5 text-yellow-500" />
-            <h3 className="font-semibold text-lg">Coach Assignment</h3>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Coach <span className="text-red-500">*</span>
-            </label>
-            <Select
-              value={data.coach_id}
-              onValueChange={(id) => updateField("coach_id", id)}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="Select Coach" />
-              </SelectTrigger>
-              <SelectContent>
-                {coaches.map((c) => (
-                  <SelectItem key={c.ID} value={c.ID}>
-                    {c.Name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>
