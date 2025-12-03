@@ -93,6 +93,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
           stripe_price_id: plan.stripe_price_id ?? "",
           stripe_joining_fees_id: plan.stripe_joining_fees_id ?? "",
           visibility: plan.visibility,
+          unit_amount: plan.unit_amount ? (plan.unit_amount / 100).toFixed(2) : "",
+          currency: plan.currency ?? "cad",
+          billing_interval: plan.billing_interval ?? "month",
         },
       }));
     }
@@ -308,6 +311,20 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
       return;
     }
 
+    // parse unit_amount (convert dollars to cents)
+    let parsedUnitAmount: number | undefined;
+    if (updatedPlan.unit_amount) {
+      parsedUnitAmount = Math.round(parseFloat(updatedPlan.unit_amount) * 100);
+      if (isNaN(parsedUnitAmount) || parsedUnitAmount < 0) {
+        toast({
+          status: "error",
+          description: "Price must be a valid number.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       const response = await fetch(
         `${apiUrl}memberships/plans/${updatedPlan.id}`,
@@ -325,6 +342,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
               ? updatedPlan.stripe_joining_fees_id
               : undefined,
             amt_periods: parsedPeriod,
+            ...(parsedUnitAmount !== undefined && { unit_amount: parsedUnitAmount }),
+            ...(updatedPlan.currency && { currency: updatedPlan.currency }),
+            ...(updatedPlan.billing_interval && { billing_interval: updatedPlan.billing_interval }),
           }),
         }
       );
@@ -391,10 +411,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     <h1>{plan.name}</h1>
                     <div className="flex flex-wrap gap-x-2">
                       <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
-                        Stripe price id
-                      </h1>
-                      <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                        {plan.stripe_price_id || "—"}
+                        {plan.unit_amount
+                          ? `$${(plan.unit_amount / 100).toFixed(2)} ${plan.currency?.toUpperCase() || "CAD"}`
+                          : "—"}
                       </h1>
                       <h1 className="text-stone-500 font-semibold text-sm pt-1">
                         • Every {plan.amt_periods} Periods
@@ -447,61 +466,141 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                       disabled={isReceptionist}
                     />
                   </div>
-                  <div className="w-full pl-1 ">
-                    <Label className="w-full">Stripe price id</Label>
-                    <Input
-                      className="w-full mt-1"
-                      onChange={(e) =>
-                        handleInputChange(
-                          plan.id,
-                          "stripe_price_id",
-                          e.target.value
-                        )
-                      }
-                      value={editablePlans[plan.id]?.stripe_price_id || ""}
-                      placeholder={plan.stripe_price_id}
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={isReceptionist}
-                    />
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-full pl-1">
+                          <Label className="w-full text-muted-foreground">Stripe price id</Label>
+                          <Input
+                            className="w-full mt-1 text-muted-foreground cursor-not-allowed"
+                            value={editablePlans[plan.id]?.stripe_price_id || ""}
+                            placeholder={plan.stripe_price_id}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background border text-foreground">
+                        <p>Changes must be made on dashboard.stripe.com</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="pt-3 flex">
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-full pr-5">
+                          <Label className="w-full text-muted-foreground">Price ($)</Label>
+                          <Input
+                            className="w-full mt-1 text-muted-foreground cursor-not-allowed"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={editablePlans[plan.id]?.unit_amount || ""}
+                            placeholder={plan.unit_amount ? (plan.unit_amount / 100).toFixed(2) : "0.00"}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background border text-foreground">
+                        <p>Changes must be made on dashboard.stripe.com</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-full pl-1">
+                          <Label className="w-full text-muted-foreground">Currency</Label>
+                          <select
+                            className="w-full mt-1 h-10 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground cursor-not-allowed"
+                            value={editablePlans[plan.id]?.currency || "cad"}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                          >
+                            <option value="cad">CAD</option>
+                            <option value="usd">USD</option>
+                          </select>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background border text-foreground">
+                        <p>Changes must be made on dashboard.stripe.com</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="pt-3 flex">
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-full pr-5">
+                          <Label className="w-full text-muted-foreground">Billing Interval</Label>
+                          <select
+                            className="w-full mt-1 h-10 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground cursor-not-allowed"
+                            value={editablePlans[plan.id]?.billing_interval || "month"}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                          >
+                            <option value="month">Monthly</option>
+                            <option value="biweekly">Biweekly</option>
+                            <option value="year">Yearly</option>
+                            <option value="week">Weekly</option>
+                            <option value="day">Daily</option>
+                          </select>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background border text-foreground">
+                        <p>Changes must be made on dashboard.stripe.com</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <div className="w-full pl-1">
+                    {/* Empty div for spacing alignment */}
                   </div>
                 </div>
                 <div className="pt-3 flex">
-                  <div className="w-full pr-5">
-                    <Label className="w-full">Stripe join fee</Label>
-                    <Input
-                      className="w-full mt-1"
-                      onChange={(e) =>
-                        handleInputChange(
-                          plan.id,
-                          "stripe_joining_fees_id",
-                          e.target.value
-                        )
-                      }
-                      value={
-                        editablePlans[plan.id]?.stripe_joining_fees_id || ""
-                      }
-                      placeholder={plan.stripe_joining_fees_id}
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={isReceptionist}
-                    />
-                  </div>
-                  <div className="w-full pl-1 ">
-                    <Label className="w-full">Period</Label>
-                    <Input
-                      className="w-full mt-1"
-                      onChange={(e) =>
-                        handleInputChange(
-                          plan.id,
-                          "amt_periods",
-                          e.target.value
-                        )
-                      }
-                      value={editablePlans[plan.id]?.amt_periods || ""}
-                      placeholder={plan.amt_periods.toString()}
-                      onClick={(e) => e.stopPropagation()}
-                      disabled={isReceptionist}
-                    />
-                  </div>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-full pr-5">
+                          <Label className="w-full text-muted-foreground">Stripe join fee</Label>
+                          <Input
+                            className="w-full mt-1 text-muted-foreground cursor-not-allowed"
+                            value={
+                              editablePlans[plan.id]?.stripe_joining_fees_id || ""
+                            }
+                            placeholder={plan.stripe_joining_fees_id}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background border text-foreground">
+                        <p>Changes must be made on dashboard.stripe.com</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-full pl-1">
+                          <Label className="w-full text-muted-foreground">Period</Label>
+                          <Input
+                            className="w-full mt-1 text-muted-foreground cursor-not-allowed"
+                            value={editablePlans[plan.id]?.amt_periods || ""}
+                            placeholder={plan.amt_periods.toString()}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-background border text-foreground">
+                        <p>Changes must be made on dashboard.stripe.com</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 {!isReceptionist && (
@@ -574,10 +673,9 @@ export default function PlansTab({ membershipId }: { membershipId: string }) {
                     <h1>{plan.name}</h1>
                     <div className="flex flex-wrap gap-x-2">
                       <h1 className="font-semibold text-sm pt-1 text-stone-500 pr-1">
-                        Stripe price id
-                      </h1>
-                      <h1 className="text-stone-500 font-medium text-sm pt-1 pr-1">
-                        {plan.stripe_price_id || "—"}
+                        {plan.unit_amount
+                          ? `$${(plan.unit_amount / 100).toFixed(2)} ${plan.currency?.toUpperCase() || "CAD"}`
+                          : "—"}
                       </h1>
                       <h1 className="text-stone-500 font-semibold text-sm pt-1">
                         • Every {plan.amt_periods} Periods
