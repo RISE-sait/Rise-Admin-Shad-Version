@@ -12,6 +12,9 @@ type MembershipPlanResponseLike = MembershipPlanPlanResponse & {
   is_visible?: boolean;
   credit_allocation?: number | null;
   weekly_credit_limit?: number | null;
+  unit_amount?: number | null;
+  currency?: string | null;
+  interval?: string | null;
 };
 
 function mapMembershipPlan(plan: MembershipPlanResponseLike): MembershipPlan {
@@ -25,6 +28,9 @@ function mapMembershipPlan(plan: MembershipPlanResponseLike): MembershipPlan {
     credit_allocation: plan.credit_allocation ?? null,
     weekly_credit_limit: plan.weekly_credit_limit ?? null,
     visibility: plan.visibility ?? plan.is_visible ?? true,
+    unit_amount: plan.unit_amount ?? null,
+    currency: plan.currency ?? null,
+    billing_interval: plan.interval ?? null,
   };
 }
 

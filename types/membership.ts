@@ -16,6 +16,9 @@ export interface MembershipPlan {
   credit_allocation?: number | null;
   weekly_credit_limit?: number | null;
   visibility: boolean;
+  unit_amount?: number | null;
+  currency?: string | null;
+  billing_interval?: string | null;
 }
 
 export interface MembershipPlanRequestDto {

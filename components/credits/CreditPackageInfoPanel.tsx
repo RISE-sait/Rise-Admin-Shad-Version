@@ -41,6 +41,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SaveIcon, TrashIcon, Coins } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CreditPackageInfoPanelProps {
   creditPackage: CreditPackage;
@@ -152,50 +158,68 @@ export default function CreditPackageInfoPanel({
               <h3 className="font-semibold text-lg">Package Information</h3>
             </div>
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  {...register("name", {
-                    required: "Name is required.",
-                    pattern: {
-                      value: TEXT_PATTERN,
-                      message: TEXT_PATTERN_MESSAGE,
-                    },
-                    setValueAs: sanitizeSingleLineInput,
-                  })}
-                  placeholder="Package name"
-                  className="bg-background"
-                  disabled={isReceptionist}
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-500">{errors.name.message}</p>
-                )}
-              </div>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Name <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        {...register("name", {
+                          required: "Name is required.",
+                          pattern: {
+                            value: TEXT_PATTERN,
+                            message: TEXT_PATTERN_MESSAGE,
+                          },
+                          setValueAs: sanitizeSingleLineInput,
+                        })}
+                        placeholder="Package name"
+                        className="bg-background text-muted-foreground cursor-not-allowed"
+                        disabled
+                      />
+                      {errors.name && (
+                        <p className="text-xs text-red-500">{errors.name.message}</p>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background border text-foreground">
+                    <p>Changes must be made on dashboard.stripe.com</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  rows={4}
-                  {...register("description", {
-                    pattern: {
-                      value: MULTILINE_TEXT_PATTERN,
-                      message: MULTILINE_TEXT_MESSAGE,
-                    },
-                    setValueAs: (value: string) =>
-                      value ? sanitizeMultilineInput(value) : value,
-                  })}
-                  placeholder="Describe this credit package"
-                  className="bg-background"
-                  disabled={isReceptionist}
-                />
-                {errors.description && (
-                  <p className="text-xs text-red-500">
-                    {errors.description.message as string}
-                  </p>
-                )}
-              </div>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">Description</label>
+                      <Textarea
+                        rows={4}
+                        {...register("description", {
+                          pattern: {
+                            value: MULTILINE_TEXT_PATTERN,
+                            message: MULTILINE_TEXT_MESSAGE,
+                          },
+                          setValueAs: (value: string) =>
+                            value ? sanitizeMultilineInput(value) : value,
+                        })}
+                        placeholder="Describe this credit package"
+                        className="bg-background text-muted-foreground cursor-not-allowed"
+                        disabled
+                      />
+                      {errors.description && (
+                        <p className="text-xs text-red-500">
+                          {errors.description.message as string}
+                        </p>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background border text-foreground">
+                    <p>Changes must be made on dashboard.stripe.com</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardContent>
         </Card>
@@ -209,79 +233,155 @@ export default function CreditPackageInfoPanel({
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Credit Allocation <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    {...register("credit_allocation", {
-                      required: "Credit allocation is required.",
-                      valueAsNumber: true,
-                      validate: (value) =>
-                        NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
-                    })}
-                    placeholder="0"
-                    className="bg-background"
-                    disabled={isReceptionist}
-                  />
-                  {errors.credit_allocation && (
-                    <p className="text-xs text-red-500">
-                      {errors.credit_allocation.message as string}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Weekly Credit Limit <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    {...register("weekly_credit_limit", {
-                      required: "Weekly credit limit is required.",
-                      valueAsNumber: true,
-                      validate: (value) =>
-                        NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
-                    })}
-                    placeholder="0"
-                    className="bg-background"
-                    disabled={isReceptionist}
-                  />
-                  {errors.weekly_credit_limit && (
-                    <p className="text-xs text-red-500">
-                      {errors.weekly_credit_limit.message as string}
-                    </p>
-                  )}
-                </div>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Credit Allocation <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          {...register("credit_allocation", {
+                            required: "Credit allocation is required.",
+                            valueAsNumber: true,
+                            validate: (value) =>
+                              NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
+                          })}
+                          placeholder="0"
+                          className="bg-background text-muted-foreground cursor-not-allowed"
+                          disabled
+                        />
+                        {errors.credit_allocation && (
+                          <p className="text-xs text-red-500">
+                            {errors.credit_allocation.message as string}
+                          </p>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background border text-foreground">
+                      <p>Changes must be made on dashboard.stripe.com</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Weekly Credit Limit <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          {...register("weekly_credit_limit", {
+                            required: "Weekly credit limit is required.",
+                            valueAsNumber: true,
+                            validate: (value) =>
+                              NUMBER_PATTERN.test(String(value)) || NUMBER_PATTERN_MESSAGE,
+                          })}
+                          placeholder="0"
+                          className="bg-background text-muted-foreground cursor-not-allowed"
+                          disabled
+                        />
+                        {errors.weekly_credit_limit && (
+                          <p className="text-xs text-red-500">
+                            {errors.weekly_credit_limit.message as string}
+                          </p>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background border text-foreground">
+                      <p>Changes must be made on dashboard.stripe.com</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Stripe Price ID <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  {...register("stripe_price_id", {
-                    required: "Stripe price ID is required.",
-                    pattern: {
-                      value: STRIPE_PRICE_PATTERN,
-                      message: STRIPE_PRICE_MESSAGE,
-                    },
-                    setValueAs: sanitizeStripePriceId,
-                  })}
-                  placeholder="price_123ABC"
-                  className="bg-background"
-                  disabled={isReceptionist}
-                />
-                {errors.stripe_price_id && (
-                  <p className="text-xs text-red-500">
-                    {errors.stripe_price_id.message as string}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Price
+                        </label>
+                        <Input
+                          type="text"
+                          value={
+                            creditPackage.price != null
+                              ? creditPackage.price
+                              : "N/A"
+                          }
+                          className="bg-background text-muted-foreground cursor-not-allowed"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background border text-foreground">
+                      <p>Changes must be made on dashboard.stripe.com</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Currency
+                        </label>
+                        <Input
+                          type="text"
+                          value={creditPackage.currency?.toUpperCase() || "N/A"}
+                          className="bg-background text-muted-foreground cursor-not-allowed"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-background border text-foreground">
+                      <p>Changes must be made on dashboard.stripe.com</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
+
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Stripe Price ID <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        {...register("stripe_price_id", {
+                          required: "Stripe price ID is required.",
+                          pattern: {
+                            value: STRIPE_PRICE_PATTERN,
+                            message: STRIPE_PRICE_MESSAGE,
+                          },
+                          setValueAs: sanitizeStripePriceId,
+                        })}
+                        placeholder="price_123ABC"
+                        className="bg-background text-muted-foreground cursor-not-allowed"
+                        disabled
+                      />
+                      {errors.stripe_price_id && (
+                        <p className="text-xs text-red-500">
+                          {errors.stripe_price_id.message as string}
+                        </p>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-background border text-foreground">
+                    <p>Changes must be made on dashboard.stripe.com</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardContent>
         </Card>
