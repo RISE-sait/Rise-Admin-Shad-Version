@@ -12,7 +12,7 @@ import { UserUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
-import { SaveIcon, User, Mail, Phone, UserCircle, AlertCircle } from "lucide-react";
+import { SaveIcon, User, Mail, Phone, UserCircle, AlertCircle, CreditCard } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 type FormField = "first_name" | "last_name" | "email" | "phone" | "emergency_contact_name" | "emergency_contact_phone" | "emergency_contact_relationship";
@@ -187,10 +187,15 @@ export default function DetailsTab({
                 <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                   {customer.first_name} {customer.last_name}
                 </h2>
-                {customer.membership_name ? (
-                  <p className="text-sm text-muted-foreground">
-                    {customer.membership_name}
-                  </p>
+                {customer.memberships && customer.memberships.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {customer.memberships.map((membership, index) => (
+                      <span key={membership.membership_plan_id || index} className="text-sm text-muted-foreground">
+                        {membership.membership_name}
+                        {index < customer.memberships.length - 1 && ", "}
+                      </span>
+                    ))}
+                  </div>
                 ) : (
                   <p className="text-sm text-muted-foreground italic">
                     No active membership
@@ -199,9 +204,9 @@ export default function DetailsTab({
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {customer.membership_name ? (
+                {customer.memberships && customer.memberships.length > 0 ? (
                   <Badge className="border-yellow-500/20 bg-yellow-500/10 text-yellow-700">
-                    Member
+                    {customer.memberships.length === 1 ? "Member" : `${customer.memberships.length} Memberships`}
                   </Badge>
                 ) : (
                   <Badge variant="secondary" className="border-gray-300 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
@@ -347,6 +352,47 @@ export default function DetailsTab({
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Memberships Section */}
+      <Card className="border-l-4 border-l-blue-500">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="h-5 w-5 text-blue-500" />
+            <h3 className="font-semibold text-lg">Memberships</h3>
+          </div>
+          {customer.memberships && customer.memberships.length > 0 ? (
+            <div className="space-y-3">
+              {customer.memberships.map((membership, index) => (
+                <div
+                  key={membership.membership_plan_id || index}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-muted/50 border"
+                >
+                  <div className="space-y-1">
+                    <div className="font-medium">{membership.membership_name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Plan: {membership.membership_plan_name || "N/A"}
+                    </div>
+                  </div>
+                  <div className="mt-2 sm:mt-0 sm:text-right space-y-1">
+                    {membership.membership_start_date && (
+                      <div className="text-sm text-muted-foreground">
+                        Started: {new Date(membership.membership_start_date).toLocaleDateString()}
+                      </div>
+                    )}
+                    {membership.membership_renewal_date && (
+                      <div className="text-sm text-muted-foreground">
+                        Renews: {new Date(membership.membership_renewal_date).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No active memberships</p>
+          )}
         </CardContent>
       </Card>
 

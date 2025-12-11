@@ -24,13 +24,11 @@ export async function getStaffActivityLogs(
     searchParams.set("search_description", params.searchDescription);
   }
 
-  if (typeof params.limit === "number") {
-    searchParams.set("limit", String(params.limit));
-  }
+  const requestedLimit = typeof params.limit === "number" ? params.limit : 10;
+  const requestedOffset = typeof params.offset === "number" ? params.offset : 0;
 
-  if (typeof params.offset === "number") {
-    searchParams.set("offset", String(params.offset));
-  }
+  searchParams.set("limit", String(requestedLimit));
+  searchParams.set("offset", String(requestedOffset));
 
   const queryString = searchParams.toString();
   const url = `${getValue("API")}staffs/logs${queryString ? `?${queryString}` : ""}`;
@@ -136,14 +134,34 @@ export async function getStaffActivityLogs(
     } satisfies StaffActivityLog;
   });
 
-  const total =
+  // Try to extract total count from various possible response structures
+  let total =
     typeof responseJson?.total === "number"
       ? responseJson.total
       : typeof responseJson?.meta?.total === "number"
         ? responseJson.meta.total
         : typeof responseJson?.pagination?.total === "number"
           ? responseJson.pagination.total
-          : logs.length;
+          : typeof responseJson?.count === "number"
+            ? responseJson.count
+            : typeof responseJson?.total_count === "number"
+              ? responseJson.total_count
+              : typeof responseJson?.totalCount === "number"
+                ? responseJson.totalCount
+                : -1; // -1 indicates total is unknown
+
+  // If backend doesn't return a total, estimate based on current results
+  // If we got exactly the limit requested, assume there might be more
+  if (total === -1) {
+    if (logs.length === requestedLimit) {
+      // We got a full page, so there are likely more records
+      // Estimate total as current offset + logs + 1 more page (to enable "Next")
+      total = requestedOffset + logs.length + requestedLimit;
+    } else {
+      // We got fewer than requested, so this is the last page
+      total = requestedOffset + logs.length;
+    }
+  }
 
   return { logs, total } satisfies StaffActivityLogsResult;
 }

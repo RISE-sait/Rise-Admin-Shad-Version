@@ -162,9 +162,39 @@ export const columns: ColumnDef<Customer>[] = [
     id: "membership",
     accessorKey: "membership", // key for membership status
     header: "Membership",
-    cell: ({ row }) => row.original.membership_name || "None", // display membership name
+    cell: ({ row }) => {
+      const memberships = row.original.memberships;
+      if (!memberships || memberships.length === 0) {
+        return <span className="text-muted-foreground">None</span>;
+      }
+      if (memberships.length === 1) {
+        return memberships[0].membership_name;
+      }
+      // Multiple memberships - show first one with a badge for the count
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2">
+                <span>{memberships[0].membership_name}</span>
+                <Badge variant="secondary" className="text-xs">
+                  +{memberships.length - 1}
+                </Badge>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="space-y-1">
+                {memberships.map((m, i) => (
+                  <div key={m.membership_plan_id || i}>{m.membership_name}</div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
     minSize: 120,
-    size: 150,
+    size: 180,
   },
   {
     id: "credits",

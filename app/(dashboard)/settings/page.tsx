@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -177,6 +178,7 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordUpdating, setIsPasswordUpdating] = useState(false);
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [editFirstName, setEditFirstName] = useState("");
@@ -290,6 +292,15 @@ export default function SettingsPage() {
       return;
     }
 
+    if (newPassword.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long",
+        status: "error",
+      });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast({ title: "Passwords do not match", status: "error" });
       return;
@@ -300,6 +311,8 @@ export default function SettingsPage() {
       toast({ title: "No authenticated user", status: "error" });
       return;
     }
+
+    setIsPasswordUpdating(true);
 
     try {
       const credential = EmailAuthProvider.credential(
@@ -312,20 +325,44 @@ export default function SettingsPage() {
       const idToken = await currentUser.getIdToken(true);
       const backendUser = await loginWithFirebaseToken(idToken);
       localStorage.setItem("jwt", backendUser.Jwt);
+
+      // Update cookie as well
+      const isSecure = window.location.protocol === "https:";
+      document.cookie = `jwt=${backendUser.Jwt}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
       setUser(backendUser);
 
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setPasswordOpen(false);
-      toast({ title: "Password updated", status: "success" });
+      toast({ title: "Password updated successfully", status: "success" });
     } catch (error: any) {
-      console.error(error);
+      console.error("Password update error:", error);
+
+      // Provide user-friendly error messages
+      let errorMessage = "An error occurred while updating your password";
+      const errorCode = error?.code;
+
+      if (errorCode === "auth/wrong-password" || errorCode === "auth/invalid-credential") {
+        errorMessage = "Current password is incorrect";
+      } else if (errorCode === "auth/weak-password") {
+        errorMessage = "New password is too weak. Please use a stronger password";
+      } else if (errorCode === "auth/requires-recent-login") {
+        errorMessage = "Please log out and log back in before changing your password";
+      } else if (errorCode === "auth/too-many-requests") {
+        errorMessage = "Too many attempts. Please try again later";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Password update failed",
-        description: error?.message || String(error),
+        description: errorMessage,
         status: "error",
       });
+    } finally {
+      setIsPasswordUpdating(false);
     }
   };
 
@@ -334,9 +371,8 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid w-full ${(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) ? 'grid-cols-6' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) ? 'grid-cols-5' : 'grid-cols-3'}`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="theme">Theme</TabsTrigger>
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
           {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) && (
@@ -413,6 +449,105 @@ export default function SettingsPage() {
           </Button>
         </CardFooter>
       </Card>
+
+      {/* Security Card - Password Change */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Security</CardTitle>
+          <CardDescription>
+            Manage your password and security options.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="grid gap-1">
+              <Label className="text-sm text-muted-foreground">Password</Label>
+              <div className="rounded-md border px-3 py-2 text-sm font-medium text-gray-600">
+                ********
+              </div>
+            </div>
+            <Button variant="outline" onClick={() => setPasswordOpen(true)}>
+              Change password
+            </Button>
+          </div>
+
+          <Dialog open={passwordOpen} onOpenChange={(open) => {
+            if (!isPasswordUpdating) {
+              setPasswordOpen(open);
+              if (!open) {
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }
+            }
+          }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Change password</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="current-password">Current password</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={isPasswordUpdating}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="new-password">New password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isPasswordUpdating}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Must be at least 6 characters
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password">Confirm new password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isPasswordUpdating}
+                    required
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleUpdatePassword} disabled={isPasswordUpdating}>
+                  {isPasswordUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Password"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setPasswordOpen(false)}
+                  disabled={isPasswordUpdating}
+                >
+                  Cancel
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+
       <Sheet open={profileOpen} onOpenChange={setProfileOpen}>
         <SheetContent>
           <SheetHeader>
@@ -547,81 +682,6 @@ export default function SettingsPage() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
-        </TabsContent>
-
-        {/* Security Tab */}
-        <TabsContent value="security" className="space-y-4">
-          <Card>
-        <CardHeader>
-          <CardTitle>Security</CardTitle>
-          <CardDescription>
-            Manage your password and security options.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="grid gap-1">
-              <Label className="text-sm text-muted-foreground">Password</Label>
-              <div className="rounded-md border px-3 py-2 text-sm font-medium text-gray-600">
-                ********
-              </div>
-            </div>
-            <Button variant="outline" onClick={() => setPasswordOpen(true)}>
-              Change password
-            </Button>
-          </div>
-
-          <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Change password</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="current-password">Current password</Label>
-                  <Input
-                    id="current-password"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="new-password">New password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirm-password">Confirm new password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleUpdatePassword}>Update Password</Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setPasswordOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
         </TabsContent>
 
         {/* Theme Tab */}

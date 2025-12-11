@@ -1249,90 +1249,91 @@ export default function CustomerInfoPanel({
                 </div>
               </CardContent>
             </Card>
-          ) : membershipPlan ? (
+          ) : currentCustomer.memberships && currentCustomer.memberships.length > 0 ? (
             <div className="space-y-4">
-              <Card className="border-l-4 border-l-yellow-500">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <CreditCard className="h-5 w-5 text-yellow-500" />
-                    <h3 className="font-semibold text-lg">
-                      {membershipPlan.name}
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Membership Type
-                      </label>
-                      <p className="text-sm font-medium">
-                        {currentCustomer.membership_name || "N/A"}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Status
-                      </label>
-                      <p className="text-sm font-medium">Active</p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Started
-                      </label>
-                      <p className="text-sm font-medium">
-                        {currentCustomer.membership_start_date
-                          ? new Date(
-                              currentCustomer.membership_start_date
-                            ).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Renewal
-                      </label>
-                      <p className="text-sm font-medium">
-                        {currentCustomer.membership_renewal_date
-                          ? new Date(
-                              currentCustomer.membership_renewal_date
-                            ).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </div>
-                    {membershipPlan.credit_allocation !== null &&
-                      membershipPlan.credit_allocation !== undefined && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-muted-foreground">
-                            Credit Allocation
-                          </label>
-                          <p className="text-sm font-medium">
-                            {membershipPlan.credit_allocation} credits
-                          </p>
-                        </div>
+              {currentCustomer.memberships.map((membership, index) => (
+                <Card key={membership.membership_plan_id || index} className="border-l-4 border-l-yellow-500">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CreditCard className="h-5 w-5 text-yellow-500" />
+                      <h3 className="font-semibold text-lg">
+                        {membership.membership_name}
+                      </h3>
+                      {currentCustomer.memberships.length > 1 && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({index + 1} of {currentCustomer.memberships.length})
+                        </span>
                       )}
-                    {membershipPlan.weekly_credit_limit !== null &&
-                      membershipPlan.weekly_credit_limit !== undefined && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-muted-foreground">
-                            Weekly Credit Limit
-                          </label>
-                          <p className="text-sm font-medium">
-                            {membershipPlan.weekly_credit_limit} credits/week
-                          </p>
-                        </div>
-                      )}
-                    {membershipPlan.stripe_price_id && (
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
-                          Stripe Price ID
+                          Plan Name
                         </label>
-                        <p className="font-medium text-xs">
-                          {membershipPlan.stripe_price_id}
+                        <p className="text-sm font-medium">
+                          {membership.membership_plan_name || "N/A"}
                         </p>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Status
+                        </label>
+                        <p className="text-sm font-medium">Active</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Started
+                        </label>
+                        <p className="text-sm font-medium">
+                          {membership.membership_start_date
+                            ? new Date(
+                                membership.membership_start_date
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Renewal
+                        </label>
+                        <p className="text-sm font-medium">
+                          {membership.membership_renewal_date
+                            ? new Date(
+                                membership.membership_renewal_date
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                      {membershipPlan && membershipPlan.id === membership.membership_plan_id && (
+                        <>
+                          {membershipPlan.credit_allocation !== null &&
+                            membershipPlan.credit_allocation !== undefined && (
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                  Credit Allocation
+                                </label>
+                                <p className="text-sm font-medium">
+                                  {membershipPlan.credit_allocation} credits
+                                </p>
+                              </div>
+                            )}
+                          {membershipPlan.weekly_credit_limit !== null &&
+                            membershipPlan.weekly_credit_limit !== undefined && (
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                  Weekly Credit Limit
+                                </label>
+                                <p className="text-sm font-medium">
+                                  {membershipPlan.weekly_credit_limit} credits/week
+                                </p>
+                              </div>
+                            )}
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : (
             <Card className="border-l-4 border-l-yellow-500">
@@ -1345,7 +1346,7 @@ export default function CustomerInfoPanel({
                     No Membership Information
                   </h3>
                   <p className="text-muted-foreground">
-                    This customer doesn't have any membership plans associated
+                    This customer doesn&apos;t have any membership plans associated
                     with their account.
                   </p>
                 </div>

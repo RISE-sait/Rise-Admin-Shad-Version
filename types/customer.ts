@@ -1,3 +1,11 @@
+export interface CustomerMembership {
+  membership_name: string;
+  membership_plan_id: string;
+  membership_plan_name: string;
+  membership_renewal_date: string;
+  membership_start_date: Date | null;
+}
+
 export interface Customer {
   id: string; // customer_id
   first_name: string; // name (e.g., Alice Johnson)
@@ -6,11 +14,14 @@ export interface Customer {
   phone: string;
 
   profilePicture: string;
+  // Single membership fields (kept for backward compatibility)
   membership_name: string;
   membership_start_date: Date | null;
   membership_plan_id: string;
   membership_plan_name: string;
   membership_renewal_date: string;
+  // Multiple memberships support
+  memberships: CustomerMembership[];
   updated_at: Date;
   create_at: Date;
   hubspot_id?: string;

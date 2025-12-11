@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "../../components/header";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function AuthenticatedLayout({
   children,
@@ -14,7 +15,7 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <AuthGuard>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -25,6 +26,6 @@ export default function AuthenticatedLayout({
         </SidebarInset>
       </SidebarProvider>
       <Toaster />
-    </>
+    </AuthGuard>
   );
 }
