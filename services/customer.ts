@@ -5,6 +5,50 @@ import {
   UserUpdateRequestDto,
 } from "@/app/api/Api";
 import { addAuthHeader } from "@/lib/auth-header";
+import { refreshJwtToken } from "@/lib/api-client";
+
+/**
+ * Helper function to make authenticated fetch requests with automatic token refresh on 401.
+ * If the request returns 401, it will attempt to refresh the token and retry once.
+ */
+async function fetchWithTokenRefresh(
+  url: string,
+  options: RequestInit,
+  jwt: string
+): Promise<Response> {
+  let response = await fetch(url, {
+    ...options,
+    ...addAuthHeader(jwt),
+  });
+
+  // If unauthorized, try to refresh token and retry
+  if (response.status === 401) {
+    const newJwt = await refreshJwtToken();
+    if (newJwt) {
+      // Retry with new token
+      response = await fetch(url, {
+        ...options,
+        ...addAuthHeader(newJwt),
+      });
+    } else {
+      // Token refresh failed - redirect to login
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
+  }
+
+  return response;
+}
+
+// Define a type for membership info from API
+interface MembershipInfoApi {
+  membership_name: string;
+  membership_plan_id: string;
+  membership_plan_name: string;
+  membership_renewal_date: string;
+  membership_start_date: string;
+}
 
 // Define a type for the API response
 interface CustomerApiResponse {
@@ -25,13 +69,10 @@ interface CustomerApiResponse {
   hubspot_id?: string;
   is_archived?: boolean;
   last_name: string;
-  membership_info?: {
-    membership_name: string;
-    membership_plan_id: string;
-    membership_plan_name: string;
-    membership_renewal_date: string;
-    membership_start_date: string;
-  };
+  // Single membership (legacy support)
+  membership_info?: MembershipInfoApi;
+  // Multiple memberships (new)
+  memberships?: MembershipInfoApi[];
   notes?: string | null;
   phone: string;
   user_id: string;
@@ -43,6 +84,30 @@ interface CustomerApiResponse {
 
 // Helper function to map API response to Customer type
 function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
+  // Build memberships array from either memberships array or single membership_info
+  const membershipsFromApi: MembershipInfoApi[] = [];
+
+  // First check for memberships array (new format)
+  if (response.memberships && Array.isArray(response.memberships) && response.memberships.length > 0) {
+    membershipsFromApi.push(...response.memberships);
+  }
+  // Fall back to single membership_info (legacy format)
+  else if (response.membership_info) {
+    membershipsFromApi.push(response.membership_info);
+  }
+
+  // Map to CustomerMembership format
+  const memberships = membershipsFromApi.map((m) => ({
+    membership_name: m.membership_name || "",
+    membership_plan_id: m.membership_plan_id || "",
+    membership_plan_name: m.membership_plan_name || "",
+    membership_renewal_date: m.membership_renewal_date || "",
+    membership_start_date: m.membership_start_date ? new Date(m.membership_start_date) : null,
+  }));
+
+  // Get first membership for backward compatibility fields
+  const firstMembership = memberships[0];
+
   const customer = {
     id: response.user_id,
     first_name: response.first_name,
@@ -52,15 +117,15 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     profilePicture:
       response.athlete_info?.photo_url || response.photo_url || "",
 
-    // Membership info fields - extract from nested object
-    membership_name: response.membership_info?.membership_name || "",
-    membership_start_date: response.membership_info?.membership_start_date
-      ? new Date(response.membership_info.membership_start_date)
-      : null,
-    membership_plan_id: response.membership_info?.membership_plan_id || "",
-    membership_plan_name: response.membership_info?.membership_plan_name || "",
-    membership_renewal_date:
-      response.membership_info?.membership_renewal_date || "",
+    // Single membership info fields (backward compatibility - uses first membership)
+    membership_name: firstMembership?.membership_name || "",
+    membership_start_date: firstMembership?.membership_start_date || null,
+    membership_plan_id: firstMembership?.membership_plan_id || "",
+    membership_plan_name: firstMembership?.membership_plan_name || "",
+    membership_renewal_date: firstMembership?.membership_renewal_date || "",
+
+    // Multiple memberships support
+    memberships,
 
     // Athlete info fields - extract from nested object
     assists: response.athlete_info?.assists || 0,
@@ -641,9 +706,7 @@ export async function getCustomers(
       throw new Error("Authorization token is required");
     }
 
-    const response = await fetch(url, {
-      ...addAuthHeader(resolvedJwt),
-    });
+    const response = await fetchWithTokenRefresh(url, {}, resolvedJwt);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch customers: ${response.statusText}`);
@@ -682,10 +745,7 @@ export async function getCustomerById(
       throw new Error("Authorization token is required");
     }
 
-    const response = await fetch(url, {
-      method: "GET",
-      ...addAuthHeader(resolvedJwt),
-    });
+    const response = await fetchWithTokenRefresh(url, { method: "GET" }, resolvedJwt);
 
     if (response.status === 404) {
       // Customer not found - return null without logging an error
@@ -852,9 +912,7 @@ export async function getArchivedCustomers(
       throw new Error("Authorization token is required");
     }
 
-    const response = await fetch(url, {
-      ...addAuthHeader(resolvedJwt),
-    });
+    const response = await fetchWithTokenRefresh(url, {}, resolvedJwt);
 
     if (!response.ok) {
       throw new Error(

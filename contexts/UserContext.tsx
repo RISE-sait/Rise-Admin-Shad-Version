@@ -106,10 +106,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [user?.ID, user?.PhotoUrl, setUser]);
 
   const logout = () => {
+    // Clear all auth data immediately
+    localStorage.removeItem("jwt");
+    document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
     // Update context state
     setUser(null);
-    // Optional: Force a hard refresh for a clean state
-    window.location.href = "/login";
+
+    // Redirect immediately to login
+    router.replace("/login");
   };
 
   return (
