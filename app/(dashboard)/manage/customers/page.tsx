@@ -37,7 +37,7 @@ export default async function CustomersPage({
 
   if (jwtToken) {
     try {
-      const result = await getCustomers(search, page, 20, jwtToken);
+      const result = await getCustomers(search, page, 10, jwtToken);
       customers = result.customers;
       currentPage = result.page;
       pages = result.pages;
@@ -46,7 +46,7 @@ export default async function CustomersPage({
     }
 
     try {
-      const archivedResult = await getArchivedCustomers(archivedSearch, archivedPage, 20, jwtToken);
+      const archivedResult = await getArchivedCustomers(archivedSearch, archivedPage, 10, jwtToken);
       archivedCustomers = archivedResult.customers;
       archivedCurrentPage = archivedResult.page;
       archivedPages = archivedResult.pages;
