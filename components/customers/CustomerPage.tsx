@@ -183,8 +183,6 @@ export default function CustomersPage({
   const { user } = useUser();
   const { toast } = useToast();
 
-  console.log("JWT:", user?.Jwt);
-
   // Archive a customer: calls service and reloads page on success
   const handleArchive = async (id: string) => {
     if (!user) return;
