@@ -286,7 +286,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               <select
                 className="w-full border rounded-md p-2 bg-background"
                 value={data.program_id}
-                onChange={(e) => setData({ ...data, program_id: e.target.value })}
+                onChange={(e) => setData(prev => ({ ...prev, program_id: e.target.value }))}
               >
                 <option value="" disabled>
                   Select program
@@ -303,7 +303,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               <select
                 className="w-full border rounded-md p-2 bg-background"
                 value={data.team_id}
-                onChange={(e) => setData({ ...data, team_id: e.target.value })}
+                onChange={(e) => setData(prev => ({ ...prev, team_id: e.target.value }))}
               >
                 <option value="">Select team</option>
                 {teams.map((team) => (
@@ -333,7 +333,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                 className="w-full border rounded-md p-2 bg-background"
                 value={data.location_id}
                 onChange={(e) => {
-                  setData({ ...data, location_id: e.target.value, court_id: "" });
+                  setData(prev => ({ ...prev, location_id: e.target.value, court_id: "" }));
                 }}
               >
                 <option value="" disabled>
@@ -351,7 +351,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               <select
                 className="w-full border rounded-md p-2 bg-background"
                 value={data.court_id}
-                onChange={(e) => setData({ ...data, court_id: e.target.value })}
+                onChange={(e) => setData(prev => ({ ...prev, court_id: e.target.value }))}
               >
                 <option value="">Select Court</option>
                 {filteredCourts.map((court) => (
@@ -379,7 +379,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               </label>
               <Input
                 value={data.start_at}
-                onChange={(e) => setData({ ...data, start_at: e.target.value })}
+                onChange={(e) => setData(prev => ({ ...prev, start_at: e.target.value }))}
                 type="datetime-local"
                 className="bg-background"
               />
@@ -390,7 +390,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               </label>
               <Input
                 value={data.end_at}
-                onChange={(e) => setData({ ...data, end_at: e.target.value })}
+                onChange={(e) => setData(prev => ({ ...prev, end_at: e.target.value }))}
                 type="datetime-local"
                 className="bg-background"
               />
@@ -437,7 +437,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                   min="1"
                   value={data.credit_cost}
                   onChange={(e) =>
-                    setData({ ...data, credit_cost: e.target.value })
+                    setData(prev => ({ ...prev, credit_cost: e.target.value }))
                   }
                   className="bg-background"
                 />
@@ -457,14 +457,14 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                     min="0"
                     placeholder="0.00"
                     value={data.price_amount}
-                    onChange={(e) => setData({ ...data, price_amount: e.target.value })}
+                    onChange={(e) => setData(prev => ({ ...prev, price_amount: e.target.value }))}
                     className="bg-background pl-7"
                   />
                 </div>
                 <select
                   className="w-24 border rounded-md p-2 bg-background"
                   value={data.currency}
-                  onChange={(e) => setData({ ...data, currency: e.target.value })}
+                  onChange={(e) => setData(prev => ({ ...prev, currency: e.target.value }))}
                 >
                   <option value="cad">CAD</option>
                   <option value="usd">USD</option>
@@ -516,7 +516,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                           const newIds = currentIds.includes(plan.id)
                             ? currentIds.filter((id) => id !== plan.id)
                             : [...currentIds, plan.id];
-                          setData({ ...data, required_membership_plan_ids: newIds });
+                          setData(prev => ({ ...prev, required_membership_plan_ids: newIds }));
                         }}
                       >
                         <Checkbox
@@ -548,7 +548,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
                             const newIds = data.required_membership_plan_ids?.filter(
                               (id) => id !== planId
                             ) || [];
-                            setData({ ...data, required_membership_plan_ids: newIds });
+                            setData(prev => ({ ...prev, required_membership_plan_ids: newIds }));
                           }}
                         />
                       </Badge>
@@ -561,7 +561,7 @@ export default function EditEventForm({ onClose }: { onClose?: () => void }) {
               <Checkbox
                 id="event-registration-required"
                 checked={data.registration_required}
-                onCheckedChange={(checked) => setData({ ...data, registration_required: !!checked })}
+                onCheckedChange={(checked) => setData(prev => ({ ...prev, registration_required: !!checked }))}
               />
               <Label htmlFor="event-registration-required" className="text-sm font-medium cursor-pointer">
                 Registration Required

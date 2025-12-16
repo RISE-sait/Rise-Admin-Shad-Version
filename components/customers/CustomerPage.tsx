@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
-import { PlusIcon, Search, Download } from "lucide-react";
+import { PlusIcon, Search, Download, Loader2 } from "lucide-react";
 import RightDrawer from "../reusable/RightDrawer";
 import { Customer } from "@/types/customer";
 import { Input } from "@/components/ui/input";
@@ -83,14 +83,29 @@ export default function CustomersPage({
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
   // State for search input and column visibility toggles
+  // Use uncontrolled-like pattern: local state is source of truth for the input
+  // The URL/prop is only used for initial value, not for syncing back
   const [searchQuery, setSearchQuery] = useState(searchTerm);
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    setSearchQuery(searchTerm);
+    // Only sync on first render (handles browser back/forward navigation)
+    // After that, local state is the source of truth to prevent race conditions
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    // Don't sync from prop after initial render - this causes the character dropping bug
   }, [searchTerm]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Clear loading state when search results arrive
+  useEffect(() => {
+    setIsSearching(false);
+  }, [customers]);
 
   // Use different search param names for active vs archived to prevent interference
   const searchParamName = isArchivedList ? "archivedSearch" : "search";
@@ -114,11 +129,12 @@ export default function CustomersPage({
         clearTimeout(debounceTimerRef.current);
       }
 
-      // Update local state immediately
+      // Update local state immediately (this is the source of truth for the input)
       setSearchQuery(value);
 
-      // Debounce the URL update
+      // Debounce the URL update to trigger server-side search
       debounceTimerRef.current = setTimeout(() => {
+        setIsSearching(true);
         replace({ [searchParamName]: value });
       }, 300);
     },
@@ -166,6 +182,8 @@ export default function CustomersPage({
   // Get current user context for auth-protected actions
   const { user } = useUser();
   const { toast } = useToast();
+
+  console.log("JWT:", user?.Jwt);
 
   // Archive a customer: calls service and reloads page on success
   const handleArchive = async (id: string) => {
@@ -254,8 +272,12 @@ export default function CustomersPage({
       {/* Search and filter controls */}
       <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
-          {/* Search icon inside input */}
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          {/* Search icon or loading spinner inside input */}
+          {isSearching ? (
+            <Loader2 className="absolute left-2.5 top-2.5 h-4 w-4 text-yellow-500 animate-spin" />
+          ) : (
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          )}
           <Input
             placeholder="Search customers..."
             className="pl-8"

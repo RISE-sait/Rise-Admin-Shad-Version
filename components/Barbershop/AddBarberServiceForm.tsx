@@ -146,7 +146,7 @@ export default function AddBarberServiceForm({
         <Select
           value={formData.barber_id}
           onValueChange={(value) =>
-            setFormData({ ...formData, barber_id: value })
+            setFormData(prev => ({ ...prev, barber_id: value }))
           }
         >
           <SelectTrigger>
@@ -169,7 +169,7 @@ export default function AddBarberServiceForm({
         <Select
           value={formData.haircut_service_id}
           onValueChange={(value) =>
-            setFormData({ ...formData, haircut_service_id: value })
+            setFormData(prev => ({ ...prev, haircut_service_id: value }))
           }
           disabled={loadingServices}
         >
