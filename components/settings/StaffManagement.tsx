@@ -409,21 +409,21 @@ export default function StaffManagement() {
                     className="w-20"
                     maxLength={2}
                     value={dob.day}
-                    onChange={(e) => setDob({ ...dob, day: e.target.value })}
+                    onChange={(e) => setDob(prev => ({ ...prev, day: e.target.value }))}
                   />
                   <Input
                     placeholder="MM"
                     className="w-20"
                     maxLength={2}
                     value={dob.month}
-                    onChange={(e) => setDob({ ...dob, month: e.target.value })}
+                    onChange={(e) => setDob(prev => ({ ...prev, month: e.target.value }))}
                   />
                   <Input
                     placeholder="YYYY"
                     className="w-28"
                     maxLength={4}
                     value={dob.year}
-                    onChange={(e) => setDob({ ...dob, year: e.target.value })}
+                    onChange={(e) => setDob(prev => ({ ...prev, year: e.target.value }))}
                   />
                 </div>
               </div>

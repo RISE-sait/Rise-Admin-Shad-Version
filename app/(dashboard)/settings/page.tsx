@@ -596,7 +596,7 @@ export default function SettingsPage() {
                   maxLength={2}
                   value={editDob.day}
                   onChange={(e) =>
-                    setEditDob({ ...editDob, day: e.target.value })
+                    setEditDob(prev => ({ ...prev, day: e.target.value }))
                   }
                 />
                 <Input
@@ -605,7 +605,7 @@ export default function SettingsPage() {
                   maxLength={2}
                   value={editDob.month}
                   onChange={(e) =>
-                    setEditDob({ ...editDob, month: e.target.value })
+                    setEditDob(prev => ({ ...prev, month: e.target.value }))
                   }
                 />
                 <Input
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                   maxLength={4}
                   value={editDob.year}
                   onChange={(e) =>
-                    setEditDob({ ...editDob, year: e.target.value })
+                    setEditDob(prev => ({ ...prev, year: e.target.value }))
                   }
                 />
               </div>

@@ -45,13 +45,15 @@ export default function SendNowForm({ onSend, onCancel }: SendNowFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: any) => {
-    setFormData({ ...formData, [field]: value });
-    
+    setFormData(prev => ({ ...prev, [field]: value }));
+
     // Clear error for this field if it exists
     if (errors[field]) {
-      const newErrors = { ...errors };
-      delete newErrors[field];
-      setErrors(newErrors);
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
