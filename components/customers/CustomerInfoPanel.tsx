@@ -2453,7 +2453,7 @@ export default function CustomerInfoPanel({
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                              <DropdownMenu>
+                              <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
@@ -2470,12 +2470,13 @@ export default function CustomerInfoPanel({
                                   <DropdownMenuLabel className="px-3 py-2">
                                     Actions
                                   </DropdownMenuLabel>
-                                  {primaryUrl && (
+                                  {primaryUrl && typeof primaryUrl === "string" && (
                                     <DropdownMenuItem
                                       className="px-3 py-2 hover:bg-accent cursor-pointer"
-                                      onClick={() =>
-                                        window.open(primaryUrl, "_blank")
-                                      }
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        window.open(primaryUrl, "_blank", "noopener,noreferrer");
+                                      }}
                                     >
                                       <ExternalLink className="h-4 w-4 mr-2" />
                                       {isMembershipType
@@ -2483,26 +2484,26 @@ export default function CustomerInfoPanel({
                                         : "View Receipt"}
                                     </DropdownMenuItem>
                                   )}
-                                  {pdfUrl && (
+                                  {pdfUrl && typeof pdfUrl === "string" && (
                                     <DropdownMenuItem
                                       className="px-3 py-2 hover:bg-accent cursor-pointer"
-                                      onClick={() =>
-                                        window.open(pdfUrl, "_blank")
-                                      }
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        window.open(pdfUrl, "_blank", "noopener,noreferrer");
+                                      }}
                                     >
                                       <FileText className="h-4 w-4 mr-2" />
                                       Download PDF
                                     </DropdownMenuItem>
                                   )}
-                                  {primaryUrl && (
+                                  {primaryUrl && typeof primaryUrl === "string" && (
                                     <>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem
                                         className="px-3 py-2 hover:bg-accent cursor-pointer"
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(
-                                            primaryUrl
-                                          );
+                                        onSelect={(e) => {
+                                          e.preventDefault();
+                                          navigator.clipboard.writeText(primaryUrl);
                                           toast({
                                             status: "success",
                                             description:
@@ -2515,7 +2516,8 @@ export default function CustomerInfoPanel({
                                       </DropdownMenuItem>
                                     </>
                                   )}
-                                  {!primaryUrl && !pdfUrl && (
+                                  {(!primaryUrl || typeof primaryUrl !== "string") &&
+                                    (!pdfUrl || typeof pdfUrl !== "string") && (
                                     <DropdownMenuItem
                                       disabled
                                       className="px-3 py-2 text-muted-foreground"
