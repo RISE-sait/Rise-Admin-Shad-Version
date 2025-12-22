@@ -56,6 +56,9 @@ import {
   File,
   ExternalLink,
   AlertTriangle,
+  Receipt,
+  MoreHorizontal,
+  Copy,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +89,17 @@ import { Subsidy, SubsidyProvider } from "@/types/subsidy";
 import { StaffRoleEnum } from "@/types/user";
 import { MembershipPlan } from "@/types/membership";
 import { getAllMembershipPlans } from "@/services/membershipPlan";
+import { PaymentTransaction } from "@/types/payment-transaction";
+import { getCustomerPaymentTransactions } from "@/services/payment";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface CustomerInfoPanelProps {
   customer: Customer;
@@ -177,6 +191,18 @@ export default function CustomerInfoPanel({
   );
   const [isDeletingWaiver, setIsDeletingWaiver] = useState(false);
   const waiverFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Payment transactions state
+  const [paymentTransactions, setPaymentTransactions] = useState<
+    PaymentTransaction[]
+  >([]);
+  const [isPaymentsLoading, setIsPaymentsLoading] = useState(false);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const [paymentsPagination, setPaymentsPagination] = useState({
+    limit: 10,
+    offset: 0,
+  });
+  const [totalPayments, setTotalPayments] = useState(0);
 
   const CREDITS_AMOUNT_PATTERN = /^\d*$/;
   const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'\-:;/\\&=?#@%()[\]{}~+]*$/;
@@ -337,6 +363,52 @@ export default function CustomerInfoPanel({
       }
     },
     [user?.Jwt]
+  );
+
+  const loadPaymentTransactions = useCallback(
+    async (
+      customerId: string,
+      pagination: { limit?: number; offset?: number } = {}
+    ) => {
+      if (!customerId || !user?.Jwt) {
+        return;
+      }
+
+      const limitToUse =
+        typeof pagination.limit === "number" && Number.isFinite(pagination.limit)
+          ? pagination.limit
+          : paymentsPagination.limit;
+      const offsetToUse =
+        typeof pagination.offset === "number" &&
+        Number.isFinite(pagination.offset)
+          ? pagination.offset
+          : paymentsPagination.offset;
+
+      setIsPaymentsLoading(true);
+      setPaymentsError(null);
+
+      try {
+        const result = await getCustomerPaymentTransactions(
+          customerId,
+          user.Jwt,
+          { limit: limitToUse, offset: offsetToUse }
+        );
+        setPaymentTransactions(result.data);
+        setTotalPayments(result.total);
+      } catch (error) {
+        console.error("Error loading payment transactions:", error);
+        setPaymentTransactions([]);
+        setTotalPayments(0);
+        setPaymentsError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load payment transactions."
+        );
+      } finally {
+        setIsPaymentsLoading(false);
+      }
+    },
+    [paymentsPagination.limit, paymentsPagination.offset, user?.Jwt]
   );
 
   const handleUploadWaiver = async () => {
@@ -690,6 +762,27 @@ export default function CustomerInfoPanel({
     );
   }, [customer.id]);
 
+  // Reset payment transactions when customer changes
+  useEffect(() => {
+    setPaymentTransactions([]);
+    setPaymentsError(null);
+    setPaymentsPagination((prev) =>
+      prev.offset === 0 ? prev : { ...prev, offset: 0 }
+    );
+  }, [customer.id]);
+
+  // Load payment transactions when pagination changes or tab is selected
+  useEffect(() => {
+    if (currentCustomer.id && tabValue === "payments") {
+      loadPaymentTransactions(currentCustomer.id, paymentsPagination);
+    }
+  }, [
+    currentCustomer.id,
+    paymentsPagination,
+    tabValue,
+    loadPaymentTransactions,
+  ]);
+
   useEffect(() => {
     // Update currentCustomer when the customer prop changes
     setCurrentCustomer(customer);
@@ -728,6 +821,10 @@ export default function CustomerInfoPanel({
           fetchTransactions(refreshedCustomer.id, {
             limit: transactionsLimit,
             offset: transactionsOffset,
+          }),
+          loadPaymentTransactions(refreshedCustomer.id, {
+            limit: paymentsPagination.limit,
+            offset: 0,
           }),
         ]);
       }
@@ -1207,6 +1304,13 @@ export default function CustomerInfoPanel({
             >
               <File className="h-4 w-4" />
               Waivers
+            </TabsTrigger>
+            <TabsTrigger
+              value="payments"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Receipt className="h-4 w-4" />
+              Payments
             </TabsTrigger>
             {/* <TabsTrigger
               value="stats"
@@ -2177,6 +2281,307 @@ export default function CustomerInfoPanel({
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <h3 className="font-semibold text-lg">Payment History</h3>
+                    <p className="text-sm text-muted-foreground">
+                      View all payment transactions for this customer.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {isPaymentsLoading && (
+                    <span className="text-xs text-muted-foreground">
+                      Loading...
+                    </span>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="payment-page-size"
+                      className="text-sm text-muted-foreground"
+                    >
+                      Rows per page
+                    </Label>
+                    <select
+                      id="payment-page-size"
+                      className="h-9 rounded-md border bg-background px-2 text-sm"
+                      value={paymentsPagination.limit}
+                      onChange={(event) => {
+                        const nextLimit = Number(event.target.value);
+                        setPaymentsPagination({
+                          limit:
+                            Number.isFinite(nextLimit) && nextLimit > 0
+                              ? nextLimit
+                              : 10,
+                          offset: 0,
+                        });
+                      }}
+                      disabled={isPaymentsLoading}
+                    >
+                      {[10, 20, 50].map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border">
+                {isPaymentsLoading && paymentTransactions.length === 0 ? (
+                  <div className="p-6 text-center text-sm text-muted-foreground">
+                    Loading payment transactions...
+                  </div>
+                ) : paymentsError ? (
+                  <div className="p-6 text-center space-y-4">
+                    <p className="text-sm text-destructive">{paymentsError}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        loadPaymentTransactions(
+                          currentCustomer.id,
+                          paymentsPagination
+                        )
+                      }
+                      disabled={isPaymentsLoading}
+                    >
+                      Try again
+                    </Button>
+                  </div>
+                ) : paymentTransactions.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <div className="mb-4">
+                      <Receipt className="h-12 w-12 mx-auto text-muted-foreground/40" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">
+                      No Payment History
+                    </h3>
+                    <p className="text-muted-foreground">
+                      This customer hasn&apos;t made any payments yet.
+                    </p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="cursor-default hover:bg-transparent">
+                        <TableHead>Date</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentTransactions.map((transaction) => {
+                        const transactionDate = new Date(
+                          transaction.transaction_date
+                        );
+                        const formattedDate = Number.isNaN(
+                          transactionDate.getTime()
+                        )
+                          ? transaction.transaction_date
+                          : transactionDate.toLocaleDateString();
+
+                        const formattedAmount = new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(transaction.customer_paid);
+
+                        const typeLabels: Record<string, string> = {
+                          event_registration: "Event Registration",
+                          program_enrollment: "Program Enrollment",
+                          credit_package: "Credit Package",
+                          membership_subscription: "Membership",
+                          membership_renewal: "Membership Renewal",
+                        };
+
+                        const statusStyles: Record<string, string> = {
+                          pending: "bg-yellow-100 text-yellow-800",
+                          processing: "bg-blue-100 text-blue-800",
+                          success: "bg-green-100 text-green-800",
+                          completed: "bg-green-100 text-green-800",
+                          failed: "bg-red-100 text-red-800",
+                          refunded: "bg-gray-100 text-gray-800",
+                        };
+
+                        // Determine which URL to use based on transaction type
+                        const isMembershipType = [
+                          "membership_subscription",
+                          "membership_renewal",
+                        ].includes(transaction.transaction_type);
+                        const primaryUrl = isMembershipType
+                          ? transaction.invoice_url
+                          : transaction.receipt_url;
+                        const pdfUrl = isMembershipType
+                          ? transaction.invoice_pdf_url
+                          : null;
+
+                        return (
+                          <TableRow
+                            key={transaction.id}
+                            className="cursor-default hover:bg-transparent"
+                          >
+                            <TableCell className="whitespace-nowrap">
+                              {formattedDate}
+                            </TableCell>
+                            <TableCell>
+                              {typeLabels[transaction.transaction_type] ||
+                                transaction.transaction_type}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formattedAmount}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={`${
+                                  statusStyles[transaction.payment_status] ||
+                                  statusStyles.pending
+                                } capitalize font-medium`}
+                              >
+                                {transaction.payment_status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 hover:bg-accent"
+                                  >
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="border bg-popover text-popover-foreground"
+                                >
+                                  <DropdownMenuLabel className="px-3 py-2">
+                                    Actions
+                                  </DropdownMenuLabel>
+                                  {primaryUrl && (
+                                    <DropdownMenuItem
+                                      className="px-3 py-2 hover:bg-accent cursor-pointer"
+                                      onClick={() =>
+                                        window.open(primaryUrl, "_blank")
+                                      }
+                                    >
+                                      <ExternalLink className="h-4 w-4 mr-2" />
+                                      {isMembershipType
+                                        ? "View Invoice"
+                                        : "View Receipt"}
+                                    </DropdownMenuItem>
+                                  )}
+                                  {pdfUrl && (
+                                    <DropdownMenuItem
+                                      className="px-3 py-2 hover:bg-accent cursor-pointer"
+                                      onClick={() =>
+                                        window.open(pdfUrl, "_blank")
+                                      }
+                                    >
+                                      <FileText className="h-4 w-4 mr-2" />
+                                      Download PDF
+                                    </DropdownMenuItem>
+                                  )}
+                                  {primaryUrl && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        className="px-3 py-2 hover:bg-accent cursor-pointer"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(
+                                            primaryUrl
+                                          );
+                                          toast({
+                                            status: "success",
+                                            description:
+                                              "URL copied to clipboard",
+                                          });
+                                        }}
+                                      >
+                                        <Copy className="h-4 w-4 mr-2" />
+                                        Copy URL
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                  {!primaryUrl && !pdfUrl && (
+                                    <DropdownMenuItem
+                                      disabled
+                                      className="px-3 py-2 text-muted-foreground"
+                                    >
+                                      No receipt available
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+
+              {/* Pagination controls */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4">
+                <div className="text-sm text-muted-foreground">
+                  {paymentTransactions.length > 0
+                    ? `Showing ${paymentsPagination.offset + 1}–${Math.min(
+                        paymentsPagination.offset + paymentTransactions.length,
+                        totalPayments
+                      )} of ${totalPayments}`
+                    : "No transactions"}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setPaymentsPagination((prev) => ({
+                        ...prev,
+                        offset: Math.max(0, prev.offset - prev.limit),
+                      }))
+                    }
+                    disabled={
+                      paymentsPagination.offset === 0 || isPaymentsLoading
+                    }
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setPaymentsPagination((prev) => ({
+                        ...prev,
+                        offset: prev.offset + prev.limit,
+                      }))
+                    }
+                    disabled={
+                      paymentsPagination.offset + paymentsPagination.limit >=
+                        totalPayments || isPaymentsLoading
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Stats Tab - This will show the athlete_info data that is available */}
