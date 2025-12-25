@@ -2414,17 +2414,23 @@ export default function CustomerInfoPanel({
                           refunded: "bg-gray-100 text-gray-800",
                         };
 
-                        // Determine which URL to use based on transaction type
+                        // Determine which URLs to use - prefer invoice for memberships, receipt for others
+                        // but fall back to whatever is available
                         const isMembershipType = [
                           "membership_subscription",
                           "membership_renewal",
                         ].includes(transaction.transaction_type);
+
+                        // Use whichever URL is available, with preference based on transaction type
                         const primaryUrl = isMembershipType
-                          ? transaction.invoice_url
-                          : transaction.receipt_url;
-                        const pdfUrl = isMembershipType
-                          ? transaction.invoice_pdf_url
-                          : null;
+                          ? (transaction.invoice_url || transaction.receipt_url)
+                          : (transaction.receipt_url || transaction.invoice_url);
+
+                        // Show PDF download if invoice_pdf_url exists (regardless of transaction type)
+                        const pdfUrl = transaction.invoice_pdf_url;
+
+                        // Determine the label based on which URL we're actually using
+                        const isUsingInvoiceUrl = primaryUrl === transaction.invoice_url;
 
                         return (
                           <TableRow
@@ -2479,7 +2485,7 @@ export default function CustomerInfoPanel({
                                       }}
                                     >
                                       <ExternalLink className="h-4 w-4 mr-2" />
-                                      {isMembershipType
+                                      {isUsingInvoiceUrl
                                         ? "View Invoice"
                                         : "View Receipt"}
                                     </DropdownMenuItem>
