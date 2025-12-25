@@ -39,8 +39,6 @@ export async function getCustomerPaymentTransactions(
   url.searchParams.set("limit", String(sanitizedLimit));
   url.searchParams.set("offset", String(sanitizedOffset));
 
-  console.log("[Payment Service] Fetching transactions with JWT:", jwt);
-
   const response = await fetch(url.toString(), {
     method: "GET",
     ...addAuthHeader(jwt),
@@ -64,15 +62,19 @@ export async function getCustomerPaymentTransactions(
 
   const payload = await response.json();
 
-  console.log("[Payment Service] Raw API response:", JSON.stringify(payload, null, 2));
 
   // Helper to extract URL string from various formats
+  // Handles PostgreSQL nullable format: { "String": "...", "Valid": true }
   const extractUrl = (value: unknown): string | null => {
     if (!value) return null;
     if (typeof value === "string") return value;
     if (typeof value === "object" && value !== null) {
-      // Handle cases where URL might be nested in an object
       const obj = value as Record<string, unknown>;
+      // Handle PostgreSQL nullable string format
+      if (obj.Valid === true && typeof obj.String === "string" && obj.String !== "") {
+        return obj.String;
+      }
+      // Handle other nested formats
       if (typeof obj.url === "string") return obj.url;
       if (typeof obj.href === "string") return obj.href;
       if (typeof obj.link === "string") return obj.link;
@@ -81,26 +83,26 @@ export async function getCustomerPaymentTransactions(
   };
 
   // Normalize a transaction to ensure URL fields are strings
+  // Check both snake_case and camelCase field names
   const normalizeTransaction = (tx: Record<string, unknown>): PaymentTransaction => ({
     id: String(tx.id || ""),
-    customer_email: String(tx.customer_email || ""),
-    customer_name: String(tx.customer_name || ""),
-    transaction_type: String(tx.transaction_type || "") as PaymentTransaction["transaction_type"],
-    transaction_date: String(tx.transaction_date || ""),
-    original_amount: Number(tx.original_amount) || 0,
-    discount_amount: Number(tx.discount_amount) || 0,
-    subsidy_amount: Number(tx.subsidy_amount) || 0,
-    customer_paid: Number(tx.customer_paid) || 0,
-    payment_status: String(tx.payment_status || "pending") as PaymentTransaction["payment_status"],
-    receipt_url: extractUrl(tx.receipt_url),
-    invoice_url: extractUrl(tx.invoice_url),
-    invoice_pdf_url: extractUrl(tx.invoice_pdf_url),
+    customer_email: String(tx.customer_email || tx.customerEmail || ""),
+    customer_name: String(tx.customer_name || tx.customerName || ""),
+    transaction_type: String(tx.transaction_type || tx.transactionType || "") as PaymentTransaction["transaction_type"],
+    transaction_date: String(tx.transaction_date || tx.transactionDate || ""),
+    original_amount: Number(tx.original_amount ?? tx.originalAmount) || 0,
+    discount_amount: Number(tx.discount_amount ?? tx.discountAmount) || 0,
+    subsidy_amount: Number(tx.subsidy_amount ?? tx.subsidyAmount) || 0,
+    customer_paid: Number(tx.customer_paid ?? tx.customerPaid) || 0,
+    payment_status: String(tx.payment_status || tx.paymentStatus || "pending") as PaymentTransaction["payment_status"],
+    receipt_url: extractUrl(tx.receipt_url) || extractUrl(tx.receiptUrl),
+    invoice_url: extractUrl(tx.invoice_url) || extractUrl(tx.invoiceUrl),
+    invoice_pdf_url: extractUrl(tx.invoice_pdf_url) || extractUrl(tx.invoicePdfUrl),
   });
 
   // Handle array response (list of transactions)
   if (Array.isArray(payload)) {
     const normalized = payload.map((tx) => normalizeTransaction(tx as Record<string, unknown>));
-    console.log("[Payment Service] Normalized transactions:", normalized);
     return {
       data: normalized,
       total: payload.length,
@@ -115,7 +117,6 @@ export async function getCustomerPaymentTransactions(
     const normalized = Array.isArray(transactions)
       ? transactions.map((tx: unknown) => normalizeTransaction(tx as Record<string, unknown>))
       : [];
-    console.log("[Payment Service] Normalized transactions:", normalized);
     return {
       data: normalized,
       total: payload.total ?? normalized.length ?? 0,
