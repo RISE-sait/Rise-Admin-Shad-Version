@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -19,11 +19,34 @@ import {
   MoreHorizontal,
   Search,
   UserPlus,
+  Send,
+  Mail,
+  Bell,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import {
   Table,
@@ -41,8 +64,9 @@ import {
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { EventParticipant } from "@/types/events";
+import { EventParticipant, NotificationChannel, SendNotificationResponse, NotificationHistoryItem } from "@/types/events";
+import { sendEventNotification, getEnrolledCustomers, getNotificationHistory } from "@/services/events";
+import { StaffRoleEnum } from "@/types/user";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,6 +102,134 @@ export default function AttendeesTable({
   const [pendingRemovalId, setPendingRemovalId] = useState<string | null>(null);
   const { user } = useUser();
   const { toast } = useToast();
+
+  // Notification state
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [notificationChannel, setNotificationChannel] = useState<NotificationChannel>("both");
+  const [notificationSubject, setNotificationSubject] = useState("");
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [includeEventDetails, setIncludeEventDetails] = useState(true);
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
+  const [notificationResult, setNotificationResult] = useState<SendNotificationResponse | null>(null);
+  const [resultDialogOpen, setResultDialogOpen] = useState(false);
+  const [enrolledStats, setEnrolledStats] = useState<{ withEmail: number; withPush: number } | null>(null);
+  const [notificationHistory, setNotificationHistory] = useState<NotificationHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  const canSendNotifications = user?.Role && ![StaffRoleEnum.RECEPTIONIST].includes(user.Role);
+
+  // Fetch notification history on mount
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user?.Jwt) return;
+
+      setIsLoadingHistory(true);
+      try {
+        const response = await getNotificationHistory(eventId, user.Jwt);
+        setNotificationHistory(response.notifications || []);
+      } catch {
+        setNotificationHistory([]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    fetchHistory();
+  }, [eventId, user?.Jwt]);
+
+  const handleOpenNotificationDialog = async () => {
+    if (!user?.Jwt) return;
+
+    try {
+      const enrolled = await getEnrolledCustomers(eventId, user.Jwt);
+      const withEmail = enrolled.customers.filter(c => c.email).length;
+      const withPush = enrolled.customers.filter(c => c.has_push_token).length;
+      setEnrolledStats({ withEmail, withPush });
+    } catch (error) {
+      console.error("Failed to fetch enrolled stats:", error);
+      setEnrolledStats({ withEmail: data.length, withPush: 0 });
+    }
+
+    setNotificationDialogOpen(true);
+  };
+
+  const handleSendNotification = async () => {
+    if (!user?.Jwt) {
+      toast({
+        status: "error",
+        description: "You must be signed in to send notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!notificationMessage.trim()) {
+      toast({
+        status: "error",
+        description: "Please enter a message.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if ((notificationChannel === "email" || notificationChannel === "both") && !notificationSubject.trim()) {
+      toast({
+        status: "error",
+        description: "Please enter a subject for the email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingNotification(true);
+
+    try {
+      const result = await sendEventNotification(
+        eventId,
+        {
+          channel: notificationChannel,
+          subject: notificationSubject,
+          message: notificationMessage,
+          include_event_details: includeEventDetails,
+          customer_ids: null,
+        },
+        user.Jwt
+      );
+
+      setNotificationResult(result);
+      setNotificationDialogOpen(false);
+      setResultDialogOpen(true);
+
+      // Refetch notification history
+      try {
+        const response = await getNotificationHistory(eventId, user.Jwt);
+        setNotificationHistory(response.notifications || []);
+      } catch {
+        // Silently fail
+      }
+
+      // Reset form
+      setNotificationSubject("");
+      setNotificationMessage("");
+      setNotificationChannel("both");
+      setIncludeEventDetails(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to send notification.";
+      toast({
+        status: "error",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingNotification(false);
+    }
+  };
+
+  const handleCloseNotificationDialog = () => {
+    if (!isSendingNotification) {
+      setNotificationDialogOpen(false);
+    }
+  };
 
   const handleRemoveAttendee = useCallback(
     async (attendee: EventParticipant) => {
@@ -119,20 +271,6 @@ export default function AttendeesTable({
   const columns = useMemo<ColumnDef<EventParticipant>[]>(
     () => [
       {
-        accessorKey: "profile",
-        header: "Profile",
-        cell: ({ row }) => (
-          <Avatar className="rounded-full h-12 w-12">
-            {/* <AvatarImage
-                        src={""}
-                        alt={row.original.first_name + " " + row.original.last_name}
-                    /> */}
-            <AvatarFallback>{row.original.first_name.charAt(0)}</AvatarFallback>
-          </Avatar>
-        ),
-        enableSorting: false,
-      },
-      {
         accessorKey: "name",
         header: ({ column }) => (
           <Button
@@ -161,25 +299,8 @@ export default function AttendeesTable({
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="text-sm text-muted-foreground max-w-24 overflow-x-clip">
-            {row.original.email}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "phone",
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Phone
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }) => (
-          <div className="text-sm text-muted-foreground">
-            {row.original.phone}
+          <div className="text-sm text-muted-foreground break-all">
+            {row.original.email || "No email"}
           </div>
         ),
       },
@@ -241,6 +362,7 @@ export default function AttendeesTable({
   });
 
   return (
+    <>
     <Card className="border-l-4 border-l-yellow-500">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-4">
@@ -265,6 +387,22 @@ export default function AttendeesTable({
             )}
           </div>
         </div>
+
+        {/* Send Notification Section */}
+        {canSendNotifications && data.length > 0 && (
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleOpenNotificationDialog}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Send Notification to Attendees
+            </Button>
+          </div>
+        )}
+
         <p className="text-sm text-muted-foreground mb-4">
           View and manage customers registered for this event.
         </p>
@@ -369,6 +507,265 @@ export default function AttendeesTable({
         )}
       </CardContent>
     </Card>
+
+      {/* Send Notification Dialog */}
+      <Dialog open={notificationDialogOpen} onOpenChange={handleCloseNotificationDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5" />
+              Send Notification
+            </DialogTitle>
+            <DialogDescription>
+              Send a notification to all {data.length} enrolled customers.
+              {enrolledStats && (
+                <span className="block mt-1 text-xs">
+                  ({enrolledStats.withEmail} with email, {enrolledStats.withPush} with push enabled)
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Channel Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="channel">Notification Type</Label>
+              <Select
+                value={notificationChannel}
+                onValueChange={(value) => setNotificationChannel(value as NotificationChannel)}
+              >
+                <SelectTrigger id="channel">
+                  <SelectValue placeholder="Select notification type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email Only
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="push">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4" />
+                      Push Notification Only
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="both">
+                    <div className="flex items-center gap-2">
+                      <Send className="h-4 w-4" />
+                      Both Email & Push
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Subject (for email) */}
+            {(notificationChannel === "email" || notificationChannel === "both") && (
+              <div className="space-y-2">
+                <Label htmlFor="subject">Subject</Label>
+                <Input
+                  id="subject"
+                  placeholder="Enter email subject..."
+                  value={notificationSubject}
+                  onChange={(e) => setNotificationSubject(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Message */}
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Enter your message..."
+                value={notificationMessage}
+                onChange={(e) => setNotificationMessage(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            {/* Include Event Details */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="includeDetails"
+                checked={includeEventDetails}
+                onCheckedChange={(checked) => setIncludeEventDetails(checked === true)}
+              />
+              <Label htmlFor="includeDetails" className="text-sm font-normal cursor-pointer">
+                Include event details (name, date, location)
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCloseNotificationDialog}
+              disabled={isSendingNotification}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendNotification}
+              disabled={isSendingNotification}
+            >
+              {isSendingNotification ? "Sending..." : "Send Notification"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Result Dialog */}
+      <Dialog open={resultDialogOpen} onOpenChange={setResultDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle2 className="h-5 w-5" />
+              Notification Sent!
+            </DialogTitle>
+          </DialogHeader>
+
+          {notificationResult && (
+            <div className="space-y-4 py-4">
+              <div className="text-sm">
+                <span className="font-medium">Recipients:</span> {notificationResult.recipient_count}
+              </div>
+
+              {(notificationChannel === "email" || notificationChannel === "both") && (
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    <span className="text-sm font-medium">Email</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="flex items-center gap-1 text-green-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {notificationResult.email_sent} sent
+                    </span>
+                    {notificationResult.email_failed > 0 && (
+                      <span className="flex items-center gap-1 text-red-500">
+                        <XCircle className="h-4 w-4" />
+                        {notificationResult.email_failed} failed
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(notificationChannel === "push" || notificationChannel === "both") && (
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    <span className="text-sm font-medium">Push</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="flex items-center gap-1 text-green-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {notificationResult.push_sent} sent
+                    </span>
+                    {notificationResult.push_failed > 0 && (
+                      <span className="flex items-center gap-1 text-red-500">
+                        <XCircle className="h-4 w-4" />
+                        {notificationResult.push_failed} failed
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setResultDialogOpen(false)}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notification History Card */}
+      {notificationHistory.length > 0 && (
+        <Card className="border-l-4 border-l-yellow-500 mt-4">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="h-5 w-5 text-yellow-500" />
+              <h3 className="font-semibold text-lg">Notification History</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Past notifications sent to attendees.
+            </p>
+
+            <div className="space-y-3">
+              {notificationHistory.map((notification) => (
+                <div
+                  key={notification.id}
+                  className="p-4 border rounded-lg bg-muted/30"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {notification.channel === "email" && <Mail className="h-4 w-4 text-muted-foreground" />}
+                      {notification.channel === "push" && <Bell className="h-4 w-4 text-muted-foreground" />}
+                      {notification.channel === "both" && <Send className="h-4 w-4 text-muted-foreground" />}
+                      <span className="text-sm font-medium">
+                        {notification.channel === "email" ? "Email" : notification.channel === "push" ? "Push" : "Email & Push"}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(notification.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+
+                  {notification.subject && (
+                    <p className="text-sm font-medium mb-1">{notification.subject}</p>
+                  )}
+                  <p className="text-sm text-muted-foreground line-clamp-2">{notification.message}</p>
+
+                  <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                    <span>Sent by: {notification.sent_by_name}</span>
+                    <span>Recipients: {notification.recipient_count}</span>
+                    {(notification.channel === "email" || notification.channel === "both") && (
+                      <span className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {notification.email_success_count} sent
+                        {notification.email_failure_count > 0 && (
+                          <span className="text-red-500">, {notification.email_failure_count} failed</span>
+                        )}
+                      </span>
+                    )}
+                    {(notification.channel === "push" || notification.channel === "both") && (
+                      <span className="flex items-center gap-1">
+                        <Bell className="h-3 w-3" />
+                        {notification.push_success_count} sent
+                        {notification.push_failure_count > 0 && (
+                          <span className="text-red-500">, {notification.push_failure_count} failed</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isLoadingHistory && (
+        <Card className="border-l-4 border-l-yellow-500 mt-4">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">Loading notification history...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 }
 

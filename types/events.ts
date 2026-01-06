@@ -104,3 +104,57 @@ export interface EventRecurrenceCreateRequest {
   required_membership_plan_ids?: string[];
   registration_required?: boolean; // When false, users cannot enroll in this event
 }
+
+// Event Notification Types
+export type NotificationChannel = "email" | "push" | "both";
+
+export interface EnrolledCustomer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  has_push_token: boolean;
+}
+
+export interface EnrolledCustomersResponse {
+  total_count: number;
+  customers: EnrolledCustomer[];
+}
+
+export interface SendNotificationRequest {
+  channel: NotificationChannel;
+  subject?: string;
+  message: string;
+  include_event_details?: boolean;
+  customer_ids?: string[] | null;
+}
+
+export interface SendNotificationResponse {
+  notification_id: string;
+  recipient_count: number;
+  email_sent: number;
+  email_failed: number;
+  push_sent: number;
+  push_failed: number;
+}
+
+export interface NotificationHistoryItem {
+  id: string;
+  event_id: string;
+  sent_by: string;
+  sent_by_name: string;
+  channel: NotificationChannel;
+  subject: string;
+  message: string;
+  include_event_details: boolean;
+  recipient_count: number;
+  email_success_count: number;
+  email_failure_count: number;
+  push_success_count: number;
+  push_failure_count: number;
+  created_at: string;
+}
+
+export interface NotificationHistoryResponse {
+  notifications: NotificationHistoryItem[];
+}

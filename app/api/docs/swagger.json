@@ -500,6 +500,129 @@
         }
       }
     },
+    "/admin/firebase/cleanup": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Finds and optionally deletes Firebase users that don't exist in the database",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["admin"],
+        "summary": "Clean up orphaned Firebase users",
+        "parameters": [
+          {
+            "type": "boolean",
+            "description": "If true, only report what would be deleted without actually deleting (default: true)",
+            "name": "dry_run",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cleanup result",
+            "schema": {
+              "$ref": "#/definitions/handler.FirebaseCleanupResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/firebase/recover": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Finds DB users missing from Firebase and recreates their Firebase accounts",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["admin"],
+        "summary": "Recover missing Firebase users",
+        "parameters": [
+          {
+            "type": "boolean",
+            "description": "If true, only report what would be recovered without actually creating (default: true)",
+            "name": "dry_run",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Max number of users to recover (default: 0 = unlimited). Use limit=1 to test with one user first.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Specific email to recover (for testing). If set, only this email will be processed.",
+            "name": "email",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recovery result",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/backfill-urls": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Fetches receipt and invoice URLs from Stripe for existing transactions that don't have them (admin only)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments - Admin"],
+        "summary": "Backfill payment URLs",
+        "responses": {
+          "200": {
+            "description": "Backfill completed",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/payments/export": {
       "get": {
         "security": [
@@ -1689,6 +1812,56 @@
           },
           "500": {
             "description": "Internal Server Error: Failed to process checkout",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/checkout/verify/{session_id}": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["payments"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Stripe Checkout Session ID",
+            "name": "session_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification result",
+            "schema": {
+              "$ref": "#/definitions/payment.VerificationResult"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid session ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Session doesn't belong to user",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -3550,6 +3723,59 @@
         }
       }
     },
+    "/events/{event_id}/customers": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns all customers enrolled in an event with their email and push notification status",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["event-notifications"],
+        "summary": "Get enrolled customers for an event",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "event_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of enrolled customers",
+            "schema": {
+              "$ref": "#/definitions/event.EventCustomersResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid event ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Event not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/events/{event_id}/customers/{customer_id}": {
       "delete": {
         "security": [
@@ -3597,6 +3823,126 @@
           },
           "404": {
             "description": "Not Found: Enrollment not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/events/{event_id}/notifications": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns all notifications that have been sent for an event",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["event-notifications"],
+        "summary": "Get notification history for an event",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "event_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification history",
+            "schema": {
+              "$ref": "#/definitions/event.NotificationHistoryResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid event ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Event not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Sends email and/or push notifications to customers enrolled in an event",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["event-notifications"],
+        "summary": "Send notification to event attendees",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Event ID",
+            "name": "event_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Notification details",
+            "name": "notification",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.SendNotificationRequestDto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification send result",
+            "schema": {
+              "$ref": "#/definitions/event.SendNotificationResponseDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Event not found",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -9557,6 +9903,9 @@
         "location_id": {
           "type": "string"
         },
+        "location_name": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         }
@@ -10321,6 +10670,40 @@
         }
       }
     },
+    "event.EventCustomerDto": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "has_push_token": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        }
+      }
+    },
+    "event.EventCustomersResponseDto": {
+      "type": "object",
+      "properties": {
+        "customers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/event.EventCustomerDto"
+          }
+        },
+        "total_count": {
+          "type": "integer"
+        }
+      }
+    },
     "event.EventRequestDto": {
       "type": "object",
       "required": ["end_at", "start_at"],
@@ -10458,6 +10841,64 @@
         }
       }
     },
+    "event.NotificationHistoryDto": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "email_failure_count": {
+          "type": "integer"
+        },
+        "email_success_count": {
+          "type": "integer"
+        },
+        "event_id": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "include_event_details": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "push_failure_count": {
+          "type": "integer"
+        },
+        "push_success_count": {
+          "type": "integer"
+        },
+        "recipient_count": {
+          "type": "integer"
+        },
+        "sent_by": {
+          "type": "string"
+        },
+        "sent_by_name": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        }
+      }
+    },
+    "event.NotificationHistoryResponseDto": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/event.NotificationHistoryDto"
+          }
+        }
+      }
+    },
     "event.PersonResponseDto": {
       "type": "object",
       "properties": {
@@ -10567,6 +11008,29 @@
           "description": "Fields for Stripe auto-creation (when PriceID is not provided)",
           "type": "integer",
           "example": 2500
+        }
+      }
+    },
+    "event.SendNotificationResponseDto": {
+      "type": "object",
+      "properties": {
+        "email_failed": {
+          "type": "integer"
+        },
+        "email_sent": {
+          "type": "integer"
+        },
+        "notification_id": {
+          "type": "string"
+        },
+        "push_failed": {
+          "type": "integer"
+        },
+        "push_sent": {
+          "type": "integer"
+        },
+        "recipient_count": {
+          "type": "integer"
         }
       }
     },
@@ -10927,6 +11391,41 @@
         }
       }
     },
+    "handler.FirebaseCleanupResponse": {
+      "type": "object",
+      "properties": {
+        "deleted_count": {
+          "type": "integer"
+        },
+        "dry_run": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failed_count": {
+          "type": "integer"
+        },
+        "orphaned_count": {
+          "type": "integer"
+        },
+        "orphaned_emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "total_db_users": {
+          "type": "integer"
+        },
+        "total_firebase_users": {
+          "type": "integer"
+        }
+      }
+    },
     "handler.HealthStatus": {
       "type": "object",
       "properties": {
@@ -11253,6 +11752,26 @@
         },
         "stripe_price_id": {
           "type": "string"
+        }
+      }
+    },
+    "payment.VerificationResult": {
+      "type": "object",
+      "properties": {
+        "enrollment_status": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "payment_status": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "was_reconciled": {
+          "type": "boolean"
         }
       }
     },
