@@ -51,7 +51,7 @@ interface ScheduleItem {
 
 export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
-  const [activeMembers, setActiveMembers] = useState(0);
+  const [activeMemberships, setActiveMemberships] = useState(0);
   const [todayCheckIns, setTodayCheckIns] = useState(0);
   const [courtUtilization, setCourtUtilization] = useState(0);
   const { user } = useUser();
@@ -64,17 +64,64 @@ export default function DashboardPage() {
   }, [user, router]);
 
   useEffect(() => {
-    const loadActiveMembers = async () => {
+    const loadActiveMemberships = async () => {
       try {
+        // First get total count
         const { total } = await getCustomers(undefined, 1, 1);
-        setActiveMembers(total);
+        if (total === 0) {
+          setActiveMemberships(0);
+          return;
+        }
+
+        // Fetch all customers in parallel batches
+        const limit = 20;
+        const pages = Math.ceil(total / limit);
+        const requests = Array.from({ length: pages }, (_, i) =>
+          getCustomers(undefined, i + 1, limit)
+        );
+        const results = await Promise.all(requests);
+        const allCustomersRaw = results.flatMap((r) => r.customers);
+
+        // Deduplicate customers by ID
+        const seenIds = new Set<string>();
+        const allCustomers = allCustomersRaw.filter((c) => {
+          if (seenIds.has(c.id)) return false;
+          seenIds.add(c.id);
+          return true;
+        });
+
+        // Count customers with active memberships (renewal date >= today)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const customersWithActiveMemberships = allCustomers.filter((customer) => {
+          // Check if customer has any active membership
+          if (customer.memberships && customer.memberships.length > 0) {
+            return customer.memberships.some((m) => {
+              // Must have both a plan ID and a valid renewal date
+              if (!m.membership_plan_id || !m.membership_renewal_date) return false;
+              const renewalDate = new Date(m.membership_renewal_date);
+              return renewalDate >= today;
+            });
+          }
+          // Fallback to single membership field - must have plan ID
+          if (customer.membership_plan_id && customer.membership_renewal_date) {
+            const renewalDate = new Date(customer.membership_renewal_date);
+            return renewalDate >= today;
+          }
+          return false;
+        });
+
+        const activeCount = customersWithActiveMemberships.length;
+
+        setActiveMemberships(activeCount);
       } catch (err) {
-        console.error("Error loading active members", err);
-        setActiveMembers(0);
+        console.error("Error loading active memberships", err);
+        setActiveMemberships(0);
       }
     };
 
-    loadActiveMembers();
+    loadActiveMemberships();
   }, []);
 
   useEffect(() => {
@@ -211,12 +258,12 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Members
+              Active Memberships
             </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeMembers}</div>
+            <div className="text-2xl font-bold">{activeMemberships}</div>
           </CardContent>
         </Card>
 
