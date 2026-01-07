@@ -11,6 +11,10 @@ import {
   EventCreateRequest,
   EventRecurrenceCreateRequest,
   EventStaffMember,
+  EnrolledCustomersResponse,
+  SendNotificationRequest,
+  SendNotificationResponse,
+  NotificationHistoryResponse,
 } from "@/types/events";
 
 export async function getEventsByMonth(
@@ -592,6 +596,109 @@ export async function getEvent(id: string, jwt?: string): Promise<Event> {
     return evt;
   } catch (error) {
     console.error("Error getting schedules of program:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get enrolled customers for an event (for notification preview)
+ */
+export async function getEnrolledCustomers(
+  eventId: string,
+  jwt: string
+): Promise<EnrolledCustomersResponse> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}events/${eventId}/customers`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get enrolled customers: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return responseJSON as EnrolledCustomersResponse;
+  } catch (error) {
+    console.error("Error fetching enrolled customers:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send notification to event attendees
+ */
+export async function sendEventNotification(
+  eventId: string,
+  notification: SendNotificationRequest,
+  jwt: string
+): Promise<SendNotificationResponse> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}events/${eventId}/notifications`,
+      {
+        method: "POST",
+        ...addAuthHeader(jwt),
+        body: JSON.stringify(notification),
+      }
+    );
+
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to send notification: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return responseJSON as SendNotificationResponse;
+  } catch (error) {
+    console.error("Error sending event notification:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get notification history for an event
+ */
+export async function getNotificationHistory(
+  eventId: string,
+  jwt: string
+): Promise<NotificationHistoryResponse> {
+  try {
+    const response = await fetch(
+      `${getValue("API")}events/${eventId}/notifications`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    );
+
+    const responseJSON = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = `Failed to get notification history: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return responseJSON as NotificationHistoryResponse;
+  } catch (error) {
+    console.error("Error fetching notification history:", error);
     throw error;
   }
 }
