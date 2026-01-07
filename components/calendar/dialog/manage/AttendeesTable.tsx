@@ -64,7 +64,7 @@ import {
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { EventParticipant, NotificationChannel, SendNotificationResponse, NotificationHistoryItem } from "@/types/events";
+import { EnrolledCustomer, NotificationChannel, SendNotificationResponse, NotificationHistoryItem } from "@/types/events";
 import { sendEventNotification, getEnrolledCustomers, getNotificationHistory } from "@/services/events";
 import { StaffRoleEnum } from "@/types/user";
 import {
@@ -84,7 +84,7 @@ import { removeCustomerFromEvent } from "@/services/events";
 
 interface AttendeesTableProps {
   eventId: string;
-  data: EventParticipant[];
+  data: EnrolledCustomer[];
   capacity?: number;
   onCustomerRemoved: (customerId: string) => Promise<void>;
 }
@@ -232,7 +232,7 @@ export default function AttendeesTable({
   };
 
   const handleRemoveAttendee = useCallback(
-    async (attendee: EventParticipant) => {
+    async (attendee: EnrolledCustomer) => {
       if (!user?.Jwt) {
         toast({
           status: "error",
@@ -268,7 +268,7 @@ export default function AttendeesTable({
     [eventId, onCustomerRemoved, toast, user?.Jwt]
   );
 
-  const columns = useMemo<ColumnDef<EventParticipant>[]>(
+  const columns = useMemo<ColumnDef<EnrolledCustomer>[]>(
     () => [
       {
         accessorKey: "name",
@@ -300,7 +300,7 @@ export default function AttendeesTable({
         ),
         cell: ({ row }) => (
           <div className="text-sm text-muted-foreground break-all">
-            {row.original.email || "No email"}
+            {row.original.email}
           </div>
         ),
       },
@@ -774,8 +774,8 @@ function AttendeeActions({
   onConfirm,
   pendingRemovalId,
 }: {
-  attendee: EventParticipant;
-  onConfirm: (attendee: EventParticipant) => Promise<boolean>;
+  attendee: EnrolledCustomer;
+  onConfirm: (attendee: EnrolledCustomer) => Promise<boolean>;
   pendingRemovalId: string | null;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
