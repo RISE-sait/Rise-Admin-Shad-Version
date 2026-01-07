@@ -12,6 +12,157 @@
   "host": "",
   "basePath": "",
   "paths": {
+    "/admin/analytics/mobile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns DAU, WAU, MAU and other mobile app usage metrics",
+        "produces": ["application/json"],
+        "tags": ["admin", "analytics"],
+        "summary": "Get mobile usage statistics",
+        "responses": {
+          "200": {
+            "description": "Mobile usage statistics",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/mobile/logins": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns a paginated list of users who recently used the mobile app",
+        "produces": ["application/json"],
+        "tags": ["admin", "analytics"],
+        "summary": "Get recent mobile logins",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Number of results (default 50)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Offset for pagination (default 0)",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recent mobile logins",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/mobile/trends": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns daily unique mobile logins for trend analysis",
+        "produces": ["application/json"],
+        "tags": ["admin", "analytics"],
+        "summary": "Get mobile login trends",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Number of days to look back (default 30)",
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily mobile login counts",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/admin/credit-refund-logs": {
       "get": {
         "security": [
@@ -5973,6 +6124,43 @@
         }
       }
     },
+    "/mobile/session": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Called by the mobile app after successful login to track usage",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["mobile"],
+        "summary": "Record mobile app session",
+        "responses": {
+          "200": {
+            "description": "Session recorded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/newsletter": {
       "post": {
         "description": "Adds or updates a contact with a HubSpot newsletter tag",
@@ -10344,6 +10532,9 @@
         "is_archived": {
           "type": "boolean"
         },
+        "last_mobile_login_at": {
+          "type": "string"
+        },
         "last_name": {
           "type": "string"
         },
@@ -10872,6 +11063,11 @@
           },
           "example": ["[\"f0e21457-75d4-4de6-b765-5ee13221fd72\"]"]
         },
+        "skip_notification": {
+          "description": "Skip auto-notification on update (for minor changes)",
+          "type": "boolean",
+          "example": false
+        },
         "start_at": {
           "type": "string",
           "example": "2023-10-05T07:00:00Z"
@@ -11224,6 +11420,10 @@
         "location_id": {
           "description": "ID of the location where the game is played",
           "type": "string"
+        },
+        "skip_notification": {
+          "description": "Skip auto-notification on update",
+          "type": "boolean"
         },
         "start_time": {
           "description": "Required start time of the game",
@@ -11954,6 +12154,10 @@
         },
         "location_id": {
           "type": "string"
+        },
+        "skip_notification": {
+          "description": "Skip auto-notification on update",
+          "type": "boolean"
         },
         "start_time": {
           "type": "string"
