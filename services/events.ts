@@ -382,14 +382,20 @@ export async function unassignStaffFromEvent(
 export async function removeCustomerFromEvent(
   eventId: string,
   customerId: string,
-  jwt: string
-): Promise<void> {
+  jwt: string,
+  options?: { refund_credits?: boolean; reason?: string }
+): Promise<{ message: string; refund?: { processed: boolean; credits_refunded: number } }> {
   try {
     const response = await fetch(
       `${getValue("API")}events/${eventId}/customers/${customerId}`,
       {
         method: "DELETE",
         ...addAuthHeader(jwt),
+        headers: {
+          ...addAuthHeader(jwt).headers,
+          "Content-Type": "application/json",
+        },
+        body: options ? JSON.stringify(options) : undefined,
       }
     );
 
@@ -401,6 +407,9 @@ export async function removeCustomerFromEvent(
       }
       throw new Error(errorMessage);
     }
+
+    const result = await response.json().catch(() => ({ message: "Customer removed from event" }));
+    return result;
   } catch (error) {
     console.error("Error removing customer from event:", error);
     throw error;
