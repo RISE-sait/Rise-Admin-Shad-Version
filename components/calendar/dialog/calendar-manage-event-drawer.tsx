@@ -37,14 +37,14 @@ import { useCalendarContext } from "../calendar-context";
 import EditEventForm from "../event/EditEventForm";
 import EventStaffTab from "../event/EventStaffTab";
 import AttendeesTable from "./manage/AttendeesTable";
-import { deleteEvent, getEvent } from "@/services/events";
+import { deleteEvent, getEnrolledCustomers } from "@/services/events";
 import { deletePractice } from "@/services/practices";
 import { deleteGame } from "@/services/games";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
 import { revalidateEvents, revalidatePractices, revalidateGames } from "@/actions/serverActions";
 import { CalendarEvent } from "@/types/calendar";
-import { EventParticipant } from "@/types/events";
+import { EnrolledCustomer } from "@/types/events";
 import {
   getAllMembershipPlans,
   MembershipPlanWithMembershipName,
@@ -70,7 +70,7 @@ export default function CalendarManageEventDrawer() {
   const [membershipPlans, setMembershipPlans] = useState<
     MembershipPlanWithMembershipName[]
   >([]);
-  const [fullEventData, setFullEventData] = useState<EventParticipant[] | null>(
+  const [fullEventData, setFullEventData] = useState<EnrolledCustomer[] | null>(
     null
   );
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
@@ -119,20 +119,20 @@ export default function CalendarManageEventDrawer() {
     }
   }, [showStaffTab, activeTab]);
 
-  // Fetch full event data when drawer opens for events (not games/practices)
+  // Fetch enrolled customers when drawer opens for events (not games/practices)
   useEffect(() => {
     let isMounted = true;
 
-    if (selectedEvent && showCustomersTab && manageEventDialogOpen) {
+    if (selectedEvent && showCustomersTab && manageEventDialogOpen && user?.Jwt) {
       setIsLoadingCustomers(true);
-      getEvent(selectedEvent.id, user?.Jwt)
-        .then((eventData) => {
+      getEnrolledCustomers(selectedEvent.id, user.Jwt)
+        .then((response) => {
           if (isMounted) {
-            setFullEventData(eventData.customers);
+            setFullEventData(response.customers);
           }
         })
         .catch((error) => {
-          console.error("Failed to fetch full event data:", error);
+          console.error("Failed to fetch enrolled customers:", error);
           if (isMounted) {
             setFullEventData([]);
           }
