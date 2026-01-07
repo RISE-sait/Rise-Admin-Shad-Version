@@ -12,7 +12,7 @@ import { UserUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
-import { SaveIcon, User, Mail, Phone, UserCircle, AlertCircle, CreditCard } from "lucide-react";
+import { SaveIcon, User, Mail, Phone, UserCircle, AlertCircle, CreditCard, Smartphone, Check, X } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 type FormField = "first_name" | "last_name" | "email" | "phone" | "emergency_contact_name" | "emergency_contact_phone" | "emergency_contact_relationship";
@@ -220,6 +220,25 @@ export default function DetailsTab({
                 ) : (
                   <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-transparent">
                     Active
+                  </Badge>
+                )}
+                {customer.last_mobile_login_at ? (
+                  <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-transparent">
+                    <Smartphone className="h-3 w-3 mr-1" />
+                    <Check className="h-3 w-3 mr-1" />
+                    {new Date(customer.last_mobile_login_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-rose-500/15 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border-transparent">
+                    <Smartphone className="h-3 w-3 mr-1" />
+                    <X className="h-3 w-3 mr-1" />
+                    No App
                   </Badge>
                 )}
               </div>
