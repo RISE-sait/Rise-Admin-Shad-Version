@@ -577,6 +577,7 @@ export default function CalendarManageEventDrawer() {
                     eventId={selectedEvent.id}
                     data={fullEventData || []}
                     capacity={selectedEvent.capacity}
+                    creditCost={selectedEvent.credit_cost}
                     onCustomerRemoved={handleCustomerRemoved}
                   />
                 )}
