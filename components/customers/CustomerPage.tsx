@@ -5,7 +5,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
-import { PlusIcon, Search, Download, Loader2 } from "lucide-react";
+import { PlusIcon, Search, Download, Loader2, UserPlus } from "lucide-react";
+import AddAthleteDialog from "./AddAthleteDialog";
 import RightDrawer from "../reusable/RightDrawer";
 import { Customer } from "@/types/customer";
 import { Input } from "@/components/ui/input";
@@ -101,6 +102,7 @@ export default function CustomersPage({
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [addAthleteDialogOpen, setAddAthleteDialogOpen] = useState(false);
 
   // Clear loading state when search results arrive
   useEffect(() => {
@@ -286,6 +288,16 @@ export default function CustomersPage({
           />
         </div>
         <div className="flex items-center gap-4">
+          {/* Add Athlete button - only show for non-archived list */}
+          {!isArchivedList && (
+            <Button
+              className="gap-2"
+              onClick={() => setAddAthleteDialogOpen(true)}
+            >
+              <UserPlus className="h-4 w-4" />
+              Add Athlete
+            </Button>
+          )}
           {/* Export button */}
           <Button
             variant="outline"
@@ -485,6 +497,12 @@ export default function CustomersPage({
           )}
         </div>
       </RightDrawer>
+
+      {/* Add Athlete Dialog */}
+      <AddAthleteDialog
+        open={addAthleteDialogOpen}
+        onOpenChange={setAddAthleteDialogOpen}
+      />
     </div>
   );
 }

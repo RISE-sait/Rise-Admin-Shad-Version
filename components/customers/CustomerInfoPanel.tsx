@@ -74,6 +74,7 @@ import {
   getCustomerWaivers,
   uploadCustomerWaiver,
   deleteCustomerWaiver,
+  getCustomerMemberships,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { Api } from "@/app/api/Api";
@@ -520,6 +521,32 @@ export default function CustomerInfoPanel({
     }
   }, []);
 
+  // Load all memberships for a customer from the dedicated endpoint
+  const loadAllMemberships = async (customerId: string) => {
+    if (!customerId || !user?.Jwt) return;
+
+    setIsMembershipLoading(true);
+    try {
+      const memberships = await getCustomerMemberships(customerId, user.Jwt);
+      // Update the current customer with the fetched memberships
+      // API returns start_date/renewal_date, we map to membership_start_date/membership_renewal_date
+      setCurrentCustomer((prev) => ({
+        ...prev,
+        memberships: memberships.map((m: any) => ({
+          membership_name: m.membership_name,
+          membership_plan_id: m.membership_plan_id || "",
+          membership_plan_name: m.membership_plan_name,
+          membership_start_date: m.start_date ? new Date(m.start_date) : null,
+          membership_renewal_date: m.renewal_date || "",
+        })),
+      }));
+    } catch (error) {
+      console.error("Error loading customer memberships:", error);
+    } finally {
+      setIsMembershipLoading(false);
+    }
+  };
+
   const loadSubsidyProviders = useCallback(async () => {
     if (!user?.Jwt) {
       return;
@@ -788,13 +815,19 @@ export default function CustomerInfoPanel({
     setCurrentCustomer(customer);
     setNotesDraft(customer.notes ?? "");
 
-    // Load full membership plan details if customer has a membership
+    // Load all memberships from the dedicated endpoint
+    if (customer.id && user?.Jwt) {
+      loadAllMemberships(customer.id);
+    }
+
+    // Load full membership plan details if customer has a membership (for extra details like credit allocation)
     if (customer.membership_plan_id) {
       loadMembershipPlanDetails(customer.membership_plan_id);
     } else {
       setMembershipPlan(null);
     }
-  }, [customer, loadMembershipPlanDetails]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer.id, customer.membership_plan_id, user?.Jwt]);
 
   const refreshCustomerData = async () => {
     if (!customer.id) return;
@@ -818,6 +851,7 @@ export default function CustomerInfoPanel({
           loadSuspensionData(refreshedCustomer.id),
           loadSubsidyData(refreshedCustomer.id),
           loadWaiverData(refreshedCustomer.id),
+          loadAllMemberships(refreshedCustomer.id),
           fetchTransactions(refreshedCustomer.id, {
             limit: transactionsLimit,
             offset: transactionsOffset,

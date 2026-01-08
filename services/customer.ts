@@ -1003,6 +1003,43 @@ export async function deductCustomerCredits(
   return mutateCustomerCredits(id, amount, description, jwt, "deduct");
 }
 
+/**
+ * Get all memberships for a customer
+ */
+export async function getCustomerMemberships(
+  customerId: string,
+  jwt: string
+): Promise<{
+  membership_name: string;
+  membership_plan_id?: string;
+  membership_plan_name: string;
+  membership_start_date: string;
+  membership_renewal_date: string;
+  status: string;
+}[]> {
+  try {
+    const url = `${getValue("API")}customers/${customerId}/memberships`;
+    const response = await fetch(url, {
+      method: "GET",
+      ...addAuthHeader(jwt),
+    });
+
+    if (response.status === 404) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch customer memberships: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error(`Error fetching memberships for customer ${customerId}:`, error);
+    return [];
+  }
+}
+
 export async function archiveCustomer(id: string, jwt: string): Promise<void> {
   const response = await fetch(`${getValue("API")}customers/${id}/archive`, {
     method: "POST",
