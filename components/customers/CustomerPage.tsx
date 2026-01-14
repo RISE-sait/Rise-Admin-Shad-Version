@@ -5,20 +5,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/Heading";
 import { Separator } from "@/components/ui/separator";
-import { PlusIcon, Search, Download, Loader2 } from "lucide-react";
+import { Search, Download, Loader2 } from "lucide-react";
 import RightDrawer from "../reusable/RightDrawer";
 import { Customer } from "@/types/customer";
 import { Input } from "@/components/ui/input";
 import CustomerTable from "./CustomerTable";
 import CustomerInfoPanel from "./CustomerInfoPanel";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
-import { columns } from "./CustomerTable";
 import { VisibilityState } from "@tanstack/react-table";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { useRouterQuery } from "@/hooks/router-query";
@@ -27,10 +19,11 @@ import {
   unarchiveCustomer,
   exportCustomers,
   exportArchivedCustomers,
+  CustomerFiltersParams,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
-import { StaffRoleEnum } from "@/types/user";
+import CustomerFilters from "./CustomerFilters";
 
 // Define props for the CustomersPage component
 interface CustomerPageProps {
@@ -43,6 +36,7 @@ interface CustomerPageProps {
   isArchivedList?: boolean;
   onArchiveCustomer?: (id: string) => Promise<void>;
   onUnarchiveCustomer?: (id: string) => Promise<void>;
+  initialFilters?: CustomerFiltersParams;
 }
 
 // Utility debounce function to limit how often a function can fire
@@ -71,6 +65,7 @@ export default function CustomersPage({
   isArchivedList,
   onArchiveCustomer,
   onUnarchiveCustomer,
+  initialFilters,
 }: CustomerPageProps) {
   // State hooks for selected customer details drawer
   const [customerList, setCustomerList] = useState<Customer[]>(customers);
@@ -117,7 +112,51 @@ export default function CustomersPage({
   }>({
     [searchParamName]: searchTerm,
     [pageParamName]: String(currentPage),
+    // Filter params (only for main list, not archived)
+    ...(isArchivedList
+      ? {}
+      : {
+          membership_plan_id: initialFilters?.membership_plan_id || "",
+          has_membership: initialFilters?.has_membership || "",
+          has_credits: initialFilters?.has_credits || "",
+          min_credits: initialFilters?.min_credits || "",
+          max_credits: initialFilters?.max_credits || "",
+        }),
   });
+
+  // Current filter values from URL
+  const currentFilters: CustomerFiltersParams = {
+    membership_plan_id: val.membership_plan_id || "",
+    has_membership: val.has_membership || "",
+    has_credits: val.has_credits || "",
+    min_credits: val.min_credits || "",
+    max_credits: val.max_credits || "",
+  };
+
+  // Handler for filter changes
+  const handleFiltersChange = useCallback(
+    (newFilters: Partial<CustomerFiltersParams>) => {
+      setIsSearching(true);
+      replace({
+        ...newFilters,
+        [pageParamName]: "1", // Reset to page 1 when filters change
+      });
+    },
+    [replace, pageParamName]
+  );
+
+  // Handler to clear all filters
+  const handleClearFilters = useCallback(() => {
+    setIsSearching(true);
+    replace({
+      membership_plan_id: "",
+      has_membership: "",
+      has_credits: "",
+      min_credits: "",
+      max_credits: "",
+      [pageParamName]: "1",
+    });
+  }, [replace, pageParamName]);
 
   // Create a stable debounced search handler
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -296,37 +335,14 @@ export default function CustomersPage({
             <Download className="h-4 w-4" />
             {isExporting ? "Exporting..." : "Export"}
           </Button>
-          {/* Column visibility dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                Filters
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {columns
-                .filter((column) => (column as any).enableHiding !== false)
-                .map((column) => {
-                  const columnId = (column as any).id;
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={columnId}
-                      className="capitalize"
-                      checked={columnVisibility[columnId] ?? true}
-                      onCheckedChange={(value) =>
-                        handleColumnVisibilityChange((prev) => ({
-                          ...prev,
-                          [columnId]: value,
-                        }))
-                      }
-                    >
-                      {columnId}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Customer Filters - only show for main list, not archived */}
+          {!isArchivedList && (
+            <CustomerFilters
+              filters={currentFilters}
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={handleClearFilters}
+            />
+          )}
           {/* Bulk delete button appears when selections exist */}
           {selectedIds.length > 0 && (
             <Button

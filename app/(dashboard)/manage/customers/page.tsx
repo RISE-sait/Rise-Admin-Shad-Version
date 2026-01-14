@@ -1,7 +1,11 @@
 import React from "react";
 import { cookies } from "next/headers";
 import CustomersManager from "@/components/customers/CustomersManager";
-import { getCustomers, getArchivedCustomers } from "@/services/customer";
+import {
+  getCustomers,
+  getArchivedCustomers,
+  CustomerFiltersParams,
+} from "@/services/customer";
 import RoleProtected from "@/components/RoleProtected";
 import { StaffRoleEnum } from "@/types/user";
 
@@ -15,6 +19,12 @@ export default async function CustomersPage({
     page?: string;
     archivedSearch?: string;
     archivedPage?: string;
+    // Filter params
+    membership_plan_id?: string;
+    has_membership?: string;
+    has_credits?: string;
+    min_credits?: string;
+    max_credits?: string;
   }>;
 }) {
   const resolved = await searchParams;
@@ -22,6 +32,15 @@ export default async function CustomersPage({
   const page = parseInt(resolved.page || "1", 10);
   const archivedSearch = resolved.archivedSearch || "";
   const archivedPage = parseInt(resolved.archivedPage || "1", 10);
+
+  // Extract filter params
+  const filters: CustomerFiltersParams = {
+    membership_plan_id: resolved.membership_plan_id || "",
+    has_membership: resolved.has_membership || "",
+    has_credits: resolved.has_credits || "",
+    min_credits: resolved.min_credits || "",
+    max_credits: resolved.max_credits || "",
+  };
 
   const jwtToken =
     (await cookies()).get("jwt")?.value ??
@@ -37,7 +56,7 @@ export default async function CustomersPage({
 
   if (jwtToken) {
     try {
-      const result = await getCustomers(search, page, 10, jwtToken);
+      const result = await getCustomers(search, page, 10, jwtToken, filters);
       customers = result.customers;
       currentPage = result.page;
       pages = result.pages;
@@ -66,6 +85,7 @@ export default async function CustomersPage({
         pages={pages}
         archivedCurrentPage={archivedCurrentPage}
         archivedPages={archivedPages}
+        initialFilters={filters}
       />
     </RoleProtected>
   );

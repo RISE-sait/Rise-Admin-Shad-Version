@@ -7,6 +7,7 @@ import {
   archiveCustomer,
   unarchiveCustomer,
   getCustomerCredits,
+  CustomerFiltersParams,
 } from "@/services/customer";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +21,7 @@ interface CustomersManagerProps {
   pages: number;
   archivedCurrentPage: number;
   archivedPages: number;
+  initialFilters?: CustomerFiltersParams;
 }
 
 export default function CustomersManager({
@@ -31,6 +33,7 @@ export default function CustomersManager({
   pages,
   archivedCurrentPage,
   archivedPages,
+  initialFilters,
 }: CustomersManagerProps) {
   const [activeList, setActiveList] = useState<Customer[]>(customers);
   const [archivedList, setArchivedList] =
@@ -148,6 +151,7 @@ export default function CustomersManager({
         totalPages={pages}
         totalCount={activeList.length}
         onArchiveCustomer={handleArchive}
+        initialFilters={initialFilters}
       />
       <CustomerPage
         title="Archived Customers"
