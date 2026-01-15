@@ -59,6 +59,8 @@ import {
   Receipt,
   MoreHorizontal,
   Copy,
+  Info,
+  ChevronDown,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -100,6 +102,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface CustomerInfoPanelProps {
   customer: Customer;
@@ -1355,14 +1362,30 @@ export default function CustomerInfoPanel({
             </Card>
           ) : currentCustomer.memberships && currentCustomer.memberships.length > 0 ? (
             <div className="space-y-4">
-              {currentCustomer.memberships.map((membership, index) => (
-                <Card key={membership.membership_plan_id || index} className="border-l-4 border-l-yellow-500">
+              {currentCustomer.memberships.map((membership, index) => {
+                const isPastDue = membership.subscription_status === "past_due";
+                return (
+                <Card key={membership.membership_plan_id || index} className={`border-l-4 ${isPastDue ? "border-l-red-500 bg-red-50/50 dark:bg-red-900/10" : "border-l-yellow-500"}`}>
                   <CardContent className="pt-6">
+                    {isPastDue && (
+                      <div className="flex items-center gap-2 p-3 mb-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 animate-pulse" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-red-700 dark:text-red-300">Payment Past Due</p>
+                          <p className="text-xs text-red-600 dark:text-red-400">This membership has an outstanding payment that needs to be collected.</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 mb-4">
-                      <CreditCard className="h-5 w-5 text-yellow-500" />
+                      <CreditCard className={`h-5 w-5 ${isPastDue ? "text-red-500" : "text-yellow-500"}`} />
                       <h3 className="font-semibold text-lg">
                         {membership.membership_name}
                       </h3>
+                      {isPastDue && (
+                        <Badge variant="destructive" className="animate-pulse">
+                          Past Due
+                        </Badge>
+                      )}
                       {currentCustomer.memberships.length > 1 && (
                         <span className="text-xs text-muted-foreground ml-2">
                           ({index + 1} of {currentCustomer.memberships.length})
@@ -1382,7 +1405,29 @@ export default function CustomerInfoPanel({
                         <label className="text-sm font-medium text-muted-foreground">
                           Status
                         </label>
-                        <p className="text-sm font-medium">Active</p>
+                        <div className="flex items-center gap-2">
+                          {membership.subscription_status === "past_due" ? (
+                            <Badge variant="destructive" className="text-xs">
+                              Past Due
+                            </Badge>
+                          ) : membership.subscription_status === "canceled" ? (
+                            <Badge variant="secondary" className="text-xs">
+                              Canceled
+                            </Badge>
+                          ) : membership.subscription_status === "inactive" ? (
+                            <Badge variant="secondary" className="text-xs">
+                              Inactive
+                            </Badge>
+                          ) : membership.subscription_status === "expired" ? (
+                            <Badge variant="outline" className="text-xs">
+                              Expired
+                            </Badge>
+                          ) : (
+                            <Badge variant="default" className="text-xs bg-green-500">
+                              Active
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-muted-foreground">
@@ -1437,7 +1482,8 @@ export default function CustomerInfoPanel({
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              );
+              })}
             </div>
           ) : (
             <Card className="border-l-4 border-l-yellow-500">
@@ -1457,6 +1503,22 @@ export default function CustomerInfoPanel({
               </CardContent>
             </Card>
           )}
+
+          {/* Payment Help - Collapsible */}
+          <Collapsible className="mt-4">
+            <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full group">
+              <Info className="h-3.5 w-3.5 text-blue-500" />
+              <span>Customer saying they see funds were taken from their account?</span>
+              <ChevronDown className="h-3.5 w-3.5 ml-auto transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3 space-y-1.5">
+                <p><strong>Pending charges from failed/blocked payments:</strong> No funds were withdrawn. The hold disappears in 3-5 business days.</p>
+                <p><strong>Blocked by fraud prevention:</strong> Card wasn&apos;t charged. Bank authorization auto-releases.</p>
+                <p><strong>Bank declined:</strong> No payment processed. Customer should contact their bank if it persists beyond a week.</p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Subsidies Card */}
           <Card
