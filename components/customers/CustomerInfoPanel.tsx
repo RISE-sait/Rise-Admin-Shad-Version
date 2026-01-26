@@ -107,6 +107,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import CollectPayment from "./CollectPayment";
 
 interface CustomerInfoPanelProps {
   customer: Customer;
@@ -1368,12 +1369,22 @@ export default function CustomerInfoPanel({
                 <Card key={membership.membership_plan_id || index} className={`border-l-4 ${isPastDue ? "border-l-red-500 bg-red-50/50 dark:bg-red-900/10" : "border-l-yellow-500"}`}>
                   <CardContent className="pt-6">
                     {isPastDue && (
-                      <div className="flex items-center gap-2 p-3 mb-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 animate-pulse" />
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-red-700 dark:text-red-300">Payment Past Due</p>
-                          <p className="text-xs text-red-600 dark:text-red-400">This membership has an outstanding payment that needs to be collected.</p>
-                        </div>
+                      <div className="mb-4">
+                        <CollectPayment
+                          customerId={currentCustomer.id}
+                          customerEmail={currentCustomer.email}
+                          onPaymentCollected={() => {
+                            // Refresh customer data after payment
+                            if (user?.Jwt) {
+                              getCustomerById(currentCustomer.id, user.Jwt).then((data) => {
+                                if (data) {
+                                  setCurrentCustomer(data);
+                                  onCustomerUpdated?.(data);
+                                }
+                              });
+                            }
+                          }}
+                        />
                       </div>
                     )}
                     <div className="flex items-center gap-2 mb-4">
