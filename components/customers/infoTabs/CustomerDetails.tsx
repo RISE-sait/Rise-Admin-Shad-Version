@@ -6,13 +6,16 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 import { Customer } from "@/types/customer";
 import { UserUpdateRequestDto } from "@/app/api/Api";
 import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
+import { initiateEmailChange, resendEmailChangeVerification, cancelEmailChange } from "@/services/user";
 import { useUser } from "@/contexts/UserContext";
-import { SaveIcon, User, Mail, Phone, UserCircle, AlertCircle, CreditCard, Smartphone, Check, X } from "lucide-react";
+import { SaveIcon, User, Mail, Phone, AlertCircle, CreditCard, Smartphone, Check, X, Pencil, RefreshCw, Clock, Loader2 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 type FormField = "first_name" | "last_name" | "email" | "phone" | "emergency_contact_name" | "emergency_contact_phone" | "emergency_contact_relationship";
@@ -35,6 +38,14 @@ export default function DetailsTab({
   const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Email change state
+  const [emailChangeDialogOpen, setEmailChangeDialogOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [isEmailChangeLoading, setIsEmailChangeLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(customer.pending_email || null);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [isCancelingEmail, setIsCancelingEmail] = useState(false);
 
   const [formData, setFormData] = useState({
     first_name: customer.first_name || "",
@@ -165,6 +176,95 @@ export default function DetailsTab({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleInitiateEmailChange = async () => {
+    if (!newEmail.trim()) {
+      toast({
+        status: "error",
+        description: "Please enter a new email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user?.Jwt || !customer.id) {
+      toast({
+        status: "error",
+        description: "Missing authentication or customer information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsEmailChangeLoading(true);
+
+    const { error, data } = await initiateEmailChange(customer.id, newEmail, user.Jwt);
+
+    if (error) {
+      toast({
+        status: "error",
+        description: error,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        status: "success",
+        description: `Verification email sent to ${newEmail}`,
+      });
+      setPendingEmail(newEmail);
+      setEmailChangeDialogOpen(false);
+      setNewEmail("");
+    }
+
+    setIsEmailChangeLoading(false);
+  };
+
+  const handleResendVerification = async () => {
+    if (!user?.Jwt || !customer.id) return;
+
+    setIsResendingEmail(true);
+
+    const { error } = await resendEmailChangeVerification(customer.id, user.Jwt);
+
+    if (error) {
+      toast({
+        status: "error",
+        description: error,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        status: "success",
+        description: `Verification email resent to ${pendingEmail}`,
+      });
+    }
+
+    setIsResendingEmail(false);
+  };
+
+  const handleCancelEmailChange = async () => {
+    if (!user?.Jwt || !customer.id) return;
+
+    setIsCancelingEmail(true);
+
+    const { error } = await cancelEmailChange(customer.id, user.Jwt);
+
+    if (error) {
+      toast({
+        status: "error",
+        description: error,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        status: "success",
+        description: "Email change cancelled",
+      });
+      setPendingEmail(null);
+    }
+
+    setIsCancelingEmail(false);
   };
 
   return (
@@ -311,13 +411,71 @@ export default function DetailsTab({
               <label className="text-sm font-medium">
                 Email <span className="text-red-500">*</span>
               </label>
-              <Input
-                type="email"
-                value={formData.email}
-                readOnly
-                disabled
-                className="cursor-not-allowed bg-muted"
-              />
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={formData.email}
+                  readOnly
+                  disabled
+                  className="cursor-not-allowed bg-muted flex-1"
+                />
+                {!isReceptionist && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setEmailChangeDialogOpen(true)}
+                    title="Change email"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {pendingEmail && (
+                <div className="flex items-center gap-2 p-3 rounded-md bg-amber-500/10 border border-amber-500/20">
+                  <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                      Pending email change to <span className="font-medium">{pendingEmail}</span>
+                    </p>
+                    <p className="text-xs text-amber-600/70 dark:text-amber-500/70">
+                      Awaiting verification from the new email address
+                    </p>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResendVerification}
+                      disabled={isResendingEmail}
+                      className="h-8 px-2 text-amber-700 hover:text-amber-800 hover:bg-amber-500/20"
+                    >
+                      {isResendingEmail ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3 w-3" />
+                      )}
+                      <span className="ml-1">Resend</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancelEmailChange}
+                      disabled={isCancelingEmail}
+                      className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-500/20"
+                    >
+                      {isCancelingEmail ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <X className="h-3 w-3" />
+                      )}
+                      <span className="ml-1">Cancel</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Phone</label>
@@ -434,6 +592,68 @@ export default function DetailsTab({
           </Button>
         </div>
       )}
+
+      {/* Email Change Dialog */}
+      <Dialog open={emailChangeDialogOpen} onOpenChange={setEmailChangeDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Email Address</DialogTitle>
+            <DialogDescription>
+              Enter the new email address for this customer. A verification email will be sent to the new address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-email">Current Email</Label>
+              <Input
+                id="current-email"
+                type="email"
+                value={formData.email}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-email">New Email</Label>
+              <Input
+                id="new-email"
+                type="email"
+                placeholder="Enter new email address"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setEmailChangeDialogOpen(false);
+                setNewEmail("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleInitiateEmailChange}
+              disabled={isEmailChangeLoading || !newEmail.trim()}
+              className="bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+            >
+              {isEmailChangeLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Verification"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
