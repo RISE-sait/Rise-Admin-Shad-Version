@@ -164,13 +164,45 @@ export const columns: ColumnDef<Customer>[] = [
     header: "Membership",
     cell: ({ row }) => {
       const memberships = row.original.memberships;
+      const hasPastDue = memberships?.some(m => m.subscription_status === "past_due");
+
       if (!memberships || memberships.length === 0) {
         return <span className="text-muted-foreground">None</span>;
       }
-      if (memberships.length === 1) {
-        return memberships[0].membership_name;
+
+      // If any membership is past due, show "Past Due" prominently
+      if (hasPastDue) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
+                  <span className="text-red-500 font-semibold">Past Due</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1">
+                  {memberships.map((m, i) => (
+                    <div key={m.membership_plan_id || i} className="flex items-center gap-2">
+                      <span>{m.membership_name}</span>
+                      {m.subscription_status === "past_due" && (
+                        <Badge variant="destructive" className="text-xs">Past Due</Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
       }
-      // Multiple memberships - show first one with a badge for the count
+
+      // Normal display when no past due
+      if (memberships.length === 1) {
+        return <span>{memberships[0].membership_name}</span>;
+      }
+
       return (
         <TooltipProvider>
           <Tooltip>
@@ -185,7 +217,9 @@ export const columns: ColumnDef<Customer>[] = [
             <TooltipContent>
               <div className="space-y-1">
                 {memberships.map((m, i) => (
-                  <div key={m.membership_plan_id || i}>{m.membership_name}</div>
+                  <div key={m.membership_plan_id || i}>
+                    {m.membership_name}
+                  </div>
                 ))}
               </div>
             </TooltipContent>

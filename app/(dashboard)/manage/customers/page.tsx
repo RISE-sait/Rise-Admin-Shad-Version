@@ -25,6 +25,7 @@ export default async function CustomersPage({
     has_credits?: string;
     min_credits?: string;
     max_credits?: string;
+    subscription_status?: string;
   }>;
 }) {
   const resolved = await searchParams;
@@ -40,6 +41,7 @@ export default async function CustomersPage({
     has_credits: resolved.has_credits || "",
     min_credits: resolved.min_credits || "",
     max_credits: resolved.max_credits || "",
+    subscription_status: resolved.subscription_status || "",
   };
 
   const jwtToken =

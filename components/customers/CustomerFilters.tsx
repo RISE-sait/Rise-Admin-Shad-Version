@@ -65,6 +65,7 @@ export default function CustomerFilters({
     filters.has_credits,
     filters.min_credits,
     filters.max_credits,
+    filters.subscription_status,
   ].filter(Boolean).length;
 
   // Get the plan name for display in badge
@@ -157,6 +158,33 @@ export default function CustomerFilters({
                   <SelectItem value="all">Any</SelectItem>
                   <SelectItem value="true">Has Membership</SelectItem>
                   <SelectItem value="false">No Membership</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Subscription Status Filter */}
+            <div className="space-y-2">
+              <Label>Payment Status</Label>
+              <Select
+                value={filters.subscription_status || "all"}
+                onValueChange={(value) =>
+                  onFiltersChange({
+                    subscription_status: value === "all" ? "" : value,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Any" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="past_due">
+                    <span className="text-red-500 font-medium">Past Due</span>
+                  </SelectItem>
+                  <SelectItem value="canceled">Canceled</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -259,6 +287,13 @@ export default function CustomerFilters({
               }
             />
           )}
+          {filters.subscription_status && (
+            <FilterBadge
+              label={`Payment: ${filters.subscription_status === "past_due" ? "Past Due" : filters.subscription_status.charAt(0).toUpperCase() + filters.subscription_status.slice(1)}`}
+              onRemove={() => onFiltersChange({ subscription_status: "" })}
+              variant={filters.subscription_status === "past_due" ? "destructive" : "secondary"}
+            />
+          )}
         </>
       )}
     </div>
@@ -268,12 +303,14 @@ export default function CustomerFilters({
 function FilterBadge({
   label,
   onRemove,
+  variant = "secondary",
 }: {
   label: string;
   onRemove: () => void;
+  variant?: "secondary" | "destructive";
 }) {
   return (
-    <Badge variant="secondary" className="gap-1 pr-1">
+    <Badge variant={variant} className="gap-1 pr-1">
       <span className="max-w-[150px] truncate">{label}</span>
       <button
         onClick={onRemove}

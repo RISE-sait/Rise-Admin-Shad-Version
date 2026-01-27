@@ -121,6 +121,7 @@ export default function CustomersPage({
           has_credits: initialFilters?.has_credits || "",
           min_credits: initialFilters?.min_credits || "",
           max_credits: initialFilters?.max_credits || "",
+          subscription_status: initialFilters?.subscription_status || "",
         }),
   });
 
@@ -131,6 +132,7 @@ export default function CustomersPage({
     has_credits: val.has_credits || "",
     min_credits: val.min_credits || "",
     max_credits: val.max_credits || "",
+    subscription_status: val.subscription_status || "",
   };
 
   // Handler for filter changes
@@ -154,6 +156,7 @@ export default function CustomersPage({
       has_credits: "",
       min_credits: "",
       max_credits: "",
+      subscription_status: "",
       [pageParamName]: "1",
     });
   }, [replace, pageParamName]);

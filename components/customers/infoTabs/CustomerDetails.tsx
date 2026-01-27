@@ -213,6 +213,11 @@ export default function DetailsTab({
                     No Membership
                   </Badge>
                 )}
+                {customer.memberships?.some(m => m.subscription_status === "past_due") && (
+                  <Badge variant="destructive" className="bg-red-500 text-white animate-pulse">
+                    Payment Past Due
+                  </Badge>
+                )}
                 {customer.is_archived ? (
                   <Badge variant="secondary" className="bg-rose-500/15 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border-transparent">
                     Archived
