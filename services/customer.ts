@@ -80,6 +80,8 @@ interface CustomerApiResponse {
   emergency_contact_name?: string | null;
   emergency_contact_phone?: string | null;
   emergency_contact_relationship?: string | null;
+  // Mobile app usage
+  last_mobile_login_at?: string | null;
 }
 
 // Helper function to map API response to Customer type
@@ -146,6 +148,9 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     emergency_contact_name: response.emergency_contact_name ?? null,
     emergency_contact_phone: response.emergency_contact_phone ?? null,
     emergency_contact_relationship: response.emergency_contact_relationship ?? null,
+
+    // Mobile app usage
+    last_mobile_login_at: response.last_mobile_login_at ?? null,
   };
 
   return customer;

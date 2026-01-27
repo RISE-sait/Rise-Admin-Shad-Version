@@ -86,6 +86,7 @@ interface AttendeesTableProps {
   eventId: string;
   data: EnrolledCustomer[];
   capacity?: number;
+  creditCost?: number;
   onCustomerRemoved: (customerId: string) => Promise<void>;
 }
 
@@ -93,6 +94,7 @@ export default function AttendeesTable({
   eventId,
   data,
   capacity,
+  creditCost,
   onCustomerRemoved,
 }: AttendeesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -232,7 +234,10 @@ export default function AttendeesTable({
   };
 
   const handleRemoveAttendee = useCallback(
-    async (attendee: EnrolledCustomer) => {
+    async (
+      attendee: EnrolledCustomer,
+      options?: { refund_credits?: boolean; reason?: string }
+    ) => {
       if (!user?.Jwt) {
         toast({
           status: "error",
@@ -244,10 +249,16 @@ export default function AttendeesTable({
 
       try {
         setPendingRemovalId(attendee.id);
-        await removeCustomerFromEvent(eventId, attendee.id, user.Jwt);
+        const result = await removeCustomerFromEvent(eventId, attendee.id, user.Jwt, options);
+
+        let description = `${attendee.first_name} ${attendee.last_name} removed from event.`;
+        if (result.refund?.processed && result.refund.credits_refunded > 0) {
+          description += ` ${result.refund.credits_refunded} credit${result.refund.credits_refunded !== 1 ? 's' : ''} refunded.`;
+        }
+
         toast({
           status: "success",
-          description: `${attendee.first_name} ${attendee.last_name} removed from event.`,
+          description,
         });
         await onCustomerRemoved(attendee.id);
         return true;
@@ -335,11 +346,12 @@ export default function AttendeesTable({
             attendee={row.original}
             onConfirm={handleRemoveAttendee}
             pendingRemovalId={pendingRemovalId}
+            creditCost={creditCost}
           />
         ),
       },
     ],
-    [handleRemoveAttendee, pendingRemovalId]
+    [handleRemoveAttendee, pendingRemovalId, creditCost]
   );
 
   const table = useReactTable({
@@ -773,26 +785,46 @@ function AttendeeActions({
   attendee,
   onConfirm,
   pendingRemovalId,
+  creditCost,
 }: {
   attendee: EnrolledCustomer;
-  onConfirm: (attendee: EnrolledCustomer) => Promise<boolean>;
+  onConfirm: (
+    attendee: EnrolledCustomer,
+    options?: { refund_credits?: boolean; reason?: string }
+  ) => Promise<boolean>;
   pendingRemovalId: string | null;
+  creditCost?: number;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [refundCredits, setRefundCredits] = useState(true);
+  const [reason, setReason] = useState("");
   const isPending = pendingRemovalId === attendee.id;
+  const showRefundOption = creditCost && creditCost > 0;
 
   const handleConfirm = async () => {
-    const wasSuccessful = await onConfirm(attendee);
+    const options = showRefundOption
+      ? { refund_credits: refundCredits, reason: reason.trim() || undefined }
+      : undefined;
+    const wasSuccessful = await onConfirm(attendee, options);
     if (wasSuccessful) {
       setIsDialogOpen(false);
+      setRefundCredits(true);
+      setReason("");
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!isPending) {
+      setIsDialogOpen(open);
+      if (!open) {
+        setRefundCredits(true);
+        setReason("");
+      }
     }
   };
 
   return (
-    <AlertDialog
-      open={isDialogOpen}
-      onOpenChange={(open) => !isPending && setIsDialogOpen(open)}
-    >
+    <AlertDialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -813,15 +845,45 @@ function AttendeeActions({
       </DropdownMenu>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure you want to remove?</AlertDialogTitle>
+          <AlertDialogTitle>Remove {attendee.first_name} {attendee.last_name}?</AlertDialogTitle>
           <AlertDialogDescription>
             This action will remove the attendee from the event.
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        <div className="space-y-4 py-2">
+          {showRefundOption && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id={`refund-${attendee.id}`}
+                checked={refundCredits}
+                onCheckedChange={(checked) => setRefundCredits(checked === true)}
+                disabled={isPending}
+              />
+              <Label htmlFor={`refund-${attendee.id}`} className="text-sm font-normal cursor-pointer">
+                Refund credits to customer
+              </Label>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor={`reason-${attendee.id}`} className="text-sm text-muted-foreground">
+              Reason (optional)
+            </Label>
+            <Input
+              id={`reason-${attendee.id}`}
+              placeholder="e.g., Customer requested cancellation"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              disabled={isPending}
+            />
+          </div>
+        </div>
+
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
-            Confirm
+            {isPending ? "Removing..." : "Confirm"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

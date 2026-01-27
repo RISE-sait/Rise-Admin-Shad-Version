@@ -12,6 +12,239 @@
   "host": "",
   "basePath": "",
   "paths": {
+    "/admin/analytics/mobile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns DAU, WAU, MAU and other mobile app usage metrics",
+        "produces": ["application/json"],
+        "tags": ["admin", "analytics"],
+        "summary": "Get mobile usage statistics",
+        "responses": {
+          "200": {
+            "description": "Mobile usage statistics",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/mobile/logins": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns a paginated list of users who recently used the mobile app",
+        "produces": ["application/json"],
+        "tags": ["admin", "analytics"],
+        "summary": "Get recent mobile logins",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Number of results (default 50)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Offset for pagination (default 0)",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recent mobile logins",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/mobile/trends": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns daily unique mobile logins for trend analysis",
+        "produces": ["application/json"],
+        "tags": ["admin", "analytics"],
+        "summary": "Get mobile login trends",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Number of days to look back (default 30)",
+            "name": "days",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily mobile login counts",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/admin/credit-refund-logs": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Filter by customer ID",
+            "name": "customer_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Filter by event ID",
+            "name": "event_id",
+            "in": "query"
+          },
+          {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "default": 20,
+            "description": "Number of items per page",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "default": 0,
+            "description": "Number of items to skip",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credit refund logs retrieved successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin access required",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/admin/customers/{id}/credits": {
       "get": {
         "security": [
@@ -3783,7 +4016,7 @@
             "Bearer": []
           }
         ],
-        "description": "Completely removes a customer's enrollment from an event (deletes the record).",
+        "description": "Removes a customer's enrollment from an event. Optionally refunds credits if the customer paid with credits.",
         "consumes": ["application/json"],
         "produces": ["application/json"],
         "tags": ["event_enrollment"],
@@ -3804,14 +4037,21 @@
             "name": "customer_id",
             "in": "path",
             "required": true
+          },
+          {
+            "description": "Optional refund options",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/enrollment.RemoveCustomerRequest"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Customer successfully removed from event",
             "schema": {
-              "type": "object",
-              "additionalProperties": true
+              "$ref": "#/definitions/enrollment.RemoveCustomerResponse"
             }
           },
           "400": {
@@ -5869,6 +6109,43 @@
           },
           "404": {
             "description": "Not Found: Membership plans not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/mobile/session": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Called by the mobile app after successful login to track usage",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["mobile"],
+        "summary": "Record mobile app session",
+        "responses": {
+          "200": {
+            "description": "Session recorded successfully",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -10255,6 +10532,9 @@
         "is_archived": {
           "type": "boolean"
         },
+        "last_mobile_login_at": {
+          "type": "string"
+        },
         "last_name": {
           "type": "string"
         },
@@ -10620,6 +10900,39 @@
         }
       }
     },
+    "enrollment.RefundInfo": {
+      "type": "object",
+      "properties": {
+        "credits_refunded": {
+          "type": "integer"
+        },
+        "processed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "enrollment.RemoveCustomerRequest": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "refund_credits": {
+          "type": "boolean"
+        }
+      }
+    },
+    "enrollment.RemoveCustomerResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "refund": {
+          "$ref": "#/definitions/enrollment.RefundInfo"
+        }
+      }
+    },
     "event.CourtInfo": {
       "type": "object",
       "properties": {
@@ -10749,6 +11062,11 @@
             "type": "string"
           },
           "example": ["[\"f0e21457-75d4-4de6-b765-5ee13221fd72\"]"]
+        },
+        "skip_notification": {
+          "description": "Skip auto-notification on update (for minor changes)",
+          "type": "boolean",
+          "example": false
         },
         "start_at": {
           "type": "string",
@@ -11102,6 +11420,10 @@
         "location_id": {
           "description": "ID of the location where the game is played",
           "type": "string"
+        },
+        "skip_notification": {
+          "description": "Skip auto-notification on update",
+          "type": "boolean"
         },
         "start_time": {
           "description": "Required start time of the game",
@@ -11832,6 +12154,10 @@
         },
         "location_id": {
           "type": "string"
+        },
+        "skip_notification": {
+          "description": "Skip auto-notification on update",
+          "type": "boolean"
         },
         "start_time": {
           "type": "string"

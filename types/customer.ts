@@ -44,6 +44,9 @@ export interface Customer {
   // Account deletion status
   deleted_at?: string | null;
   scheduled_deletion_at?: string | null;
+
+  // Mobile app usage
+  last_mobile_login_at?: string | null;
 }
 
 export interface CustomerCreditTransaction {

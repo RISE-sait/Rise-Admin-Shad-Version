@@ -158,3 +158,19 @@ export interface NotificationHistoryItem {
 export interface NotificationHistoryResponse {
   notifications: NotificationHistoryItem[];
 }
+
+// Credit Refund Types for removing customers from events
+export interface RemoveCustomerRequest {
+  refund_credits?: boolean;
+  reason?: string;
+}
+
+export interface RefundInfo {
+  processed: boolean;
+  credits_refunded: number;
+}
+
+export interface RemoveCustomerResponse {
+  message: string;
+  refund?: RefundInfo;
+}
