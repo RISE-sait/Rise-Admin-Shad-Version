@@ -50,6 +50,9 @@ export interface Customer {
 
   // Mobile app usage
   last_mobile_login_at?: string | null;
+
+  // Pending email change
+  pending_email?: string | null;
 }
 
 export interface CustomerCreditTransaction {
