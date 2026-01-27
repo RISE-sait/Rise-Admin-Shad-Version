@@ -681,11 +681,20 @@ export async function getCustomerCreditTransactions(
     );
 }
 
+export interface CustomerFiltersParams {
+  membership_plan_id?: string;
+  has_membership?: string; // "true" | "false"
+  has_credits?: string; // "true" | "false"
+  min_credits?: string;
+  max_credits?: string;
+}
+
 export async function getCustomers(
   search?: string,
   page: number = 1,
   limit: number = 20,
-  jwt?: string
+  jwt?: string,
+  filters?: CustomerFiltersParams
 ): Promise<{
   customers: Customer[];
   page: number;
@@ -698,6 +707,25 @@ export async function getCustomers(
     const offset = (page - 1) * limit;
     params.append("offset", String(offset));
     params.append("limit", String(limit));
+
+    // Append filter parameters
+    if (filters) {
+      if (filters.membership_plan_id) {
+        params.append("membership_plan_id", filters.membership_plan_id);
+      }
+      if (filters.has_membership) {
+        params.append("has_membership", filters.has_membership);
+      }
+      if (filters.has_credits) {
+        params.append("has_credits", filters.has_credits);
+      }
+      if (filters.min_credits) {
+        params.append("min_credits", filters.min_credits);
+      }
+      if (filters.max_credits) {
+        params.append("max_credits", filters.max_credits);
+      }
+    }
 
     const url = `${getValue("API")}customers?${params.toString()}`;
 
