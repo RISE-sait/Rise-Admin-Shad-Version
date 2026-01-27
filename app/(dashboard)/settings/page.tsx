@@ -58,6 +58,7 @@ import type { User } from "@/types/user";
 import { useTheme } from "next-themes";
 import ReactCountryFlag from "react-country-flag";
 import StaffManagement from "@/components/settings/StaffManagement";
+import DiscountManagement from "@/components/settings/DiscountManagement";
 import { StaffRoleEnum } from "@/types/user";
 import WebsiteContentPage from "@/components/website-content/WebsiteContentPage";
 type CountryOption = { code: string; name: string };
@@ -740,19 +741,7 @@ export default function SettingsPage() {
 
         {/* Discounts Tab */}
         <TabsContent value="discounts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Discounts</CardTitle>
-              <CardDescription>
-                Manage discount settings and pricing adjustments.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Discount settings will be configured here.
-              </p>
-            </CardContent>
-          </Card>
+          <DiscountManagement />
         </TabsContent>
 
         {/* Website Content Tab - Only for Super Admins and IT */}
