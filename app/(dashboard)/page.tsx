@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { TodoList } from "@/components/todo-list";
 import SuspendedCustomersCard from "@/components/dashboard/SuspendedCustomersCard";
+import PastDueCustomersCard from "@/components/dashboard/PastDueCustomersCard";
 import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { getSchedule } from "@/services/schedule";
@@ -53,7 +53,6 @@ export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [activeMemberships, setActiveMemberships] = useState(0);
   const [todayCheckIns, setTodayCheckIns] = useState(0);
-  const [courtUtilization, setCourtUtilization] = useState(0);
   const { user } = useUser();
   const router = useRouter();
 
@@ -192,38 +191,9 @@ export default function DashboardPage() {
         const all = [...events, ...games, ...practices];
         all.sort((a, b) => a.start_at.getTime() - b.start_at.getTime());
         setSchedule(all);
-
-        const openHour = 9;
-        const closeHour = 23;
-        const availableMinutes = courts.length * (closeHour - openHour) * 60;
-
-        if (availableMinutes > 0) {
-          const openTime = new Date(today);
-          openTime.setHours(openHour, 0, 0, 0);
-          const closeTime = new Date(today);
-          closeTime.setHours(closeHour, 0, 0, 0);
-
-          const usedMinutes = all.reduce((total, item) => {
-            const start = item.start_at < openTime ? openTime : item.start_at;
-            const rawEnd =
-              item.end_at && !isNaN(item.end_at.getTime())
-                ? item.end_at
-                : item.start_at;
-            const end = rawEnd > closeTime ? closeTime : rawEnd;
-            const diff = (end.getTime() - start.getTime()) / 60000;
-            return total + Math.max(0, diff);
-          }, 0);
-
-          setCourtUtilization(
-            Math.min(100, Math.round((usedMinutes / availableMinutes) * 100))
-          );
-        } else {
-          setCourtUtilization(0);
-        }
       } catch (err) {
         console.error("Error loading schedule", err);
         setSchedule([]);
-        setCourtUtilization(0);
       }
     };
 
@@ -267,18 +237,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Court Utilization
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{courtUtilization}%</div>
-            <Progress value={courtUtilization} className="mt-2" />
-          </CardContent>
-        </Card>
+        <PastDueCustomersCard />
       </div>
 
       {/* Main Content Grid */}

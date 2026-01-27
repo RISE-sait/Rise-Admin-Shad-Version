@@ -48,6 +48,7 @@ interface MembershipInfoApi {
   membership_plan_name: string;
   membership_renewal_date: string;
   membership_start_date: string;
+  status?: string; // Membership status from API (active, past_due, canceled, etc.)
 }
 
 // Define a type for the API response
@@ -105,6 +106,7 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     membership_plan_name: m.membership_plan_name || "",
     membership_renewal_date: m.membership_renewal_date || "",
     membership_start_date: m.membership_start_date ? new Date(m.membership_start_date) : null,
+    subscription_status: m.status as "active" | "inactive" | "canceled" | "expired" | "past_due" | undefined,
   }));
 
   // Get first membership for backward compatibility fields
@@ -687,6 +689,7 @@ export interface CustomerFiltersParams {
   has_credits?: string; // "true" | "false"
   min_credits?: string;
   max_credits?: string;
+  subscription_status?: string; // "active" | "past_due" | "canceled" | etc.
 }
 
 export async function getCustomers(
@@ -724,6 +727,9 @@ export async function getCustomers(
       }
       if (filters.max_credits) {
         params.append("max_credits", filters.max_credits);
+      }
+      if (filters.subscription_status) {
+        params.append("membership_status", filters.subscription_status);
       }
     }
 
@@ -1029,6 +1035,43 @@ export async function deductCustomerCredits(
   jwt: string
 ): Promise<CustomerCreditsMutationResult> {
   return mutateCustomerCredits(id, amount, description, jwt, "deduct");
+}
+
+/**
+ * Get all memberships for a customer
+ */
+export async function getCustomerMemberships(
+  customerId: string,
+  jwt: string
+): Promise<{
+  membership_name: string;
+  membership_plan_id?: string;
+  membership_plan_name: string;
+  membership_start_date: string;
+  membership_renewal_date: string;
+  status: string;
+}[]> {
+  try {
+    const url = `${getValue("API")}customers/${customerId}/memberships`;
+    const response = await fetch(url, {
+      method: "GET",
+      ...addAuthHeader(jwt),
+    });
+
+    if (response.status === 404) {
+      return [];
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch customer memberships: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error(`Error fetching memberships for customer ${customerId}:`, error);
+    return [];
+  }
 }
 
 export async function archiveCustomer(id: string, jwt: string): Promise<void> {

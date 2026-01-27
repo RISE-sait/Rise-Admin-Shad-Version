@@ -52,3 +52,7 @@ export async function revalidateCourts() {
   revalidatePath("/manage/courts");
   revalidatePath("/manage/facilities");
 }
+
+export async function revalidateCustomers() {
+  revalidatePath("/manage/customers");
+}

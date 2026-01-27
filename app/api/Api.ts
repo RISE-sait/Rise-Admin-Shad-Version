@@ -61,6 +61,7 @@ export interface CustomerMembershipResponseDto {
   membership_plan_name?: string;
   membership_renewal_date?: string;
   membership_start_date?: string;
+  subscription_status?: "active" | "past_due" | "canceled" | "trialing" | "incomplete";
 }
 
 export interface CustomerParentRegistrationRequestDto {

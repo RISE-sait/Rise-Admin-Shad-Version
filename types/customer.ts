@@ -1,9 +1,12 @@
+export type SubscriptionStatus = "active" | "inactive" | "canceled" | "expired" | "past_due";
+
 export interface CustomerMembership {
   membership_name: string;
   membership_plan_id: string;
   membership_plan_name: string;
   membership_renewal_date: string;
   membership_start_date: Date | null;
+  subscription_status?: SubscriptionStatus;
 }
 
 export interface Customer {
