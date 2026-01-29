@@ -47,6 +47,8 @@ export interface Customer {
   // Account deletion status
   deleted_at?: string | null;
   scheduled_deletion_at?: string | null;
+  archived_at?: string | null;
+  days_until_deletion?: number | null;
 
   // Mobile app usage
   last_mobile_login_at?: string | null;
