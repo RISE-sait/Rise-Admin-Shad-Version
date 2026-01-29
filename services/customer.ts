@@ -83,6 +83,13 @@ interface CustomerApiResponse {
   emergency_contact_relationship?: string | null;
   // Mobile app usage
   last_mobile_login_at?: string | null;
+  // Pending email change
+  pending_email?: string | null;
+  // Account deletion status
+  deleted_at?: string | null;
+  scheduled_deletion_at?: string | null;
+  archived_at?: string | null;
+  days_until_deletion?: number | null;
 }
 
 // Helper function to map API response to Customer type
@@ -153,6 +160,15 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
 
     // Mobile app usage
     last_mobile_login_at: response.last_mobile_login_at ?? null,
+
+    // Pending email change
+    pending_email: response.pending_email ?? null,
+
+    // Account deletion status
+    deleted_at: response.deleted_at ?? null,
+    scheduled_deletion_at: response.scheduled_deletion_at ?? null,
+    archived_at: response.archived_at ?? null,
+    days_until_deletion: response.days_until_deletion ?? null,
   };
 
   return customer;

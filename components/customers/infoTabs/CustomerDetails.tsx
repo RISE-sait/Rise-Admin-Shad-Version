@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { updateCustomer } from "@/services/customer";
 import { initiateEmailChange, resendEmailChangeVerification, cancelEmailChange } from "@/services/user";
 import { useUser } from "@/contexts/UserContext";
-import { SaveIcon, User, Mail, Phone, AlertCircle, CreditCard, Smartphone, Check, X, Pencil, RefreshCw, Clock, Loader2 } from "lucide-react";
+import { SaveIcon, User, Mail, Phone, AlertCircle, CreditCard, Smartphone, Check, X, Pencil, RefreshCw, Clock, Loader2, Trash2 } from "lucide-react";
 import { StaffRoleEnum } from "@/types/user";
 
 type FormField = "first_name" | "last_name" | "email" | "phone" | "emergency_contact_name" | "emergency_contact_phone" | "emergency_contact_relationship";
@@ -362,6 +363,27 @@ export default function DetailsTab({
           </div>
         </CardContent>
       </Card>
+
+      {/* Deletion Countdown Alert */}
+      {customer.days_until_deletion != null && (
+        <Alert variant="destructive" className="border-red-500 bg-red-50 dark:bg-red-950/50">
+          <Trash2 className="h-4 w-4" />
+          <AlertTitle>Account Scheduled for Deletion</AlertTitle>
+          <AlertDescription>
+            This account will be permanently deleted in {customer.days_until_deletion} day{customer.days_until_deletion !== 1 ? "s" : ""}.
+            {customer.archived_at && (
+              <span className="block text-xs mt-1 text-muted-foreground">
+                Archived on {new Date(customer.archived_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+            )}
+            {customer.deleted_at && (
+              <span className="block text-xs mt-1 text-muted-foreground">
+                Deletion initiated on {new Date(customer.deleted_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Personal Information Section */}
       <Card className="border-l-4 border-l-yellow-500">

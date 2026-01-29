@@ -245,8 +245,24 @@ export const columns: ColumnDef<Customer>[] = [
   {
     id: "start_date",
     accessorKey: "membership_start_date", // key for membership start date
-    header: "Start Date",
-    cell: ({ row }) => {
+    header: ({ table }) => {
+      const isArchivedList = (table.options.meta as any)?.isArchivedList;
+      return isArchivedList ? "Deletion" : "Start Date";
+    },
+    cell: ({ row, table }) => {
+      const isArchivedList = (table.options.meta as any)?.isArchivedList;
+      if (isArchivedList) {
+        const daysUntilDeletion = row.original.days_until_deletion;
+        const scheduledDeletionAt = row.original.scheduled_deletion_at;
+
+        if (scheduledDeletionAt) {
+          return new Date(scheduledDeletionAt).toLocaleDateString();
+        }
+        if (daysUntilDeletion != null) {
+          return `In ${daysUntilDeletion} day${daysUntilDeletion !== 1 ? "s" : ""}`;
+        }
+        return "N/A";
+      }
       const date = row.original.membership_start_date;
       return date ? new Date(date).toLocaleDateString() : "N/A";
     },
