@@ -546,6 +546,7 @@ export default function CustomerInfoPanel({
           membership_plan_name: m.membership_plan_name,
           membership_start_date: m.start_date ? new Date(m.start_date) : null,
           membership_renewal_date: m.renewal_date || "",
+          subscription_status: m.status as "active" | "inactive" | "canceled" | "expired" | "past_due" | undefined,
         })),
       }));
     } catch (error) {
