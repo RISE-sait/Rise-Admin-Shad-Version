@@ -46,8 +46,8 @@ export default function HeroPromoTable({
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border">
-      <Table className="border-collapse">
+    <div className="rounded-xl overflow-x-auto border">
+      <Table className="border-collapse min-w-[800px]">
         <TableHeader className="bg-muted/100 sticky top-0 z-10">
           <TableRow className="hover:bg-transparent border-b">
             <TableHead className="px-6 py-4 text-sm font-semibold uppercase tracking-wider">

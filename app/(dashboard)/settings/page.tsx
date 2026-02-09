@@ -59,6 +59,7 @@ import { useTheme } from "next-themes";
 import ReactCountryFlag from "react-country-flag";
 import StaffManagement from "@/components/settings/StaffManagement";
 import DiscountManagement from "@/components/settings/DiscountManagement";
+import CareersManagement from "@/components/settings/CareersManagement";
 import { StaffRoleEnum } from "@/types/user";
 import WebsiteContentPage from "@/components/website-content/WebsiteContentPage";
 type CountryOption = { code: string; name: string };
@@ -372,15 +373,31 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className={`grid w-full ${(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) ? 'grid-cols-5' : 'grid-cols-3'}`}>
+        <TabsList className={`grid w-full ${
+          user?.Role === StaffRoleEnum.SUPERADMIN
+            ? 'grid-cols-5'
+            : user?.Role === StaffRoleEnum.ADMIN
+              ? 'grid-cols-3'
+              : user?.Role === StaffRoleEnum.IT
+                ? 'grid-cols-4'
+                : 'grid-cols-2'
+        }`}>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="theme">Theme</TabsTrigger>
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
           {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) && (
             <>
-              <TabsTrigger value="website">Website Content</TabsTrigger>
-              <TabsTrigger value="staff">Staff Management</TabsTrigger>
+              <TabsTrigger value="website" title="Website Content" className="truncate">
+                <span className="hidden sm:inline">Website</span>
+                <span className="sm:hidden">Web</span>
+              </TabsTrigger>
+              <TabsTrigger value="staff" title="Staff Management" className="truncate">
+                <span className="hidden sm:inline">Staff</span>
+                <span className="sm:hidden">Staff</span>
+              </TabsTrigger>
             </>
+          )}
+          {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.ADMIN) && (
+            <TabsTrigger value="careers">Careers</TabsTrigger>
           )}
         </TabsList>
 
@@ -549,6 +566,61 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Theme Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Theme</CardTitle>
+          <CardDescription>Choose how Rise looks to you.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-between">
+          <div className="grid gap-1">
+            <Label className="text-sm text-muted-foreground">Theme</Label>
+            <div className="rounded-md border px-3 py-2 text-sm font-medium capitalize">
+              {theme}
+            </div>
+          </div>
+          <Button variant="outline" onClick={handleEditAppearance}>
+            Edit Appearance
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Appearance Sheet */}
+      <Sheet open={appearanceOpen} onOpenChange={setAppearanceOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Appearance</SheetTitle>
+          </SheetHeader>
+          <div className="py-4">
+            <RadioGroup
+              value={tempTheme}
+              onValueChange={setTempTheme}
+              className="flex flex-col space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="light" id="sheet-theme-light" />
+                <Label htmlFor="sheet-theme-light">Light</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="dark" id="sheet-theme-dark" />
+                <Label htmlFor="sheet-theme-dark">Dark</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="system" id="sheet-theme-system" />
+                <Label htmlFor="sheet-theme-system">System</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <SheetFooter>
+            <Button onClick={handleSaveAppearance}>Save</Button>
+            <Button variant="ghost" onClick={() => setAppearanceOpen(false)}>
+              Cancel
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* Edit Profile Sheet */}
       <Sheet open={profileOpen} onOpenChange={setProfileOpen}>
         <SheetContent>
           <SheetHeader>
@@ -685,60 +757,6 @@ export default function SettingsPage() {
       </Sheet>
         </TabsContent>
 
-        {/* Theme Tab */}
-        <TabsContent value="theme" className="space-y-4">
-          <Card>
-        <CardHeader>
-          <CardTitle>Theme</CardTitle>
-          <CardDescription>Choose how Rise looks to you.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center justify-between">
-          <div className="grid gap-1">
-            <Label className="text-sm text-muted-foreground">Theme</Label>
-            <div className="rounded-md border px-3 py-2 text-sm font-medium capitalize">
-              {theme}
-            </div>
-          </div>
-          <Button variant="outline" onClick={handleEditAppearance}>
-            Edit Appearance
-          </Button>
-        </CardContent>
-      </Card>
-      <Sheet open={appearanceOpen} onOpenChange={setAppearanceOpen}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Appearance</SheetTitle>
-          </SheetHeader>
-          <div className="py-4">
-            <RadioGroup
-              value={tempTheme}
-              onValueChange={setTempTheme}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="light" id="sheet-theme-light" />
-                <Label htmlFor="sheet-theme-light">Light</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="dark" id="sheet-theme-dark" />
-                <Label htmlFor="sheet-theme-dark">Dark</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="system" id="sheet-theme-system" />
-                <Label htmlFor="sheet-theme-system">System</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          <SheetFooter>
-            <Button onClick={handleSaveAppearance}>Save</Button>
-            <Button variant="ghost" onClick={() => setAppearanceOpen(false)}>
-              Cancel
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
-        </TabsContent>
-
         {/* Discounts Tab */}
         <TabsContent value="discounts" className="space-y-4">
           <DiscountManagement />
@@ -755,6 +773,13 @@ export default function SettingsPage() {
         {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.IT) && (
           <TabsContent value="staff" className="space-y-4">
             <StaffManagement />
+          </TabsContent>
+        )}
+
+        {/* Careers Management Tab - Only for Super Admins and Admins */}
+        {(user?.Role === StaffRoleEnum.SUPERADMIN || user?.Role === StaffRoleEnum.ADMIN) && (
+          <TabsContent value="careers" className="space-y-4">
+            <CareersManagement />
           </TabsContent>
         )}
       </Tabs>
