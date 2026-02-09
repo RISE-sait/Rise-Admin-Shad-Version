@@ -143,9 +143,9 @@ export default function WebsiteContentPage() {
 
   const getDrawerWidth = () => {
     if (drawerContent === "hero-details" || drawerContent === "feature-details" || drawerContent === "video-details") {
-      return "w-[60%]";
+      return "w-full sm:w-[80%] md:w-[60%]";
     }
-    return "w-[40%]";
+    return "w-full sm:w-[60%] md:w-[40%]";
   };
 
   const getDrawerTitle = () => {
@@ -169,7 +169,7 @@ export default function WebsiteContentPage() {
 
   return (
     <div className="flex-1 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Heading
           title="Website Content"
           description="Manage hero banners, feature cards, and promo videos displayed on the website"
@@ -178,7 +178,7 @@ export default function WebsiteContentPage() {
           variant="outline"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-fit"
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -187,19 +187,22 @@ export default function WebsiteContentPage() {
       <Separator />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="hero-promos" className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <TabsList className="w-full sm:w-auto flex-wrap h-auto">
+            <TabsTrigger value="hero-promos" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Image className="h-4 w-4" />
-              Hero Promos
+              <span className="hidden xs:inline">Hero</span>
+              <span className="xs:hidden">Hero</span>
             </TabsTrigger>
-            <TabsTrigger value="feature-cards" className="flex items-center gap-2">
+            <TabsTrigger value="feature-cards" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <LayoutGrid className="h-4 w-4" />
-              Feature Cards
+              <span className="hidden xs:inline">Features</span>
+              <span className="xs:hidden">Feat.</span>
             </TabsTrigger>
-            <TabsTrigger value="promo-videos" className="flex items-center gap-2">
+            <TabsTrigger value="promo-videos" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Video className="h-4 w-4" />
-              Promo Videos
+              <span className="hidden xs:inline">Videos</span>
+              <span className="xs:hidden">Vids</span>
             </TabsTrigger>
           </TabsList>
 
@@ -209,7 +212,7 @@ export default function WebsiteContentPage() {
                 setDrawerContent("hero-add");
                 setDrawerOpen(true);
               }}
-              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 w-full sm:w-auto"
             >
               <PlusIcon className="h-4 w-4" />
               Add Hero Promo
@@ -222,7 +225,7 @@ export default function WebsiteContentPage() {
                 setDrawerContent("feature-add");
                 setDrawerOpen(true);
               }}
-              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 w-full sm:w-auto"
             >
               <PlusIcon className="h-4 w-4" />
               Add Feature Card
@@ -235,7 +238,7 @@ export default function WebsiteContentPage() {
                 setDrawerContent("video-add");
                 setDrawerOpen(true);
               }}
-              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900"
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 w-full sm:w-auto"
             >
               <PlusIcon className="h-4 w-4" />
               Add Promo Video
