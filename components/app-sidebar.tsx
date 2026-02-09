@@ -20,7 +20,7 @@ import {
   Ticket,
   UserCog,
   Scissors,
-  Gamepad2,
+  // Gamepad2, // Amenities hidden for now
   Trophy,
   Dribbble,
   ClipboardList,
@@ -76,11 +76,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/manage/practices",
             icon: <Dribbble width={15} height={15} />,
           },
-          {
-            title: "Amenities",
-            url: "/manage/amenities",
-            icon: <Gamepad2 width={15} height={15} />,
-          },
+          // Amenities tab hidden for now
+          // {
+          //   title: "Amenities",
+          //   url: "/manage/amenities",
+          //   icon: <Gamepad2 width={15} height={15} />,
+          // },
         ]
       : role === StaffRoleEnum.COACH
         ? [
