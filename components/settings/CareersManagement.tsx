@@ -598,7 +598,9 @@ export default function CareersManagement() {
                           <TableCell className="font-medium">
                             {application.first_name} {application.last_name}
                           </TableCell>
-                          <TableCell>{application.job_title || "N/A"}</TableCell>
+                          <TableCell>
+                            {jobs.find(j => j.id === application.job_id)?.title || "N/A"}
+                          </TableCell>
                           <TableCell>
                             <ApplicationStatusBadge status={application.status} />
                           </TableCell>
