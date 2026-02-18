@@ -90,6 +90,8 @@ interface CustomerApiResponse {
   scheduled_deletion_at?: string | null;
   archived_at?: string | null;
   days_until_deletion?: number | null;
+  // Parent-child linkage
+  parent_id?: string | null;
 }
 
 // Helper function to map API response to Customer type
@@ -169,6 +171,9 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     scheduled_deletion_at: response.scheduled_deletion_at ?? null,
     archived_at: response.archived_at ?? null,
     days_until_deletion: response.days_until_deletion ?? null,
+
+    // Parent-child linkage
+    parent_id: response.parent_id ?? null,
   };
 
   return customer;
@@ -1428,6 +1433,178 @@ export async function deleteCustomerWaiver(
     }
   } catch (error) {
     console.error(`Error deleting waiver ${waiverId}:`, error);
+    throw error;
+  }
+}
+
+// ============ Family Linkage Functions ============
+
+/**
+ * Get all children linked to a parent by parent_id query param.
+ */
+export async function getChildrenByParentId(
+  parentId: string,
+  jwt: string
+): Promise<Customer[]> {
+  try {
+    const params = new URLSearchParams();
+    params.append("parent_id", parentId);
+    params.append("limit", "20");
+    params.append("offset", "0");
+
+    const url = `${getValue("API")}customers?${params.toString()}`;
+    const response = await fetchWithTokenRefresh(url, {}, jwt);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch children: ${response.statusText}`);
+    }
+
+    const json: CustomersPaginatedResponse = await response.json();
+    return json.data.map(mapApiResponseToCustomer);
+  } catch (error) {
+    console.error(`Error fetching children for parent ${parentId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Admin-only: Unlink a child from their parent.
+ * DELETE /family/admin/link/{childId}
+ */
+export async function adminUnlinkChild(
+  childId: string,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}family/admin/link/${childId}`, {
+      method: "DELETE",
+      ...addAuthHeader(jwt),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return errorData.error || errorData.message || `Failed to unlink: ${response.statusText}`;
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error unlinking child ${childId}:`, error);
+    return error instanceof Error ? error.message : "Failed to unlink child";
+  }
+}
+
+/**
+ * Initiate a parent-child link request. Sends email verification to target.
+ * POST /family/link/request
+ */
+export async function requestFamilyLink(
+  targetEmail: string,
+  jwt: string
+): Promise<{ error: string | null; message?: string; requiresOldParent?: boolean }> {
+  try {
+    const response = await fetch(`${getValue("API")}family/link/request`, {
+      method: "POST",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify({ target_email: targetEmail }),
+    });
+
+    const json = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errorMsg = json.error?.message || json.error || json.message || `Failed to send link request: ${response.statusText}`;
+      return { error: typeof errorMsg === "string" ? errorMsg : String(errorMsg) };
+    }
+
+    return {
+      error: null,
+      message: json.message,
+      requiresOldParent: json.requires_old_parent,
+    };
+  } catch (error) {
+    console.error("Error requesting family link:", error);
+    return { error: error instanceof Error ? error.message : "Failed to send link request" };
+  }
+}
+
+/**
+ * Confirm a link request with verification code.
+ * POST /family/link/confirm
+ */
+export async function confirmFamilyLink(
+  code: string,
+  jwt: string
+): Promise<{ error: string | null; status?: string; message?: string }> {
+  try {
+    const response = await fetch(`${getValue("API")}family/link/confirm`, {
+      method: "POST",
+      ...addAuthHeader(jwt),
+      body: JSON.stringify({ code }),
+    });
+
+    const json = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const errorMsg = json.error?.message || json.error || json.message || `Failed to confirm link: ${response.statusText}`;
+      return { error: typeof errorMsg === "string" ? errorMsg : String(errorMsg) };
+    }
+
+    return {
+      error: null,
+      status: json.status,
+      message: json.message,
+    };
+  } catch (error) {
+    console.error("Error confirming family link:", error);
+    return { error: error instanceof Error ? error.message : "Failed to confirm link" };
+  }
+}
+
+/**
+ * Cancel the caller's pending link request.
+ * DELETE /family/link/request
+ */
+export async function cancelLinkRequest(
+  jwt: string
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${getValue("API")}family/link/request`, {
+      method: "DELETE",
+      ...addAuthHeader(jwt),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return errorData.error || errorData.message || `Failed to cancel request: ${response.statusText}`;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error cancelling link request:", error);
+    return error instanceof Error ? error.message : "Failed to cancel link request";
+  }
+}
+
+/**
+ * Get all pending link requests for the authenticated user.
+ * GET /family/link/requests
+ */
+export async function getPendingLinkRequests(
+  jwt: string
+): Promise<import("@/types/customer").PendingLinkRequest[]> {
+  try {
+    const response = await fetchWithTokenRefresh(
+      `${getValue("API")}family/link/requests`,
+      {},
+      jwt
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch link requests: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching pending link requests:", error);
     throw error;
   }
 }
