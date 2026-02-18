@@ -9,6 +9,7 @@ import {
   WaiverUpload,
 } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
+import FamilyTab from "./infoTabs/FamilyTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +62,7 @@ import {
   Copy,
   Info,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -1321,6 +1323,13 @@ export default function CustomerInfoPanel({
               Details
             </TabsTrigger>
             <TabsTrigger
+              value="family"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Users className="h-4 w-4" />
+              Family
+            </TabsTrigger>
+            <TabsTrigger
               value="membership"
               className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
             >
@@ -1384,6 +1393,16 @@ export default function CustomerInfoPanel({
               });
             }}
             onClose={onClose}
+          />
+        </TabsContent>
+
+        <TabsContent value="family">
+          <FamilyTab
+            customer={currentCustomer}
+            onCustomerUpdated={(updated) => {
+              setCurrentCustomer((prev) => ({ ...prev, ...updated }));
+              onCustomerUpdated?.(updated);
+            }}
           />
         </TabsContent>
 

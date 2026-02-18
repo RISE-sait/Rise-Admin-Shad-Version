@@ -548,7 +548,7 @@ export interface UserUpdateRequestDto {
   has_marketing_email_consent: boolean;
   has_sms_consent: boolean;
   last_name: string;
-  parent_id?: string;
+  parent_id?: string | null;
   phone?: string;
 }
 

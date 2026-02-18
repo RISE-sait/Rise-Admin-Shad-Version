@@ -129,3 +129,109 @@ export async function registerAthlete(
     };
   }
 }
+
+export interface ChildRegistrationData {
+  // Firebase account fields (for login capability)
+  email: string;
+  password: string;
+  // Required API fields
+  first_name: string;
+  last_name: string;
+  dob: string; // Format: "YYYY-MM-DD"
+  // Optional API fields
+  country_code?: string;
+  gender?: "M" | "F";
+}
+
+/**
+ * Register a child account using POST /register/child.
+ * Creates a Firebase account first, then registers via the child endpoint.
+ */
+export async function registerChild(
+  childData: ChildRegistrationData
+): Promise<{ error: string | null }> {
+  let secondaryAuth: ReturnType<typeof getAuth> | null = null;
+
+  try {
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3asIejQ5bP-29GhIZIO4CnlAZO0wETqQ",
+      authDomain: "sacred-armor-452904-c0.firebaseapp.com",
+      projectId: "sacred-armor-452904-c0",
+      storageBucket: "sacred-armor-452904-c0.firebasestorage.app",
+      messagingSenderId: "461776259687",
+      appId: "1:461776259687:web:558026e90baef5a63522c2",
+      measurementId: "G-9YPMC5DDB2",
+    };
+
+    let firebaseToken: string;
+
+    try {
+      const secondaryApp = initializeApp(
+        firebaseConfig,
+        `secondary-child-${Date.now()}`
+      );
+      secondaryAuth = getAuth(secondaryApp);
+
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        childData.email,
+        childData.password
+      );
+
+      firebaseToken = await userCredential.user.getIdToken();
+      await signOut(secondaryAuth);
+    } catch (firebaseError: unknown) {
+      console.error("Firebase account creation failed:", firebaseError);
+      let errorMessage = "Failed to create account: ";
+      const error = firebaseError as { code?: string; message?: string };
+
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage += "This email is already registered.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage += "Invalid email address.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage += "Password is too weak. Please use a stronger password.";
+      } else {
+        errorMessage += error.message || "Unknown error occurred";
+      }
+
+      return { error: errorMessage };
+    }
+
+    // Register child in backend — only send fields from ChildRegistrationRequestDto
+    const { email, password, ...apiData } = childData;
+
+    const response = await fetch(`${getValue("API")}register/child`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${firebaseToken}`,
+      },
+      body: JSON.stringify(apiData),
+    });
+
+    const responseJSON = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      let errorMessage = `Failed to register child: ${response.statusText}`;
+      if (responseJSON.error?.message) {
+        errorMessage = responseJSON.error.message;
+      } else if (responseJSON.error) {
+        errorMessage = String(responseJSON.error);
+      } else if (responseJSON.message) {
+        errorMessage = responseJSON.message;
+      }
+
+      errorMessage +=
+        " (Note: Account was created but profile registration failed. The user can try logging in.)";
+      return { error: errorMessage };
+    }
+
+    return { error: null };
+  } catch (error) {
+    console.error("Error registering child:", error);
+    return {
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}

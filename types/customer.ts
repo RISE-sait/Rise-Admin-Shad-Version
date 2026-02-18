@@ -55,6 +55,13 @@ export interface Customer {
 
   // Pending email change
   pending_email?: string | null;
+
+  // Parent-child linkage
+  parent_id?: string | null;
+
+  // Profile fields
+  dob?: string | null;
+  country_code?: string | null;
 }
 
 export interface CustomerCreditTransaction {

@@ -90,6 +90,10 @@ interface CustomerApiResponse {
   scheduled_deletion_at?: string | null;
   archived_at?: string | null;
   days_until_deletion?: number | null;
+  // Parent-child linkage
+  parent_id?: string | null;
+  // Profile fields needed for updates
+  dob?: string | null;
 }
 
 // Helper function to map API response to Customer type
@@ -169,6 +173,13 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     scheduled_deletion_at: response.scheduled_deletion_at ?? null,
     archived_at: response.archived_at ?? null,
     days_until_deletion: response.days_until_deletion ?? null,
+
+    // Parent-child linkage
+    parent_id: response.parent_id ?? null,
+
+    // Profile fields
+    dob: response.dob ?? null,
+    country_code: response.country_code ?? null,
   };
 
   return customer;
@@ -1429,5 +1440,103 @@ export async function deleteCustomerWaiver(
   } catch (error) {
     console.error(`Error deleting waiver ${waiverId}:`, error);
     throw error;
+  }
+}
+
+// ============ Parent-Child Linkage Functions ============
+
+/**
+ * Get all children linked to a parent by parent_id
+ */
+export async function getChildrenByParentId(
+  parentId: string,
+  jwt: string
+): Promise<Customer[]> {
+  try {
+    const params = new URLSearchParams();
+    params.append("parent_id", parentId);
+    params.append("limit", "20");
+    params.append("offset", "0");
+
+    const url = `${getValue("API")}customers?${params.toString()}`;
+    const response = await fetchWithTokenRefresh(url, {}, jwt);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch children: ${response.statusText}`);
+    }
+
+    const json: CustomersPaginatedResponse = await response.json();
+    return json.data.map(mapApiResponseToCustomer);
+  } catch (error) {
+    console.error(`Error fetching children for parent ${parentId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Link a child customer to a parent by setting parent_id via PUT /users/{id}.
+ * Fetches the child's current data to build the full update DTO.
+ */
+export async function linkChildToParent(
+  childId: string,
+  parentId: string,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const child = await getCustomerById(childId, jwt);
+    if (!child) {
+      return "Child customer not found";
+    }
+
+    const payload: UserUpdateRequestDto = {
+      first_name: child.first_name,
+      last_name: child.last_name,
+      dob: child.dob || "",
+      country_alpha2_code: child.country_code || "",
+      has_marketing_email_consent: false,
+      has_sms_consent: false,
+      parent_id: parentId,
+    };
+
+    if (child.email) payload.email = child.email;
+    if (child.phone) payload.phone = child.phone;
+
+    return await updateCustomer(childId, payload, jwt);
+  } catch (error) {
+    console.error(`Error linking child ${childId} to parent ${parentId}:`, error);
+    return error instanceof Error ? error.message : "Failed to link child to parent";
+  }
+}
+
+/**
+ * Unlink a child customer from its parent by clearing parent_id.
+ */
+export async function unlinkChildFromParent(
+  childId: string,
+  jwt: string
+): Promise<string | null> {
+  try {
+    const child = await getCustomerById(childId, jwt);
+    if (!child) {
+      return "Child customer not found";
+    }
+
+    const payload: UserUpdateRequestDto = {
+      first_name: child.first_name,
+      last_name: child.last_name,
+      dob: child.dob || "",
+      country_alpha2_code: child.country_code || "",
+      has_marketing_email_consent: false,
+      has_sms_consent: false,
+      parent_id: null,
+    };
+
+    if (child.email) payload.email = child.email;
+    if (child.phone) payload.phone = child.phone;
+
+    return await updateCustomer(childId, payload, jwt);
+  } catch (error) {
+    console.error(`Error unlinking child ${childId} from parent:`, error);
+    return error instanceof Error ? error.message : "Failed to unlink child from parent";
   }
 }
