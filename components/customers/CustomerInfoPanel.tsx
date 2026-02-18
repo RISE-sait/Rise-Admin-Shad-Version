@@ -9,6 +9,7 @@ import {
   WaiverUpload,
 } from "@/types/customer";
 import DetailsTab from "./infoTabs/CustomerDetails";
+import FamilyTab from "./infoTabs/FamilyTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,7 @@ import {
   ExternalLink,
   AlertTriangle,
   Receipt,
+  Users,
   MoreHorizontal,
   Copy,
   Info,
@@ -1354,6 +1356,13 @@ export default function CustomerInfoPanel({
             >
               <Receipt className="h-4 w-4" />
               Payments
+            </TabsTrigger>
+            <TabsTrigger
+              value="family"
+              className="flex items-center gap-2 px-6 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none bg-transparent hover:bg-muted/50 transition-all"
+            >
+              <Users className="h-4 w-4" />
+              Family
             </TabsTrigger>
             {/* <TabsTrigger
               value="stats"
@@ -2698,6 +2707,15 @@ export default function CustomerInfoPanel({
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="family">
+          <FamilyTab
+            customer={currentCustomer}
+            onCustomerUpdated={(updated) => {
+              setCurrentCustomer((prev) => ({ ...prev, ...updated }));
+            }}
+          />
         </TabsContent>
 
         {/* Stats Tab - This will show the athlete_info data that is available */}

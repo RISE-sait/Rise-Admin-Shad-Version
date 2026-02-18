@@ -55,6 +55,38 @@ export interface Customer {
 
   // Pending email change
   pending_email?: string | null;
+
+  // Parent-child linkage
+  parent_id?: string | null;
+}
+
+export interface FamilyChild {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  linked_at: string;
+}
+
+export interface PendingLinkRequest {
+  id: string;
+  child_id: string;
+  child_name: string;
+  child_email: string;
+  new_parent_id: string;
+  new_parent_name: string;
+  new_parent_email: string;
+  old_parent_id: string;
+  old_parent_name: string;
+  old_parent_email: string;
+  old_parent_verified: boolean;
+  requires_old_parent: boolean;
+  counterparty_verified: boolean;
+  awaiting_user_action: boolean;
+  initiated_by: string;
+  user_role: string;
+  created_at: string;
+  expires_at: string;
 }
 
 export interface CustomerCreditTransaction {

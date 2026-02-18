@@ -1631,6 +1631,345 @@
         }
       }
     },
+    "/applications": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns all job applications across all job postings. Admin only.",
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "List all applications",
+        "responses": {
+          "200": {
+            "description": "List of all applications",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.JobApplicationResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns a single job application with full details. Admin only.",
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Get application by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Application ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Application details",
+            "schema": {
+              "$ref": "#/definitions/dto.JobApplicationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Application not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}/notes": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates internal notes for an application. Admin only.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Update application notes",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Application ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Notes content",
+            "name": "notes",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdateApplicationNotesRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated application",
+            "schema": {
+              "$ref": "#/definitions/dto.JobApplicationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Application not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}/rating": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates the rating (1-5) for an application. Admin only.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Update application rating",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Application ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Rating value (1-5)",
+            "name": "rating",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdateApplicationRatingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated application",
+            "schema": {
+              "$ref": "#/definitions/dto.JobApplicationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Application not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}/status": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates application status and sends notification email to applicant. Admin only.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Update application status",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Application ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "New status",
+            "name": "status",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdateApplicationStatusRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated application",
+            "schema": {
+              "$ref": "#/definitions/dto.JobApplicationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Application not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/athletes": {
       "get": {
         "description": "Retrieves a paginated list of athletes with profile details and stats.",
@@ -4827,6 +5166,245 @@
         }
       }
     },
+    "/family/admin/link/{id}": {
+      "delete": {
+        "description": "Removes the parent-child link for a user (admin only)",
+        "produces": ["application/json"],
+        "tags": ["family"],
+        "summary": "Admin unlink parent-child",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Child user ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Link removed"
+          },
+          "400": {
+            "description": "Bad Request: No parent link exists",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Admin only",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/family/children": {
+      "get": {
+        "description": "Gets all children linked to the authenticated parent",
+        "produces": ["application/json"],
+        "tags": ["family"],
+        "summary": "Get children",
+        "responses": {
+          "200": {
+            "description": "Children list",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/family.ChildResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/family/link/confirm": {
+      "post": {
+        "description": "Confirms a link request using the verification code sent via email",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["family"],
+        "summary": "Confirm a parent-child link request",
+        "parameters": [
+          {
+            "description": "Verification code",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/family.ConfirmLinkRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link confirmation status",
+            "schema": {
+              "$ref": "#/definitions/family.ConfirmLinkResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Code not for this user",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Invalid or expired code",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/family/link/request": {
+      "post": {
+        "description": "Initiates a link request between parent and child. If caller has no parent, they're adding a child. If caller has a parent, they're changing/adding a parent.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["family"],
+        "summary": "Initiate a parent-child link request",
+        "parameters": [
+          {
+            "description": "Target email address",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/family.RequestLinkRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link request initiated",
+            "schema": {
+              "$ref": "#/definitions/family.RequestLinkResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "409": {
+            "description": "Pending request already exists",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Cancels the caller's pending link request",
+        "produces": ["application/json"],
+        "tags": ["family"],
+        "summary": "Cancel a pending link request",
+        "responses": {
+          "204": {
+            "description": "Request cancelled"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "No pending request found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/family/link/requests": {
+      "get": {
+        "description": "Gets all pending link requests where the user is child, new parent, or old parent",
+        "produces": ["application/json"],
+        "tags": ["family"],
+        "summary": "Get pending link requests",
+        "responses": {
+          "200": {
+            "description": "Pending requests",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/family.PendingRequestResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
     "/games": {
       "get": {
         "description": "Retrieves a list of games with optional time-based filtering and location/court filtering.",
@@ -5854,6 +6432,562 @@
         "responses": {
           "200": {
             "description": "Retry statistics",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "description": "Returns all job postings with status \"published\" for public viewing",
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "List published job postings",
+        "responses": {
+          "200": {
+            "description": "List of published job postings",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.JobPostingResponse"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Creates a new job posting with draft status. Admin only.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Create job posting",
+        "parameters": [
+          {
+            "description": "Job posting details",
+            "name": "job",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.CreateJobPostingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created job posting",
+            "schema": {
+              "$ref": "#/definitions/dto.JobPostingResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/jobs/all": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns all job postings including drafts, closed, etc. Admin only.",
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "List all job postings",
+        "responses": {
+          "200": {
+            "description": "List of all job postings",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.JobPostingResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{id}": {
+      "get": {
+        "description": "Returns a job posting. Public users only see published postings; admins see all statuses.",
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Get job posting by ID",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Job Posting ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job posting details",
+            "schema": {
+              "$ref": "#/definitions/dto.JobPostingResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Job posting not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates job posting details. Admin only.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Update job posting",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Job Posting ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated job posting details",
+            "name": "job",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdateJobPostingRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated job posting",
+            "schema": {
+              "$ref": "#/definitions/dto.JobPostingResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Job posting not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Permanently deletes a job posting. Admin only.",
+        "tags": ["careers"],
+        "summary": "Delete job posting",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Job Posting ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Job posting deleted successfully"
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Job posting not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{id}/apply": {
+      "post": {
+        "description": "Submit an application for a published job posting with resume file upload",
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Submit job application",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Job Posting ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Applicant first name",
+            "name": "first_name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Applicant last name",
+            "name": "last_name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Applicant email",
+            "name": "email",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "file",
+            "description": "Resume file (PDF, DOC, DOCX)",
+            "name": "resume",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Phone number",
+            "name": "phone",
+            "in": "formData"
+          },
+          {
+            "type": "string",
+            "description": "Cover letter text",
+            "name": "cover_letter",
+            "in": "formData"
+          },
+          {
+            "type": "string",
+            "description": "LinkedIn profile URL",
+            "name": "linkedin_url",
+            "in": "formData"
+          },
+          {
+            "type": "string",
+            "description": "Portfolio URL",
+            "name": "portfolio_url",
+            "in": "formData"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Application submitted successfully",
+            "schema": {
+              "$ref": "#/definitions/dto.JobApplicationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input or missing required fields",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Job posting not found or not accepting applications",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "429": {
+            "description": "Too Many Requests: Rate limit exceeded",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{id}/status": {
+      "patch": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Updates job posting status (draft, published, closed). Admin only.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "Update job posting status",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Job Posting ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "New status",
+            "name": "status",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/dto.UpdateJobStatusRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated job posting",
+            "schema": {
+              "$ref": "#/definitions/dto.JobPostingResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid input",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Not Found: Job posting not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}/applications": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Returns all applications for a specific job posting. Admin only.",
+        "produces": ["application/json"],
+        "tags": ["careers"],
+        "summary": "List applications by job",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Job Posting ID",
+            "name": "job_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of applications",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/dto.JobApplicationResponse"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request: Invalid ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -7712,6 +8846,15 @@
         "consumes": ["application/json"],
         "produces": ["application/json"],
         "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Child user ID (for parent viewing child's credits)",
+            "name": "child_id",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Credit balance retrieved successfully",
@@ -7722,6 +8865,13 @@
           },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Not authorized to view child's credits",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -7764,6 +8914,13 @@
             "description": "Number of items to skip",
             "name": "offset",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Child user ID (for parent viewing child's transactions)",
+            "name": "child_id",
+            "in": "query"
           }
         ],
         "responses": {
@@ -7776,6 +8933,13 @@
           },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Not authorized to view child's transactions",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -7801,6 +8965,15 @@
         "consumes": ["application/json"],
         "produces": ["application/json"],
         "tags": ["credits"],
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Child user ID (for parent viewing child's weekly usage)",
+            "name": "child_id",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Weekly usage retrieved successfully\" example({\"customer_id\":\"uuid\",\"current_week_usage\":1,\"weekly_limit\":2,\"remaining_credits\":1})",
@@ -7811,6 +8984,13 @@
           },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Not authorized to view child's weekly usage",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -8016,6 +9196,13 @@
             "description": "Filter events by day (YYYY-MM-DD)",
             "name": "day",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Child user ID (for parent viewing child's events)",
+            "name": "child_id",
+            "in": "query"
           }
         ],
         "responses": {
@@ -8032,6 +9219,13 @@
               "type": "object",
               "additionalProperties": true
             }
+          },
+          "403": {
+            "description": "Forbidden: Not authorized to view child's events",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       }
@@ -8041,18 +9235,22 @@
         "security": [
           {
             "Bearer": []
-          },
-          {
-            "Bearer": []
           }
         ],
-        "produces": ["application/json", "application/json"],
-        "tags": ["games", "games"],
+        "produces": ["application/json"],
+        "tags": ["games"],
         "parameters": [
           {
             "type": "string",
             "description": "Filter by time: upcoming, past, or live",
             "name": "filter",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Child user ID (for parent viewing child's games)",
+            "name": "child_id",
             "in": "query"
           }
         ],
@@ -8068,6 +9266,13 @@
           },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Not authorized to view child's games",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -8198,6 +9403,15 @@
         "produces": ["application/json"],
         "tags": ["schedule"],
         "summary": "Get my schedule",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "description": "Child user ID (for parent viewing child's schedule)",
+            "name": "child_id",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Schedule retrieved successfully with events, games, and practices",
@@ -8207,6 +9421,13 @@
           },
           "401": {
             "description": "Unauthorized",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "403": {
+            "description": "Forbidden: Not authorized to view child's schedule",
             "schema": {
               "type": "object",
               "additionalProperties": true
@@ -11191,8 +12412,14 @@
     "customer.Response": {
       "type": "object",
       "properties": {
+        "archived_at": {
+          "type": "string"
+        },
         "country_code": {
           "type": "string"
+        },
+        "days_until_deletion": {
+          "type": "integer"
         },
         "deleted_at": {
           "type": "string"
@@ -11231,6 +12458,9 @@
           "$ref": "#/definitions/customer.MembershipResponseDto"
         },
         "notes": {
+          "type": "string"
+        },
+        "pending_email": {
           "type": "string"
         },
         "phone": {
@@ -11468,6 +12698,71 @@
         }
       }
     },
+    "dto.CreateJobPostingRequest": {
+      "type": "object",
+      "required": [
+        "description",
+        "employment_type",
+        "location_type",
+        "position",
+        "title"
+      ],
+      "properties": {
+        "closing_date": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "employment_type": {
+          "type": "string",
+          "enum": [
+            "full_time",
+            "part_time",
+            "contract",
+            "internship",
+            "volunteer"
+          ]
+        },
+        "location_type": {
+          "type": "string",
+          "enum": ["on_site", "remote", "hybrid"]
+        },
+        "nice_to_have": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "position": {
+          "type": "string"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "responsibilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "salary_max": {
+          "type": "number"
+        },
+        "salary_min": {
+          "type": "number"
+        },
+        "show_salary": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "dto.CreateProviderRequest": {
       "type": "object",
       "required": ["name"],
@@ -11545,6 +12840,127 @@
         }
       }
     },
+    "dto.JobApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "cover_letter": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "internal_notes": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "linkedin_url": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "portfolio_url": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "resume_url": {
+          "type": "string"
+        },
+        "reviewed_by": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.JobPostingResponse": {
+      "type": "object",
+      "properties": {
+        "closing_date": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "employment_type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "location_type": {
+          "type": "string"
+        },
+        "nice_to_have": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "position": {
+          "type": "string"
+        },
+        "published_at": {
+          "type": "string"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "responsibilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "salary_max": {
+          "type": "string"
+        },
+        "salary_min": {
+          "type": "string"
+        },
+        "show_salary": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
     "dto.NewsletterRequest": {
       "type": "object",
       "properties": {
@@ -11588,6 +13004,118 @@
         },
         "type": {
           "type": "string"
+        }
+      }
+    },
+    "dto.UpdateApplicationNotesRequest": {
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.UpdateApplicationRatingRequest": {
+      "type": "object",
+      "required": ["rating"],
+      "properties": {
+        "rating": {
+          "type": "integer",
+          "maximum": 5,
+          "minimum": 1
+        }
+      }
+    },
+    "dto.UpdateApplicationStatusRequest": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "received",
+            "reviewing",
+            "interview",
+            "offer",
+            "hired",
+            "rejected",
+            "withdrawn"
+          ]
+        }
+      }
+    },
+    "dto.UpdateJobPostingRequest": {
+      "type": "object",
+      "required": [
+        "description",
+        "employment_type",
+        "location_type",
+        "position",
+        "title"
+      ],
+      "properties": {
+        "closing_date": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "employment_type": {
+          "type": "string",
+          "enum": [
+            "full_time",
+            "part_time",
+            "contract",
+            "internship",
+            "volunteer"
+          ]
+        },
+        "location_type": {
+          "type": "string",
+          "enum": ["on_site", "remote", "hybrid"]
+        },
+        "nice_to_have": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "position": {
+          "type": "string"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "responsibilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "salary_max": {
+          "type": "number"
+        },
+        "salary_min": {
+          "type": "number"
+        },
+        "show_salary": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "dto.UpdateJobStatusRequest": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["draft", "published", "closed", "archived"]
         }
       }
     },
@@ -12104,6 +13632,136 @@
         },
         "name": {
           "type": "string"
+        }
+      }
+    },
+    "family.ChildResponse": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "linked_at": {
+          "type": "string"
+        }
+      }
+    },
+    "family.ConfirmLinkRequest": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      }
+    },
+    "family.ConfirmLinkResponse": {
+      "type": "object",
+      "properties": {
+        "child_id": {
+          "type": "string"
+        },
+        "child_name": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "status": {
+          "description": "\"complete\", \"pending_old_parent\", \"pending_new_parent\"",
+          "type": "string"
+        }
+      }
+    },
+    "family.PendingRequestResponse": {
+      "type": "object",
+      "properties": {
+        "awaiting_user_action": {
+          "type": "boolean"
+        },
+        "child_email": {
+          "type": "string"
+        },
+        "child_id": {
+          "type": "string"
+        },
+        "child_name": {
+          "type": "string"
+        },
+        "counterparty_verified": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "initiated_by": {
+          "type": "string"
+        },
+        "new_parent_email": {
+          "type": "string"
+        },
+        "new_parent_id": {
+          "type": "string"
+        },
+        "new_parent_name": {
+          "type": "string"
+        },
+        "old_parent_email": {
+          "type": "string"
+        },
+        "old_parent_id": {
+          "type": "string"
+        },
+        "old_parent_name": {
+          "type": "string"
+        },
+        "old_parent_verified": {
+          "type": "boolean"
+        },
+        "requires_old_parent": {
+          "type": "boolean"
+        },
+        "user_role": {
+          "description": "\"child\", \"new_parent\", or \"old_parent\"",
+          "type": "string"
+        }
+      }
+    },
+    "family.RequestLinkRequest": {
+      "type": "object",
+      "required": ["target_email"],
+      "properties": {
+        "target_email": {
+          "type": "string"
+        }
+      }
+    },
+    "family.RequestLinkResponse": {
+      "type": "object",
+      "properties": {
+        "expires_at": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "requires_old_parent": {
+          "type": "boolean"
         }
       }
     },
