@@ -884,17 +884,17 @@ export class Api<
       }),
 
     /**
-     * @description Authenticates a user using Firebase token and returns a JWT token for the authenticated user
+     * @description Authenticates a parent user and returns a JWT token for a linked user
      *
      * @tags authentication
-     * @name ChildCreate
-     * @summary Authenticate a user and return a JWT token
-     * @request POST:/auth/child/{id}
+     * @name LinkedCreate
+     * @summary Authenticate as a linked user
+     * @request POST:/auth/linked/{id}
      * @secure
      */
-    childCreate: (id: string, params: RequestParams = {}) =>
+    linkedCreate: (id: string, params: RequestParams = {}) =>
       this.request<IdentityUserAuthenticationResponseDto, Record<string, any>>({
-        path: `/auth/child/${id}`,
+        path: `/auth/linked/${id}`,
         method: "POST",
         secure: true,
         type: ContentType.Json,

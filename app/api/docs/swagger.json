@@ -2259,22 +2259,22 @@
         }
       }
     },
-    "/auth/child/{id}": {
+    "/auth/linked/{id}": {
       "post": {
         "security": [
           {
             "Bearer": []
           }
         ],
-        "description": "Authenticates a user using Firebase token and returns a JWT token for the authenticated user",
+        "description": "Authenticates a parent user and returns a JWT token for a linked user",
         "consumes": ["application/json"],
         "produces": ["application/json"],
         "tags": ["authentication"],
-        "summary": "Authenticate a user and return a JWT token",
+        "summary": "Authenticate as a linked user",
         "parameters": [
           {
             "type": "string",
-            "description": "Child ID",
+            "description": "Linked user ID",
             "name": "id",
             "in": "path",
             "required": true
