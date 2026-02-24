@@ -49,6 +49,7 @@ interface MembershipInfoApi {
   membership_renewal_date: string;
   membership_start_date: string;
   status?: string; // Membership status from API (active, past_due, canceled, etc.)
+  stripe_subscription_id?: string;
 }
 
 // Define a type for the API response
@@ -115,7 +116,8 @@ function mapApiResponseToCustomer(response: CustomerApiResponse): Customer {
     membership_plan_name: m.membership_plan_name || "",
     membership_renewal_date: m.membership_renewal_date || "",
     membership_start_date: m.membership_start_date ? new Date(m.membership_start_date) : null,
-    subscription_status: m.status as "active" | "inactive" | "canceled" | "expired" | "past_due" | undefined,
+    subscription_status: m.status as "active" | "inactive" | "canceled" | "expired" | "past_due" | "paused" | undefined,
+    stripe_subscription_id: m.stripe_subscription_id || undefined,
   }));
 
   // Get first membership for backward compatibility fields

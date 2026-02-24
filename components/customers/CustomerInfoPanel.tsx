@@ -111,6 +111,15 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import CollectPayment from "./CollectPayment";
+import {
+  cancelSubscription,
+  cancelSubscriptionImmediate,
+  pauseSubscription,
+  resumeSubscription,
+  adminUpgradeSubscription,
+  adminSendCheckout,
+} from "@/services/subscription";
+import { CustomerMembership } from "@/types/customer";
 
 interface CustomerInfoPanelProps {
   customer: Customer;
@@ -215,12 +224,29 @@ export default function CustomerInfoPanel({
   });
   const [totalPayments, setTotalPayments] = useState(0);
 
+  // Subscription management state
+  const [subscriptionActionLoading, setSubscriptionActionLoading] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelImmediateDialogOpen, setCancelImmediateDialogOpen] = useState(false);
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [sendCheckoutDialogOpen, setSendCheckoutDialogOpen] = useState(false);
+  const [selectedMembership, setSelectedMembership] = useState<CustomerMembership | null>(null);
+  const [selectedUpgradePlanId, setSelectedUpgradePlanId] = useState("");
+  const [selectedCheckoutPlanId, setSelectedCheckoutPlanId] = useState("");
+  const [checkoutResult, setCheckoutResult] = useState<{ checkout_url: string; message: string } | null>(null);
+  const [allPlans, setAllPlans] = useState<MembershipPlan[]>([]);
+
   const CREDITS_AMOUNT_PATTERN = /^\d*$/;
   const NOTES_INPUT_PATTERN = /^[\w\s.,!?"'\-:;/\\&=?#@%()[\]{}~+]*$/;
 
   const { toast } = useToast();
   const { user } = useUser();
   const isReceptionist = user?.Role === StaffRoleEnum.RECEPTIONIST;
+  const isAdmin = user?.Role === StaffRoleEnum.ADMIN ||
+    user?.Role === StaffRoleEnum.SUPERADMIN ||
+    user?.Role === StaffRoleEnum.IT;
 
   const onCustomerUpdatedRef = useRef(onCustomerUpdated);
 
@@ -548,7 +574,8 @@ export default function CustomerInfoPanel({
           membership_plan_name: m.membership_plan_name,
           membership_start_date: m.start_date ? new Date(m.start_date) : null,
           membership_renewal_date: m.renewal_date || "",
-          subscription_status: m.status as "active" | "inactive" | "canceled" | "expired" | "past_due" | undefined,
+          subscription_status: m.status as "active" | "inactive" | "canceled" | "expired" | "past_due" | "paused" | undefined,
+          stripe_subscription_id: m.stripe_subscription_id || undefined,
         })),
       }));
     } catch (error) {
@@ -1275,6 +1302,181 @@ export default function CustomerInfoPanel({
     }
   };
 
+  // --- Subscription Management Handlers ---
+
+  const handleCancelSubscription = async () => {
+    if (!selectedMembership?.stripe_subscription_id || !user?.Jwt) return;
+    setSubscriptionActionLoading(true);
+    try {
+      await cancelSubscription(selectedMembership.stripe_subscription_id, user.Jwt);
+      toast({
+        status: "success",
+        description: "Subscription will cancel at the end of the billing period.",
+      });
+      setCancelDialogOpen(false);
+      setSelectedMembership(null);
+      await refreshCustomerData();
+    } catch (error) {
+      toast({
+        status: "error",
+        description: error instanceof Error ? error.message : "Failed to cancel subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscriptionActionLoading(false);
+    }
+  };
+
+  const handleCancelSubscriptionImmediate = async () => {
+    if (!selectedMembership?.stripe_subscription_id || !user?.Jwt) return;
+    setSubscriptionActionLoading(true);
+    try {
+      await cancelSubscriptionImmediate(selectedMembership.stripe_subscription_id, user.Jwt);
+      toast({
+        status: "success",
+        description: "Subscription has been cancelled immediately.",
+      });
+      setCancelImmediateDialogOpen(false);
+      setSelectedMembership(null);
+      await refreshCustomerData();
+    } catch (error) {
+      toast({
+        status: "error",
+        description: error instanceof Error ? error.message : "Failed to cancel subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscriptionActionLoading(false);
+    }
+  };
+
+  const handlePauseSubscription = async () => {
+    if (!selectedMembership?.stripe_subscription_id || !user?.Jwt) return;
+    setSubscriptionActionLoading(true);
+    try {
+      await pauseSubscription(selectedMembership.stripe_subscription_id, user.Jwt);
+      toast({
+        status: "success",
+        description: "Subscription has been paused.",
+      });
+      setPauseDialogOpen(false);
+      setSelectedMembership(null);
+      await refreshCustomerData();
+    } catch (error) {
+      toast({
+        status: "error",
+        description: error instanceof Error ? error.message : "Failed to pause subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscriptionActionLoading(false);
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    if (!selectedMembership?.stripe_subscription_id || !user?.Jwt) return;
+    setSubscriptionActionLoading(true);
+    try {
+      await resumeSubscription(selectedMembership.stripe_subscription_id, user.Jwt);
+      toast({
+        status: "success",
+        description: "Subscription has been resumed.",
+      });
+      setResumeDialogOpen(false);
+      setSelectedMembership(null);
+      await refreshCustomerData();
+    } catch (error) {
+      toast({
+        status: "error",
+        description: error instanceof Error ? error.message : "Failed to resume subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscriptionActionLoading(false);
+    }
+  };
+
+  const handleUpgradeSubscription = async () => {
+    if (!selectedMembership?.stripe_subscription_id || !user?.Jwt || !selectedUpgradePlanId) return;
+    setSubscriptionActionLoading(true);
+    try {
+      await adminUpgradeSubscription(
+        selectedMembership.stripe_subscription_id,
+        currentCustomer.id,
+        selectedUpgradePlanId,
+        user.Jwt
+      );
+      toast({
+        status: "success",
+        description: "Subscription upgraded successfully. Proration will be applied.",
+      });
+      setUpgradeDialogOpen(false);
+      setSelectedMembership(null);
+      setSelectedUpgradePlanId("");
+      await refreshCustomerData();
+    } catch (error) {
+      toast({
+        status: "error",
+        description: error instanceof Error ? error.message : "Failed to upgrade subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscriptionActionLoading(false);
+    }
+  };
+
+  const handleSendCheckout = async () => {
+    if (!user?.Jwt || !selectedCheckoutPlanId) return;
+    setSubscriptionActionLoading(true);
+    try {
+      const result = await adminSendCheckout(
+        currentCustomer.id,
+        selectedCheckoutPlanId,
+        user.Jwt
+      );
+      setCheckoutResult(result);
+      toast({
+        status: "success",
+        description: result.message || "Checkout link sent to customer.",
+      });
+    } catch (error) {
+      toast({
+        status: "error",
+        description: error instanceof Error ? error.message : "Failed to send checkout link",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscriptionActionLoading(false);
+    }
+  };
+
+  const openSubscriptionAction = (
+    membership: CustomerMembership,
+    action: "cancel" | "cancelImmediate" | "pause" | "resume" | "upgrade"
+  ) => {
+    setSelectedMembership(membership);
+    switch (action) {
+      case "cancel":
+        setCancelDialogOpen(true);
+        break;
+      case "cancelImmediate":
+        setCancelImmediateDialogOpen(true);
+        break;
+      case "pause":
+        setPauseDialogOpen(true);
+        break;
+      case "resume":
+        setResumeDialogOpen(true);
+        break;
+      case "upgrade":
+        // Load plans for the upgrade dialog
+        getAllMembershipPlans().then((plans) => setAllPlans(plans));
+        setSelectedUpgradePlanId("");
+        setUpgradeDialogOpen(true);
+        break;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Account Deletion Warning Banner */}
@@ -1431,20 +1633,69 @@ export default function CustomerInfoPanel({
                         />
                       </div>
                     )}
-                    <div className="flex items-center gap-2 mb-4">
-                      <CreditCard className={`h-5 w-5 ${isPastDue ? "text-red-500" : "text-yellow-500"}`} />
-                      <h3 className="font-semibold text-lg">
-                        {membership.membership_name}
-                      </h3>
-                      {isPastDue && (
-                        <Badge variant="destructive" className="animate-pulse">
-                          Past Due
-                        </Badge>
-                      )}
-                      {currentCustomer.memberships.length > 1 && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({index + 1} of {currentCustomer.memberships.length})
-                        </span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className={`h-5 w-5 ${isPastDue ? "text-red-500" : "text-yellow-500"}`} />
+                        <h3 className="font-semibold text-lg">
+                          {membership.membership_name}
+                        </h3>
+                        {isPastDue && (
+                          <Badge variant="destructive" className="animate-pulse">
+                            Past Due
+                          </Badge>
+                        )}
+                        {membership.subscription_status === "paused" && (
+                          <Badge variant="secondary" className="text-xs">
+                            Paused
+                          </Badge>
+                        )}
+                        {currentCustomer.memberships.length > 1 && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({index + 1} of {currentCustomer.memberships.length})
+                          </span>
+                        )}
+                      </div>
+                      {isAdmin && membership.stripe_subscription_id && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Manage Subscription</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {(membership.subscription_status === "active" || membership.subscription_status === "past_due") && (
+                              <>
+                                <DropdownMenuItem onClick={() => openSubscriptionAction(membership, "cancel")}>
+                                  Cancel at Period End
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600 focus:text-red-600"
+                                  onClick={() => openSubscriptionAction(membership, "cancelImmediate")}
+                                >
+                                  Cancel Immediately
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {membership.subscription_status === "active" && (
+                              <>
+                                <DropdownMenuItem onClick={() => openSubscriptionAction(membership, "pause")}>
+                                  Pause Subscription
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => openSubscriptionAction(membership, "upgrade")}>
+                                  Upgrade Plan
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {membership.subscription_status === "paused" && (
+                              <DropdownMenuItem onClick={() => openSubscriptionAction(membership, "resume")}>
+                                Resume Subscription
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -1468,6 +1719,10 @@ export default function CustomerInfoPanel({
                           ) : membership.subscription_status === "canceled" ? (
                             <Badge variant="secondary" className="text-xs">
                               Canceled
+                            </Badge>
+                          ) : membership.subscription_status === "paused" ? (
+                            <Badge variant="secondary" className="text-xs bg-yellow-500 text-white">
+                              Paused
                             </Badge>
                           ) : membership.subscription_status === "inactive" ? (
                             <Badge variant="secondary" className="text-xs">
@@ -1554,6 +1809,20 @@ export default function CustomerInfoPanel({
                     This customer doesn&apos;t have any membership plans associated
                     with their account.
                   </p>
+                  {isAdmin && (
+                    <Button
+                      className="mt-4"
+                      onClick={() => {
+                        getAllMembershipPlans().then((plans) => setAllPlans(plans));
+                        setSelectedCheckoutPlanId("");
+                        setCheckoutResult(null);
+                        setSendCheckoutDialogOpen(true);
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Send Checkout Link
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -3212,6 +3481,263 @@ export default function CustomerInfoPanel({
             >
               {isUploadingWaiver ? "Uploading..." : "Upload Waiver"}
             </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel at Period End Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Subscription at Period End</AlertDialogTitle>
+            <AlertDialogDescription>
+              The subscription will remain active until the end of the current billing period, then cancel automatically. The customer will retain access until then.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {selectedMembership && (
+            <div className="text-sm text-muted-foreground py-2">
+              <p><strong>Membership:</strong> {selectedMembership.membership_name}</p>
+              <p><strong>Plan:</strong> {selectedMembership.membership_plan_name}</p>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={subscriptionActionLoading}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleCancelSubscription}
+              disabled={subscriptionActionLoading}
+              variant="outline"
+            >
+              {subscriptionActionLoading ? "Cancelling..." : "Cancel at Period End"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Immediately Dialog */}
+      <AlertDialog open={cancelImmediateDialogOpen} onOpenChange={setCancelImmediateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Subscription Immediately</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will cancel the subscription right now. The customer will lose access immediately. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {selectedMembership && (
+            <div className="text-sm text-muted-foreground py-2">
+              <p><strong>Membership:</strong> {selectedMembership.membership_name}</p>
+              <p><strong>Plan:</strong> {selectedMembership.membership_plan_name}</p>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={subscriptionActionLoading}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleCancelSubscriptionImmediate}
+              disabled={subscriptionActionLoading}
+              variant="destructive"
+            >
+              {subscriptionActionLoading ? "Cancelling..." : "Cancel Now"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Pause Subscription Dialog */}
+      <AlertDialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pause Subscription</AlertDialogTitle>
+            <AlertDialogDescription>
+              Pausing will suspend billing for this subscription. The subscription can be resumed later by an admin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {selectedMembership && (
+            <div className="text-sm text-muted-foreground py-2">
+              <p><strong>Membership:</strong> {selectedMembership.membership_name}</p>
+              <p><strong>Plan:</strong> {selectedMembership.membership_plan_name}</p>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={subscriptionActionLoading}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handlePauseSubscription}
+              disabled={subscriptionActionLoading}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              {subscriptionActionLoading ? "Pausing..." : "Pause Subscription"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Resume Subscription Dialog */}
+      <AlertDialog open={resumeDialogOpen} onOpenChange={setResumeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resume Subscription</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will resume billing and reactivate the subscription. The customer will regain access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {selectedMembership && (
+            <div className="text-sm text-muted-foreground py-2">
+              <p><strong>Membership:</strong> {selectedMembership.membership_name}</p>
+              <p><strong>Plan:</strong> {selectedMembership.membership_plan_name}</p>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={subscriptionActionLoading}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleResumeSubscription}
+              disabled={subscriptionActionLoading}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {subscriptionActionLoading ? "Resuming..." : "Resume Subscription"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Upgrade Subscription Dialog */}
+      <AlertDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upgrade Subscription</AlertDialogTitle>
+            <AlertDialogDescription>
+              Select a higher-tier plan to upgrade to. Stripe will handle proration automatically (credits unused time, charges the difference).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {selectedMembership && (
+            <div className="space-y-4 py-2">
+              <div className="text-sm text-muted-foreground">
+                <p><strong>Current Plan:</strong> {selectedMembership.membership_plan_name}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>New Plan</Label>
+                <Select
+                  value={selectedUpgradePlanId}
+                  onValueChange={setSelectedUpgradePlanId}
+                  disabled={subscriptionActionLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a plan to upgrade to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allPlans
+                      .filter((p) => p.id !== selectedMembership.membership_plan_id && p.visibility)
+                      .filter((p) => {
+                        const currentPlan = allPlans.find((cp) => cp.id === selectedMembership.membership_plan_id);
+                        return currentPlan && p.unit_amount && currentPlan.unit_amount
+                          ? p.unit_amount > currentPlan.unit_amount
+                          : true;
+                      })
+                      .map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name} {plan.unit_amount ? `($${(plan.unit_amount / 100).toFixed(2)}/${plan.billing_interval || "month"})` : ""}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={subscriptionActionLoading}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleUpgradeSubscription}
+              disabled={subscriptionActionLoading || !selectedUpgradePlanId}
+            >
+              {subscriptionActionLoading ? "Upgrading..." : "Upgrade Plan"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Send Checkout Link Dialog */}
+      <AlertDialog open={sendCheckoutDialogOpen} onOpenChange={(open) => {
+        setSendCheckoutDialogOpen(open);
+        if (!open) {
+          setCheckoutResult(null);
+          setSelectedCheckoutPlanId("");
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send Checkout Link</AlertDialogTitle>
+            <AlertDialogDescription>
+              Select a membership plan to send a Stripe checkout link to {currentCustomer.first_name} {currentCustomer.last_name} ({currentCustomer.email}).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            {!checkoutResult ? (
+              <div className="space-y-2">
+                <Label>Membership Plan</Label>
+                <Select
+                  value={selectedCheckoutPlanId}
+                  onValueChange={setSelectedCheckoutPlanId}
+                  disabled={subscriptionActionLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allPlans
+                      .filter((p) => p.visibility)
+                      .map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name} {plan.unit_amount ? `($${(plan.unit_amount / 100).toFixed(2)}/${plan.billing_interval || "month"})` : ""}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md text-sm">
+                  <p className="font-medium text-green-700 dark:text-green-400">{checkoutResult.message}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Checkout URL (also emailed to customer)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      value={checkoutResult.checkout_url}
+                      className="text-xs"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(checkoutResult.checkout_url);
+                        toast({ status: "success", description: "Link copied to clipboard" });
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <AlertDialogFooter>
+            {!checkoutResult ? (
+              <>
+                <AlertDialogCancel disabled={subscriptionActionLoading}>Cancel</AlertDialogCancel>
+                <Button
+                  onClick={handleSendCheckout}
+                  disabled={subscriptionActionLoading || !selectedCheckoutPlanId}
+                >
+                  {subscriptionActionLoading ? "Sending..." : "Send Checkout Link"}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => {
+                setSendCheckoutDialogOpen(false);
+                setCheckoutResult(null);
+                setSelectedCheckoutPlanId("");
+              }}>
+                Done
+              </Button>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
